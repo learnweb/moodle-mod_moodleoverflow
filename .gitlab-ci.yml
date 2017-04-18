@@ -1,0 +1,59 @@
+services:
+ - mysql:latest
+
+cache:
+ paths:
+ - $HOME/.composer/cache
+
+variables:
+ DB: "mysqli"
+ MYSQL_ROOT_PASSWORD: "superrootpass"
+ TRAVIS_BUILD_DIR: "$CI_PROJECT_DIR"
+
+before_script:
+ - apt-get update
+ # Add Australian locale
+ - apt-get install -y locales
+ - echo "en_AU.UTF-8 UTF-8" > /etc/locale.gen
+ - locale-gen en_AU.UTF-8
+ - /usr/sbin/update-locale LANG=en_AU.UTF-8
+ # Install php-gd (and others)
+ - apt-get install -y git libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libpng12-dev libicu-dev g++ mysql-client npm
+ - ln -s "$(which nodejs)" /usr/bin/node
+ - docker-php-ext-install -j$(nproc) iconv mcrypt intl zip mysqli
+ - docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+ - docker-php-ext-install -j$(nproc) gd
+ # Install phpunit.
+ - curl -o /usr/local/bin/phpunit https://phar.phpunit.de/phpunit.phar
+ - chmod +x /usr/local/bin/phpunit
+ - cd ../..
+ # Install composer.
+ - curl -sS https://getcomposer.org/installer | php
+ - mv composer.phar /usr/local/bin/composer
+ - composer create-project -n --no-dev moodlerooms/moodle-plugin-ci ci ^1
+ - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
+ - chmod u+x /builds/ci/bin/moodle-plugin-ci
+ - chmod u+x /builds/ci/bin/*
+ - umask u+x
+ - moodle-plugin-ci install --db-user=root --db-pass=superrootpass --db-host=mysql -vvv
+
+.job_template: &job_definition
+ script:
+  - EXIT_STATUS=0
+  - moodle-plugin-ci phplint || EXIT_STATUS=$?
+  - moodle-plugin-ci phpcpd || EXIT_STATUS=$?
+  - moodle-plugin-ci phpmd || EXIT_STATUS=$?
+  - moodle-plugin-ci codechecker || EXIT_STATUS=$?
+  - moodle-plugin-ci csslint || EXIT_STATUS=$?
+  - moodle-plugin-ci shifter || EXIT_STATUS=$?
+  - moodle-plugin-ci jshint || EXIT_STATUS=$?
+  - moodle-plugin-ci validate || EXIT_STATUS=$?
+  - moodle-plugin-ci phpunit || EXIT_STATUS=$?
+  - moodle-plugin-ci behat || EXIT_STATUS=$?
+  - exit $EXIT_STATUS
+
+job1:
+ <<: *job_definition
+ image: php:7.1
+ variables:
+  MOODLE_BRANCH: "MOODLE_32_STABLE"
