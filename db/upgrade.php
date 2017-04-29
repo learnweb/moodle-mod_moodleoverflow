@@ -76,6 +76,39 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017042901, 'moodleoverflow');
     }
 
+    // Create moodleoverflow_posts.
+    if ($oldversion < 2017042902) {
+
+        // Define table moodleoverflow_posts to be created.
+        $table = new xmldb_table('moodleoverflow_posts');
+
+        // Adding fields to table moodleoverflow_posts.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('discussion', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('parent', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('created', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('modified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('message', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table moodleoverflow_posts.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('discussion', XMLDB_KEY_FOREIGN, array('discussion'), 'moodleoverflow_discussions', array('id'));
+        $table->add_key('parent', XMLDB_KEY_FOREIGN, array('parent'), 'moodleoverflow_posts', array('id'));
+
+        // Adding indexes to table moodleoverflow_posts.
+        $table->add_index('userid', XMLDB_INDEX_NOTUNIQUE, array('userid'));
+        $table->add_index('created', XMLDB_INDEX_NOTUNIQUE, array('created'));
+
+        // Conditionally launch create table for moodleoverflow_posts.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017042902, 'moodleoverflow');
+    }
+
 
 
     return true;
