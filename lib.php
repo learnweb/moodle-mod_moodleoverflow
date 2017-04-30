@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Example constant, you probably want to remove this :-)
  */
-define('moodleoverflow_ULTIMATE_ANSWER', 42);
+define('MOODLEOVERFLOW_ULTIMATE_ANSWER', 42);
 
 /* Moodle core API */
 

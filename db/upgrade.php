@@ -42,7 +42,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
 
-
     // Create moodleoverflow_discussions.
     if ($oldversion < 2017042901) {
 
@@ -108,8 +107,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         // Moodleoverflow savepoint reached.
         upgrade_mod_savepoint(true, 2017042902, 'moodleoverflow');
     }
-
-
 
     return true;
 }
