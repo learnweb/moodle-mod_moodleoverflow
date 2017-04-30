@@ -137,11 +137,12 @@ function moodleoverflow_refresh_events($courseid = 0) {
         }
     }
 
+    /*
     foreach ($moodleoverflows as $moodleoverflow) {
         // Create a function such as the one below to deal with updating calendar events.
         // moodleoverflow_update_events($moodleoverflow);
     }
-
+    */
     return true;
 }
 
