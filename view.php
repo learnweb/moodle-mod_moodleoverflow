@@ -25,28 +25,54 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Replace moodleoverflow with the name of your module and remove this line.
-
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
 
-$id = optional_param('id', 0, PARAM_INT); // Course_module ID, or
-$n  = optional_param('n', 0, PARAM_INT);  // ... moodleoverflow instance ID - it should be named as the first character of the module.
+// Declare optional parameters.
+$id      = optional_param('id', 0, PARAM_INT);       // Course Module ID.
+$m       = optional_param('m', 0, PARAM_INT);        // MoodleOverflow ID.
+$page    = optional_param('page', 0, PARAM_INT);     // Which page to show.
 
+// Set the parameters.
+$params = array();
 if ($id) {
-    $cm         = get_coursemodule_from_id('moodleoverflow', $id, 0, false, MUST_EXIST);
-    $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-    $moodleoverflow  = $DB->get_record('moodleoverflow', array('id' => $cm->instance), '*', MUST_EXIST);
-} else if ($n) {
-    $moodleoverflow  = $DB->get_record('moodleoverflow', array('id' => $n), '*', MUST_EXIST);
-    $course     = $DB->get_record('course', array('id' => $moodleoverflow->course), '*', MUST_EXIST);
-    $cm         = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
+    $params['id'] = $id;
 } else {
-    error('You must specify a course_module ID or an instance ID');
+    $params['m'] = $m;
+}
+if ($page) {
+    $params['page'] = $page;
+}
+$PAGE->set_url('/mod/forum/view.php', $params);
+
+// Check for the course and module.
+if ($id) {
+    $cm              = get_coursemodule_from_id('moodleoverflow', $id, 0, false, MUST_EXIST);
+    $course          = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $moodleoverflow  = $DB->get_record('moodleoverflow', array('id' => $cm->instance), '*', MUST_EXIST);
+} else if ($m) {
+    $moodleoverflow  = $DB->get_record('moodleoverflow', array('id' => $m), '*', MUST_EXIST);
+    $course          = $DB->get_record('course', array('id' => $moodleoverflow->course), '*', MUST_EXIST);
+    $cm              = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
+} else {
+    print_error('missingparameter');
 }
 
+
+
+// Require a login.
 require_login($course, true, $cm);
 
+// Set the context.
+$context = context_module::instance($cm->id);
+$PAGE->set_context($context);
+
+// Check some capabilities.
+if (!has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
+    notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
+}
+
+// Mark the activity completed (if required) and trigger the course_module_viewed event.
 $event = \mod_moodleoverflow\event\course_module_viewed::create(array(
     'objectid' => $PAGE->cm->instance,
     'context' => $PAGE->context,
@@ -56,28 +82,27 @@ $event->add_record_snapshot($PAGE->cm->modname, $moodleoverflow);
 $event->trigger();
 
 // Print the page header.
-
 $PAGE->set_url('/mod/moodleoverflow/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($moodleoverflow->name));
 $PAGE->set_heading(format_string($course->fullname));
 
-/*
- * Other things you may want to set - remove if not needed.
- * $PAGE->set_cacheable(false);
- * $PAGE->set_focuscontrol('some-html-id');
- * $PAGE->add_body_class('moodleoverflow-'.$somevar);
- */
-
 // Output starts here.
 echo $OUTPUT->header();
 
-// Conditions to show the intro can change to look for own settings or whatever.
-if ($moodleoverflow->intro) {
-    echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox mod_introbox', 'moodleoverflowintro');
+// Show the name of the instance.
+echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
+
+// Show the description of the instance.
+if (!empty($moodleoverflow->intro)) {
+    echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
 }
 
-// Replace the following lines with you own code.
-echo $OUTPUT->heading('Yay! It works!');
+// Return here after posting, etc.
+$SESSION->fromdiscussion = qualified_me();
+
+// Print the discussions.
+echo '<br />';
+moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, $CFG->moodleoverflow_manydiscussions);
 
 // Finish the page.
 echo $OUTPUT->footer();

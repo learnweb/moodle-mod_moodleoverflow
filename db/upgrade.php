@@ -108,5 +108,164 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017042902, 'moodleoverflow');
     }
 
+    if ($oldversion < 2017050201) {
+
+        // Define table moodleoverflow_read to be created.
+        $table = new xmldb_table('moodleoverflow_read');
+
+        // Adding fields to table moodleoverflow_read.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('moodleoverflowid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('discussionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('postid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('firstread', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('lastread', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table moodleoverflow_read.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Adding indexes to table moodleoverflow_read.
+        $table->add_index('userid-moodleoverflowid', XMLDB_INDEX_NOTUNIQUE, array('userid', 'moodleoverflowid'));
+        $table->add_index('userid-discussionid', XMLDB_INDEX_NOTUNIQUE, array('userid', 'discussionid'));
+        $table->add_index('postid-userid', XMLDB_INDEX_NOTUNIQUE, array('postid', 'userid'));
+
+        // Conditionally launch create table for moodleoverflow_read.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017050201, 'moodleoverflow');
+    }
+
+    // Create moodleoverflow_subscriptions.
+    if ($oldversion < 2017050402) {
+
+        // Define table moodleoverflow_subscriptions to be created.
+        $table = new xmldb_table('moodleoverflow_subscriptions');
+
+        // Adding fields to table moodleoverflow_subscriptions.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('moodleoverflow', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table moodleoverflow_subscriptions.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('moodleoverflow', XMLDB_KEY_FOREIGN, array('moodleoverflow'), 'moodleoverflow', array('id'));
+
+        // Adding indexes to table moodleoverflow_subscriptions.
+        $table->add_index('userid', XMLDB_INDEX_NOTUNIQUE, array('userid'));
+
+        // Conditionally launch create table for moodleoverflow_subscriptions.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017050402, 'moodleoverflow');
+    }
+
+    // Create moodleoverflow_discuss_subs.
+    if ($oldversion < 2017050403) {
+
+        // Define table moodleoverflow_discuss_subs to be created.
+        $table = new xmldb_table('moodleoverflow_discuss_subs');
+
+        // Adding fields to table moodleoverflow_discuss_subs.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('moodleoverflow', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('discussion', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('preference', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '1');
+
+        // Adding keys to table moodleoverflow_discuss_subs.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('moodleoverflow', XMLDB_KEY_FOREIGN, array('moodleoverflow'), 'moodleoverflow', array('id'));
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, array('userid'), 'user', array('id'));
+        $table->add_key('discussion', XMLDB_KEY_FOREIGN, array('discussion'), 'moodleoverflow_discussions', array('id'));
+        $table->add_key('user_discussions', XMLDB_KEY_UNIQUE, array('userid', 'discussion'));
+
+        // Conditionally launch create table for moodleoverflow_discuss_subs.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017050403, 'moodleoverflow');
+    }
+
+    // Drop the default grade field of the moodleoverflow tabke.
+    if ($oldversion < 2017050405) {
+
+        // Define field course to be dropped from moodleoverflow.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('grade');
+
+        // Conditionally launch drop field course.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017050405, 'moodleoverflow');
+    }
+
+    // Add the fields trackingtype and forcesubscription to moodleoverflow.
+    if ($oldversion < 2017050406) {
+
+        // Define field forcesubscribe to be added to moodleoverflow.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('forcesubscribe', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'timemodified');
+
+        // Conditionally launch add field forcesubscribe.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field trackingtype to be added to moodleoverflow.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('trackingtype', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'forcesubscribe');
+
+        // Conditionally launch add field trackingtype.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017050406, 'moodleoverflow');
+    }
+
+    // Change the default value of the trackingtype field in the moodleoverflow table.
+    if ($oldversion < 2017050407) {
+
+        // Changing the default of field trackingtype on table moodleoverflow to 1.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('trackingtype', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '1', 'forcesubscribe');
+
+        // Launch change of default for field trackingtype.
+        $dbman->change_field_default($table, $field);
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017050407, 'moodleoverflow');
+    }
+
+    // Add the usermodified-field to moodleoverflow_discussions.
+    if ($oldversion < 2017050413) {
+
+        // Define field usermodified to be added to moodleoverflow_discussions.
+        $table = new xmldb_table('moodleoverflow_discussions');
+        $field = new xmldb_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'timestart');
+
+        // Conditionally launch add field usermodified.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017050413, 'moodleoverflow');
+    }
+
+
     return true;
 }
