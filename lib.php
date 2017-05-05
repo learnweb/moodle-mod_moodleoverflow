@@ -976,10 +976,10 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
                     echo $post->discussion . '#unread">' . $post->unread . '</a>';
 
                     // Display the icon to mark all as read.
-                    echo '<a title="' . $strmarkallread . '" href="' . $CFG->wwwroot . '/mod/moodleoverflow/markposts.php?m=' .
-                         $moodleoverflow->id . '&amp;d=' . $post->discussion - '&amp;mark=read&amp;returnpage=view.php&amp;sesskey=' .
-                         sesskey() . '">' . '<img src="' . $OUTPUT->pix_url('t/markasread') . '" class="iconsmall" alt="' .
-                         $strmarkallread . '" /></a>';
+                    echo '<a title="' . $strmarkallread . '" href="' . $CFG->wwwroot .
+                         '/mod/moodleoverflow/markposts.php?m=' . $moodleoverflow->id . '&amp;d=' . $post->discussion .
+                         '&amp;mark=read&amp;returnpage=view.php&amp;sesskey=' . sesskey() . '">' . '<img src="' .
+                         $OUTPUT->pix_url('t/markasread') . '" class="iconsmall" alt="' . $strmarkallread . '" /></a>';
                     echo '</span>';
 
                 } else {
@@ -1017,4 +1017,24 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
     // ToDo: Wait for feedback. Then check this.
 
     echo "</tr>\n\n";
+}
+
+/**
+ * Gets a post with all info ready for moodleoverflow_print_post.
+ * Most of these joins are just to get the forum id.
+ *
+ * @param $postid
+ * @return mixed array of posts or false
+ */
+function moodleoverflow_get_post_full($postid) {
+    global $DB;
+
+    $allnames = get_all_user_name_fields(true, 'u');
+    $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
+              FROM {moodleoverflow_posts} p
+                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
+              LEFT JOIN {user} u ON p.userid = u.id
+                  WHERE p.id = ?";
+
+    return $DB->get_record_sql($sql, array($postid));
 }
