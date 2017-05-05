@@ -41,10 +41,10 @@ $string['moodleoverflow'] = 'moodleoverflow';
 $string['pluginadministration'] = 'moodleoverflow administration';
 $string['pluginname'] = 'Moodleoverflow';
 
-// Strings for the view.php
+// Strings for the view.php.
 $string['noviewdiscussionspermission'] = 'You do not have the permission to view discussions in this moodleoverflow';
 
-// Strings for the lib.php
+// Strings for the lib.php.
 $string['addanewdiscussion'] = 'Add a new discussion topic';
 $string['nodiscussions'] = 'There are no discussion topics yet in this moodleoverflow';
 $string['headerdiscussion'] = 'Discussion';
@@ -55,7 +55,7 @@ $string['headerunread'] = 'Unread';
 $string['markallread'] = 'Mark read';
 $string['markalldread'] = 'Mark all posts in this discussion read.';
 
-// Stromgs for the settings.php
+// Stromgs for the settings.php.
 $string['configmanydiscussions'] = 'Maximum number of discussions shown in a moodleoverflow instance per page';
 $string['manydiscussions'] = 'Discussions per page';
 $string['configoldpostdays'] = 'Number of days old any post is considered read.';

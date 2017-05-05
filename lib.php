@@ -497,14 +497,14 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
  * @param int $perpage
  * @return array
  */
-function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0){
+function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     global $DB, $USER;
 
     $params = array($cm->instance);
 
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
-    if (!has_capability('mod/moodleoverflow:viewdiscussion', $modcontext)){
+    if (!has_capability('mod/moodleoverflow:viewdiscussion', $modcontext)) {
         return array();
     }
 
@@ -512,7 +512,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0){
     if ($perpage <= 0) {
         $limitfrom = 0;
         $limitamount = $perpage;
-    } elseif ($page != -1) {
+    } else if ($page != -1) {
         $limitfrom = $page * $perpage;
         $limitamount = $perpage;
     }
@@ -523,7 +523,8 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0){
     $discussiondata = 'd.name, d.timemodified, d.timestart, d.usermodified';
     $userdata = 'u.email, u.picture, u.imagealt';
 
-    $usermodifiedfields = get_all_user_name_fields(true, 'um', null, 'um') . ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
+    $usermodifiedfields = get_all_user_name_fields(true, 'um', null, 'um') .
+        ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
     $usermodifiedtable = " LEFT JOIN {user} um ON (d.usermodified = um.id)";
 
     // Retrieve and return all discussions from the database.
@@ -532,7 +533,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0){
                    JOIN {moodleoverflow_posts} p ON p.discussion = d.id
                    JOIN {user} u ON p.userid = u.id
                    $usermodifiedtable
-              WHERE d.moodleoverflow = ? AND p.parent = 0 
+              WHERE d.moodleoverflow = ? AND p.parent = 0
            ORDER BY d.timestart, d.id DESC";
     return $DB->get_records_sql($sql, $params, $limitfrom, $limitamount);
 }
@@ -543,7 +544,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0){
  * @paran int $page Page mode, page to display (optional).
  * @param int $perpage The maximum number of discussions per page (optional).
  */
-function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -1, $perpage = 25){
+function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -1, $perpage = 25) {
     global $CFG, $USER, $OUTPUT;
 
     // Check if the course supports the module.
@@ -663,7 +664,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         // Set the amount of unread messages for each discussion.
         if (!$istracked) {
             $discussion->unread = '-';
-        } elseif (empty($USER)) {
+        } else if (empty($USER)) {
             $discussion->unread = 0;
         } else {
             if (empty($unreads[$discussion->discussion])) {
@@ -697,7 +698,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
  * @param int $moodleoverflowid
  * @return array
  */
-function moodleoverflow_count_discussion_replies($moodleoverflowid){
+function moodleoverflow_count_discussion_replies($moodleoverflowid) {
     global $DB;
 
     $sql = "SELECT p.discussion, COUNT(p.id) AS replies, MAX(p.id) AS lastpostid
@@ -778,13 +779,13 @@ function moodleoverflow_get_discussions_unread($cm) {
     $cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 60 * 60);
 
     // Define the sql-query.
-    $sql= "SELECT d.id, COUNT(p.id) AS unread
-             FROM {moodleoverflow_discussions} d
-                  JOIN {moodleoverflow_posts} p ON p.discussion = d.id
-                  LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = $USER->id)
-            WHERE d.moodleoverflow = {$cm->instance}
-                  AND p.modified >= :cutoffdate AND r.id is NULL
-         GROUP BY d.id";
+    $sql = "SELECT d.id, COUNT(p.id) AS unread
+              FROM {moodleoverflow_discussions} d
+                   JOIN {moodleoverflow_posts} p ON p.discussion = d.id
+                   LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = $USER->id)
+             WHERE d.moodleoverflow = {$cm->instance}
+                   AND p.modified >= :cutoffdate AND r.id is NULL
+          GROUP BY d.id";
     $params['cutoffdate'] = $cutoffdate;
 
     // Return the unread messages as an array.
@@ -870,7 +871,8 @@ function moodleoverflow_track_is_tracked($moodleoverflow, $user = false) {
     // Check the settings of the moodleoverflow instance.
     $allowed = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
     $forced  = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
-    $userpreference = $DB->get_record('moodleoverflow_subscriptions', array('userid' => $user->id, 'moodleoverflow' => $moodleoverflow->id));
+    $userpreference = $DB->get_record('moodleoverflow_subscriptions',
+        array('userid' => $user->id, 'moodleoverflow' => $moodleoverflow->id));
 
     // Return the boolean.
     if ($CFG->moodleoverflow_allowforcedreadtracking) {
@@ -913,8 +915,11 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
         $rowcount = 0;
         $strmarkallread = get_string('markalldread', 'moodleoverflow');
     } else {
-        $rowcount = ($rowcount +1 ) % 2;
+        $rowcount = ($rowcount + 1) % 2;
     }
+
+    // Check capabilities.
+    $canview = has_capability('mod/moodleoverflow:viewdiscussion', $context);
 
     // Filter the subject of the discussion.
     $post->subject = format_string($post->subject, true);
@@ -940,7 +945,8 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
     // Display the username.
     $fullname = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
     echo '<td class="author">';
-    echo '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $post->userid . '&amp;course=' . $moodleoverflow->course . '">' . $fullname . '</a>';
+    echo '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $post->userid .
+         '&amp;course=' . $moodleoverflow->course . '">' . $fullname . '</a>';
     echo "</td>\n";
 
     // Show the reply-columns only if the user has the capability to.
@@ -948,7 +954,8 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
 
         // Amount of replies.
         echo '<td class="replies">';
-        echo '<a href="' . $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $post->discussion . '">' . $post->replies . '</a>';
+        echo '<a href="' . $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' .
+             $post->discussion . '">' . $post->replies . '</a>';
         echo "</td>\n";
 
         // Display the column for unread replies.
@@ -970,8 +977,9 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
 
                     // Display the icon to mark all as read.
                     echo '<a title="' . $strmarkallread . '" href="' . $CFG->wwwroot . '/mod/moodleoverflow/markposts.php?m=' .
-                         $moodleoverflow->id . '&amp;d=' . $post->discussion - '&amp;mark=read&amp;returnpage=view.php&amp;sesskey=' . sesskey() .
-                         '">' . '<img src="' . $OUTPUT->pix_url('t/markasread') . '" class="iconsmall" alt="' . $strmarkallread . '" /></a>';
+                         $moodleoverflow->id . '&amp;d=' . $post->discussion - '&amp;mark=read&amp;returnpage=view.php&amp;sesskey=' .
+                         sesskey() . '">' . '<img src="' . $OUTPUT->pix_url('t/markasread') . '" class="iconsmall" alt="' .
+                         $strmarkallread . '" /></a>';
                     echo '</span>';
 
                 } else {
@@ -1006,7 +1014,7 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
     echo "</td>\n";
 
     // Enrolled users can subscribe to single discussions.
-    if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
+    if ((!is_guest($context, $USER) && isloggedin()) && $canview ) {
         // ToDo: Wait for feedback. Then check this.
     }
 

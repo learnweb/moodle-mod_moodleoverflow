@@ -1,113 +1,112 @@
 .moodleoverflowheaderlist {
-    width:100%;
-    border-width:1px;
-    border-style:solid;
     border-collapse:separate;
-    margin-top:10px
+    border-style:solid;
+    border-width:1px;
+    margin-top:10px;
+    width:100%;
 }
 .moodleoverflowheaderlist td {
+    border-style:solid;
     border-width:1px 0 0 1px;
-    border-style:solid
 }
 .moodleoverflowheaderlist th.header.replies .iconsmall {
-    margin:0 .3em
+    margin:0 .3em;
 }
 .moodleoverflowheaderlist .picture {
-    width:35px
+    width:35px;
 }
 .moodleoverflowheaderlist .discussion .starter {
-    vertical-align:middle
+    vertical-align:middle;
 }
 .moodleoverflowheaderlist .discussion .pinned img {
-    padding:5px
+    padding:5px;
 }
 .moodleoverflowheaderlist .discussion .lastpost {
+    text-align:right;
     white-space:nowrap;
-    text-align:right
 }
 .moodleoverflowheaderlist .replies,.moodleoverflowheaderlist .discussion .author {
-    white-space:nowrap
+    white-space:nowrap;
 }
 .moodleoverflowheaderlist thead .discussionsubscription {
-    text-align:center
+    text-align:center;
 }
 .moodleoverflowheaderlist tbody tr:nth-of-type(odd) {
-    background-color:#fafafa
+    background-color:#fafafa;
 }
 .moodleoverflowheaderlist {
-    background-color:#f9feff
+    background-color:#f9feff;
 }
 .moodleoverflowheaderlist .table-active:hover {
-    background-color:#dff8ff
+    background-color:#dff8ff;
 }
 .moodleoverflowheaderlist .table-active:hover>td,.moodleoverflowheaderlist .table-active:hover>th {
-    background-color:#dff8ff
+    background-color:#dff8ff;
 }
 .moodleoverflowheaderlist .table-success:hover {
-    background-color:#d0e9c6
+    background-color:#d0e9c6;
 }
 .moodleoverflowheaderlist .table-success:hover>td,.moodleoverflowheaderlist .table-success:hover>th {
-    background-color:#d0e9c6
+    background-color:#d0e9c6;
 }
 .moodleoverflowheaderlist .table-info:hover {
-    background-color:#c4e3f3
+    background-color:#c4e3f3;
 }
 .moodleoverflowheaderlist .table-info:hover>td,.moodleoverflowheaderlist .table-info:hover>th {
-    background-color:#c4e3f3
+    background-color:#c4e3f3;
 }
-
 .moodleoverflowheaderlist .table-warning:hover {
-    background-color:#faf2cc
+    background-color:#faf2cc;
 }
 .moodleoverflowheaderlist .table-warning:hover>td,.moodleoverflowheaderlist .table-warning:hover>th {
-    background-color:#faf2cc
+    background-color:#faf2cc;
 }
 
 .moodleoverflowheaderlist .table-danger:hover {
-    background-color:#ebcccc
+    background-color:#ebcccc;
 }
 .moodleoverflowheaderlist .table-danger:hover>td,.moodleoverflowheaderlist .table-danger:hover>th {
-    background-color:#ebcccc
+    background-color:#ebcccc;
 }
 
 .moodleoverflowheaderlist,.moodleoverflowheaderlist td {
-    border:none
+    border:none;
 }
 .moodleoverflowheaderlist thead .header,.moodleoverflowheaderlist tbody .discussion td {
-    white-space:normal;
-    vertical-align:top;
     padding-left:.5em;
-    padding-right:.5em
+    padding-right:.5em;
+    vertical-align:top;
+    white-space:normal;
 }
 .moodleoverflowheaderlist thead .header {
+    vertical-align:top;
     white-space:normal;
-    vertical-align:top
 }
 .moodleoverflowheaderlist thead .header.replies {
-    text-align:center
+    text-align:center;
 }
 .moodleoverflowheaderlist thead .header.lastpost {
-    text-align:right
+    text-align:right;
 }
 .moodleoverflowheaderlist thead .header th.discussionsubscription,.moodleoverflowheaderlist tbody .discussion td.discussionsubscription {
-    width:16px;
     padding-left:.5em;
-    padding-right:.5em
+    padding-right:.5em;
+    width:16px;
 }
 .moodleoverflowheaderlist .discussion .author,.moodleoverflowheaderlist .discussion .replies,.moodleoverflowheaderlist .discussion .lastpost {
-    white-space:normal
+    white-space:normal;
 }
 .moodleoverflowheaderlist .discussion .discussionsubscription,.moodleoverflowheaderlist .discussion .replies {
-    text-align:center
+    text-align:center;
 }
 .moodleoverflowheaderlist .discussion .topic,.moodleoverflowheaderlist .discussion .discussionsubscription,.moodleoverflowheaderlist .discussion .topic.starter,.moodleoverflowheaderlist .discussion .picture,.moodleoverflowheaderlist .discussion .author,.moodleoverflowheaderlist .discussion .replies,.moodleoverflowheaderlist .discussion .lastpost {
-    vertical-align:top
+    vertical-align:top;
 }
 .moodleoverflowaddnew {
-    margin-bottom:20px
+    margin-bottom:20px;
 }
 #newdiscussionform {
     float:left;
     text-align:left;
-    white-space:nowrap
+    white-space:nowrap;
 }

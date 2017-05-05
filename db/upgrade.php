@@ -266,6 +266,5 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017050413, 'moodleoverflow');
     }
 
-
     return true;
 }

@@ -53,7 +53,7 @@ if ($ADMIN->fulltree) {
     // Default time (hour) to execute 'clean_read_records' cron.
     $options = array();
     for ($i = 0; $i < 24; $i++) {
-        $options[$i] = sprintf("%02d",$i);
+        $options[$i] = sprintf("%02d", $i);
     }
     $settings->add(new admin_setting_configselect('moodleoverflow_cleanreadtime', get_string('cleanreadtime', 'moodleoverflow'),
         get_string('configcleanreadtime', 'moodleoverflow'), 2, $options));
