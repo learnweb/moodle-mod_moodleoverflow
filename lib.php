@@ -1014,9 +1014,7 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
     echo "</td>\n";
 
     // Enrolled users can subscribe to single discussions.
-    if ((!is_guest($context, $USER) && isloggedin()) && $canview ) {
-        // ToDo: Wait for feedback. Then check this.
-    }
+    // ToDo: Wait for feedback. Then check this.
 
     echo "</tr>\n\n";
 }
