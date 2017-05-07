@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of a plugin for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,10 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the version and other meta-info about the plugin
- *
- * Setting the $plugin->version to 0 prevents the plugin from being installed.
- * See https://docs.moodle.org/dev/version.php for more info.
+ * Renderer definition
  *
  * @package    mod_moodleoverflow
  * @copyright  2016 Your Name <your@email.address>
@@ -27,10 +24,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'mod_moodleoverflow';
-$plugin->version = 2017050705;
-$plugin->release = 'v1.0';
-$plugin->requires = 2014051200;
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->cron = 0;
-$plugin->dependencies = array();
+require_once(__DIR__. '/lib.php');
+require_once($CFG->libdir. '/weblib.php');
+
+class mod_moodleoverflow_renderer extends plugin_renderer_base {
+
+    public function render_discussion_header($data){
+        return $this->render_from_template('mod_moodleoverflow/discussion_header', $data);
+    }
+
+}

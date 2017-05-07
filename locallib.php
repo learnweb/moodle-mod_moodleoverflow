@@ -347,14 +347,12 @@ function moodleoverflow_get_discussions_unread($cm) {
 
 /**
  * Determine if a user can track moodleoverflows and optionally a particular forum.
- * Checks the site settings, the user settings and the moodleoverflow settings (if
- * requested).
+ * Checks the site settings and the moodleoverflow settings (if requested).
  *
  * @param bool $moodleoverflow
- * @param bool $user
  * @return boolean
  */
-function moodleoverflow_track_can_track_moodleoverflows($moodleoverflow = false, $user = false) {
+function moodleoverflow_track_can_track_moodleoverflows($moodleoverflow = null) {
     global $USER, $CFG;
 
     // Check if readtracking is enabled for the module.
@@ -362,18 +360,13 @@ function moodleoverflow_track_can_track_moodleoverflows($moodleoverflow = false,
         return false;
     }
 
-    // Check if the user is set.
-    if ($user === false) {
-        $user = $USER;
-    }
-
     // Guests are not allowed to track moodleoverflows.
-    if (isguestuser($user) OR empty($user->id)) {
+    if (isguestuser($USER) OR empty($USER->id)) {
         return false;
     }
 
     // If no specific moodleoverflow is submitted, check the modules basic settings.
-    if ($moodleoverflow === false) {
+    if (is_null($moodleoverflow)) {
         return (bool)$CFG->moodleoverflow_allowforcedreadtracking;
     }
 
@@ -387,27 +380,20 @@ function moodleoverflow_track_can_track_moodleoverflows($moodleoverflow = false,
 
 /**
  * Tells whether a specific moodleoverflow is tracked by the user.
- * A user can optionally be specified. If not specified, the current user is assumed.
  *
  * @param object $moodleoverflow
- * @param object $user
  * @return bool
  */
-function moodleoverflow_track_is_tracked($moodleoverflow, $user = false) {
+function moodleoverflow_track_is_tracked($moodleoverflow) {
     global $USER, $CFG, $DB;
 
-    // If no user is specified, use the current user.
-    if ($user === false) {
-        $user = $USER;
-    }
-
     // Guests cannot track a moodleoverflow.
-    if (isguestuser($user) OR empty($user->id)) {
+    if (isguestuser($USER) OR empty($USER->id)) {
         return false;
     }
 
     // Check if the moodleoverflow can be generally tracked.
-    if (!moodleoverflow_track_can_track_moodleoverflows($moodleoverflow, $user)) {
+    if (!moodleoverflow_track_can_track_moodleoverflows($moodleoverflow)) {
         return false;
     }
 
@@ -415,7 +401,7 @@ function moodleoverflow_track_is_tracked($moodleoverflow, $user = false) {
     $allowed = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
     $forced  = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
     $userpreference = $DB->get_record('moodleoverflow_subscriptions',
-        array('userid' => $user->id, 'moodleoverflow' => $moodleoverflow->id));
+        array('userid' => $USER->id, 'moodleoverflow' => $moodleoverflow->id));
 
     // Return the boolean.
     if ($CFG->moodleoverflow_allowforcedreadtracking) {

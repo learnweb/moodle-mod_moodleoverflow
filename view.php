@@ -104,5 +104,10 @@ $SESSION->fromdiscussion = qualified_me();
 echo '<br />';
 moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, $CFG->moodleoverflow_manydiscussions);
 
+// Include the renderer.
+$data = array();
+$renderer = $PAGE->get_renderer('mod_moodleoverflow');
+echo $renderer->render_discussion_header($data);
+
 // Finish the page.
 echo $OUTPUT->footer();
