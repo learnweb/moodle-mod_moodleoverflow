@@ -27,7 +27,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertEquals(2, $DB->count_records('course_categories'), 'Creating new course category failed.');
 
         // Create a new course.
-        $course = $this->getDataGenerator()->create_course(array('fullname'=>'Created test course', 'category'=>$coursecategory->id));
+        $course = $this->getDataGenerator()->create_course(array('fullname' => 'Created test course', 'category' => $coursecategory->id));
         $this->assertEquals(2, $DB->count_records('course', array()), 'Creating course failed');
         $this->assertEquals($coursecategory->id, $DB->get_record('course', array('fullname' => 'Created test course'))->category, 'Course not created correctly.');
 
@@ -300,7 +300,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertEmpty(moodleoverflow_get_discussions_unread($cm));
 
         // Create a timestamp.
-        $yesterday = round(time(), -2) - 24*60*60;
+        $yesterday = round(time(), -2) - 24 * 60 * 60;
 
         // Create a discussion and test again.
         $discussion = $this->create_discussion($course, $moodleoverflow, $users[1], $yesterday);
