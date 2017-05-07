@@ -56,6 +56,9 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     } else if ($page != -1) {
         $limitfrom = $page * $perpage;
         $limitamount = $perpage;
+    } else {
+        $limitfrom = 0;
+        $limitamount = 0;
     }
 
     // Get all name fields as sql string snippet.
