@@ -37,10 +37,43 @@ $page_params = array('moodleoverflow' => $moodleoverflow);
 // Get the system context instance.
 $systemcontext = context_system::instance();
 
-// If not logged in, do so.
-// TODO: Differenzieren. Und $OUTPUT->confirm() benutzen?
+// Catch guests.
 if (!isloggedin() OR isguestuser()) {
-    require_login();
+
+    // The user is starting a new discussion in a moodleoverflow instance.
+    if (!empty($moodleoverflow)) {
+
+        // Check the moodleoverflow instance is valid.
+        if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
+            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+        }
+    }
+
+    // Get the related course.
+    if (! $course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
+        print_error('invalidcourseid');
+    }
+
+    // Get the related coursemodule and its context.
+    if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+        print_error('invalidcoursemodule');
+    }
+
+    // Get the context of the module.
+    $modulecontext = context_module::instance($cm->id);
+
+    // Set parameters for the page.
+    $PAGE->set_cm($cm, $course, $moodleoverflow);
+    $PAGE->set_context($modulecontext);
+    $PAGE->set_title($course->shortname);
+    $PAGE->set_heading($course->fullname);
+
+    // The guest needs to login.
+    echo $OUTPUT->header();
+    echo $OUTPUT->confirm(get_string('noguestpost', 'forum').'<br /><br />'.get_string('liketologin'), get_login_url(), 'view.php?m=' . $moodleoverflow->id);
+    echo $OUTPUT->footer();
+    exit;
+
 }
 
 // First step: A general login is needed to post something.
@@ -60,7 +93,7 @@ if (!empty($moodleoverflow)) {
     }
 
     // Get the related coursemodule.
-    if (! $cm = get_course_and_cm_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+    if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
         print_error('invalidcoursemodule');
     }
 
@@ -69,5 +102,6 @@ if (!empty($moodleoverflow)) {
     $coursecontext = context_course::instance($course->id);
 
     // TODO CONTINUE HERE.
+    echo 'Finished';
 
 }
