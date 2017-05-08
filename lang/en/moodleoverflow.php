@@ -73,9 +73,8 @@ $string['cleanreadtime'] = 'Mark old posts as read hour';
 $string['configcleanreadtime'] = 'The hour of the day to clean old posts from the \'read\' table.';
 
 // Strings for the post.php.
-$string['invalidforumid'] = 'Moodleoverflow ID was incorrect';
+$string['invalidmoodleoverflowid'] = 'Moodleoverflow ID was incorrect';
 $string['invalidparentpostid'] = 'Parent post ID was incorrect';
 $string['notpartofdiscussion'] = 'This post is not part of a discussion!';
-$string['invalidmoodleoverflowid'] = 'Forum ID was incorrect';
 $string['noguestpost'] = 'Sorry, guests are not allowed to post.';
 $string['nopostmoodleoverflow'] = 'Sorry, you are not allowed to post to this moodleoverflow';

@@ -115,7 +115,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     // a new discussion or if the selfenrol is aviable.
     if ($canstartdiscussion) {
         $buttontext = get_string('addanewdiscussion', 'moodleoverflow');
-        $buttonurl = new moodle_url('/mod/moodleoverflow/post.php', ['m' => $moodleoverflow->id]);
+        $buttonurl = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverflow->id]);
         $button = new single_button($buttonurl, $buttontext, 'get');
         $button->class = 'singlebutton moodleoverflowaddnew';
         $button->formid = 'newdiscussionform';

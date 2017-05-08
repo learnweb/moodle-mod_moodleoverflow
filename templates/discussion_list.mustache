@@ -1,61 +1,24 @@
 {{!
-    This file is part of Moodle - http://moodle.org/
+  This file is part of Moodle - http://moodle.org/
 
-    Moodle is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-    Moodle is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
-
 {{!
   @template mod_moodleoverflow/discussion_list
 
   Moodleoverflow discussion_list template.
-
   The purpose of this template is to render a list of discussions for the view.php.
-
-  Classes required for JS:
-  * none
-
-  Data attributes required for JS:
-  * none
-
-  Context variables required for this template:
-  * attributes Array of name / value pairs.
-
-  Example context (json):
-  {
-      'cantrack'          : true,
-      'canviewdiscussions': true,
-      'hasdiscussions'    : true,
-      'istracked'         : true,
-      'discussions' [
-        'rowcount'      : 0,
-        'subjecttext'   : 'Discussion Title #1',
-        'subjectlink'   : 'http://localhost/moodle/mod/moodleoverflow/discussion.php?d=2',
-        'picture'       : '<a href="http://localhost/moodle/user/view.php?id=2&amp;course=2"><img src="http://localhost/moodle/theme/image.php/boost/core/1494260524/u/f2" alt="Picture of Admin User" title="Picture of Admin User" class="userpicture defaultuserpic" width="35" height="35" /></a>',
-        'username'      : 'Admin User',
-        'userlink'      : 'http://localhost/moodle/user/view.php?id=2&course=2',
-        'replyamount'   : 0,
-        'replylink'     : 'http://localhost/moodle/mod/moodleoverflow/discussion.php?d=2',
-        'unread'        : true,
-        'unreadamount'  : 1,
-        'unreadlink'    : 'http://localhost/moodle/mod/moodleoverflow/discussion.php?d=2#unread',
-        'lastpostuserlink' : 'http://localhost/moodle/user/view.php?id=2&course=2',
-        'lastpostusername' : 'Admin User',
-        'lastpostlink'  : 'http://localhost/moodle/mod/moodleoverflow/discussion.php?d=2&parent=3',
-        'lastpostdate'  : 'Mon, 8 May 2017, 4:59 PM'
-      ]
-  }
-
 }}
 
 {{! There are no discussions. Print the string that specifies it. }}
