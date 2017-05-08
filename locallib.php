@@ -89,7 +89,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
  * @param int $perpage The maximum number of discussions per page (optional).
  */
 function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -1, $perpage = 25) {
-    global $CFG, $USER, $OUTPUT;
+    global $CFG, $USER, $OUTPUT, $PAGE;
 
     // Check if the course supports the module.
     if (!$cm) {
@@ -125,14 +125,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     // Get all the recent discussions the user is allowed to see.
     $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
 
-    // Display a message if there are no recent discussions.
-    if (!$discussions) {
-        echo '<div class="moodleoverflowdiscussions">';
-        echo '('.get_string('nodiscussions', 'moodleoverflow').'.)';
-        echo "</div>\n";
-        return;
-    }
-
     // If we want paging.
     if ($page != -1) {
 
@@ -160,41 +152,10 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $unreads = array();
     }
 
-    // Print the table.
-    echo '<table cellspacing="0" class="moodleoverflowheaderlist">';
-    echo '<thead>';
-    echo '<tr>';
-    echo '<th class="header topic" scope="col">'.get_string('headerdiscussion', 'moodleoverflow').'</th>';
-    echo '<th class="header author" colspan="2" scope="col">'.get_string('headerstartedby', 'moodleoverflow').'</th>';
-
-    // Check if the user is allowed to view the discussions.
-    if ($canviewdiscussions) {
-
-        // Display the amount of replies.
-        echo '<th class="header replies" scope="col">' . get_string('headerreplies', 'moodleoverflow') . '</th>';
-
-        // Display the unread column if the moodleoverflow can be tracked.
-        if ($cantrack) {
-            echo '<th class="header replies" scope="col">' . get_string('headerunread', 'moodleoverflow');
-
-            // Display a symbol to mark all messages displayed if the forum is tracked.
-            if ($istracked) {
-                echo '<a title="' . get_string('markallread', 'moodleoverflow') .
-                    '" href="' . $CFG->wwwroot.'/mod/moodleoverflow/markposts.php?m=' .
-                    $moodleoverflow->id . '&amp;mark=read&amp;returnpage=view.php&amp;sesskey=' .
-                    sesskey() . '" >' . '<img src="' . $OUTPUT->pix_url('t/markasread') .
-                    '" class="iconsmall" alt="' . get_string('markallread', 'moodleoverflow') . '" /></a>';
-            }
-            echo '</th>';
-        }
-    }
-
-    echo '<th class="header lastpost" scope="col">' . get_string('headerlastpost', 'moodleoverflow') . '</th>';
-    echo '</tr>';
-    echo '</thead>';
-    echo '<tbody>';
-
     // Iterate through every visible discussion.
+    $i = 0;
+    $rowcount = 0;
+    $preparedarray = array();
     foreach ($discussions as $discussion) {
 
         // Set the amount of replies for every discussion.
@@ -221,13 +182,83 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         // Use the discussions name instead of the subject of the first post.
         $discussion->subject = $discussion->name;
 
-        // Print the list of discussions.
-        moodleoverflow_print_discussion_header($discussion, $moodleoverflow, $cantrack, $istracked, $context);
+        // Increase the rowcount.
+        $rowcount = ($rowcount + 1) % 2;
+
+        // Format the subjectname and the link to the topic.
+        $subjecttext = format_string($discussion->subject);
+        $subjectlink = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion;
+
+        // Get information about the user who started the discussion.
+        $startuser = new stdClass();
+        $startuserfields = explode(',', user_picture::fields());
+        $startuser = username_load_fields_from_object($startuser, $discussion, null, $startuserfields);
+        $startuser->id = $discussion->userid;
+
+        // Get his picture, his name and the link to his profile.
+        $userpicture = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course));
+        $username = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
+        $userlink = $CFG->wwwroot . '/user/view.php?id=' . $discussion->userid . '&course=' . $moodleoverflow->course;
+
+        // Get the amount of replies and the link to the discussion.
+        $replyamount = $discussion->replies;
+        $replylink = $subjectlink;
+
+        // Are there unread messages? Create a link to them.
+        $unreadamount = $discussion->unread;
+        $hasunreads = ($unreadamount >= 0) ? true : false;
+        $unreadlink = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '#unread';
+
+        // Check the date of the latest post. Just in case the database is not consistent.
+        $usedate = (empty($discussion->timemodified)) ? $discussion->modified : $discussion->timemodified;
+
+        // Get the name and the link to the profile of the user, that is related to the latest post.
+        $usermodified = new stdClass();
+        $usermodified->id = $discussion->usermodified;
+        $usermodified = username_load_fields_from_object($usermodified, $discussion, 'um');
+        $usermodifiedname = fullname($usermodified);
+        $usermodifiedlink = $CFG->wwwroot . '/user/view.php?id=' . $discussion->usermodified . '&course=' . $moodleoverflow->course;
+
+        // Get the date of the latest post of the discussion.
+        $parenturl = (empty($discussion->lastpostid)) ? '' : '&parent=' . $discussion->lastpostid;
+        $lastpostdate = userdate($usedate, get_string('strftimerecentfull'));
+        $lastpostlink = $subjectlink . $parenturl;
+
+        // Add all created data to an array.
+        $preparedarray[$i] = array();
+        $preparedarray[$i]['rowcount'] = $rowcount;
+        $preparedarray[$i]['subjecttext'] = $subjecttext;
+        $preparedarray[$i]['subjectlink'] = $subjectlink;
+        $preparedarray[$i]['picture'] = $userpicture;
+        $preparedarray[$i]['username'] = $username;
+        $preparedarray[$i]['userlink'] = $userlink;
+        $preparedarray[$i]['replyamount'] = $replyamount;
+        $preparedarray[$i]['replylink'] = $replylink;
+        $preparedarray[$i]['unread'] = $hasunreads;
+        $preparedarray[$i]['unreadamount'] = $unreadamount;
+        $preparedarray[$i]['unreadlink'] = $unreadlink;
+        $preparedarray[$i]['lastpostuserlink'] = $usermodifiedlink;
+        $preparedarray[$i]['lastpostusername'] = $usermodifiedname;
+        $preparedarray[$i]['lastpostlink'] = $lastpostlink;
+        $preparedarray[$i]['lastpostdate'] = $lastpostdate;
+
+        // Go to the next discussion.
+        $i++;
     }
 
-    // Close the table.
-    echo '</tbody>';
-    echo '</table>';
+    // Include the renderer.
+    $renderer = $PAGE->get_renderer('mod_moodleoverflow');
+
+    // Collect the needed data being submitted to the template.
+    $mustachedata = new stdClass();
+    $mustachedata->cantrack = $cantrack;
+    $mustachedata->canviewdiscussions = $canviewdiscussions;
+    $mustachedata->discussions = $preparedarray;
+    $mustachedata->hasdiscussions = (count($discussions) >= 0) ? true : false;
+    $mustachedata->istracked = $istracked;
+
+    // Print the template.
+    echo $renderer->render_discussion_list($mustachedata);
 
     // Show the paging bar if paging is activated.
     if ($page != -1) {
@@ -411,7 +442,10 @@ function moodleoverflow_track_is_tracked($moodleoverflow) {
     }
 }
 
+// TODO Currently unused.
 /**
+ * CURRENTLY UNUSED
+ *
  * This function prints the overview of a discussion in the moodleoverflow listing.
  * It needs some discussion information and some post information, these
  * happen to be combined for efficiency in the $post parameter by the function
@@ -441,7 +475,6 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
     // Check the static variables.
     if (!isset($rowcount)) {
         $rowcount = 0;
-        $strmarkallread = get_string('markalldread', 'moodleoverflow');
     } else {
         $rowcount = ($rowcount + 1) % 2;
     }
@@ -504,10 +537,10 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
                     echo $post->discussion . '#unread">' . $post->unread . '</a>';
 
                     // Display the icon to mark all as read.
-                    echo '<a title="' . $strmarkallread . '" href="' . $CFG->wwwroot .
+                    echo '<a title="' . get_string('markalldread', 'moodleoverflow') . '" href="' . $CFG->wwwroot .
                         '/mod/moodleoverflow/markposts.php?m=' . $moodleoverflow->id . '&amp;d=' . $post->discussion .
                         '&amp;mark=read&amp;returnpage=view.php&amp;sesskey=' . sesskey() . '">' . '<img src="' .
-                        $OUTPUT->pix_url('t/markasread') . '" class="iconsmall" alt="' . $strmarkallread . '" /></a>';
+                        $OUTPUT->pix_url('t/markasread') . '" class="iconsmall" alt="' . get_string('markalldread', 'moodleoverflow') . '" /></a>';
                     echo '</span>';
 
                 } else {
