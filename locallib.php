@@ -302,7 +302,7 @@ function moodleoverflow_user_can_post_discussion($moodleoverflow, $cm = null, $c
 
     // Get the coursemodule.
     if (!$cm) {
-        if (!$cm = get_course_and_cm_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
             pint_error('invalidcoursemodule');
         }
     }
@@ -599,3 +599,206 @@ function moodleoverflow_get_post_full($postid) {
 
     return $DB->get_record_sql($sql, array($postid));
 }
+
+/**
+ * Checks if a user can see a specific post.
+ *
+ * @param $moodleoverflow
+ * @param $discussion
+ * @param $post
+ * @param null $user
+ * @param $cm
+ * @return bool
+ */
+function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $user = null, $cm) {
+    global $CFG, $USER, $DB;
+
+    // Retrieve the modulecontext.
+    $modulecontext = context::instance($cm->id);
+
+    // Fetch the moodleoverflow instance object.
+    if (is_numeric($moodleoverflow)) {
+        debugging('missing full moodleoverflow', DEBUG_DEVELOPER); // TODO: Delete.
+        if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
+            return false;
+        }
+    }
+
+    // Fetch the discussion object.
+    if (is_numeric($discussion)) {
+        debugging('missing full discussion', DEBUG_DEVELOPER); // TODO: Delete.
+        if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussion))) {
+            return false;
+        }
+    }
+
+    // Fetch the post object.
+    if (is_numeric($post)) {
+        debugging('missing full post', DEBUG_DEVELOPER); // TODO: Delete.
+        if (! $post = $DB->get_record('moodleoverflow_posts', array('id' => $post))) {
+            return false;
+        }
+    }
+
+    // Get the postid if not set.
+    if (!isset($post->id) AND isset($post->parent)) {
+        $post->id = $post->parent;
+    }
+
+    // Find the coursemodule.
+    if (!$cm) {
+        debugging('missing cm', DEBUG_DEVELOPER); // TODO: Delete.
+        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+            print_error('invalidcoursemodule');
+        }
+    }
+
+    // Make sure a user is set.
+    if (empty($user) || empty($user->id)) {
+        $user = $USER;
+    }
+
+    // Check if the user can view the discussion.
+    $canviewdiscussion = !empty($cm->cache->caps['mod/moodleoverflow:viewdiscussion']) ||
+        has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext, $user->id);
+    if(!$canviewdiscussion &&
+        !has_all_capabilities(array('moodle/user:viewdetails', 'moodle/user:readuserposts'), context_user::instance($post->userid))) {
+        return false;
+    }
+
+    // Check the coursemodule settings.
+    if (isset($cm->uservisible)) {
+        if (!$cm->uservisible) {
+            return false;
+        }
+    } else {
+        if (!\core_availability\info_module::is_user_visible($cm, $user->id, false)) {
+            return false;
+        }
+    }
+
+    // The user has the capability to see the discussion.
+    return true;
+
+}
+
+/**
+ * Check if a user can see a specific discussion.
+ *
+ * @param $moodleoverflow
+ * @param $discussion
+ * @param $context
+ * @return bool
+ */
+function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $context) {
+    global $DB;
+
+    // Retrieve the moodleoverflow object.
+    if (is_numeric($moodleoverflow)) {
+        debugging('missing full moodleoverflow', DEBUG_DEVELOPER);
+        if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
+            return false;
+        }
+    }
+
+    // Retrieve the discussion object.
+    if (is_numeric($discussion)) {
+        debugging('missing full discussion', DEBUG_DEVELOPER);
+        if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussion))) {
+            return false;
+        }
+    }
+
+    // Retrieve the coursemodule.
+    if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+        print_error('invalidcoursemodule');
+    }
+
+    // Check the users capability.
+    if (!has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
+        return false;
+    }
+
+    // Allow the user to see the discussion.
+    return true;
+}
+
+
+
+
+
+
+
+function moodleoverflow_add_discussion($discussion) {
+    global $DB, $USER;
+
+    // Get the current time.
+    $timenow = time();
+
+    // The first post of the discussion is stored
+    // as a real post. The discussion links to it.
+
+    // Retrieve the module instance.
+    if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+        return false;
+    }
+
+    // Retrieve the coursemodule.
+    if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+        print_error('invalidcoursemodule');
+    }
+
+    // Create the post-object.
+    $post = new stdClass();
+    $post->discussion     = 0;
+    $post->parent         = 0;
+    $post->userid         = $USER->id;
+    $post->created        = $timenow;
+    $post->modified       = $timenow;
+    $post->message        = $discussion->message;
+    $post->moodleoverflow = $moodleoverflow->id;
+    $post->course         = $moodleoverflow->course;
+    // TODO: messagetrust + messageformat?
+
+    // Submit the post to the database and get its id.
+    $post->id = $DB->insert_record('moodleoverflow_posts', $post);
+
+    // Create the discussion object.
+    $discussionobject = new stdClass();
+    $discussionobject->course = $discussion->course;
+    $discussionobject->moodleoverflow = $discussion->moodleoverflow;
+    $discussionobject->name = $discussion->name;
+    $discussionobject->firstpost = $post->id;
+    $discussionobject->userid = $post->userid;
+    $discussionobject->timemodified = $timenow;
+    $discussionobject->timestart = $timenow;
+    $discussionobject->usermodified = $post->userid;
+    // TODO: messagetrust + messageformat?
+
+    // Submit the discussion to the database and get its id.
+    $post->discussion = $DB->insert_record('moodleoverflow_discussions', $discussionobject);
+
+    // Link the post to the discussion.
+    $DB->set_field('moodleoverflow_posts', 'discussion', $post->discussion, array('id' => $post->id));
+
+    // TODO: CAN_TRACK + IS_TRACKED = MARK_READ.
+    // TODO: Trigger content_uploaded_event.
+
+    // Return the id of the discussion.
+    return $post->discussion;
+}
+
+
+function moodleoverflow_go_back_to($default) {
+    global $SESSION;
+
+    if (!empty($SESSION->fromdiscussion)) {
+        $returnto = $SESSION->fromdiscussion;
+        unset($SESSION->fromdiscussion);
+        return $returnto;
+    } else {
+        return $default;
+    }
+}
+
+

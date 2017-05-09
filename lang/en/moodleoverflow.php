@@ -77,4 +77,26 @@ $string['invalidmoodleoverflowid'] = 'Moodleoverflow ID was incorrect';
 $string['invalidparentpostid'] = 'Parent post ID was incorrect';
 $string['notpartofdiscussion'] = 'This post is not part of a discussion!';
 $string['noguestpost'] = 'Sorry, guests are not allowed to post.';
-$string['nopostmoodleoverflow'] = 'Sorry, you are not allowed to post to this moodleoverflow';
+$string['nopostmoodleoverflow'] = 'Sorry, you are not allowed to post to this moodleoverflow.';
+$string['yourreply'] = 'Your reply';
+$string['re'] = 'Re:';
+$string['invalidpostid'] = 'Invalid post ID - {$a}';
+$string['cannotfindparentpost'] = 'Could not find top parent of post {$a}';
+$string['edit'] = 'Edit';
+$string['cannotreply'] = 'You cannot reply to this post';
+$string['cannotcreatediscussion'] = 'Could not create new discussion';
+$string['couldnotadd'] = 'Could not add your post due to an unknown error';
+$string['postaddedsuccess'] = 'Your post was successfully added.';
+
+
+
+// Strings for the classes/mod_form.php
+$string['subject'] = 'Subject';
+$string['reply'] = 'Reply';
+$string['message'] = 'Message';
+$string['discussionsubscription'] = 'Discussion subscription';
+$string['discussionsubscription_help'] = 'Subscribing to a discussion means you will receive notifications of new posts to that discussion.';
+$string['posttomoodleoverflow'] = 'Post to moodleoverflow';
+$string['erroremptysubject'] = 'Post subject cannot be empty.';
+$string['erroremptymessage'] = 'Post message cannot be empty';
+$string['yournewtopic'] = 'Your new discussion topic';
