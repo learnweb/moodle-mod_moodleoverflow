@@ -23,17 +23,20 @@
 // Include config and locallib.
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/locallib.php');
+require_once($CFG->libdir.'/completionlib.php');
 
 // Declare optional parameters.
 $moodleoverflow = optional_param('moodleoverflow', 0, PARAM_INT);
+$reply          = optional_param('reply', 0 , PARAM_INT);
 
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/post.php', array(
-    'moodleoverflow' => $moodleoverflow
-));
+        'moodleoverflow' => $moodleoverflow,
+        'reply'          => $reply,
+    ));
 
 // These params will be passed as hidden variables later in the form.
-$pageparams = array('moodleoverflow' => $moodleoverflow);
+$pageparams = array('moodleoverflow' => $moodleoverflow, 'reply' => $reply);
 
 // Get the system context instance.
 $systemcontext = context_system::instance();
@@ -46,6 +49,24 @@ if (!isloggedin() OR isguestuser()) {
 
         // Check the moodleoverflow instance is valid.
         if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
+            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+        }
+
+        // The user is replying to an existing moodleoverflow discussion.
+    } else if (!empty($reply)) {
+
+        // Check if the related post exists.
+        if (! $parent = moodleoverflow_get_post_full($reply)) {
+            print_error('invalidparentpostid', 'moodleoverflow');
+        }
+
+        // Check if the post is part of a valid discussion.
+        if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $parent->discussion))) {
+            print_error('notpartofdiscussion', 'moodleoverflow');
+        }
+
+        // Check if the post is related to a valid moodleoverflow instance.
+        if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
             print_error('invalidmoodleoverflowid', 'moodleoverflow');
         }
     }
@@ -138,9 +159,88 @@ if (!empty($moodleoverflow)) {
     // Allows to calculate the correct return url later.
     unset($SESSION->fromdiscussion);
 
-} else {    // Last posibility: the action is not known.
+    // Second posibility: The user is writing a new reply.
+} else if (!empty($reply)) {
+
+    // Check if the post exists.
+    if (! $parent = moodleoverflow_get_post_full($reply)) {
+        print_error('invalidparentpostid', 'moodleoverflow');
+    }
+
+    // Check if the post is part of a discussion.
+    if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $parent->discussion))) {
+        print_error('notpartofdiscussion', 'moodleoverflow');
+    }
+
+    // Check if the discussion is part of a moodleoverflow instance.
+    if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+        print_error('invalidmoodleoverflowid', 'moodleoverflow');
+    }
+
+    // Check if the moodleoverflow instance is part of a course.
+    if (! $course = $DB->get_record('course', array('id' => $discussion->course))) {
+        print_error('invalidcourseid');
+    }
+
+    // Retrieve the related coursemodule.
+    if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+        print_error('invalidcoursemodule');
+    }
+
+    // Ensure the coursemodule is set correctly.
+    $PAGE->set_cm($cm, $course, $moodleoverflow);
+
+    // Retrieve the other contexts.
+    $modulecontext = context_module::instance($cm->id);
+    $coursecontext = context_course::instance($course->id);
+
+    // Check whether the user is allowed to post.
+    if (! moodleoverflow_user_can_post($moodleoverflow, $discussion, $USER, $cm, $course, $modulecontext)) {
+
+        // Give the user the chance to enroll himself to the course.
+        if (!isguestuser() AND !is_enrolled($coursecontext)) {
+            $SESSION->wantsurl = qualified_me();
+            $SESSION->enrolcancel = get_local_referer(false);
+            redirect(new moodle_url('/enrol/index.php', array('id' => $course->id,
+                'returnurl' => '/mod/moodleoverflow/view.php?m=' . $moodleoverflow->id)),
+                get_string('youneedtoenrol'));
+        }
+
+        // Print the error message.
+        print_error('nopostmoodleoverflow', 'moodleoverflow');
+    }
+
+    // Make sure the user can post here.
+    if (!$cm->visible AND !has_capability('moodle/course:viewhiddenactivities', $modulecontext)) {
+        print_error('activityiscurrentlyhidden');
+    }
+
+    // Load the $post variable.
+    $post = new stdClass();
+    $post->course         = $course->id;
+    $post->moodleoverflow = $moodleoverflow->id;
+    $post->discussion     = $parent->discussion;
+    $post->parent         = $parent->id;
+    $post->subject        = $discussion->name;
+    $post->userid         = $USER->id;
+    $post->message        = '';
+
+    // Append 'RE: ' to the discussions subject.
+    $strre = get_string('re', 'moodleoverflow');
+    if (!(substr($post->subject, 0, strlen($strre)) == $strre)) {
+        $post->subject = $strre . ' ' . $post->subject;
+    }
+
+    // Unset where the user is coming from.
+    // Allows to calculate the correct return url later.
+    unset($SESSION->fromdiscussion);
+
+    // Last posibility: the action is not known.
+} else {
     print_error('unknownaction');
 }
+
+
 
 // Second step: The user must be logged on properly. Must be enrolled to the course as well.
 require_login($course, false, $cm);
@@ -152,16 +252,25 @@ $formarray = array(
         'coursecontext'  => $coursecontext,
         'modulecontext'  => $modulecontext,
         'moodleoverflow' => $moodleoverflow,
-        'post'           => $post
+        'post'           => $post,
 );
 $mformpost = new mod_moodleoverflow_post_form('post.php', $formarray, 'post', '', array('id' => 'mformmoodleoverflow'));
 
-// Find string.
-$formheading = get_string('yournewtopic', 'moodleoverflow');
+// TODO: Appending message if not edited by original author.
+// TODO: Maybe appending message to startpost if edit after maxedittime.
+
+// Define the heading for the form.
+$formheading = '';
+if (!empty($parent)) {
+    $heading = get_string('yourreply', 'moodleoverflow');
+    $formheading = get_string('reply', 'moodleoverflow');
+} else {
+    $heading = get_string('yournewtopic', 'moodleoverflow');
+}
 
 // Set data for the form.
 $mformpost->set_data(array(
-    'general' => $formheading,
+    'general' => $heading,
     'subject' => $post->subject,
     'message' => array(
         'text'   => '', // Edit: $currenttext.
@@ -178,11 +287,16 @@ $mformpost->set_data(array(
 
 // Is it canceled?
 if ($mformpost->is_cancelled()) {
+
+    // Redirect the user back.
     if (!isset($discussion->id)) {
         redirect(new moodle_url('/mod/moodleoverflow/view.php', array('m' => $moodleoverflow->id)));
     } else {
         redirect(new moodle_url('/mod/moodleoverflow/discuss.php', array('d' => $discussion->id)));
     }
+
+    // Do not continue!
+    exit();
 }
 
 // Is it submitted?
@@ -199,6 +313,57 @@ if ($fromform = $mformpost->get_data()) {
     $fromform->messageformat = $fromform->message['format'];
     $fromform->message       = $fromform->message['text'];
     $fromform->messagetrust = trusttext_trusted($modulecontext);
+
+    //
+    //
+    //
+
+    if ($fromform->discussion) {
+
+        // Set some basic variables.
+        unset($fromform->groupid);
+        $message = '';
+        $addpost = $fromform;
+        $addpost->moodleoverflow = $moodleoverflow->id;
+
+        // Create the new post.
+        if ($fromform->id = moodleoverflow_add_new_post($addpost, $mformpost)) {
+
+            // TODO: Funktion forum_post_subscription benutzten?
+
+            // Print a success-message.
+            $message .= '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
+            $message .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow", format_time($CFG->maxeditingtime)) . '</p>';
+
+            // Set the URL that links back to the discussion.
+            $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id), 'p' . $fromform->id);
+
+            //
+            $params = array(
+                    'context' => $modulecontext,
+                    'objectid' => $fromform->id,
+                    'other' => array(
+                            'discussionid' => $discussion->id,
+                            'moodleoverflowid' => $moodleoverflow->id,
+                ));
+
+            // TODO: Trigger an event?
+            // TODO: Update completion state?
+
+            redirect(
+                    moodleoverflow_go_back_to($discussionurl),
+                    $message,
+                    \core\output\notification::NOTIFY_SUCCESS
+                );
+
+            // Print an error if the answer could not be added.
+        } else {
+            print_error('couldnotadd', 'moodleoverflow', $errordestination);
+        }
+
+        // Do not continue!
+        exit;
+    }
 
     //
     // ADD A NEW DISCUSSION.

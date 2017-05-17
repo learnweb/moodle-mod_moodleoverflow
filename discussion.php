@@ -140,7 +140,8 @@ $canrate['posts']      = has_capability('mod/moodleoverflow:rateposts', $modulec
 $canrate['discussion'] = has_capability('mod/moodleoverflow:ratediscussions', $modulecontext);
 
 echo "<br><br>";
-moodleoverflow_print_discussions($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $canrate);
+
+moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $canrate);
 
 
 echo $OUTPUT->footer();

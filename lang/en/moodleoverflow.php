@@ -95,12 +95,15 @@ $string['cannotreply'] = 'You cannot reply to this post';
 $string['cannotcreatediscussion'] = 'Could not create new discussion';
 $string['couldnotadd'] = 'Could not add your post due to an unknown error';
 $string['postaddedsuccess'] = 'Your post was successfully added.';
+$string['postaddedtimeleft'] = 'You have {$a} to edit it if you want to make any changes.';
+
 
 
 
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';
-$string['reply'] = 'Reply';
+$string['reply'] = 'Comment';
+$string['replyfirst'] = 'Answer';
 $string['message'] = 'Message';
 $string['discussionsubscription'] = 'Discussion subscription';
 $string['discussionsubscription_help'] = 'Subscribing to a discussion means you will receive notifications of new posts to that discussion.';
@@ -118,3 +121,4 @@ $string['hiddenmoodleoverflowpost'] = 'Hidden moodleoverflow post';
 $string['moodleoverflowsubjecthidden'] = 'Subject (hidden)';
 $string['moodleoverflowauthorhidden'] = 'Author (hidden)';
 $string['moodleoverflowbodyhidden'] = 'This post cannot be viewed by you, probably because you have not posted in the discussion, the maximum editing time hasn\'t passed yet, the discussion has not started or the discussion has expired.';
+$string['addanewreply'] = 'Add a new reply';

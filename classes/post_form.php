@@ -81,6 +81,15 @@ class mod_moodleoverflow_post_form extends moodleform {
         // The discussion.
         $modform->addElement('hidden', 'discussion');
         $modform->setType('discussion', PARAM_INT);
+
+        // The parent post.
+        $modform->addElement('hidden', 'parent');
+        $modform->setType('parent', PARAM_INT);
+
+        // Is it a reply?
+        $modform->addElement('hidden', 'reply');
+        $modform->setType('reply', PARAM_INT);
+
     }
 
     /**

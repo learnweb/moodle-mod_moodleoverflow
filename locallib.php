@@ -78,7 +78,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
                    JOIN {user} u ON p.userid = u.id
                    $usermodifiedtable
               WHERE d.moodleoverflow = ? AND p.parent = 0
-           ORDER BY d.timestart, d.id DESC";
+           ORDER BY d.timestart DESC, d.id DESC";
     return $DB->get_records_sql($sql, $params, $limitfrom, $limitamount);
 }
 
@@ -914,8 +914,8 @@ function moodleoverflow_user_can_post($moodleoverflow, $discussion, $user = null
 
 
 // Prints a moodleoverflow discussion.
-function moodleoverflow_print_discussions($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $canrate) {
-    global $USER, $CFG;
+function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $canrate) {
+    global $USER, $OUTPUT;
 
     // Require the Rating API.
     //require_once($CFG->dirroot . '/rating/lib.php'); TODO: Include this.
@@ -936,7 +936,6 @@ function moodleoverflow_print_discussions($course, $cm, $moodleoverflow, $discus
     $post = $posts[$post->id];
 
     // Lets clear all posts above level 2.
-
     // Check if there are answers.
     if (isset($post->children)) {
 
@@ -964,6 +963,16 @@ function moodleoverflow_print_discussions($course, $cm, $moodleoverflow, $discus
 
     // TODO: Warum nur parent?!
     $postread = !empty($post->postread);
+
+    // Print a button to reply to the discussion.
+    if ($canreply) {
+        $buttontext = get_string('addanewreply', 'moodleoverflow');
+        $buttonurl = new moodle_url('/mod/moodleoverflow/post.php', ['reply' => $post->id]);
+        $button = new single_button($buttonurl, $buttontext, 'get');
+        $button->class = 'singlebutton moodleoverflowaddnew';
+        $button->formid = 'newdiscussionform';
+        echo $OUTPUT->render($button);
+    }
 
     // Print the starting post.
     echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked);
@@ -1050,7 +1059,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
 function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
                                    $ownpost = false, $canreply = false, $link = false,
                                    $footer = '', $highlight = '', $postisread = null,
-                                   $dummyifcantsee = true, $istracked = false) {
+                                   $dummyifcantsee = true, $istracked = false, $iscomment = false) {
     global $USER, $CFG, $OUTPUT, $PAGE;
 
     // Require the filelib.
@@ -1110,6 +1119,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $str->edit       = get_string('edit', 'moodleoverflow');
         $str->delete     = get_string('delete', 'moodleoverflow');
         $str->reply      = get_string('reply', 'moodleoverflow');
+        $str->replyfirst = get_string('replyfirst', 'moodleoverflow');
         $str->parent     = get_string('parent', 'moodleoverflow');
         $str->markread   = get_string('markread', 'moodleoverflow');;
         $str->markunread = get_string('markunread', 'moodleoverflow');;
@@ -1147,9 +1157,23 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // Give the option to reply to a post.
-    if ($canreply AND !empty($post->parent)) {
-        $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-        $commands[] = array('url' => $replyurl, 'text' => $str->reply);
+    if ($canreply) {
+
+        // Answer to the parent post.
+        if (empty($post->parent)) {
+            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
+            $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst);
+
+            // If the post is a comment, answer to the parent post.
+        } else if (!$iscomment) {
+            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
+            $commands[] = array('url' => $replyurl, 'text' => $str->reply);
+
+            // Else simple respond to the answer.
+        } else {
+            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $iscomment));
+            $commands[] = array('url' => $replyurl, 'text' => $str->reply);
+        }
     }
 
     // Initiate the output variables.
@@ -1245,8 +1269,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
 
 
-function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent, $canreply, $istracked, $posts, $level = 1) {
-    global $USER, $CFG;
+function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent, $canreply, $istracked, $posts, $iscomment = false) {
+    global $USER;
 
     // Prepare the output.
     $output = '';
@@ -1262,11 +1286,12 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
 
             // Answers should be seperated from each other.
             // While comments should be indented.
-            if ($level == 1) {
-                $padding = ($level * 30) . 'px';
-                $output .= "<div style='margin-top: $padding'>";
+            if (!$iscomment) {
+                $output .= "<div style='margin-top: 50px'>";
+                $parentid = $post->id;
             } else {
                 $output .= "<div class='indent'>";
+                $parentid = $iscomment;
             }
 
             // Has the current user written the answer?
@@ -1283,10 +1308,10 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
             $postread = !empty($post->postread);
 
             // Print the answer.
-            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked);
+            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked, $parentid);
 
             // Print its children.
-            $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts, 0);
+            $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts, $parentid);
 
             // End the div.
             $output .= "</div>\n";
@@ -1295,4 +1320,42 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
 
     // Return the output.
     return $output;
+}
+
+
+// Add a new post in an existing discussion.
+function moodleoverflow_add_new_post($post, $mform) {
+    global $USER, $DB;
+
+    // We do not check if these variables exist because this function
+    // is just called from one function which checks all these variables.
+    $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion));
+    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow));
+    $cm         = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+    $modulecontext    = context_module::instance($cm->id);
+
+    // Add some variables to the post.
+    $post->created = $post->modified = time();
+    $post->userid = $USER->id;
+    if (!isset($post->totalscore)) {
+        $post->totalscore = 0;
+    }
+
+    // Add the post to the database.
+    $post->id = $DB->insert_record('moodleoverflow_posts', $post);
+    $DB->set_field('moodleoverflow_posts', 'message', $post->message, array('id' => $post->id));
+
+    // Update the discussion.
+    $DB->set_field('moodleoverflow_discussions', 'timemodified', $post->modified, array('id' => $post->discussion));
+    $DB->set_field('moodleoverflow_discussions', 'usermodified', $post->userid, array('id' => $post->discussion));
+
+    // Mark the created post as read if the user is tracking the discussion.
+    if (moodleoverflow_track_can_track_moodleoverflows($moodleoverflow) AND moodleoverflow_track_is_tracked($moodleoverflow)) {
+        moodleoverflow_track_mark_post_read($post->userid, $post);
+    }
+
+    // TODO: Trigger event?
+
+    // Return the id of the created post.
+    return $post->id;
 }
