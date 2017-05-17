@@ -266,5 +266,22 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017050413, 'moodleoverflow');
     }
 
+    // Add the messageformat-field to moodleoverflow_posts.
+    if ($oldversion < 2017051001) {
+
+        // Define field messageformat to be added to moodleoverflow_posts.
+        $table = new xmldb_table('moodleoverflow_posts');
+        $field = new xmldb_field('messageformat', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'message');
+
+        // Conditionally launch add field messageformat.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017051001, 'moodleoverflow');
+    }
+
+
     return true;
 }

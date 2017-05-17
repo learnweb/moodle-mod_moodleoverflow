@@ -24,6 +24,7 @@
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/locallib.php');
 
+// Declare optional parameters.
 $moodleoverflow = optional_param('moodleoverflow', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
@@ -70,7 +71,8 @@ if (!isloggedin() OR isguestuser()) {
 
     // The guest needs to login.
     echo $OUTPUT->header();
-    echo $OUTPUT->confirm(get_string('noguestpost', 'forum').'<br /><br />'.get_string('liketologin'), get_login_url(), 'view.php?m=' . $moodleoverflow->id);
+    $strlogin = get_string('noguestpost', 'forum') . '<br /><br />' . get_string('liketologin');
+    echo $OUTPUT->confirm($strlogin, get_login_url(), 'view.php?m=' . $moodleoverflow->id);
     echo $OUTPUT->footer();
     exit;
 }
@@ -136,8 +138,7 @@ if (!empty($moodleoverflow)) {
     // Allows to calculate the correct return url later.
     unset($SESSION->fromdiscussion);
 
-// Last posibility: the action is not known.
-} else {
+} else {    // Last posibility: the action is not known.
     print_error('unknownaction');
 }
 
@@ -221,8 +222,7 @@ if ($fromform = $mformpost->get_data()) {
 
         print_error('couldnotadd', 'moodleoverflow', $errordestination);
 
-    // The creation of the new discussion was successful.
-    } else {
+    } else {    // The creation of the new discussion was successful.
 
         $params = array(
             'context' => $modulecontext,

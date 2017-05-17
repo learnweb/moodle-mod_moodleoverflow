@@ -56,7 +56,7 @@
 
                         {{! Display a symbol to mark all messages read if the forum is tracked by the user. }}
                         {{#istracked}}
-                            T
+                            {{# pix}} t/markasread, core {{/ pix}}
                         {{/istracked}}
 
                         </th>
@@ -110,10 +110,10 @@
                             {{! There are unread messages }}
                             {{#unread}}
                                 <span class="unread">
-                                <a href="{{ unreadlink }}">{{ unreadamount }}</a>
+                                    <a href="{{ unreadlink }}">{{ unreadamount }}</a>
                                     {{! The icon. }}
-                                    T
-                            </span>
+                                    {{# pix}} t/markasread, core {{/ pix}}
+                                </span>
                             {{/unread}}
 
                             {{^unread}}

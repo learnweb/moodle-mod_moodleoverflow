@@ -29,15 +29,18 @@ require_once($CFG->libdir. '/weblib.php');
 
 class mod_moodleoverflow_renderer extends plugin_renderer_base {
 
-    // TODO Modify this?!
-    /**
-     * Renders a list of discussions.
-     *
-     * @param $data
-     * @return bool|string
-     */
+    // Renders a list of discussions.
     public function render_discussion_list($data) {
         return $this->render_from_template('mod_moodleoverflow/discussion_list', $data);
     }
 
+    // Renders a post.
+    public function render_post($data) {
+        return $this->render_from_template('mod_moodleoverflow/post', $data);
+    }
+
+    // Renders a dummy post if capabilities are missing.
+    public function render_post_dummy_cantsee($data) {
+        return $this->render_from_template('mod_moodleoverflow/post_dummy_cantsee', $data);
+    }
 }

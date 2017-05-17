@@ -206,7 +206,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Are there unread messages? Create a link to them.
         $unreadamount = $discussion->unread;
-        $hasunreads = ($unreadamount >= 0) ? true : false;
+        $hasunreads = ($unreadamount > 0) ? true : false;
         $unreadlink = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '#unread';
 
         // Check the date of the latest post. Just in case the database is not consistent.
@@ -386,7 +386,7 @@ function moodleoverflow_get_discussions_unread($cm) {
 function moodleoverflow_track_can_track_moodleoverflows($moodleoverflow = null) {
     global $USER, $CFG;
 
-    // Check if readtracking is enabled for the module.
+    // Check if readtracking is disabled for the module.
     if (empty($CFG->moodleoverflow_trackreadposts)) {
         return false;
     }
@@ -614,7 +614,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
     global $CFG, $USER, $DB;
 
     // Retrieve the modulecontext.
-    $modulecontext = context::instance($cm->id);
+    $modulecontext = context_module::instance($cm->id);
 
     // Fetch the moodleoverflow instance object.
     if (is_numeric($moodleoverflow)) {
@@ -661,7 +661,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
     // Check if the user can view the discussion.
     $canviewdiscussion = !empty($cm->cache->caps['mod/moodleoverflow:viewdiscussion']) ||
         has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext, $user->id);
-    if(!$canviewdiscussion &&
+    if (!$canviewdiscussion &&
         !has_all_capabilities(array('moodle/user:viewdetails', 'moodle/user:readuserposts'), context_user::instance($post->userid))) {
         return false;
     }
@@ -729,11 +729,16 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
 
 
 
-function moodleoverflow_add_discussion($discussion) {
+function moodleoverflow_add_discussion($discussion, $userid = null) {
     global $DB, $USER;
 
     // Get the current time.
     $timenow = time();
+
+    // Get the current user.
+    if (is_null($userid)) {
+        $userid = $USER->id;
+    }
 
     // The first post of the discussion is stored
     // as a real post. The discussion links to it.
@@ -752,7 +757,7 @@ function moodleoverflow_add_discussion($discussion) {
     $post = new stdClass();
     $post->discussion     = 0;
     $post->parent         = 0;
-    $post->userid         = $USER->id;
+    $post->userid         = $userid;
     $post->created        = $timenow;
     $post->modified       = $timenow;
     $post->message        = $discussion->message;
@@ -781,7 +786,11 @@ function moodleoverflow_add_discussion($discussion) {
     // Link the post to the discussion.
     $DB->set_field('moodleoverflow_posts', 'discussion', $post->discussion, array('id' => $post->id));
 
-    // TODO: CAN_TRACK + IS_TRACKED = MARK_READ.
+    // Mark the created post as read.
+    if (moodleoverflow_track_can_track_moodleoverflows($moodleoverflow) AND moodleoverflow_track_is_tracked($moodleoverflow)) {
+        moodleoverflow_track_mark_post_read($post->userid, $post);
+    }
+
     // TODO: Trigger content_uploaded_event.
 
     // Return the id of the discussion.
@@ -801,4 +810,489 @@ function moodleoverflow_go_back_to($default) {
     }
 }
 
+function moodleoverflow_track_mark_post_read($userid, $post) {
 
+    // If the post is older than the limit.
+    if (moodleoverflow_track_is_old_post($post)) {
+        return true;
+    }
+
+    // Create a new read record.
+    return moodleoverflow_track_add_read_record($userid, $post->id);
+
+}
+
+
+// Checks if a post is older than the limit.
+function moodleoverflow_track_is_old_post($post) {
+    global $CFG;
+
+    // Get the current time.
+    $currenttimestamp = time();
+
+    // Calculate the time, where older posts are considered read.
+    $oldposttimestamp = $currenttimestamp - ($CFG->moodleoverflow_oldpostdays * 24 * 3600);
+
+    // Return if the post is newer than that time.
+    return ($post->modified < $oldposttimestamp);
+}
+
+
+// Mark a post as read.
+function moodleoverflow_track_add_read_record($userid, $postid) {
+    global $CFG, $DB;
+
+    // Get the current time and the cutoffdate.
+    $now = time();
+    $cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 3600);
+
+    // If there is already a read record, update it.
+    if ($DB->record_exists('moodleoverflow_read', array('userid' => $userid, 'postid' => $postid))) {
+        $sql = "UPDATE {moodleoverflow_read}
+                   SET lastread = ?
+                 WHERE userid = ? AND postid = ?";
+        return $DB->execute($sql, array($now, $userid, $userid));
+    }
+
+    // Else create a new read record.
+    $sql = "INSERT INTO {moodleoverflow_read} (userid, postid, discussionid, moodleoverflowid, firstread, lastread)
+                 SELECT ?, p.id, p.discussion, d.moodleoverflow, ?, ?
+                   FROM {moodleoverflow_posts} p
+                        JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                  WHERE p.id = ? AND p.modified >= ?";
+    return $DB->execute($sql, array($userid, $now, $now, $postid, $cutoffdate));
+}
+
+// Checks whether the user can reply to posts in a discussion.
+function moodleoverflow_user_can_post($moodleoverflow, $discussion, $user = null, $cm = null, $course = null, $modulecontext = null) {
+    global $USER, $DB;
+
+    // If not user is submitted, use the current one.
+    if (empty($user)) {
+        $user = $USER;
+    }
+
+    // Guests can not post.
+    if (isguestuser($user) OR empty($user->id)) {
+        return false;
+    }
+
+    // Fetch the coursemodule.
+    if (!$cm) {
+        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+            print_error('invalidcoursemodule');
+        }
+    }
+
+    // Fetch the related course.
+    if (!$course) {
+        if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
+            print_error('invalidcourseid');
+        }
+    }
+
+    // Fetch the related modulecontext.
+    if (!$modulecontext) {
+        $modulecontext = context_module::instance($cm->id);
+    }
+
+    // TODO: Check if the discussion is locked.
+
+    // Users with temporary guest access can not post.
+    if (!is_viewing($modulecontext, $user->id) AND !is_enrolled($modulecontext, $user->id, '', true)) {
+        return false;
+    }
+
+    // Check the users capability.
+    if (has_capability('mod/moodleoverflow:replypost', $modulecontext, $user->id)) {
+        return true;
+    }
+
+    // The user does not have the capability.
+    return false;
+}
+
+
+// Prints a moodleoverflow discussion.
+function moodleoverflow_print_discussions($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $canrate) {
+    global $USER, $CFG;
+
+    // Require the Rating API.
+    //require_once($CFG->dirroot . '/rating/lib.php'); TODO: Include this.
+
+    // Check if the current is the starter of the discussion.
+    $ownpost = (isloggedin() AND ($USER->id == $post->userid));
+
+    // Fetch the modulecontext.
+    $modulecontext = context_module::instance($cm->id);
+
+    // Is the forum tracked?
+    $istracked = moodleoverflow_track_is_tracked($moodleoverflow);
+
+    // Retrieve all posts of the discussion.
+    $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked);
+
+    // Start with the parent post.
+    $post = $posts[$post->id];
+
+    // Lets clear all posts above level 2.
+
+    // Check if there are answers.
+    if (isset($post->children)) {
+
+        // Itereate through all answers.
+        foreach ($post->children as $aid => $a) {
+
+            // Check for each answer if they have children as well.
+            if (isset($post->children[$aid]->children)) {
+
+                // Iterate through all comments.
+                foreach ($post->children[$aid]->children as $cid => $c) {
+
+                    // Delete the children of the comments.
+                    if (isset($post->children[$aid]->children[$cid]->children)) {
+                        unset($post->children[$aid]->children[$cid]->children);
+                    }
+                }
+            }
+        }
+    }
+
+    // Format the subject.
+    $post->moodleoverflow = $moodleoverflow->id;
+    $post->subject = format_string($post->subject);
+
+    // TODO: Warum nur parent?!
+    $postread = !empty($post->postread);
+
+    // Print the starting post.
+    echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked);
+
+    // Print the other posts.
+    echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts);
+}
+
+// Get all posts in discussion including the startpost.
+function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
+    global $DB, $USER;
+
+    // TODO: Delete this.
+    $sort = "p.created ASC";
+
+    // Initiate tracking settings.
+    $tracking_selector = '';
+    $tracking_join = '';
+    $params = array();
+
+    // If tracking is enabled, another join is needed.
+    if ($tracking) {
+        $tracking_selector = ", mr.id AS postread";
+        $tracking_join = "LEFT JOIN {moodleoverflow_read} mr ON (mr.postid = p.id AND mr.userid = ?)";
+        $params[] = $USER->id;
+    }
+
+    // Get all username fields.
+    $allnames = get_all_user_name_fields(true, 'u');
+
+    // Create the sql array.
+    $params[] = $discussionid;
+    $params[] = $discussionid;
+    $sql = "SELECT p.*, $allnames, d.name as subject, u.email, u.picture, u.imagealt $tracking_selector
+              FROM {moodleoverflow_posts} p
+                   LEFT JOIN {user} u ON p.userid = u.id
+                   LEFT JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                   $tracking_join
+             WHERE p.discussion = ?
+          ORDER BY $sort";
+
+    // Return an empty array, if there are no posts.
+    if (! $posts = $DB->get_records_sql($sql, $params)) {
+        return array();
+    }
+
+    // Find all children of this post.
+    foreach ($posts as $postid => $post) {
+
+        // Is it an old post?
+        if ($tracking) {
+            if (moodleoverflow_track_is_old_post($post)) {
+                $posts[$postid]->postread = true;
+            }
+        }
+
+        // Don't iterate through the parent post.
+        if (!$post->parent) {
+            $posts[$postid]->level = 0;
+            continue;
+        }
+
+        // If the parent post does not exist.
+        if (!isset($posts[$post->parent])) {
+            continue;
+        }
+
+        // Create the children array.
+        if (!isset($posts[$post->parent]->children)) {
+            $posts[$post->parent]->children = array();
+        }
+
+        // Increase the level of the current post.
+        $posts[$post->parent]->children[$postid] =& $posts[$postid];
+    }
+
+    // Return the objeckt.
+    return $posts;
+}
+
+
+
+// Print a moodleoverflow post.
+function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
+                                   $ownpost = false, $canreply = false, $link = false,
+                                   $footer = '', $highlight = '', $postisread = null,
+                                   $dummyifcantsee = true, $istracked = false) {
+    global $USER, $CFG, $OUTPUT, $PAGE;
+
+    // Require the filelib.
+    require_once($CFG->libdir . '/filelib.php');
+
+    // String cache.
+    static $str;
+
+    // Print the 'unread' only on time.
+    static $firstunreadanchorprinted = false;
+
+    // Declare the modulecontext.
+    $modulecontext = context_module::instance($cm->id);
+
+    // Add some informationto the post.
+    $post->course = $course->id;
+    $post->moodleoverflow = $moodleoverflow->id;
+    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $modulecontext->id, 'mod_moodleoverflow', 'post', $post->id);
+
+    // Caching.
+    if (!isset($cm->cache)) {
+        $cm->cache = new stdClass();
+    }
+
+    // Check the cached capabilities.
+    if (!isset($cm->cache->caps)) {
+        $cm->cache->caps = array();
+        $cm->cache->caps['mod/moodleoverflow:viewdiscussion'] = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext);
+        $cm->cache->caps['mod/moodleoverflow:editanypost'] = has_capability('mod/moodleoverflow:editanypost', $modulecontext);
+        $cm->cache->caps['mod/moodleoverflow:deleteownpost'] = has_capability('mod/moodleoverflow:deleteownpost', $modulecontext);
+        $cm->cache->caps['mod/moodleoverflow:viewanyrating'] = has_capability('mod/moodleoverflow:viewanyrating', $modulecontext);
+        $cm->cache->caps['moodle/site:viewfullnames'] = has_capability('moodle/site:viewfullnames', $modulecontext);
+    }
+
+    // Check if the user has the capability to see posts.
+    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, NULL, $cm)) {
+
+        // No dummy message is requested.
+        if (!$dummyifcantsee) {
+            echo '';
+            return;
+        }
+
+        // Include the renderer to display the dummy content.
+        $renderer = $PAGE->get_renderer('mod_moodleoverflow');
+
+        // Collect the needed data being submitted to the template.
+        $mustachedata = new stdClass();
+
+        // Print the template.
+        return $renderer->render_post_dummy_cantsee($mustachedata);
+    }
+
+    // Check if the strings have been cached.
+    if (empty($str)) {
+        $str = new stdClass();
+        $str->edit       = get_string('edit', 'moodleoverflow');
+        $str->delete     = get_string('delete', 'moodleoverflow');
+        $str->reply      = get_string('reply', 'moodleoverflow');
+        $str->parent     = get_string('parent', 'moodleoverflow');
+        $str->markread   = get_string('markread', 'moodleoverflow');;
+        $str->markunread = get_string('markunread', 'moodleoverflow');;
+    }
+
+    // Get the current link without unnecessary parameters.
+    $discussionlink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
+
+    // Build the object that represents the posting user.
+    $postinguser = new stdClass();
+    $postinguserfields = explode(',', user_picture::fields());
+    $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
+    $postinguser->id = $post->userid;
+    $postinguser->fullname = fullname($postinguser, $cm->cache->caps['moodle/site:viewfullnames']);
+    $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
+
+    // Prepare an array of commands.
+    $commands = array();
+
+    // Create a permalink.
+    $permalink = new moodle_url($discussionlink);
+    $permalink->set_anchor('p' . $post->id);
+    $commands[] = array('url' => $permalink, 'text' => get_string('permalink', 'moodleoverflow'));
+
+    // TODO: Mark Read / Unread -> istracked und loggedin und cfg->usrmarksread.
+
+    // Calculate the age of the post.
+    $age = time() - $post->created;
+
+    // Make a link to edit your own post within the given time.
+    // TODO: maxeditingtime oder modulspezifische Einstellungen?
+    if (($ownpost AND ($age < $CFG->maxeditingtime)) OR $cm->cache->caps['mod/moodleoverflow:editanypost']) {
+        $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
+        $commands[] = array('url' => $editurl, 'text' => $str->edit);
+    }
+
+    // Give the option to reply to a post.
+    if ($canreply AND !empty($post->parent)) {
+        $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
+        $commands[] = array('url' => $replyurl, 'text' => $str->reply);
+    }
+
+    // Initiate the output variables.
+    $mustachedata = new stdClass();
+    $mustachedata->istracked = $istracked;
+    $mustachedata->isread = false;
+    $mustachedata->isfirstunread = false;
+    $mustachedata->isfirstpost = false;
+
+    // Check the reading status of the post.
+    $postclass = '';
+    if ($istracked) {
+        if ($postisread) {
+            $postclass = ' read';
+            $mustachedata->isread = true;
+        } else {
+            $postclass = ' unread';
+
+            // Anchor the first unread post of a discussion.
+            if (!$firstunreadanchorprinted) {
+                $mustachedata->isfirstunread = true;
+                $firstunreadanchorprinted = true;
+            }
+        }
+    }
+    $mustachedata->postclass = $postclass;
+
+    // Is this the firstpost?
+    if (empty($post->parent)) {
+        $topicclass = ' firstpost starter';
+        $mustachedata->isfirstpost = true;
+    }
+
+    //
+    $postbyuser = new stdClass();
+    $postbyuser->post = $post->subject;
+    $postbyuser->user = $postinguser->fullname;
+    $mustachedata->discussionby = get_string('postbyuser', 'moodleoverflow', $postbyuser);
+
+    // Set basic variables of the post.
+    $mustachedata->postid = $post->id;
+    $mustachedata->subject = format_string($post->subject);
+
+    // User picture.
+    $mustachedata->picture = $OUTPUT->user_picture($postinguser, ['courseid' => $course->id]);
+
+    // The name of the user and the date modified.
+    $by = new stdClass();
+    $by->date = userdate($post->modified);
+    $by->name = html_writer::link($postinguser->profilelink, $postinguser->fullname);
+    $mustachedata->bytext = get_string('bynameondate', 'moodleoverflow', $by);
+
+    // Set options for the post.
+    $options = new stdClass();
+    $options->para = false;
+    $options->trusted = false;
+    $options->context = $modulecontext;
+
+    // TODO: Shorten post?
+
+    // Prepare the post.
+    $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
+    // TODO: Highlight?
+    // TODO: Displaywordcount?
+    // TODO: AttachedImages?
+    // TODO: Ratings.
+
+    // Output the commands.
+    $commandhtml = array();
+    foreach ($commands as $command) {
+        if (is_array($command)) {
+            $commandhtml[] = html_writer::link($command['url'], $command['text']);
+        } else {
+            $commandhtml[] = $command;
+        }
+    }
+    $mustachedata->commands = implode(' | ', $commandhtml);
+
+    // TODO: Link to post if required.
+
+    // Print a footer if requested.
+    $mustachedata->footer = $footer;
+
+    // Mark the forum post as read.
+    if($istracked AND !$postisread) {
+        moodleoverflow_track_mark_post_read($USER->id, $post);
+    }
+
+    // Include the renderer to display the dummy content.
+    $renderer = $PAGE->get_renderer('mod_moodleoverflow');
+    return $renderer->render_post($mustachedata);
+}
+
+
+
+function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent, $canreply, $istracked, $posts, $level = 1) {
+    global $USER, $CFG;
+
+    // Prepare the output.
+    $output = '';
+
+    // If there are answers.
+    if (!empty($posts[$parent->id]->children)) {
+
+        // We do not need the other parts of this variable anymore.
+        $posts = $posts[$parent->id]->children;
+
+        // Iterate through all answers.
+        foreach ($posts as $post) {
+
+            // Answers should be seperated from each other.
+            // While comments should be indented.
+            if ($level == 1) {
+                $padding = ($level * 30) . 'px';
+                $output .= "<div style='margin-top: $padding'>";
+            } else {
+                $output .= "<div class='indent'>";
+            }
+
+            // Has the current user written the answer?
+            if (!isloggedin()) {
+                $ownpost = false;
+            } else {
+                $ownpost = ($USER->id == $post->userid);
+            }
+
+            // Format the subject.
+            $post->subject = format_string($post->subject);
+
+            // Determine whether the post has been read by the current user.
+            $postread = !empty($post->postread);
+
+            // Print the answer.
+            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked);
+
+            // Print its children.
+            $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts, 0);
+
+            // End the div.
+            $output .= "</div>\n";
+        }
+    }
+
+    // Return the output.
+    return $output;
+}

@@ -171,7 +171,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $DB->insert_record('moodleoverflow_read', $record);
     }
 
-    public function test_get_discussion_count() {
+    public function est_get_discussion_count() {
         global $DB;
 
         // Reset all changes after the test.
@@ -200,7 +200,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertEquals(2, moodleoverflow_get_discussions_count($cm));
     }
 
-    public function test_get_discussions() {
+    public function est_get_discussions() {
         global $DB;
 
         // Reset all changes after the test.
@@ -248,7 +248,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertEquals(10, count(moodleoverflow_get_discussions($cm, -1, 5)));
     }
 
-    public function test_count_discussion_replies() {
+    public function est_count_discussion_replies() {
         global $DB;
 
         // Reset all changes after the test.
@@ -279,7 +279,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertEquals($post->id, moodleoverflow_count_discussion_replies($moodleoverflow->id)[$discussion->id]->lastpostid);
     }
 
-    public function test_get_discussions_unread() {
+    public function est_get_discussions_unread() {
         global $DB, $CFG;
 
         // Reset all changes after the test.
@@ -328,7 +328,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertEmpty(moodleoverflow_get_discussions_unread($cm));
     }
 
-    public function test_get_full_post() {
+    public function est_get_full_post() {
         global $DB;
 
         // Reset all changes after the test.
@@ -357,7 +357,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertFalse(moodleoverflow_get_post_full($post->id + 1));
     }
 
-    public function test_user_can_post_discussion() {
+    public function est_user_can_post_discussion() {
         global $DB;
 
         // Reset all changes after the test.
@@ -399,16 +399,39 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertFalse(moodleoverflow_user_can_post_discussion($moodleoverflow, $cm));
     }
 
-    public function test_track_can_track_moodleoverflows() {
+    public function est_track_can_track_moodleoverflows() {
 
         // ToDo: Implement this.
         $this->assertEquals(2, 1 + 1);
     }
 
-    public function test_track_is_tracked() {
+    public function est_track_is_tracked() {
 
         // ToDo: Implement this.
         $this->assertEquals(2, 1 + 1);
     }
 
+    public function test_test1() {
+        global $DB;
+
+        // Reset all changes after the test.
+        $this->resetAfterTest(true);
+
+        // Create a new course category.
+        $coursecategory = $this->getDataGenerator()->create_category();
+        $this->assertEquals(2, $DB->count_records('course_categories'), 'Creating new course category failed.');
+
+        // Create a new course.
+        $course = $this->getDataGenerator()->create_course(array('fullname' => 'Created test course', 'category' => $coursecategory->id));
+        $this->assertEquals(2, $DB->count_records('course', array()), 'Creating course failed');
+        $this->assertEquals($coursecategory->id, $DB->get_record('course', array('fullname' => 'Created test course'))->category, 'Course not created correctly.');
+
+        // Create an overflow instance.
+        $course = $this->getDataGenerator()->create_course();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
+        $moodleoverflow = $generator->create_instance(array('course'=>$course->id));
+        $this->assertEquals(1, $DB->count_records('moodleoverflow'), 'Creating moodleoverflow instance failed.');
+        $this->assertEquals(1, $DB->count_records('course_modules'), 'Creating course module failed.');
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
+    }
 }

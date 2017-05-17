@@ -91,8 +91,6 @@ function moodleoverflow_add_instance(stdClass $moodleoverflow, mod_moodleoverflo
 
     $moodleoverflow->id = $DB->insert_record('moodleoverflow', $moodleoverflow);
 
-    moodleoverflow_grade_item_update($moodleoverflow);
-
     return $moodleoverflow->id;
 }
 
@@ -116,8 +114,6 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
     // You may have to add extra stuff in here.
 
     $result = $DB->update_record('moodleoverflow', $moodleoverflow);
-
-    moodleoverflow_grade_item_update($moodleoverflow);
 
     return $result;
 }
@@ -175,8 +171,6 @@ function moodleoverflow_delete_instance($id) {
     // Delete any dependent records here.
 
     $DB->delete_records('moodleoverflow', array('id' => $moodleoverflow->id));
-
-    moodleoverflow_grade_item_delete($moodleoverflow);
 
     return true;
 }
@@ -288,113 +282,6 @@ function moodleoverflow_get_extra_capabilities() {
     return array();
 }
 
-/* Gradebook API */
-
-/**
- * Is a given scale used by the instance of moodleoverflow?
- *
- * This function returns if a scale is being used by one moodleoverflow
- * if it has support for grading and scales.
- *
- * @param int $moodleoverflowid ID of an instance of this module
- * @param int $scaleid ID of the scale
- * @return bool true if the scale is used by the given moodleoverflow instance
- */
-function moodleoverflow_scale_used($moodleoverflowid, $scaleid) {
-    global $DB;
-
-    if ($scaleid and $DB->record_exists('moodleoverflow', array('id' => $moodleoverflowid, 'grade' => -$scaleid))) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * Checks if scale is being used by any instance of moodleoverflow.
- *
- * This is used to find out if scale used anywhere.
- *
- * @param int $scaleid ID of the scale
- * @return boolean true if the scale is used by any moodleoverflow instance
- */
-function moodleoverflow_scale_used_anywhere($scaleid) {
-    global $DB;
-
-    if ($scaleid and $DB->record_exists('moodleoverflow', array('grade' => -$scaleid))) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * Creates or updates grade item for the given moodleoverflow instance
- *
- * Needed by {@link grade_update_mod_grades()}.
- *
- * @param stdClass $moodleoverflow instance object with extra cmidnumber and modname property
- * @param bool $reset reset grades in the gradebook
- * @return void
- */
-function moodleoverflow_grade_item_update(stdClass $moodleoverflow, $reset=false) {
-    global $CFG;
-    require_once($CFG->libdir.'/gradelib.php');
-
-    $item = array();
-    $item['itemname'] = clean_param($moodleoverflow->name, PARAM_NOTAGS);
-    $item['gradetype'] = GRADE_TYPE_VALUE;
-
-    if ($moodleoverflow->grade > 0) {
-        $item['gradetype'] = GRADE_TYPE_VALUE;
-        $item['grademax']  = $moodleoverflow->grade;
-        $item['grademin']  = 0;
-    } else if ($moodleoverflow->grade < 0) {
-        $item['gradetype'] = GRADE_TYPE_SCALE;
-        $item['scaleid']   = -$moodleoverflow->grade;
-    } else {
-        $item['gradetype'] = GRADE_TYPE_NONE;
-    }
-
-    if ($reset) {
-        $item['reset'] = true;
-    }
-
-    grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow',
-            $moodleoverflow->id, 0, null, $item);
-}
-
-/**
- * Delete grade item for given moodleoverflow instance
- *
- * @param stdClass $moodleoverflow instance object
- * @return grade_item
- */
-function moodleoverflow_grade_item_delete($moodleoverflow) {
-    global $CFG;
-    require_once($CFG->libdir.'/gradelib.php');
-
-    return grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow',
-            $moodleoverflow->id, 0, null, array('deleted' => 1));
-}
-
-/**
- * Update moodleoverflow grades in the gradebook
- *
- * Needed by {@link grade_update_mod_grades()}.
- *
- * @param stdClass $moodleoverflow instance object with extra cmidnumber and modname property
- * @param int $userid update grade of specific user only, 0 means all participants
- */
-function moodleoverflow_update_grades(stdClass $moodleoverflow, $userid = 0) {
-    global $CFG, $DB;
-    require_once($CFG->libdir.'/gradelib.php');
-
-    // Populate array of grade objects indexed by userid.
-    $grades = array();
-
-    grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow', $moodleoverflow->id, 0, $grades);
-}
 
 /* File API */
 

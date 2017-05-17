@@ -54,6 +54,14 @@ $string['headerlastpost'] = 'Last post';
 $string['headerunread'] = 'Unread';
 $string['markallread'] = 'Mark read';
 $string['markallread'] = 'Mark all posts in this discussion read.';
+$string['delete'] = 'Delete';
+$string['parent'] = 'Show parent';
+$string['markread'] = 'Mark read';
+$string['markunread'] = 'Mark unread';
+$string['permalink'] = 'Permalink';
+$string['postbyuser'] = '{$a->post} by {$a->user}';
+$string['bynameondate'] = 'by {$a->name} - {$a->date}';
+
 
 // Strings for the settings.php.
 $string['configmanydiscussions'] = 'Maximum number of discussions shown in a moodleoverflow instance per page';
@@ -90,7 +98,7 @@ $string['postaddedsuccess'] = 'Your post was successfully added.';
 
 
 
-// Strings for the classes/mod_form.php
+// Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';
 $string['reply'] = 'Reply';
 $string['message'] = 'Message';
@@ -100,3 +108,13 @@ $string['posttomoodleoverflow'] = 'Post to moodleoverflow';
 $string['erroremptysubject'] = 'Post subject cannot be empty.';
 $string['erroremptymessage'] = 'Post message cannot be empty';
 $string['yournewtopic'] = 'Your new discussion topic';
+
+// Strings for the discussion.php.
+$string['invaliddiscussionid'] = 'Discussion ID was incorrect';
+$string['notexists'] = 'Discussion no longer exists';
+$string['discussionname'] = 'Discussion name';
+$string['discussionlocked'] = 'This discussion has been locked so you can no longer reply to it.';
+$string['hiddenmoodleoverflowpost'] = 'Hidden moodleoverflow post';
+$string['moodleoverflowsubjecthidden'] = 'Subject (hidden)';
+$string['moodleoverflowauthorhidden'] = 'Author (hidden)';
+$string['moodleoverflowbodyhidden'] = 'This post cannot be viewed by you, probably because you have not posted in the discussion, the maximum editing time hasn\'t passed yet, the discussion has not started or the discussion has expired.';
