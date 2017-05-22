@@ -26,6 +26,8 @@ require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
+$ratingid = optional_param('r', 0, PARAM_INT);
+$ratedpost = optional_param('rp', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d));
@@ -60,6 +62,14 @@ require_course_login($course, true, $cm);
 $canviewdiscussion = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext);
 if (!$canviewdiscussion) {
     notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
+}
+
+// Has a request to rate a post been submitted?
+if ($ratingid) {
+    if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
+        print_error('ratingfailed', 'moodleoverflow');
+    }
+    redirect(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
 }
 
 // TODO: Trigger the DISCUSSION-VIEW-Event.
@@ -134,14 +144,9 @@ if (!$canreply) {
 
 // TODO: Capability: view qanda without posting?
 
-// Check if the user can rate posts or discussions.
-$canrate = array();
-$canrate['posts']      = has_capability('mod/moodleoverflow:rateposts', $modulecontext);
-$canrate['discussion'] = has_capability('mod/moodleoverflow:ratediscussions', $modulecontext);
-
 echo "<br><br>";
 
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $canrate);
+moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply);
 
 
 echo $OUTPUT->footer();

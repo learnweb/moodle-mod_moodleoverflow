@@ -28,6 +28,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// Default strings.
 $string['modulename'] = 'moodleoverflow';
 $string['modulenameplural'] = 'moodleoverflows';
 $string['modulename_help'] = 'The moodleoverflow module enables participants to use a StackOverflow-like forumstructure.';
@@ -52,6 +53,8 @@ $string['headerstartedby'] = 'Started by';
 $string['headerreplies'] = 'Replies';
 $string['headerlastpost'] = 'Last post';
 $string['headerunread'] = 'Unread';
+$string['headervotes'] = 'Votes';
+$string['headerstatus'] = 'Status';
 $string['markallread'] = 'Mark read';
 $string['markallread'] = 'Mark all posts in this discussion read.';
 $string['delete'] = 'Delete';
@@ -61,7 +64,6 @@ $string['markunread'] = 'Mark unread';
 $string['permalink'] = 'Permalink';
 $string['postbyuser'] = '{$a->post} by {$a->user}';
 $string['bynameondate'] = 'by {$a->name} - {$a->date}';
-
 
 // Strings for the settings.php.
 $string['configmanydiscussions'] = 'Maximum number of discussions shown in a moodleoverflow instance per page';
@@ -97,9 +99,6 @@ $string['couldnotadd'] = 'Could not add your post due to an unknown error';
 $string['postaddedsuccess'] = 'Your post was successfully added.';
 $string['postaddedtimeleft'] = 'You have {$a} to edit it if you want to make any changes.';
 
-
-
-
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';
 $string['reply'] = 'Comment';
@@ -112,6 +111,14 @@ $string['erroremptysubject'] = 'Post subject cannot be empty.';
 $string['erroremptymessage'] = 'Post message cannot be empty';
 $string['yournewtopic'] = 'Your new discussion topic';
 
+// Strings for the classes/ratings.php
+$string['postnotexist'] = 'Requested post does not exist';
+$string['noratemoodleoverflow'] = 'Sorry, you are not allowed to vote in this moodleoverflow.';
+$string['configallowratingchange'] = 'Can a user change its ratings?';
+$string['allowratingchange'] = 'Allow rating changes';
+$string['noratingchangeallowed'] = 'You are not allowed to change your ratings.';
+$string['invalidratingid'] = 'The submitted rating is neither an upvote nor a downvote.';
+
 // Strings for the discussion.php.
 $string['invaliddiscussionid'] = 'Discussion ID was incorrect';
 $string['notexists'] = 'Discussion no longer exists';
@@ -121,4 +128,6 @@ $string['hiddenmoodleoverflowpost'] = 'Hidden moodleoverflow post';
 $string['moodleoverflowsubjecthidden'] = 'Subject (hidden)';
 $string['moodleoverflowauthorhidden'] = 'Author (hidden)';
 $string['moodleoverflowbodyhidden'] = 'This post cannot be viewed by you, probably because you have not posted in the discussion, the maximum editing time hasn\'t passed yet, the discussion has not started or the discussion has expired.';
-$string['addanewreply'] = 'Add a new reply';
+$string['addanewreply'] = 'Add a new answer';
+$string['ratingfailed'] = 'Rating failed. Try again.';
+

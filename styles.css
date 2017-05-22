@@ -28,7 +28,7 @@
     text-align:right;
     white-space:nowrap;
 }
-.moodleoverflowheaderlist .replies,.moodleoverflowheaderlist .discussion .author {
+.moodleoverflowheaderlist .replies, .moodleoverflowheaderlist .discussion .author {
     white-space:nowrap;
 }
 .moodleoverflowheaderlist thead .discussionsubscription {
@@ -137,14 +137,20 @@
     width:43px;
     overflow:hidden
 }
-.moodleoverflowpost .row .left .grouppictures a {
+.moodleoverflowpost .row .left .votes {
     text-align:center;
     display:block;
-    margin:6px 2px 0 2px
+    margin:0px 8px 0px 0px !important;
 }
-.moodleoverflowpost .row .left .grouppicture {
-    width:20px;
-    height:20px
+.moodleoverflowpost .row .left .votes p {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.moodleoverflowpost .row .left .votes .icon {
+    width: 24px;
+    height: 24px;
+    color: #00aa00;
+    margin: 0px !important;
 }
 .moodleoverflowpost .row .topic,.moodleoverflowpost .row .content-mask,.moodleoverflowpost .row .options {
     margin-left:43px
@@ -267,6 +273,35 @@
 }
 
 
+.tooltip {
+    display: inline;
+    position: relative;
+}
+
+.tooltip:hover:after{
+    background: #333;
+    background: rgba(0,0,0,.8);
+    border-radius: 5px;
+    bottom: 26px;
+    color: #fff;
+    content: attr(title);
+    left: 20%;
+    padding: 5px 15px;
+    position: absolute;
+    z-index: 98;
+    width: 220px;
+}
+
+.tooltip:hover:before{
+    border: solid;
+    border-color: #333 transparent;
+    border-width: 6px 6px 0 6px;
+    bottom: 20px;
+    content: "";
+    left: 50%;
+    position: absolute;
+    z-index: 99;
+}
 
 
 

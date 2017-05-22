@@ -9,73 +9,103 @@
 
 {{! Start the post. Mark it read or unread. }}
 <div class="moodleoverflowpost clearfix{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
-    <div class="row header clearfix">
 
-        {{! User picture. }}
-        <div class="left picture">{{{ picture }}}</div>
+    <div>
+        <div class="row header clearfix">
 
-        {{! Begin the topic column. }}
-        <div class="topic{{# isfirstpost}} firstpost starter{{/isfirstpost}}">
-
-            {{! The subject. }}
-            <div class="subject" role="heading" aria-level="2">
-                {{ subject }}
+            {{! User picture. }}
+            <div class="left picture">
+                {{{ picture }}}
             </div>
 
-            {{! The author and date. }}
-            <div class="author" role="heading", aria-level="2">
-                {{{ bytext }}}
+            {{! Begin the topic column. }}
+            <div class="topic{{# isfirstpost}} firstpost starter{{/isfirstpost}}">
+
+                {{! The subject. }}
+                <div class="subject" role="heading" aria-level="2">
+                    {{#isfirstpost}}{{ subject }}{{/isfirstpost}}
+                    {{^isfirstpost}}&nbsp;{{/isfirstpost}}
+                </div>
+
+                {{! The author and date. }}
+                <div class="author" role="heading", aria-level="2">
+                    {{{ bytext }}}
+                </div>
+
             </div>
+            {{! End of the topic column. }}
 
         </div>
-        {{! End of the topic column. }}
+        {{! End of the header row. }}
 
-    </div>
-    {{! End of the header row. }}
+        {{! Row with the post content. }}
+        <div class="row maincontent clearfix">
 
-    {{! Row with the post content. }}
-    <div class="row maincontent clearfix">
+            {{! The author. }}
+            <div class="left">
+                <div class="votes">
 
-        {{! The author. }}
-        <div class="left">
-            <div class="grouppictures">
-                &nbsp;
-            </div>
-        </div>
+                    {{! Did the current user upvoted this post? }}
+                    {{#userupvoted}}
+                        {{# pix}} vote/upvoted, moodleoverflow {{/ pix}}
+                    {{/userupvoted}}
+                    {{^userupvoted}}
+                        <a href="{{{ upvotelink }}}">
+                            {{# pix}} vote/up, moodleoverflow {{/ pix}}
+                        </a>
+                    {{/userupvoted}}
 
-        {{! The message of the post. }}
-        <div class="no-overflow">
-            <div class="content">
-                <div class="posting fullpost">
-                    {{{ postcontent }}}
+                    {{! Display the amount of votes. }}
+                    <p>{{ votes }}</p>
+
+                    {{! Did the current user upvoted this post? }}
+                    {{#userdownvoted}}
+                        {{# pix}} vote/downvoted, moodleoverflow {{/ pix}}
+                    {{/userdownvoted}}
+                    {{^userdownvoted}}
+                        <a href="{{{ downvotelink }}}">
+                            {{# pix}} vote/down, moodleoverflow {{/ pix}}
+                        </a>
+                    {{/userdownvoted}}
                 </div>
             </div>
-        </div>
 
-    </div>
-    {{! End of the post content row. }}
-
-
-    <div class="row side">
-        <div class="left">
-            &nbsp;
-        </div>
-
-        {{! The commands. }}
-        <div class="options clearfix">
-            <div class="commands">
-                {{{ commands }}}
+            {{! The message of the post. }}
+            <div class="no-overflow">
+                <div class="content">
+                    <div class="posting fullpost">
+                        {{{ postcontent }}}
+                    </div>
+                </div>
             </div>
+
         </div>
+        {{! End of the post content row. }}
 
-        {{! TODO: Link to post if required. }}
 
-        {{! Print the footer if requested. }}
-        {{# footer }}
-            <div class="footer">
-                {{ footer }}
+        <div class="row side">
+            <div class="left">
+                &nbsp;
             </div>
-        {{/footer}}
 
+            {{! The commands. }}
+            <div class="options clearfix">
+                <div class="commands">
+                    {{{ commands }}}
+                </div>
+            </div>
+
+            {{! TODO: Link to post if required. }}
+
+            {{! Print the footer if requested. }}
+            {{# footer }}
+                <div class="footer">
+                    {{ footer }}
+                </div>
+            {{/footer}}
+
+        </div>
     </div>
+
+
 </div>

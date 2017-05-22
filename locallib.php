@@ -166,6 +166,9 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             $discussion->replies = 0;
         }
 
+        // Set the right text.
+        $answertext = ($discussion->replies == 1) ? 'answer' : 'answers';
+
         // Set the amount of unread messages for each discussion.
         if (!$istracked) {
             $discussion->unread = '-';
@@ -178,6 +181,15 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
                 $discussion->unread = $unreads[$discussion->discussion];
             }
         }
+
+        // Check the status of the discussion.
+        $statusstarter = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, false);
+        $statusteacher = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, true);
+
+        // Get the amount of votes for the discussion.
+        $votes = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->discussion, $discussion->id);
+        $votes = $votes->upvotes - $votes->downvotes;
+        $votetext = ($votes == 1) ? 'vote' : 'votes';
 
         // Use the discussions name instead of the subject of the first post.
         $discussion->subject = $discussion->name;
@@ -202,7 +214,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Get the amount of replies and the link to the discussion.
         $replyamount = $discussion->replies;
-        $replylink = $subjectlink;
 
         // Are there unread messages? Create a link to them.
         $unreadamount = $discussion->unread;
@@ -233,7 +244,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $preparedarray[$i]['username'] = $username;
         $preparedarray[$i]['userlink'] = $userlink;
         $preparedarray[$i]['replyamount'] = $replyamount;
-        $preparedarray[$i]['replylink'] = $replylink;
         $preparedarray[$i]['unread'] = $hasunreads;
         $preparedarray[$i]['unreadamount'] = $unreadamount;
         $preparedarray[$i]['unreadlink'] = $unreadlink;
@@ -241,6 +251,11 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $preparedarray[$i]['lastpostusername'] = $usermodifiedname;
         $preparedarray[$i]['lastpostlink'] = $lastpostlink;
         $preparedarray[$i]['lastpostdate'] = $lastpostdate;
+        $preparedarray[$i]['statusstarter'] = $statusstarter;
+        $preparedarray[$i]['statusteacher'] = $statusteacher;
+        $preparedarray[$i]['votes'] = $votes;
+        $preparedarray[$i]['votetext'] = $votetext;
+        $preparedarray[$i]['answertext'] = $answertext;
 
         // Go to the next discussion.
         $i++;
@@ -914,11 +929,8 @@ function moodleoverflow_user_can_post($moodleoverflow, $discussion, $user = null
 
 
 // Prints a moodleoverflow discussion.
-function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $canrate) {
-    global $USER, $OUTPUT;
-
-    // Require the Rating API.
-    //require_once($CFG->dirroot . '/rating/lib.php'); TODO: Include this.
+function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply) {
+    global $USER, $OUTPUT, $CFG;
 
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() AND ($USER->id == $post->userid));
@@ -1017,6 +1029,19 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     // Return an empty array, if there are no posts.
     if (! $posts = $DB->get_records_sql($sql, $params)) {
         return array();
+    }
+
+    // Load all ratings.
+    $discussionratings = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussionid);
+
+    // Assign ratings to the posts.
+    foreach ($posts as $postid => $post) {
+
+        // Assign the ratings to the machting posts.
+        $posts[$postid]->upvotes = $discussionratings[$post->id]->upvotes;
+        $posts[$postid]->downvotes = $discussionratings[$post->id]->downvotes;
+        $posts[$postid]->statusstarter = $discussionratings[$post->id]->issolvedstarter;
+        $posts[$postid]->statusteacher = $discussionratings[$post->id]->issolvedteacher;
     }
 
     // Find all children of this post.
@@ -1183,6 +1208,34 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->isfirstunread = false;
     $mustachedata->isfirstpost = false;
 
+    // Get the ratings.
+    $mustachedata->votes = $post->upvotes - $post->downvotes;
+    $mustachedata->statusstarter = $post->statusstarter;
+    $mustachedata->statusteacher = $post->statusteacher;
+
+    // Did the user rated this post?
+    if ($rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rating($post->id)) {
+
+        // Convert the object.
+        $rating = $rating->rating;
+
+        // Did the user upvoted or downvoted this post?
+        if ($rating == 1) {
+            $mustachedata->userdownvoted = true;
+            $mustachedata->userupvoted = false;
+        } else if ($rating == 2) {
+            $mustachedata->userdownvoted = false;
+            $mustachedata->userupvoted = true;
+        }
+    } else {
+        $mustachedata->userdownvoted = false;
+        $mustachedata->userupvoted = false;
+    }
+
+    // Create the links for voting this post.
+    $mustachedata->upvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 2, 'rp' => $post->id));
+    $mustachedata->downvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 1, 'rp' => $post->id));
+
     // Check the reading status of the post.
     $postclass = '';
     if ($istracked) {
@@ -1203,7 +1256,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Is this the firstpost?
     if (empty($post->parent)) {
-        $topicclass = ' firstpost starter';
         $mustachedata->isfirstpost = true;
     }
 
@@ -1239,7 +1291,9 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // TODO: Highlight?
     // TODO: Displaywordcount?
     // TODO: AttachedImages?
+
     // TODO: Ratings.
+
 
     // Output the commands.
     $commandhtml = array();

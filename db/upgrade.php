@@ -282,6 +282,38 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017051001, 'moodleoverflow');
     }
 
+    // Add the table moodleoverflow_ratings.
+    if ($oldversion < 2017051801) {
+
+        // Define table moodleoverflow_ratings to be created.
+        $table = new xmldb_table('moodleoverflow_ratings');
+
+        // Adding fields to table moodleoverflow_ratings.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('postid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('discussionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('moodleoverflowid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('rating', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('firstrated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('lastchanged', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table moodleoverflow_ratings.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Adding indexes to table moodleoverflow_ratings.
+        $table->add_index('userid-moodleoverflowid', XMLDB_INDEX_NOTUNIQUE, array('userid', 'moodleoverflowid'));
+        $table->add_index('userid-discussionid', XMLDB_INDEX_NOTUNIQUE, array('userid', 'discussionid'));
+        $table->add_index('postid-userid', XMLDB_INDEX_NOTUNIQUE, array('postid', 'userid'));
+
+        // Conditionally launch create table for moodleoverflow_ratings.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017051801, 'moodleoverflow');
+    }
 
     return true;
 }

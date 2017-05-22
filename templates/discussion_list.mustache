@@ -36,11 +36,13 @@
         {{! Print the heading row of the table. }}
         <thead>
             <tr>
-                <th class="header topic" scope="col">
-                    {{#str}} headerdiscussion, moodleoverflow {{/str}}
+
+                <th class="header replies" scope="col">
+                    {{#str}} headerstatus, moodleoverflow {{/str}}
                 </th>
-                <th class="header author" colspan="2" scope="col">
-                    {{#str}} headerstartedby, moodleoverflow {{/str}}
+
+                <th class="header replies" scope="col">
+                    {{#str}} headervotes, moodleoverflow {{/str}}
                 </th>
 
                 {{! Check if the user is allowed to view the discussions. }}
@@ -54,14 +56,21 @@
                         <th class="header replies" scope="col">
                             {{#str}} headerunread, moodleoverflow {{/str}}
 
-                        {{! Display a symbol to mark all messages read if the forum is tracked by the user. }}
-                        {{#istracked}}
-                            {{# pix}} t/markasread, core {{/ pix}}
-                        {{/istracked}}
+                            {{! Display a symbol to mark all messages read if the forum is tracked by the user. }}
+                            {{#istracked}}
+                                {{# pix}} t/markasread, core {{/ pix}}
+                            {{/istracked}}
 
                         </th>
                     {{/cantrack}}
                 {{/canviewdiscussions}}
+
+                <th class="header topic" scope="col">
+                    {{#str}} headerdiscussion, moodleoverflow {{/str}}
+                </th>
+                <th class="header author" colspan="2" scope="col">
+                    {{#str}} headerstartedby, moodleoverflow {{/str}}
+                </th>
 
                 <th class="header lastpost" scope="col">
                     {{#str}} headerlastpost, moodleoverflow {{/str}}
@@ -76,6 +85,79 @@
         {{#discussions}}
             <tr class="discussion r{{ rowcount }}">
 
+                <td class="topic replies">
+
+                    {{^statusstarter}}
+                        {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
+
+                        {{^statusteacher}}
+                            {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
+                        {{/statusteacher}}
+                        {{#statusteacher}}
+                            {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                        {{/statusteacher}}
+
+                    {{/statusstarter}}
+
+                    {{#statusstarter}}
+                        {{^statusteacher}}
+                            {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                            {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
+                        {{/statusteacher}}
+                        {{#statusteacher}}
+                            {{# pix}} status/c_circle, moodleoverflow {{/ pix}}
+                            {{# pix}} status/b_box, moodleoverflow {{/ pix}}
+                        {{/statusteacher}}
+                    {{/statusstarter}}
+
+                </td>
+
+                <td class="topic replies">
+                    {{ votes }} <br>
+                    {{ votetext }}
+                </td>
+
+                {{! Show the reply-columns only if the user has the capability to do so. }}
+                {{#canviewdiscussions}}
+
+                    <td class="replies">
+                        {{ replyamount }} <br>
+                        {{ answertext }}
+                    </td>
+
+                    {{#cantrack}}
+
+                        <td class="replies">
+
+                            {{! This moodleoverflow instance is not tracked. }}
+                            {{^istracked}}
+                                <span class="read">-</span>
+                            {{/istracked}}
+
+                            {{! This moodleoverflow instance is tracked. }}
+                            {{#istracked}}
+
+                            {{! There are unread messages }}
+                                {{#unread}}
+                                    <span class="unread">
+                                    <a href="{{ unreadlink }}">{{ unreadamount }}</a>
+                                        {{! The icon. }}
+                                        {{# pix}} t/markasread, core {{/ pix}}
+                                </span>
+                                {{/unread}}
+
+                                {{^unread}}
+                                    <span class="read">{{ unreadamount }}</span>
+                                {{/unread}}
+
+                            {{/istracked}}
+
+                        </td>
+
+                    {{/cantrack}}
+
+                {{/canviewdiscussions}}
+
                 <td class="topic starter">
                     <a href="{{ subjectlink }}">{{ subjecttext }}</a>
                 </td>
@@ -87,46 +169,6 @@
                 <td class="author">
                     <a href="{{ userlink }}">{{ username }}</a>
                 </td>
-
-                {{! Show the reply-columns only if the user has the capability to do so. }}
-                {{#canviewdiscussions}}
-
-                    <td class="replies">
-                        <a href="{{ replylink }}">{{ replyamount }}</a>
-                    </td>
-
-                    {{#cantrack}}
-
-                        <td class="replies">
-
-                        {{! This moodleoverflow instance is not tracked. }}
-                        {{^istracked}}
-                            <span class="read">-</span>
-                        {{/istracked}}
-
-                        {{! This moodleoverflow instance is tracked. }}
-                        {{#istracked}}
-
-                            {{! There are unread messages }}
-                            {{#unread}}
-                                <span class="unread">
-                                    <a href="{{ unreadlink }}">{{ unreadamount }}</a>
-                                    {{! The icon. }}
-                                    {{# pix}} t/markasread, core {{/ pix}}
-                                </span>
-                            {{/unread}}
-
-                            {{^unread}}
-                                <span class="read">{{ unreadamount }}</span>
-                            {{/unread}}
-
-                        {{/istracked}}
-
-                        </td>
-
-                    {{/cantrack}}
-
-                {{/canviewdiscussions}}
 
                 <td class="lastpost">
                     <a href="{{ lastpostuserlink }}">{{ lastpostusername }}</a> <br />

@@ -57,4 +57,9 @@ if ($ADMIN->fulltree) {
     }
     $settings->add(new admin_setting_configselect('moodleoverflow_cleanreadtime', get_string('cleanreadtime', 'moodleoverflow'),
         get_string('configcleanreadtime', 'moodleoverflow'), 2, $options));
+
+    // Allow users to change their votes?
+    $settings->add(new admin_setting_configcheckbox('moodleoverflow_allowratingchange',
+        get_string('allowratingchange', 'moodleoverflow'), get_string('configallowratingchange', 'moodleoverflow'), 1));
+
 }
