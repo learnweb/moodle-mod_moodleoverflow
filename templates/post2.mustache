@@ -12,7 +12,8 @@
 
     <div>
 
-        {{! {{^iscomment}}
+        {{! Display the header only for the first post. }}
+        {{#isfirstpost}}
         <div class="row header clearfix">
 
             {{! User picture. }}
@@ -21,12 +22,11 @@
             </div>
 
             {{! Begin the topic column. }}
-            <div class="topic{{# isfirstpost}} firstpost starter{{/isfirstpost}}">
+            <div class="topic firstpost starter">
 
                 {{! The subject. }}
                 <div class="subject" role="heading" aria-level="2">
-                    {{#isfirstpost}}{{ subject }}{{/isfirstpost}}
-                    {{^isfirstpost}}&nbsp;{{/isfirstpost}}
+                    {{ subject }}
                 </div>
 
                 {{! The author and date. }}
@@ -38,6 +38,7 @@
             {{! End of the topic column. }}
 
         </div>
+        {{/isfirstpost}}
         {{! End of the header row. }}
 
         {{! Row with the post content. }}
@@ -93,18 +94,14 @@
             {{! The commands. }}
             <div class="options clearfix">
 
-                {{! Area were posts are marked as the correct solution. }}
-                {{^iscomment}}
+                {{! Display the authortext here, if the post is an answer or comment. }}
+                {{^isfirstpost}}
                     <div class="moodleoverflow-post-rating">
-
-                        {{! The topics starters mark. }}
-                        {{#statusstarter}}{{#pix}} status/check_green, moodleoverflow {{/pix}}{{/statusstarter}}
-
-                        {{! The teachers mark. }}
-                        {{#statusteacher}}{{#pix}} status/check_orange, moodleoverflow {{/pix}}{{/statusteacher}}
+                        {{{ bytext }}}
                     </div>
-                {{/iscomment}}
+                {{/isfirstpost}}
 
+                {{! Display the avaible options here. }}
                 <div class="commands">
                     {{{ commands }}}
                 </div>

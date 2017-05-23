@@ -23,16 +23,21 @@
             {{! Begin the topic column. }}
             <div class="topic{{# isfirstpost}} firstpost starter{{/isfirstpost}}">
 
-                {{! The subject. }}
-                <div class="subject" role="heading" aria-level="2">
-                    {{#isfirstpost}}{{ subject }}{{/isfirstpost}}
-                    {{^isfirstpost}}&nbsp;{{/isfirstpost}}
-                </div>
+                {{#isfirstpost}}
+                    {{! The subject. }}
+                    <div class="subject" role="heading" aria-level="2">
+                        {{ subject }}
+                    </div>
+                {{/isfirstpost}}
 
                 {{! The author and date. }}
                 <div class="author" role="heading", aria-level="2">
                     {{{ bytext }}}
                 </div>
+
+                {{^isfirstpost}}<div class="subject" role="heading" aria-level="2">
+                    &nbsp;
+                </div>{{/isfirstpost}}
 
             </div>
             {{! End of the topic column. }}

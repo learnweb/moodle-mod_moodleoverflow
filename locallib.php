@@ -1044,6 +1044,9 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
         $posts[$postid]->statusteacher = $discussionratings[$post->id]->issolvedteacher;
     }
 
+    // Order the answers by their ratings.
+    $posts = \mod_moodleoverflow\ratings::moodleoverflow_sort_answers_by_ratings($posts);
+
     // Find all children of this post.
     foreach ($posts as $postid => $post) {
 
@@ -1117,6 +1120,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $cm->cache->caps['mod/moodleoverflow:deleteownpost'] = has_capability('mod/moodleoverflow:deleteownpost', $modulecontext);
         $cm->cache->caps['mod/moodleoverflow:viewanyrating'] = has_capability('mod/moodleoverflow:viewanyrating', $modulecontext);
         $cm->cache->caps['moodle/site:viewfullnames'] = has_capability('moodle/site:viewfullnames', $modulecontext);
+        $cm->cache->caps['mod/moodleoverflow:ratesolved'] = has_capability('mod/moodleoverflow:ratesolved', $modulecontext);
     }
 
     // Check if the user has the capability to see posts.
@@ -1146,8 +1150,12 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $str->reply      = get_string('reply', 'moodleoverflow');
         $str->replyfirst = get_string('replyfirst', 'moodleoverflow');
         $str->parent     = get_string('parent', 'moodleoverflow');
-        $str->markread   = get_string('markread', 'moodleoverflow');;
-        $str->markunread = get_string('markunread', 'moodleoverflow');;
+        $str->markread   = get_string('markread', 'moodleoverflow');
+        $str->markunread = get_string('markunread', 'moodleoverflow');
+        $str->marksolved = get_string('marksolved', 'moodleoverflow');
+        $str->marknotsolved = get_string('marknotsolved', 'moodleoverflow');
+        $str->markcorrect = get_string('markcorrect', 'moodleoverflow');
+        $str->marknotcorrect = get_string('marknotcorrect', 'moodleoverflow');
     }
 
     // Get the current link without unnecessary parameters.
@@ -1169,7 +1177,33 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $permalink->set_anchor('p' . $post->id);
     $commands[] = array('url' => $permalink, 'text' => get_string('permalink', 'moodleoverflow'));
 
-    // TODO: Mark Read / Unread -> istracked und loggedin und cfg->usrmarksread.
+    // If the user has started the discussion, he can mark the answer as correct.
+    $canmarksolved = (($USER->id == $discussion->userid) AND ($iscomment != $post->parent) AND !empty($post->parent));
+    if ($canmarksolved) {
+
+        // When the post is already marked, remove the mark instead.
+        if ($post->statusstarter) {
+            $editurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 30, 'rp' => $post->id));
+            $commands[] = array('url' => $editurl, 'text' => $str->marknotsolved);
+        } else {
+            $editurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 3, 'rp' => $post->id));
+            $commands[] = array('url' => $editurl, 'text' => $str->marksolved);
+        }
+    }
+
+    // A teacher can mark an answer as the correct solution.
+    $canmarkcorrect = (($iscomment != $post->parent) AND !empty($post->parent) AND $cm->cache->caps['mod/moodleoverflow:ratesolved']);
+    if ($canmarkcorrect) {
+
+        // When the post is already marked, remove the mark instead.
+        if ($post->statusteacher) {
+            $editurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 40, 'rp' => $post->id));
+            $commands[] = array('url' => $editurl, 'text' => $str->marknotcorrect);
+        } else {
+            $editurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 4, 'rp' => $post->id));
+            $commands[] = array('url' => $editurl, 'text' => $str->markcorrect);
+        }
+    }
 
     // Calculate the age of the post.
     $age = time() - $post->created;
@@ -1207,14 +1241,17 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->isread = false;
     $mustachedata->isfirstunread = false;
     $mustachedata->isfirstpost = false;
+    $mustachedata->iscomment = (!empty($post->parent) AND ($iscomment == $post->parent));
 
     // Get the ratings.
     $mustachedata->votes = $post->upvotes - $post->downvotes;
+
+    // Check if the post is marked as the correct answer.
     $mustachedata->statusstarter = $post->statusstarter;
     $mustachedata->statusteacher = $post->statusteacher;
 
     // Did the user rated this post?
-    if ($rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rating($post->id)) {
+    if ($rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($post->id)) {
 
         // Convert the object.
         $rating = $rating->rating;
@@ -1250,6 +1287,19 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                 $mustachedata->isfirstunread = true;
                 $firstunreadanchorprinted = true;
             }
+        }
+    }
+    if ($post->statusstarter) {
+
+        if ($post->statusteacher) {
+            $postclass = ' statusboth';
+        } else {
+            $postclass = ' statusstarter';
+        }
+    }
+    if ($post->statusteacher) {
+        if (!$post->statusstarter) {
+            $postclass = ' statusteacher';
         }
     }
     $mustachedata->postclass = $postclass;
@@ -1341,7 +1391,7 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
             // Answers should be seperated from each other.
             // While comments should be indented.
             if (!$iscomment) {
-                $output .= "<div style='margin-top: 50px'>";
+                $output .= "<div class='tmargin'>";
                 $parentid = $post->id;
             } else {
                 $output .= "<div class='indent'>";

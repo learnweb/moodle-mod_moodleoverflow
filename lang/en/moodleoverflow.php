@@ -116,8 +116,12 @@ $string['postnotexist'] = 'Requested post does not exist';
 $string['noratemoodleoverflow'] = 'Sorry, you are not allowed to vote in this moodleoverflow.';
 $string['configallowratingchange'] = 'Can a user change its ratings?';
 $string['allowratingchange'] = 'Allow rating changes';
+$string['configpreferteachersmark'] = 'The answer marked as correct by a teacher are prioritized over the answer marked as correct by the starter of the discussion.';
+$string['preferteachersmark'] = 'Prefer teachers marks?';
 $string['noratingchangeallowed'] = 'You are not allowed to change your ratings.';
 $string['invalidratingid'] = 'The submitted rating is neither an upvote nor a downvote.';
+$string['notstartuser'] = 'Only the user who started the discussion can mark an answer as the solution.';
+$string['notteacher'] = 'Only users with the status teacher can do this.';
 
 // Strings for the discussion.php.
 $string['invaliddiscussionid'] = 'Discussion ID was incorrect';
@@ -130,4 +134,8 @@ $string['moodleoverflowauthorhidden'] = 'Author (hidden)';
 $string['moodleoverflowbodyhidden'] = 'This post cannot be viewed by you, probably because you have not posted in the discussion, the maximum editing time hasn\'t passed yet, the discussion has not started or the discussion has expired.';
 $string['addanewreply'] = 'Add a new answer';
 $string['ratingfailed'] = 'Rating failed. Try again.';
+$string['marksolved'] = 'Mark as Solved';
+$string['marknotsolved'] = 'Not Solved';
+$string['markcorrect'] = 'Mark as Correct';
+$string['marknotcorrect'] = 'Not Correct';
 

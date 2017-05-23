@@ -30,10 +30,10 @@ defined('MOODLE_INTERNAL') || die();
 class ratings {
 
     //
-    // 0 = neutral 1 = negative 2 = positive 3 = solved student 4 = solved teacher
+    // 0 = neutral
+    // 1 = negative 2 = positive 3 = solved student 4 = correct teacher
+    // 30 = remove solved  40 = remove correct
     //
-
-    // TODO: Can rate.
 
     // Check if a discussion is maked solved.
     public static function moodleoverflow_discussion_is_solved($discussionid, $teacher = false) {
@@ -43,11 +43,25 @@ class ratings {
         if ($teacher) {
 
             // Check if a teacher marked a solution as correct.
-            return $DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4));
+            if ($DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4))) {
+
+                // Return the rating record.
+                return $DB->get_record('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4));
+            }
+
+            // The teacher has not marked the discussion as correct.
+            return false;
         }
 
         // Check if the topic starter marked a solution as correct.
-        return $DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3));
+        if ($DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3))) {
+
+            // Return the rating record.
+            return $DB->get_record('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3));
+        }
+
+        // The topic starter has not marked a solution as correct.
+        return false;
     }
 
     // Get the ratings of all posts in a discussion.
@@ -95,8 +109,8 @@ class ratings {
         return self::moodleoverflow_get_ratings_by_discussion($post->discussion, $postid);
     }
 
-    // Did the current user voted?
-    public static function moodleoverflow_user_rating($postid, $userid = null) {
+    // Did the current user rated the post?
+    public static function moodleoverflow_user_rated($postid, $userid = null) {
         global $DB, $USER;
 
         // Is a user submitted?
@@ -112,7 +126,8 @@ class ratings {
         return ($DB->get_record_sql($sql));
     }
 
-    // Add a vote.
+    // Add a rating.
+    // This is the basic function to add or edit ratings.
     public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null) {
         global $DB, $USER, $PAGE, $OUTPUT, $SESSION, $CFG;
 
@@ -121,14 +136,19 @@ class ratings {
             $userid = $USER->id;
         }
 
-        // Is the rating correct?
-        if ($rating != 1 AND $rating != 2) {
+        // Is the submitted rating valid?
+        $possibleratings = array(0, 1, 2, 3, 4, 30, 40);
+        if (!in_array($rating, $possibleratings)) {
             print_error('invalidratingid', 'moodleoverflow');
         }
 
         // Get the related discussion.
         if (! $post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
             print_error('invalidparentpostid', 'moodleoverflow');
+        }
+
+        if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
+            print_error('notpartofdiscussion', 'moodleoverflow');
         }
 
         // Get the related course.
@@ -140,8 +160,14 @@ class ratings {
         $modulecontext = \context_module::instance($cm->id);
         $coursecontext = \context_course::instance($course->id);
 
+        // Are we handling an extended rating?
+        $extendedratings = array(3, 4, 30, 40);
+        if (in_array($rating, $extendedratings)) {
+            return self::moodleoverflow_mark_post($moodleoverflow, $discussion, $post, $rating, $modulecontext, $userid);
+        }
+
         // Check if the user has the capabilities to rate a post.
-        if (! self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext)) {
+        if (! $canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext)) {
 
             // Catch unenrolled users.
             if (!isguestuser() AND !is_enrolled($coursecontext)) {
@@ -184,6 +210,67 @@ class ratings {
         }
     }
 
+    // Mark an answer as solved or correct.
+    // This function is called from moodleoverflow_add_rating. It helps handling the extended functionalities.
+    public static function moodleoverflow_mark_post($moodleoverflow, $discussion, $post, $rating, $modulecontext, $userid = null) {
+        global $USER, $DB;
+
+        // Is a user submitted?
+        if (!$userid) {
+            $userid = $USER->id;
+        }
+
+        // Check the capabilities depending on the input and create a pseudo rating.
+        if ($rating == 3 OR $rating == 30) {
+            // We are handling the rating of the user who started the discussion.
+
+            // Check if the current user is the startuser.
+            if ($userid != $discussion->userid) {
+                print_error('notstartuser', 'moodleoverflow');
+            }
+
+            // Create a pseudo rating.
+            $pseudorating = 3;
+
+        } elseif ($rating == 4 OR $rating == 40) {
+            // We are handling the rating of a teacher.
+
+            // Check if the current user has the capabilities to do this.
+            if (!has_capability('mod/moodleoverflow:ratesolved', $modulecontext)) {
+                print_error('notteacher', 'moodleoverflow');
+            }
+
+            // Create a pseudo rating.
+            $pseudorating = 4;
+
+        } else {
+            // If none of the cases above was triggered, something went wrong.
+            print_error('invalidratingid', 'moodleoverflow');
+        }
+
+        // Check for older rating.
+        $sql = "SELECT *
+                  FROM {moodleoverflow_ratings}
+                 WHERE discussionid = $discussion->id AND rating = $pseudorating
+                 LIMIT 1";
+        $oldrating = $DB->get_record_sql($sql);
+
+        // Do we want to delete the rating?
+        $deleterecord = ($pseudorating * 10 == $rating);
+        if ($deleterecord) {
+            return $DB->delete_records('moodleoverflow_ratings', array('id' => $oldrating->id));
+        }
+
+        // Insert the record if we do not need to update an older rating.
+        if (!$oldrating) {
+            return self::moodleoverflow_add_rating_record($moodleoverflow->id, $discussion->id, $post->id, $rating, $userid);
+        }
+
+        // Else we need to update an existing rating.
+        return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $oldrating->id);
+    }
+
+
     // Check if a user can rate posts.
     public static function moodleoverflow_user_can_rate($moodleoverflow, $cm = null, $modulecontext = null) {
 
@@ -213,17 +300,19 @@ class ratings {
     }
 
     // Update an existing rating record.
+    // This function is called only from functions in which the submitted variables are verified.
     public static function moodleoverflow_update_rating_record($postid, $rating, $userid, $ratingid) {
         global $DB;
 
         // Update the record.
         $sql = "UPDATE {moodleoverflow_ratings}
-                   SET rating = ?, lastchanged = ?
-                 WHERE userid = ? AND postid = ? AND id = ?";
-        return $DB->execute($sql, array($rating, time(), $userid, $postid, $ratingid));
+                   SET postid = ?, userid = ?, rating=?, lastchanged = ?
+                 WHERE id = ?";
+        return $DB->execute($sql, array($postid, $userid, $rating, time(), $ratingid));
     }
 
     // Add a new rating record.
+    // This function is called only from functions in which the submitted variables are verified.
     public static function moodleoverflow_add_rating_record($moodleoverflowid, $discussionid, $postid, $rating, $userid) {
         global $DB;
 
@@ -241,4 +330,110 @@ class ratings {
         return $DB->insert_record('moodleoverflow_ratings', $record);
     }
 
+    public static function moodleoverflow_sort_answers_by_ratings($posts) {
+        global $CFG;
+
+        // Create copies to manipulate.
+        $parentcopy = $posts;
+        $postscopy = $posts;
+
+        // Create an array with all the keys of the older array.
+        $oldorder = array();
+        foreach ($postscopy as $postid => $post) {
+            $oldorder[] = $postid;
+        }
+
+        // Create an array for the new order.
+        $neworder = array();
+
+        // The parent post stays the parent post.
+        $parent = array_shift($parentcopy);
+        unset($postscopy[$parent->id]);
+        $discussionid = $parent->discussion;
+        $neworder[] = (int) $parent->id;
+
+        // Check if answers has been rated as correct.
+        $statusstarter = self::moodleoverflow_discussion_is_solved($discussionid, false);
+        $statusteacher = self::moodleoverflow_discussion_is_solved($discussionid, true);
+
+        // The answer that is marked as correct by both is displayed first.
+        if ($statusteacher AND $statusstarter) {
+
+            // Is the same answer correct for both?
+            if ($statusstarter->postid == $statusteacher->postid) {
+
+                // Add the post to the new order and delete it from the posts array.
+                $neworder[] = (int) $statusstarter->postid;
+                unset($postscopy[$statusstarter->postid]);
+
+                // Unset the stati to skip the following if-statements.
+                $statusstarter = false;
+                $statusteacher = false;
+            }
+        }
+
+        // If the answers the teacher marks are preferred, and only
+        // the teacher marked an answer as correct, display it first.
+        if ($CFG->moodleoverflow_preferteachersmark AND $statusteacher) {
+
+            // Add the post to the new order and delete it from the posts array.
+            $neworder[] = (int) $statusteacher->postid;
+            unset($postscopy[$statusteacher->postid]);
+
+            // Unset the status to skip the following if-statements.
+            $statusteacher = false;
+        }
+
+        // If the user who started the discussion has marked
+        // an answer as correct, display this answer first.
+        if ($statusstarter) {
+
+            // Add the post to the new order and delete it from the posts array.
+            $neworder[] = (int) $statusstarter->postid;
+            unset($postscopy[$statusstarter->postid]);
+        }
+
+        // If a teacher has marked an answer as correct, display it next.
+        if ($statusteacher) {
+
+            // Add the post to the new order and delete it from the posts array.
+            $neworder[] = (int) $statusteacher->postid;
+            unset($postscopy[$statusteacher->postid]);
+        }
+
+        // All answers that are not marked as correct by someone should now be left.
+
+        // Search for all comments.
+        foreach ($postscopy as $postid => $post) {
+
+            // Add all comments to the order.
+            // They are independant from the votes.
+            if ($post->parent != $parent->id) {
+                $neworder[] = $postid;
+                unset($postscopy[$postid]);
+            }
+        }
+
+        // Sort the remaining answers by their total votes.
+        $votesarray = array();
+        foreach ($postscopy as $postid => $post) {
+            $votesarray[$post->id] = $post->upvotes - $post->downvotes;
+        }
+        arsort($votesarray);
+
+        // Add the remaining messages to the new order.
+        foreach ($votesarray as $postid => $votes) {
+            $neworder[] = $postid;
+        }
+
+        // The new order is determined.
+        // It has to be applied now.
+        $sortedposts = array();
+        foreach($neworder as $k) {
+            $sortedposts[$k] = $posts[$k];
+        }
+
+        // Return the sorted posts.
+        return $sortedposts;
+    }
 }

@@ -161,7 +161,7 @@
 .moodleoverflowpost .options .commands,.moodleoverflowpost .content .attachments,.moodleoverflowpost .options .footer,.moodleoverflowpost .options .link {
     text-align:right
 }
-.moodleoverflowpost .options .forum-post-rating {
+.moodleoverflowpost .options .moodleoverflow-post-rating {
     float:left
 }
 .moodleoverflowpost .content .posting {
@@ -180,10 +180,6 @@
     padding:0 .3em
 }
 
-.moodleoverflowpost.unread .row.header
-.moodleoverflowpost.unread .row.header {
-    border-bottom:1px solid #ddd
-}
 :target~.moodleoverflowpost:before {
     display:block;
     content:"";
@@ -198,10 +194,42 @@
 .moodleoverflowpost {
     position:relative;
     display:block;
-    margin-bottom:.75rem;
+    margin-bottom:5px;
     background-color:#fff;
     border-radius:0;
-    border:1px solid rgba(238,238,238,1)
+    border:1px solid rgba(238,238,238,1);
+}
+
+
+.moodleoverflowpost.statusboth:before {
+    display:block;
+    content:"";
+    width:4px;
+    position:absolute;
+    background:linear-gradient(80deg, rgba(234,133,22,1) 50%, rgba(112,160,52,1) 50%);
+    left:-1px;
+    top:-1px;
+    bottom:-1px;
+}
+.moodleoverflowpost.statusteacher:before {
+    display:block;
+    content:"";
+    width:4px;
+    position:absolute;
+    background:rgba(234, 133, 22,1);
+    left:-1px;
+    top:-1px;
+    bottom:-1px;
+}
+.moodleoverflowpost.statusstarter:before {
+    display:block;
+    content:"";
+    width:4px;
+    position:absolute;
+    background:rgba(112, 160, 52,1);
+    left:-1px;
+    top:-1px;
+    bottom:-1px;
 }
 
 
@@ -256,8 +284,19 @@
 .moodleoverflowpost .options .commands {
     margin-left:0
 }
+.moodleoverflowpost .options .moodleoverflow-post-rating .icon {
+    width: 24px;
+    height: 20px;
+}
 .moodleoverflowpost .subject {
     font-weight:700
+}
+
+.moodleoverflowpost.unread .row.header, span.unread {
+    background-color:#ffd
+}
+.moodleoverflowpost.unread .row.header {
+    border-bottom:1px solid #ddd
 }
 
 
@@ -268,40 +307,12 @@
     content:none
 }
 
+
+
 .indent {
-    margin-left:3%;
+    margin-left:6%;
 }
-
-
-.tooltip {
-    display: inline;
-    position: relative;
+.tmargin {
+    margin-top: 20px;
 }
-
-.tooltip:hover:after{
-    background: #333;
-    background: rgba(0,0,0,.8);
-    border-radius: 5px;
-    bottom: 26px;
-    color: #fff;
-    content: attr(title);
-    left: 20%;
-    padding: 5px 15px;
-    position: absolute;
-    z-index: 98;
-    width: 220px;
-}
-
-.tooltip:hover:before{
-    border: solid;
-    border-color: #333 transparent;
-    border-width: 6px 6px 0 6px;
-    bottom: 20px;
-    content: "";
-    left: 50%;
-    position: absolute;
-    z-index: 99;
-}
-
-
 

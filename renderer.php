@@ -36,7 +36,7 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
 
     // Renders a post.
     public function render_post($data) {
-        return $this->render_from_template('mod_moodleoverflow/post', $data);
+        return $this->render_from_template('mod_moodleoverflow/post3', $data);
     }
 
     // Renders a dummy post if capabilities are missing.

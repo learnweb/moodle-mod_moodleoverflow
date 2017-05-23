@@ -62,4 +62,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('moodleoverflow_allowratingchange',
         get_string('allowratingchange', 'moodleoverflow'), get_string('configallowratingchange', 'moodleoverflow'), 1));
 
+    // Which mark is more important?
+    $settings->add(new admin_setting_configcheckbox('moodleoverflow_preferteachersmark',
+        get_string('preferteachersmark', 'moodleoverflow'), get_string('configpreferteachersmark', 'moodleoverflow'), 0));
+
+
 }
