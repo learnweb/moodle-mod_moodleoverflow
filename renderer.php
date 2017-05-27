@@ -34,19 +34,23 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
         return $this->render_from_template('mod_moodleoverflow/discussion_list', $data);
     }
 
-    // Renders a post.
-    public function render_post1($data) {
-        return $this->render_from_template('mod_moodleoverflow/post1', $data);
-    }
-    public function render_post2($data) {
-        return $this->render_from_template('mod_moodleoverflow/post2', $data);
-    }
-    public function render_post3($data) {
-        return $this->render_from_template('mod_moodleoverflow/post3', $data);
-    }
-
     // Renders a dummy post if capabilities are missing.
     public function render_post_dummy_cantsee($data) {
         return $this->render_from_template('mod_moodleoverflow/post_dummy_cantsee', $data);
+    }
+
+    // Renders the initial question of a discussion.
+    public function render_question($data) {
+        return $this->render_from_template('mod_moodleoverflow/question', $data);
+    }
+
+    // Renders an answer of the discussion.
+    public function render_answer($data) {
+        return $this->render_from_template('mod_moodleoverflow/answer', $data);
+    }
+
+    // Renders a comment of the discussion.
+    public function render_comment($data) {
+        return $this->render_from_template('mod_moodleoverflow/comment', $data);
     }
 }

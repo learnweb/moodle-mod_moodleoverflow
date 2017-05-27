@@ -307,6 +307,10 @@
     content:none
 }
 
+.moodleoverflowpost .topic .author {
+    color: #848d95;
+}
+
 
 
 .indent {
@@ -315,4 +319,3 @@
 .tmargin {
     margin-top: 20px;
 }
-

@@ -148,5 +148,4 @@ echo "<br><br>";
 
 moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply);
 
-
 echo $OUTPUT->footer();

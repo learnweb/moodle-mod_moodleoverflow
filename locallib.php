@@ -987,7 +987,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     }
 
     // Print the starting post.
-    echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked);
+    echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0);
 
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts);
@@ -1087,7 +1087,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
 function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
                                    $ownpost = false, $canreply = false, $link = false,
                                    $footer = '', $highlight = '', $postisread = null,
-                                   $dummyifcantsee = true, $istracked = false, $iscomment = false) {
+                                   $dummyifcantsee = true, $istracked = false, $iscomment = false, $level = 0) {
     global $USER, $CFG, $OUTPUT, $PAGE;
 
     // Require the filelib.
@@ -1327,6 +1327,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $by->date = userdate($post->modified);
     $by->name = html_writer::link($postinguser->profilelink, $postinguser->fullname);
     $mustachedata->bytext = get_string('bynameondate', 'moodleoverflow', $by);
+    $mustachedata->bydate = $by->date;
+    $mustachedata->byname = $by->name;
 
     // Set options for the post.
     $options = new stdClass();
@@ -1368,7 +1370,15 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Include the renderer to display the dummy content.
     $renderer = $PAGE->get_renderer('mod_moodleoverflow');
-    return $renderer->render_post3($mustachedata);
+
+    // Render the different elements.
+    if ($level == 0) {
+        return $renderer->render_question($mustachedata);
+    } else if ($level == 1) {
+        return $renderer->render_answer($mustachedata);
+    } else if ($level == 2) {
+        return $renderer->render_comment($mustachedata);
+    }
 }
 
 
@@ -1392,9 +1402,11 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
             // While comments should be indented.
             if (!$iscomment) {
                 $output .= "<div class='tmargin'>";
+                $level = 1;
                 $parentid = $post->id;
             } else {
                 $output .= "<div class='indent'>";
+                $level = 2;
                 $parentid = $iscomment;
             }
 
@@ -1412,7 +1424,7 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
             $postread = !empty($post->postread);
 
             // Print the answer.
-            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked, $parentid);
+            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked, $parentid, $level);
 
             // Print its children.
             $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts, $parentid);
