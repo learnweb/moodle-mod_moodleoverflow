@@ -64,6 +64,8 @@ $string['markunread'] = 'Mark unread';
 $string['permalink'] = 'Permalink';
 $string['postbyuser'] = '{$a->post} by {$a->user}';
 $string['bynameondate'] = 'by {$a->name} - {$a->date}';
+$string['deletesure'] = 'Are you sure you want to delete this post?';
+$string['deletesureplural'] = 'Are you sure you want to delete this post and all replies? ({$a} posts)';
 
 // Strings for the settings.php.
 $string['configmanydiscussions'] = 'Maximum number of discussions shown in a moodleoverflow instance per page';
@@ -103,7 +105,10 @@ $string['couldnotupdate'] = 'Could not update your post due to an unknown error'
 $string['editedpostupdated'] = '{$a}\'s post was updated';
 $string['postupdated'] = 'Your post was updated';
 $string['editedby'] = 'Edited by {$a->name} - original submission {$a->date}';
-
+$string['cannotdeletepost'] = 'You can\'t delete this post!';
+$string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
+$string['errorwhiledelete'] = 'An error occurred while deleting record.';
+$string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
 
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';

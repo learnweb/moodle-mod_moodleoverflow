@@ -1118,6 +1118,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $cm->cache->caps['mod/moodleoverflow:viewdiscussion'] = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext);
         $cm->cache->caps['mod/moodleoverflow:editanypost'] = has_capability('mod/moodleoverflow:editanypost', $modulecontext);
         $cm->cache->caps['mod/moodleoverflow:deleteownpost'] = has_capability('mod/moodleoverflow:deleteownpost', $modulecontext);
+        $cm->cache->caps['mod/moodleoverflow:deleteanypost'] = has_capability('mod/moodleoverflow:deleteanypost', $modulecontext);
         $cm->cache->caps['mod/moodleoverflow:viewanyrating'] = has_capability('mod/moodleoverflow:viewanyrating', $modulecontext);
         $cm->cache->caps['moodle/site:viewfullnames'] = has_capability('moodle/site:viewfullnames', $modulecontext);
         $cm->cache->caps['mod/moodleoverflow:ratesolved'] = has_capability('mod/moodleoverflow:ratesolved', $modulecontext);
@@ -1213,6 +1214,11 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     if (($ownpost AND ($age < $CFG->maxeditingtime)) OR $cm->cache->caps['mod/moodleoverflow:editanypost']) {
         $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
         $commands[] = array('url' => $editurl, 'text' => $str->edit);
+    }
+
+    // Give the option to delete a post.
+    if (($ownpost AND ($age < $CFG->maxeditingtime) AND $cm->cache->caps['mod/moodleoverflow:deleteownpost']) OR $cm->cache->caps['mod/moodleoverflow:deleteanypost']) {
+        $commands[] = array('url'=>new moodle_url('/mod/moodleoverflow/post.php', array('delete'=>$post->id)), 'text'=>$str->delete);
     }
 
     // Give the option to reply to a post.
@@ -1521,4 +1527,201 @@ function moodleoverflow_update_post($newpost) {
 
     // The post has been edited successfully.
     return true;
+}
+
+// Count all replies of a post.
+function moodleoverflow_count_replies($post, $recursive = true) {
+    global $DB;
+
+    // Initiate the variable.
+    $count = 0;
+
+    // Count the posts recursively?
+    if ($recursive) {
+        // Get all the direct children.
+        if ($childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id))) {
+
+            // And count their children as well.
+            foreach ($childposts as $childpost) {
+                $count++;
+                $count += moodleoverflow_count_replies($childpost, true);
+            }
+        }
+    } else {
+        // Just count the direct children.
+        $count += $DB->count_records('moodleoverflow_posts', array('parent' => $post->id));
+    }
+
+    // Return the amount of replies.
+    return $count;
+}
+
+// Deletes a discussion and handles all associated cleanup.
+function moodleoverflow_delete_discussion($discussion, $fulldelete, $course, $cm, $moodleoverflow) {
+    global $DB, $CFG;
+
+    // TODO: Needed?
+    require_once($CFG->libdir . '/completionlib.php');
+
+    // Initiate a pointer.
+    $result = true;
+
+    // Get all posts related to the discussion.
+    if ($posts = $DB->get_records('moodleoverflow_posts', array('discussion' => $discussion->id))) {
+
+        // Iterate through them and delete each one.
+        foreach ($posts as $post) {
+            $post->course = $discussion->course;
+            $post->moodleoverflow = $discussion->moodleoverflow;
+            if (! moodleoverflow_delete_post($post, 'ignore', $course, $cm, $moodleoverflow, $fulldelete)) {
+
+                // If the deletion failed, change the pointer.
+                $result = false;
+            }
+        }
+    }
+
+    // Delete the read-records for the discussion.
+    moodleoverflow_track_delete_read_records(-1, -1, $discussion->id);
+
+    // Remove the subscriptions for this discussion.
+    $DB->delete_records('moodleoverflow_discuss_subs', array('discussion' => $discussion->id));
+    if (!$DB->delete_records('moodleoverflow_discussions', array('id' => $discussion->id))) {
+        $result = false;
+    }
+
+    // TODO: Completion State?
+
+    // Return if there deletion was successful.
+    return $result;
+}
+
+// Deletes read records for the specified index.
+// At least one parameter must be specified.
+function moodleoverflow_track_delete_read_records($userid = -1, $postid = -1, $discussionid = -1, $moodleoverflowid = -1) {
+    global $DB;
+
+    // Initiate variables.
+    $params = array();
+    $select = '';
+
+    // Create the sql-Statement depending on the submitted parameters.
+    if ($userid > -1) {
+        if ($select != '') $select .= ' AND ';
+        $select .= 'userid = ?';
+        $params[] = $userid;
+    }
+    if ($postid > -1) {
+        if ($select != '') $select .= ' AND ';
+        $select .= 'postid = ?';
+        $params[] = $postid;
+    }
+    if ($discussionid > -1) {
+        if ($select != '') $select .= ' AND ';
+        $select .= 'discussionid = ?';
+        $params[] = $discussionid;
+    }
+    if ($moodleoverflowid > -1) {
+        if ($select != '') $select .= ' AND ';
+        $select .= 'moodleoverflowid = ?';
+        $params[] = $moodleoverflowid;
+    }
+
+    // Check if at least one parameter was specified.
+    if ($select == '') {
+        return false;
+    } else {
+        return $DB->delete_records_select('moodleoverflow_read', $select, $params);
+    }
+}
+
+// Deletes a single moodleoverflow post.
+function moodleoverflow_delete_post($post, $children, $course, $cm, $moodleoverflow) {
+    global $DB, $CFG, $USER;
+
+    // Iterate through all children and delete them.
+    $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
+    if (($children !== 'ignore') AND $childposts) {
+        if ($children) {
+            foreach ($childposts as $childpost) {
+                moodleoverflow_delete_post($childpost, true, $course, $cm, $moodleoverflow);
+            }
+
+        } else {
+            // If there are no children, return false.
+            return false;
+        }
+    }
+
+    // Delete the ratings.
+    if ($DB->delete_records('moodleoverflow_ratings', array('postid' => $post->id))) {
+
+        // Delete the post.
+        if ($DB->delete_records('moodleoverflow_posts', array('id' => $post->id))) {
+
+            // Delete the read records.
+            moodleoverflow_track_delete_read_records(-1, $post->id);
+
+            // Just in case, check for the new last post of the discussion.
+            moodleoverflow_discussion_update_last_post($post->discussion);
+
+            // TODO: Update Completion State?
+            // TODO: Trigger Delete Event?
+
+            // The post has been deleted.
+            return true;
+        }
+    }
+
+    // Deleting the post failed.
+    return false;
+}
+
+// Sets the last post for a given discussion.
+function moodleoverflow_discussion_update_last_post($discussionid) {
+    global $CFG, $DB;
+
+    // Check if the given discussion exists.
+    if (!$DB->record_exists('moodleoverflow_discussions', array('id' => $discussionid))) {
+        return false;
+    }
+
+    // Find the last post of the discussion.
+    $sql = "SELECT id, userid, modified
+              FROM {moodleoverflow_posts}
+             WHERE discussion = ?
+          ORDER BY modified DESC";
+
+    // Find the new last post of the discussion.
+    if (($lastposts = $DB->get_records_sql($sql, array($discussionid), 0, 1))) {
+        $lastpost = reset($lastposts);
+
+        // Create an discussion object.
+        $discussionobject = new stdClass();
+        $discussionobject->id = $discussionid;
+        $discussionobject->usermodified = $lastpost->userid;
+        $discussionobject->timemodified = $lastpost->modified;
+
+        // Update the discussion.
+        $DB->update_record('moodleoverflow_discussions', $discussionobject);
+        return $lastpost->id;
+    }
+
+    // Just in case, return false.
+    return false;
+}
+
+// TODO: Needed?
+function moodleoverflow_set_return() {
+    global $CFG, $SESSION;
+
+    // Get the referer.
+    if (! isset($SESSION->fromdiscussion)) {
+        $referer = get_local_referer(false);
+
+        // If the referer is not a login screen, save it.
+        if (! strncasecmp("$CFG->wwwroot/login", $referer, 300)) {
+            $SESSION->fromdiscussion = $referer;
+        }
+    }
 }

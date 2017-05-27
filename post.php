@@ -29,12 +29,16 @@ require_once($CFG->libdir.'/completionlib.php');
 $moodleoverflow = optional_param('moodleoverflow', 0, PARAM_INT);
 $reply          = optional_param('reply', 0 , PARAM_INT);
 $edit           = optional_param('edit', 0, PARAM_INT);
+$delete         = optional_param('delete', 0, PARAM_INT);
+$confirm        = optional_param('confirm', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/post.php', array(
         'moodleoverflow' => $moodleoverflow,
         'reply'          => $reply,
         'edit'           => $edit,
+        'delete'         => $delete,
+        'confirm'        => $confirm,
     ));
 
 // These params will be passed as hidden variables later in the form.
@@ -242,34 +246,34 @@ if (!empty($moodleoverflow)) {
     // Third possibility: The user is editing his own post.
 
     // Check if the submitted post exists.
-    if (! $post = moodleoverflow_get_post_full($edit)) {
+    if (!$post = moodleoverflow_get_post_full($edit)) {
         print_error('invalidpostid', 'moodleoverflow');
     }
 
     // Get the parent post of this post if it is not the starting post of the discussion.
     if ($post->parent) {
-        if (! $parent = moodleoverflow_get_post_full($post->parent)) {
+        if (!$parent = moodleoverflow_get_post_full($post->parent)) {
             print_error('invalidparentpostid', 'moodleoverflow');
         }
     }
 
     // Check if the post refers to a valid discussion.
-    if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
+    if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
         print_error('notpartofdiscussion', 'moodleoverflow');
     }
 
     // Check if the post refers to a valid moodleoverflow instance.
-    if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+    if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
         print_error('invalidmoodleoverflowid', 'moodleoverflow');
     }
 
     // Check if the post refers to a valid course.
-    if (! $course = $DB->get_record('course', array('id' => $discussion->course))) {
+    if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
         print_error('invalidcourseid');
     }
 
     // Retrieve the related coursemodule.
-    if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+    if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
         print_error('invalidcoursemodule');
     } else {
         $modulecontext = context_module::instance($cm->id);
@@ -288,7 +292,7 @@ if (!empty($moodleoverflow)) {
     if ($post->userid <> $USER->id) {
 
         // Check if the current user has not the capability to edit any post.
-        if(!has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
+        if (!has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
 
             // Display the error. Capabilities are missing.
             print_error('cannoteditposts', 'moodleoverflow');
@@ -296,21 +300,139 @@ if (!empty($moodleoverflow)) {
     }
 
     // Load the $post variable.
-    $post->edit           = $edit;
-    $post->course         = $course->id;
+    $post->edit = $edit;
+    $post->course = $course->id;
     $post->moodleoverflow = $moodleoverflow->id;
 
     // Unset where the user is coming from.
     // Allows to calculate the correct return url later.
     unset($SESSION->fromdiscussion);
 
+} else if (!empty($delete)) {
+    // Fourth possibility: The user is deleting a post.
+    
+    // Check if the post is existing.
+    if (! $post = moodleoverflow_get_post_full($delete)) {
+        print_error('invalidpostid', 'moodleoverflow');
+    }
+
+    // Get the related discussion.
+    if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
+        print_error('notpartofdiscussion', 'moodleoverflow');
+    }
+
+    // Get the related moodleoverflow instance.
+    if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+        print_error('invalidmoodleoverflowid', 'moodleoveflow');
+    }
+
+    // Get the related coursemodule.
+    if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+        print_error('invalidcoursemodule');
+    }
+
+    // Get the related course.
+    if (! $course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
+        print_error('invalidcourseid');
+    }
+
+    // Require a login and retrieve the modulecontext.
+    require_login($course, false, $cm);
+    $modulecontext = context_module::instance($cm->id);
+
+    // Check some capabilities.
+    $deleteownpost = has_capability('mod/moodleoverflow:deleteownpost', $modulecontext);
+    $deleteanypost = has_capability('mod/moodleoverflow:deleteanypost', $modulecontext);
+    if (!(($post->userid == $USER->id AND $deleteownpost) OR $deleteanypost)) {
+        print_error('cannotdeletepost', 'moodleoverflow');
+    }
+
+    // Count all replies of this post.
+    $replycount = moodleoverflow_count_replies($post);
+
+    // Has the user confirmed the deletion?
+    if (!empty($confirm) AND confirm_sesskey()) {
+
+        // Check if the user has the capability to delete the post.
+        $timepassed = time() - $post->created;
+        if (($timepassed > $CFG->maxeditingtime) AND !$deleteanypost) {
+            print_error('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion))));
+        }
+
+        // A normal user cannot delete his post if there are direct replies.
+        if ($replycount AND !$deleteanypost) {
+            print_error('couldnotdeletereplies', 'moodleoverflow', moodleoverflow_go_back_to(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion))));
+        } else {
+            // Delete the post.
+
+            // The post is the starting post of a discussion. Delete the topic as well.
+            if (! $post->parent) {
+                moodleoverflow_delete_discussion($discussion, false, $course, $cm, $moodleoverflow);
+
+                // TODO: Trigger Deletion Event.
+
+                // Redirect the user back to start page of the moodleoverflow instance.
+                redirect("view.php?m=$discussion->moodleoverflow");
+                exit;
+
+            } else if (moodleoverflow_delete_post($post, $deleteanypost, $course, $cm, $moodleoverflow)) {
+                // Delete a single post.
+                
+                // Redirect back to the discussion.
+                $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id));
+                redirect(moodleoverflow_go_back_to($discussionurl));
+                exit;
+                
+            } else {
+                // Something went wrong.
+                print_error('errorwhiledelete', 'moodleoverflow');
+            }
+        }
+        
+    } else {
+        // Deletion needs to be confirmed.
+
+        moodleoverflow_set_return();
+        $PAGE->navbar->add(get_string('delete', 'moodleoverflow'));
+        $PAGE->set_title($course->shortname);
+        $PAGE->set_heading($course->fullname);
+
+        // Check if there are replies for the post.
+        if ($replycount) {
+
+            // Check if the user has capabilities to delete more than one post.
+            if (!$deleteanypost) {
+                print_error('couldnotdeletereplies', 'moodleoverflow',
+                    moodleoverflow_go_back_to(new moodle_url('/mod/moodleoverflow/discussion.php',
+                        array('d' => $post->discussion, 'p'.$post->id))));
+            }
+
+            // Request a confirmation to delete the post.
+            echo $OUTPUT->header();
+            echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
+            echo $OUTPUT->confirm(get_string("deletesureplural", "moodleoverflow", $replycount+1),
+                "post.php?delete=$delete&confirm=$delete", $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' .
+                $post->discussion . '#p' . $post->id);
+
+        } else {
+            // Delete a single post.
+
+            // Print a confirmation message,
+            echo $OUTPUT->header();
+            echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
+            echo $OUTPUT->confirm(get_string("deletesure", "moodleoverflow", $replycount),
+                "post.php?delete=$delete&confirm=$delete",
+                $CFG->wwwroot.'/mod/moodleoverflow/discussion.php?d='.$post->discussion.'#p'.$post->id);
+        }
+    }
+    echo $OUTPUT->footer();
+    exit;
+
 } else {
     // Last posibility: the action is not known.
 
     print_error('unknownaction');
 }
-
-
 
 // Second step: The user must be logged on properly. Must be enrolled to the course as well.
 require_login($course, false, $cm);
