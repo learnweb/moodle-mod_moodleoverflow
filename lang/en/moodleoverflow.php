@@ -98,6 +98,12 @@ $string['cannotcreatediscussion'] = 'Could not create new discussion';
 $string['couldnotadd'] = 'Could not add your post due to an unknown error';
 $string['postaddedsuccess'] = 'Your post was successfully added.';
 $string['postaddedtimeleft'] = 'You have {$a} to edit it if you want to make any changes.';
+$string['cannotupdatepost'] = 'You can not update this post';
+$string['couldnotupdate'] = 'Could not update your post due to an unknown error';
+$string['editedpostupdated'] = '{$a}\'s post was updated';
+$string['postupdated'] = 'Your post was updated';
+$string['editedby'] = 'Edited by {$a->name} - original submission {$a->date}';
+
 
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';

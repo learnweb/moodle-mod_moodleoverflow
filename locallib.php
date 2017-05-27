@@ -1368,7 +1368,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Include the renderer to display the dummy content.
     $renderer = $PAGE->get_renderer('mod_moodleoverflow');
-    return $renderer->render_post($mustachedata);
+    return $renderer->render_post3($mustachedata);
 }
 
 
@@ -1462,4 +1462,51 @@ function moodleoverflow_add_new_post($post, $mform) {
 
     // Return the id of the created post.
     return $post->id;
+}
+
+// Update a specific post.
+// Capabilities are not checked, because this happens in the post.php.
+function moodleoverflow_update_post($newpost) {
+    global $DB, $USER;
+
+    // Retrieve not submitted variables.
+    $post           = $DB->get_record('moodleoverflow_posts', array('id' => $newpost->id));
+    $discussion     = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion));
+    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow));
+
+    // Allowed modifiable fields.
+    $modifiablefields = [
+        'message',
+        'messageformat',
+        // TODO: Are more fields needed?
+    ];
+
+    // Iteratate through all modifiable fields and update the values.
+    foreach ($modifiablefields as $field) {
+        if (isset($newpost->{$field})) {
+            $post->{$field} = $newpost->{$field};
+        }
+    }
+
+    // Update the date and the user of the post and the discussion.
+    $post->modified = time();
+    $discussion->timemodified = $post->modified;
+    $discussion->usermodified = $post->userid;
+
+    // When editing the starting post of a discussion.
+    if (!$post->parent) {
+        $discussion->name = $newpost->subject;
+    }
+
+    // Update the post and the corresponding discussion.
+    $DB->update_record('moodleoverflow_posts', $post);
+    $DB->update_record('moodleoverflow_discussions', $discussion);
+
+    // Mark the edited post as read.
+    if (moodleoverflow_track_can_track_moodleoverflows($moodleoverflow) AND moodleoverflow_track_is_tracked($moodleoverflow)) {
+        moodleoverflow_track_mark_post_read($USER->id, $post);
+    }
+
+    // The post has been edited successfully.
+    return true;
 }

@@ -51,6 +51,8 @@ class mod_moodleoverflow_post_form extends moodleform {
         $coursecontext  = $this->_customdata['coursecontext'];
         $modulecontext  = $this->_customdata['modulecontext'];
         $moodleoverflow = $this->_customdata['moodleoverflow'];
+        $post           = $this->_customdata['post'];
+        $edit           = $this->_customdata['edit'];
 
         // Fill in the data depending on page params later using set_data.
         $modform->addElement('header', 'general', '');
@@ -66,8 +68,15 @@ class mod_moodleoverflow_post_form extends moodleform {
         $modform->setType('message', PARAM_RAW);
         $modform->addRule('message', get_string('required'), 'required', null, 'client');
 
+        // TODO: Subscribe options.
+        // TODO: Pin discussions.
+
         // Submit buttons.
-        $strsubmit = get_string('posttomoodleoverflow', 'moodleoverflow');
+        if (isset($post->edit)) {
+            $strsubmit = get_string('savechanges');
+        } else {
+            $strsubmit = get_string('posttomoodleoverflow', 'moodleoverflow');
+        }
         $this->add_action_buttons(true, $strsubmit);
 
         // The course.
@@ -85,6 +94,10 @@ class mod_moodleoverflow_post_form extends moodleform {
         // The parent post.
         $modform->addElement('hidden', 'parent');
         $modform->setType('parent', PARAM_INT);
+
+        // Are we editing a post?
+        $modform->addElement('hidden', 'edit');
+        $modform->setType('edit', PARAM_INT);
 
         // Is it a reply?
         $modform->addElement('hidden', 'reply');

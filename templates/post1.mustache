@@ -107,6 +107,22 @@
 
                         {{! The teachers mark. }}
                         {{#statusteacher}}{{#pix}} status/check_orange, moodleoverflow {{/pix}}{{/statusteacher}}
+
+                        {{! The displayed text. }}
+                        {{#statusstarter}}
+                            {{^statusteacher}}
+                                This post is marked as correct by the starter of the topic.
+                            {{/statusteacher}}
+                            {{#statusteacher}}
+                                This post is marked as correct by a teacher and the starter of the topic.
+                            {{/statusteacher}}
+                        {{/statusstarter}}
+                        {{^statusstarter}}
+                            {{#statusteacher}}
+                                This post is marked as helpful by a teacher.
+                            {{/statusteacher}}
+                        {{/statusstarter}}
+
                     </div>
                 {{/iscomment}}
 
