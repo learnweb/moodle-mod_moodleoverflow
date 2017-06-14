@@ -131,9 +131,28 @@
             <tr>
                 <td class="votecell">
                     <div class="votes">
-                        <a href="{{{ upvotelink }}}">{{# pix}} vote/up, moodleoverflow {{/ pix}}</a>
+                        {{! Did the current user upvoted this post? }}
+                        {{#userupvoted}}
+                            {{# pix}} vote/upvoted, moodleoverflow {{/ pix}}
+                        {{/userupvoted}}
+                        {{^userupvoted}}
+                            <a href="{{{ upvotelink }}}">
+                                {{# pix}} vote/up, moodleoverflow {{/ pix}}
+                            </a>
+                        {{/userupvoted}}
+
+                        {{! Display the amount of votes. }}
                         <p>{{ votes }}</p>
-                        <a href="{{{ downvotelink }}}">{{# pix}} vote/down, moodleoverflow {{/ pix}}</a>
+
+                        {{! Did the current user upvoted this post? }}
+                        {{#userdownvoted}}
+                            {{# pix}} vote/downvoted, moodleoverflow {{/ pix}}
+                        {{/userdownvoted}}
+                        {{^userdownvoted}}
+                            <a href="{{{ downvotelink }}}">
+                                {{# pix}} vote/down, moodleoverflow {{/ pix}}
+                            </a>
+                        {{/userdownvoted}}
                     </div>
                 </td>
                 <td class="answercell">
@@ -152,7 +171,7 @@
                                             {{{ byname }}}
                                             <div class="-flair">
                                                 <div class="user-action-time">
-                                                    answered {{ bydate }}
+                                                    {{ bydate }}
                                                 </div>
                                             </div>
                                         </div>

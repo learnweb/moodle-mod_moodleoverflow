@@ -150,3 +150,11 @@ $string['marknotsolved'] = 'Not Solved';
 $string['markcorrect'] = 'Mark as Correct';
 $string['marknotcorrect'] = 'Not Correct';
 
+// Strings for the readtracking.php
+$string['markreadfailed'] = 'A post of the discussion could not be marked as read.';
+$string['markdiscussionreadsuccessful'] = 'The discussion has been marked as read.';
+$string['markmoodleoverflowreadsuccessful'] = 'All posts have been marked as read.';
+$string['noguesttracking'] = 'Sorry, guests are not allowed to set tracking options.';
+
+// OTHER
+$string['unknownerror'] = 'This is not expected to happen.';

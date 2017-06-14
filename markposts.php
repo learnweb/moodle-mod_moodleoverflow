@@ -20,4 +20,122 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+// We do not need the locallib here.
+require_once('../../config.php');
+require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
+
+// Define the parameters.
+$moodleoverflowid = required_param('m', PARAM_INT);         // The moodleoverflowinstance to mark.
+$discussionid     = optional_param('d', 0, PARAM_INT);      // The discussion to mark.
+$returndiscussion = optional_param('return', 0, PARAM_INT); // The page to return to.
+
+// Prepare the array that should be used to return to this page.
+$url = new moodle_url('/mod/moodleoverflow/markposts.php', array('m' => $moodleoverflowid));
+
+// Check the optional params.
+if ($discussionid !== 0) {
+    $url->param('d', $discussionid);
+}
+if ($returndiscussion !== 0) {
+    $url->param('returndiscussion', $returndiscussion);
+}
+
+// Set the url that should be used to return to this page.
+$PAGE->set_url($url);
+
+// Retrieve the connected moodleoverflow instance.
+if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
+    print_error('invalidmoodleoverflowid', 'moodleoverflow');
+}
+
+// Retrieve the connected course.
+if (! $course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
+    print_error('invalidcourseid');
+}
+
+// Get the coursemodule.
+if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+    print_error('invalidcoursemodule');
+}
+
+// Get the current user.
+$user = $USER;
+
+// From now on, the user must be logged in and enrolled.
+require_login($course, false, $cm);
+
+// Default relink address.
+if ($returndiscussion === 0) {
+
+    // If no parameter is set, relink to the view.
+    $returnto = new moodle_url("/mod/moodleoverflow/view.php", array('m' => $moodleoverflow->id));
+
+} else {
+
+    // Else relink back to the discussion we are coming from.
+    $returnto = new moodle_url("/mod/moodleoverflow/discussion.php", array('d' => $returndiscussion));
+}
+
+// Guests can't mark posts as read.
+if (isguestuser()) {
+
+    // Set Page-Parameter.
+    $PAGE->set_title($course->shortname);
+    $PAGE->set_heading($course->fullname);
+
+    // Create the message.
+    $message = get_string('noguesttracking', 'moodleoverflow') . '<br /><br />' . get_string('liketologin');
+
+    // Display the page with a confirm-element.
+    echo $OUTPUT->header();
+    echo $OUTPUT->confirm($message, get_login_url(), $returnto);
+    echo $OUTPUT->footer();
+    exit;
+}
+
+// Delete a single discussion.
+if (!empty($discussionid)) {
+
+    // Check if the discussion exists.
+    if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id))) {
+        print_error('invaliddiscussionid', 'moodleoverflow');
+    }
+
+    // Mark all the discussions read.
+    if (! \mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read($discussionid, $user->id)) {
+
+        // Display an error, if something failes.
+        $message = get_string('markreadfailed', 'moodleoverflow');
+        $status = \core\output\notification::NOTIFY_ERROR;
+
+    } else {
+
+        // The discussion is successfully marked as read.
+        $message = get_string('markmoodleoverflowreadsuccessful', 'moodleoverflow');
+        $status = \core\output\notification::NOTIFY_SUCCESS;
+    }
+
+    // Redirect the user.
+    redirect(moodleoverflow_go_back_to($returnto), $message, null, $status);
+    exit;
+
+} else {
+
+    // Mark all message read in the current instance.
+    if (! \mod_moodleoverflow\readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $user->id)) {
+
+        // Display an error, if something fails.
+        $message = get_string('markreadfailed', 'moodleoverflow');
+        $status = \core\output\notification::NOTIFY_ERROR;
+
+    } else {
+
+        // All posts of the instance have been marked as read.
+        $message = get_string('markdiscussionreadsuccessful', 'moodleoverflow');
+        $status = \core\output\notification::NOTIFY_SUCCESS;
+    }
+
+    // Redirect the user back to the view.php.
+    redirect(moodleoverflow_go_back_to($returnto), $message, null, $status);
+    exit;
+}

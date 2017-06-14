@@ -58,7 +58,7 @@
 
                             {{! Display a symbol to mark all messages read if the forum is tracked by the user. }}
                             {{#istracked}}
-                                {{# pix}} t/markasread, core {{/ pix}}
+                                <a href="{{ markallread }}">{{# pix}} t/markasread, core {{/ pix}}</a>
                             {{/istracked}}
 
                         </th>
@@ -87,28 +87,35 @@
 
                 <td class="topic replies">
 
-                    {{^statusstarter}}
-                        {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
+                    {{#statusboth}}
+                        {{# pix}} status/c_circle, moodleoverflow {{/ pix}}
+                        {{# pix}} status/b_box, moodleoverflow {{/ pix}}
+                    {{/statusboth}}
 
-                        {{^statusteacher}}
-                            {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
-                        {{/statusteacher}}
-                        {{#statusteacher}}
-                            {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
-                        {{/statusteacher}}
+                    {{^statusboth}}
+                        {{^statusstarter}}
+                            {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
 
-                    {{/statusstarter}}
+                            {{^statusteacher}}
+                                {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
+                            {{/statusteacher}}
+                            {{#statusteacher}}
+                                {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                            {{/statusteacher}}
 
-                    {{#statusstarter}}
-                        {{^statusteacher}}
-                            {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
-                            {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
-                        {{/statusteacher}}
-                        {{#statusteacher}}
-                            {{# pix}} status/c_circle, moodleoverflow {{/ pix}}
-                            {{# pix}} status/b_box, moodleoverflow {{/ pix}}
-                        {{/statusteacher}}
-                    {{/statusstarter}}
+                        {{/statusstarter}}
+
+                        {{#statusstarter}}
+                            {{^statusteacher}}
+                                {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
+                            {{/statusteacher}}
+                            {{#statusteacher}}
+                                {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                            {{/statusteacher}}
+                        {{/statusstarter}}
+                    {{/statusboth}}
 
                 </td>
 
@@ -140,10 +147,11 @@
                             {{! There are unread messages }}
                                 {{#unread}}
                                     <span class="unread">
-                                    <a href="{{ unreadlink }}">{{ unreadamount }}</a>
-                                        {{! The icon. }}
-                                        {{# pix}} t/markasread, core {{/ pix}}
-                                </span>
+                                        <a href="{{ unreadlink }}">{{ unreadamount }}</a>
+                                        <a href="{{ markreadlink }}">
+                                            {{# pix}} t/markasread, core {{/ pix}}
+                                        </a>
+                                    </span>
                                 {{/unread}}
 
                                 {{^unread}}

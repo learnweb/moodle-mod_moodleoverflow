@@ -48,9 +48,4 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     public function render_answer($data) {
         return $this->render_from_template('mod_moodleoverflow/answer', $data);
     }
-
-    // Renders a comment of the discussion.
-    public function render_comment($data) {
-        return $this->render_from_template('mod_moodleoverflow/comment', $data);
-    }
 }

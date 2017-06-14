@@ -31,6 +31,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 
 /**
  * MOODLEOVERFLOW_TRACKING - Constants
