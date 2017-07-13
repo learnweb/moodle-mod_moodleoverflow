@@ -66,13 +66,19 @@ if (!$canviewdiscussion) {
 
 // Has a request to rate a post been submitted?
 if ($ratingid) {
+
+    // Rate the post.
     if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
         print_error('ratingfailed', 'moodleoverflow');
     }
-    redirect(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
+
+    // Return to the discussion.
+    $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
+    redirect($returnto);
 }
 
-// TODO: Trigger the DISCUSSION-VIEW-Event.
+// Trigger the discussion viewed event.
+moodleoverflow_discussion_view($modulecontext, $moodleoverflow, $discussion);
 
 // Unset where the user is coming from.
 // Allows to calculate the correct return url later.

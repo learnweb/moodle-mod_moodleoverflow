@@ -369,7 +369,15 @@ if (!empty($moodleoverflow)) {
             if (! $post->parent) {
                 moodleoverflow_delete_discussion($discussion, false, $course, $cm, $moodleoverflow);
 
-                // TODO: Trigger Deletion Event.
+                // Trigger the discussion deleted event.
+                $params = array(
+                    'objectid' => $discussion->id,
+                    'context' => $modulecontext,
+                );
+
+                $event = \mod_moodleoverflow\event\discussion_deleted::create($params);
+                $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
+                $event->trigger();
 
                 // Redirect the user back to start page of the moodleoverflow instance.
                 redirect("view.php?m=$discussion->moodleoverflow");
@@ -545,7 +553,7 @@ if ($fromform = $mformpost->get_data()) {
     // Format the submitted data.
     $fromform->messageformat = $fromform->message['format'];
     $fromform->message       = $fromform->message['text'];
-    $fromform->messagetrust  = trusttext_trusted($modulecontext); // TODO: Use this?!
+    $fromform->messagetrust  = trusttext_trusted($modulecontext);
 
     // If we are updating a post.
     if ($fromform->edit) {
@@ -572,8 +580,6 @@ if ($fromform = $mformpost->get_data()) {
         if (! ((($ownpost AND $replypost OR $startdiscussion)) OR $editanypost)) {
             print_error('cannotupdatepost', 'moodleoverflow');
         }
-
-        // TODO: Feature: Pin discussion?
 
         // Update the post or print an error message.
         $updatepost = $fromform;
@@ -609,7 +615,10 @@ if ($fromform = $mformpost->get_data()) {
             $params['relateduserid'] = $realpost->userid;
         }
 
-        // TODO: Trigger created event.
+        // Trigger post updated event.
+        $event = \mod_moodleoverflow\event\post_updated::create($params);
+        $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
+        $event->trigger();
 
         // Redirect back to the discussion.
         redirect(moodleoverflow_go_back_to($discussionurl), $message, null, \core\output\notification::NOTIFY_SUCCESS);
@@ -647,8 +656,11 @@ if ($fromform = $mformpost->get_data()) {
                             'moodleoverflowid' => $moodleoverflow->id,
                 ));
 
-            // TODO: Trigger an event?
-            // TODO: Update completion state?
+            // Trigger post created event.
+            $event = \mod_moodleoverflow\event\post_created::create($params);
+            $event->add_record_snapshot('moodleoverflow_posts', $fromform);
+            $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
+            $event->trigger();
 
             redirect(
                     moodleoverflow_go_back_to($discussionurl),
@@ -681,7 +693,7 @@ if ($fromform = $mformpost->get_data()) {
         }
 
         // Check if the creation of the new discussion failed.
-        if (! $discussion->id = moodleoverflow_add_discussion($discussion)) {
+        if (! $discussion->id = moodleoverflow_add_discussion($discussion, $modulecontext)) {
 
             print_error('couldnotadd', 'moodleoverflow', $errordestination);
 
@@ -697,7 +709,15 @@ if ($fromform = $mformpost->get_data()) {
 
             $message = '<p>'.get_string("postaddedsuccess", "moodleoverflow") . '</p>';
 
-            // TODO: Create Event.
+            // Trigger the discussion created event.
+            $params = array(
+                'context' => $modcontext,
+                'objectid' => $discussion->id,
+            );
+            $event = \mod_moodleoverflow\event\discussion_created::create($params);
+            $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
+            $event->trigger();
+
             // TODO: Mailnow?
             // TODO: Subscribe-Message.
         }

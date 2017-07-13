@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mod_moodleoverflow instance list viewed event.
+ * The mod_moodleoverflow post updated event.
  *
  * @package    mod_moodleoverflow
  * @copyright  2016 Your Name <your@email.address>
@@ -27,12 +27,40 @@ namespace mod_moodleoverflow\event;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * The mod_moodleoverflow instance list viewed event class.
+ * The mod_moodleoverflow post updated event class.
  *
  * @package    mod_moodleoverflow
  * @copyright  2016 Your Name <your@email.address>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class course_module_instance_list_viewed extends \core\event\course_module_instance_list_viewed {
-    // No need for any code here as everything is handled by the parent class.
+class post_updated extends \core\event\base {
+    /**
+     * Init method.
+     *
+     * @return void
+     */
+    protected function init() {
+        $this->data['crud'] = 'u';
+        $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
+        $this->data['objecttable'] = 'moodleoverflow_posts';
+    }
+
+    /**
+     * Returns description of what happened.
+     *
+     * @return string
+     */
+    public function get_description() {
+        return "The user with id '$this->userid' has updated the post with id '$this->objectid' in the discussion with " .
+            "id '{$this->other['discussionid']}' in the moodleoverflow with course module id '$this->contextinstanceid'.";
+    }
+
+    /**
+     * Return localised event name.
+     *
+     * @return string
+     */
+    public static function get_name() {
+        return get_string('eventpostupdated', 'mod_moodleoverflow');
+    }
 }

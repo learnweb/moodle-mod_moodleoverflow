@@ -103,6 +103,7 @@ $SESSION->fromdiscussion = qualified_me();
 
 // Print the discussions.
 echo '<br />';
+
 moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, $CFG->moodleoverflow_manydiscussions);
 
 // Finish the page.

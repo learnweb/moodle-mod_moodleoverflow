@@ -52,28 +52,7 @@
             <div class="left">
 
                 <div class="votes">
-                    {{! Did the current user upvoted this post? }}
-                    {{#userupvoted}}
-                        {{# pix}} vote/upvoted, moodleoverflow {{/ pix}}
-                    {{/userupvoted}}
-                    {{^userupvoted}}
-                        <a href="{{{ upvotelink }}}">
-                            {{# pix}} vote/up, moodleoverflow {{/ pix}}
-                        </a>
-                    {{/userupvoted}}
-
-                    {{! Display the amount of votes. }}
-                    <p>{{ votes }}</p>
-
-                    {{! Did the current user upvoted this post? }}
-                    {{#userdownvoted}}
-                        {{# pix}} vote/downvoted, moodleoverflow {{/ pix}}
-                    {{/userdownvoted}}
-                    {{^userdownvoted}}
-                        <a href="{{{ downvotelink }}}">
-                            {{# pix}} vote/down, moodleoverflow {{/ pix}}
-                        </a>
-                    {{/userdownvoted}}
+                    {{> mod_moodleoverflow/postvoting }}
                 </div>
             </div>
 

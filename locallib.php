@@ -182,9 +182,21 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             }
         }
 
-        // Check the status of the discussion.
+        // Check if the question owner marked the question as answered.
         $statusstarter = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, false);
+        $starterlink = null;
+        if ($statusstarter) {
+            $starterlink = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $statusstarter->discussionid . '#p' . $statusstarter->postid);
+        }
+
+        // Check if a teacher marked a post as helpful.
         $statusteacher = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, true);
+        $teacherlink = null;
+        if ($statusteacher) {
+            $teacherlink = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $statusstarter->discussionid . '#p' . $statusteacher->postid);
+        }
+
+        // Check if a single post was marked by the question owner and a teacher.
         $statusboth = false;
         if ($statusstarter AND $statusteacher) {
             if ($statusstarter->postid == $statusteacher->postid) {
@@ -261,6 +273,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $preparedarray[$i]['lastpostdate'] = $lastpostdate;
         $preparedarray[$i]['statusstarter'] = $statusstarter;
         $preparedarray[$i]['statusteacher'] = $statusteacher;
+        $preparedarray[$i]['starterlink'] = $starterlink;
+        $preparedarray[$i]['teacherlink'] = $teacherlink;
         $preparedarray[$i]['statusboth'] = $statusboth;
         $preparedarray[$i]['votes'] = $votes;
         $preparedarray[$i]['votetext'] = $votetext;
@@ -470,7 +484,7 @@ function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantra
     echo "</td>\n";
 
     // Show the reply-columns only if the user has the capability to.
-    if (has_capability('mod/forum:viewdiscussion', $context)) {
+    if (has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
 
         // Amount of replies.
         echo '<td class="replies">';
@@ -682,7 +696,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
     return true;
 }
 
-function moodleoverflow_add_discussion($discussion, $userid = null) {
+function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = null) {
     global $DB, $USER;
 
     // Get the current time.
@@ -744,7 +758,16 @@ function moodleoverflow_add_discussion($discussion, $userid = null) {
         \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($post->userid, $post);
     }
 
-    // TODO: Trigger content_uploaded_event.
+    // Trigger event.
+    $params = array(
+        'context' => $modulecontext,
+        'objectid' => $discussion->id,
+    );
+
+    $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
+    $event->add_record_snapshot('forum_discussions', $discussion);
+    $event->add_record_snapshot('forum', $forum);
+    $event->trigger();
 
     // Return the id of the discussion.
     return $post->discussion;
@@ -1138,27 +1161,36 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->statusteacher = $post->statusteacher;
 
     // Did the user rated this post?
-    if ($rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($post->id)) {
+    $rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($post->id);
+
+    // Initiate the variables.
+    $mustachedata->userupvoted = false;
+    $mustachedata->userdownvoted = false;
+    $mustachedata->canchange = true;
+
+    // Check the actual rating.
+    if ($rating) {
 
         // Convert the object.
+        $ratingtime = $rating->firstrated;
         $rating = $rating->rating;
 
         // Did the user upvoted or downvoted this post?
+        // The user upvoted the post.
         if ($rating == 1) {
             $mustachedata->userdownvoted = true;
-            $mustachedata->userupvoted = false;
+            $mustachedata->canchange = ((time() - $ratingtime) < $CFG->maxeditingtime);
         } else if ($rating == 2) {
-            $mustachedata->userdownvoted = false;
             $mustachedata->userupvoted = true;
+            $mustachedata->canchange = ((time() - $ratingtime) < $CFG->maxeditingtime);
         }
-    } else {
-        $mustachedata->userdownvoted = false;
-        $mustachedata->userupvoted = false;
     }
 
     // Create the links for voting this post.
     $mustachedata->upvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 2, 'rp' => $post->id));
+    $mustachedata->removeupvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 20, 'rp' => $post->id));
     $mustachedata->downvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 1, 'rp' => $post->id));
+    $mustachedata->removedownvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 10, 'rp' => $post->id));
 
     // Check the reading status of the post.
     $postclass = '';
@@ -1209,13 +1241,18 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // User picture.
     $mustachedata->picture = $OUTPUT->user_picture($postinguser, ['courseid' => $course->id]);
 
+    // The rating of the user.
+    $postuserrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);
+
     // The name of the user and the date modified.
     $by = new stdClass();
     $by->date = userdate($post->modified);
     $by->name = html_writer::link($postinguser->profilelink, $postinguser->fullname);
+    $by->rating = "<img class='icon iconsmall' src='".$OUTPUT->pix_url('star','moodleoverflow')."'>" . $postuserrating;
     $mustachedata->bytext = get_string('bynameondate', 'moodleoverflow', $by);
     $mustachedata->bydate = $by->date;
     $mustachedata->byname = $by->name;
+    $mustachedata->byrating = $postuserrating;
 
     // Set options for the post.
     $options = new stdClass();
@@ -1436,9 +1473,6 @@ function moodleoverflow_count_replies($post, $recursive = true) {
 function moodleoverflow_delete_discussion($discussion, $fulldelete, $course, $cm, $moodleoverflow) {
     global $DB, $CFG;
 
-    // TODO: Needed?
-    require_once($CFG->libdir . '/completionlib.php');
-
     // Initiate a pointer.
     $result = true;
 
@@ -1465,8 +1499,6 @@ function moodleoverflow_delete_discussion($discussion, $fulldelete, $course, $cm
     if (!$DB->delete_records('moodleoverflow_discussions', array('id' => $discussion->id))) {
         $result = false;
     }
-
-    // TODO: Completion State?
 
     // Return if there deletion was successful.
     return $result;
@@ -1502,8 +1534,24 @@ function moodleoverflow_delete_post($post, $children, $course, $cm, $moodleoverf
             // Just in case, check for the new last post of the discussion.
             moodleoverflow_discussion_update_last_post($post->discussion);
 
-            // TODO: Update Completion State?
-            // TODO: Trigger Delete Event?
+            // Get the context module.
+            $modulecontext = context_module::instance($cm->id);
+
+            // Trigger the post deletion event.
+            $params = array(
+                'context' => $modulecontext,
+                'objectid' => $post->id,
+                'other' => array(
+                    'discussionid' => $post->discussion,
+                    'forumid' => $moodleoverflow->id
+                )
+            );
+            if ($post->userid !== $USER->id) {
+                $params['relateduserid'] = $post->userid;
+            }
+            $event = \mod_moodleoverflow\event\post_deleted::create($params);
+            $event->add_record_snapshot('moodleoverflow_posts', $post);
+            $event->trigger();
 
             // The post has been deleted.
             return true;

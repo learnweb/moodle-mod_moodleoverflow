@@ -19,6 +19,16 @@ use core\event\user_loggedin;
 
 defined('MOODLE_INTERNAL') || die();
 
+// Define static variables.
+define('RATING_NEUTRAL', 0);
+define('RATING_DOWNVOTE', 1);
+define('RATING_REMOVE_DOWNVOTE', 10);
+define('RATING_UPVOTE', 2);
+define('RATING_REMOVE_UPVOTE', 20);
+define('RATING_SOLVED', 3);
+define('RATING_REMOVE_SOLVED', 30);
+define('RATING_HELPFUL', 4);
+define('RATING_REMOVE_HELPFUL', 40);
 
 /**
  * Static methods for managing the ratings of posts.
@@ -29,130 +39,46 @@ defined('MOODLE_INTERNAL') || die();
  */
 class ratings {
 
-    //
-    // 0 = neutral
-    // 1 = negative 2 = positive 3 = solved student 4 = correct teacher
-    // 30 = remove solved  40 = remove correct
-    //
-
-    // Check if a discussion is maked solved.
-    public static function moodleoverflow_discussion_is_solved($discussionid, $teacher = false) {
-        global $DB;
-
-        // Is the teachers solved-status requested?
-        if ($teacher) {
-
-            // Check if a teacher marked a solution as correct.
-            if ($DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4))) {
-
-                // Return the rating record.
-                return $DB->get_record('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4));
-            }
-
-            // The teacher has not marked the discussion as correct.
-            return false;
-        }
-
-        // Check if the topic starter marked a solution as correct.
-        if ($DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3))) {
-
-            // Return the rating record.
-            return $DB->get_record('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3));
-        }
-
-        // The topic starter has not marked a solution as correct.
-        return false;
-    }
-
-    // Get the ratings of all posts in a discussion.
-    public static function moodleoverflow_get_ratings_by_discussion($discussionid, $postid = null) {
-        global $DB;
-
-        // Get the amount of votes.
-        $sql = "SELECT id as postid,
-                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 1) AS downvotes,
-	                   (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 2) AS upvotes,
-                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 3) AS issolvedstarter,
-                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 4) AS issolvedteacher
-                  FROM mdl_moodleoverflow_posts p
-                 WHERE p.discussion = $discussionid
-              GROUP BY p.id";
-        $votes = $DB->get_records_sql($sql);
-
-        // A single post is requested.
-        if ($postid) {
-            
-            // Check if the post is part of the discussion.
-            if (array_key_exists($postid, $votes)) {
-                return $votes[$postid];
-            }
-
-            // The requested post is not part of the discussion.
-            print_error('postnotpartofdiscussion', 'moodleoverflow');
-        }
-        
-        // Return the array.
-        return $votes;
-    }
-
-    // Get the ratings of a single post.
-    // This method is using 'moodleoverflow_get_ratings_by_discussion()'.
-    public static function moodleoverflow_get_rating($postid) {
-        global $DB;
-
-        // Retrieve the full post.
-        if (! $post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
-            print_error('postnotexist', 'moodleoverflow');
-        }
-
-        // Get the rating for this single post.
-        return self::moodleoverflow_get_ratings_by_discussion($post->discussion, $postid);
-    }
-
-    // Did the current user rated the post?
-    public static function moodleoverflow_user_rated($postid, $userid = null) {
-        global $DB, $USER;
-
-        // Is a user submitted?
-        if (!$userid) {
-            $userid = $USER->id;
-        }
-
-        // Get the rating.
-        $sql = "SELECT rating 
-                  FROM {moodleoverflow_ratings}
-                 WHERE userid = $userid AND postid = $postid AND (rating = 1 OR rating = 2)
-                 LIMIT 1";
-        return ($DB->get_record_sql($sql));
-    }
-
-    // Add a rating.
-    // This is the basic function to add or edit ratings.
-    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null) {
-        global $DB, $USER, $PAGE, $OUTPUT, $SESSION, $CFG;
+    /**
+     * Add a rating.
+     * This is the basic function to add or edit ratings.
+     *
+     * @param $moodleoverflow
+     * @param $postid
+     * @param $rating
+     * @param $cm
+     * @param null $userid
+     * @return bool|int
+     */
+    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null)
+    {
+        global $DB, $USER, $SESSION, $CFG;
 
         // Has a user been submitted?
-        if (!$userid) {
+        if (!isset($userid)) {
             $userid = $USER->id;
         }
 
         // Is the submitted rating valid?
-        $possibleratings = array(0, 1, 2, 3, 4, 30, 40);
+        $possibleratings = array(RATING_NEUTRAL, RATING_DOWNVOTE, RATING_UPVOTE, RATING_SOLVED,
+                                 RATING_HELPFUL, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE,
+                                 RATING_REMOVE_SOLVED, RATING_REMOVE_HELPFUL);
         if (!in_array($rating, $possibleratings)) {
             print_error('invalidratingid', 'moodleoverflow');
         }
 
         // Get the related discussion.
-        if (! $post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
+        if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
             print_error('invalidparentpostid', 'moodleoverflow');
         }
 
-        if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
+        // Check if the post belongs to a discussion.
+        if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
             print_error('notpartofdiscussion', 'moodleoverflow');
         }
 
         // Get the related course.
-        if (! $course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
+        if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
             print_error('invalidcourseid');
         }
 
@@ -160,22 +86,16 @@ class ratings {
         $modulecontext = \context_module::instance($cm->id);
         $coursecontext = \context_course::instance($course->id);
 
-        // Are we handling an extended rating?
-        $extendedratings = array(3, 4, 30, 40);
-        if (in_array($rating, $extendedratings)) {
-            return self::moodleoverflow_mark_post($moodleoverflow, $discussion, $post, $rating, $modulecontext, $userid);
-        }
-
-        // Check if the user has the capabilities to rate a post.
-        if (! $canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext)) {
+        // Redirect the user if capabilities are missing.
+        if (!$canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext)) {
 
             // Catch unenrolled users.
             if (!isguestuser() AND !is_enrolled($coursecontext)) {
                 $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
                 redirect(new moodle_url('/enrol/index.php', array(
-                        'id' => $course->id,
-                        'returnurl' => '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id
+                    'id' => $course->id,
+                    'returnurl' => '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id
                 )), get_string('youneedtoenrol'));
             }
 
@@ -183,153 +103,102 @@ class ratings {
             print_error('noratemoodleoverflow', 'moodleoverflow');
         }
 
-        // Get all the existing users ratings.
-        $sql = "SELECT *
-                  FROM {moodleoverflow_ratings}
-                 WHERE userid = $userid AND postid = $postid AND (rating = 1 OR rating = 2)
-                 LIMIT 1";
-        $votes = $DB->get_record_sql($sql);
+        // Check if we are removing a rating.
+        if (in_array($rating / 10, $possibleratings)) {
 
-        // Did the user already voted for this post?
-        if ($votes) {
-
-            // Is the user allowed to change its vote?
-            if ($CFG->moodleoverflow_allowratingchange) {
-
-                // Update the existing record.
-                return self::moodleoverflow_update_rating_record($postid, $rating, $userid, $votes->id);
-            } else {
-
-                // Print the error message.
+            if (!$CFG->moodleoverflow_allowratingchange) {
                 print_error('noratingchangeallowed', 'moodleoverflow');
+                return false;
             }
-        } else {
 
-            // Add a new rating record.
-            return self::moodleoverflow_add_rating_record($moodleoverflow->id, $post->discussion, $postid, $rating, $userid);
-        }
-    }
-
-    // Mark an answer as solved or correct.
-    // This function is called from moodleoverflow_add_rating. It helps handling the extended functionalities.
-    public static function moodleoverflow_mark_post($moodleoverflow, $discussion, $post, $rating, $modulecontext, $userid = null) {
-        global $USER, $DB;
-
-        // Is a user submitted?
-        if (!$userid) {
-            $userid = $USER->id;
+            // Delete the rating.
+            self::moodleoverflow_remove_rating($postid, $rating / 10, $userid, $modulecontext);
+            return true;
         }
 
-        // Check the capabilities depending on the input and create a pseudo rating.
-        if ($rating == 3 OR $rating == 30) {
-            // We are handling the rating of the user who started the discussion.
+        // Check for an older rating in this discussion.
+        $oldrating = self::moodleoverflow_check_old_rating($postid, $userid);
+
+        // Mark a post as solution.
+        if ($rating == RATING_SOLVED OR $rating == RATING_HELPFUL) {
 
             // Check if the current user is the startuser.
             if ($userid != $discussion->userid) {
                 print_error('notstartuser', 'moodleoverflow');
             }
 
-            // Create a pseudo rating.
-            $pseudorating = 3;
+            // Get other ratings in the discussion.
+            $sql = "SELECT *
+                    FROM {moodleoverflow_ratings}
+                    WHERE discussionid = $discussion->id AND rating = $rating
+                    LIMIT 1";
+            $otherrating = $DB->get_record_sql($sql);
 
-        } elseif ($rating == 4 OR $rating == 40) {
-            // We are handling the rating of a teacher.
-
-            // Check if the current user has the capabilities to do this.
-            if (!has_capability('mod/moodleoverflow:ratesolved', $modulecontext)) {
-                print_error('notteacher', 'moodleoverflow');
-            }
-
-            // Create a pseudo rating.
-            $pseudorating = 4;
-
-        } else {
-            // If none of the cases above was triggered, something went wrong.
-            print_error('invalidratingid', 'moodleoverflow');
-        }
-
-        // Check for older rating.
-        $sql = "SELECT *
-                  FROM {moodleoverflow_ratings}
-                 WHERE discussionid = $discussion->id AND rating = $pseudorating
-                 LIMIT 1";
-        $oldrating = $DB->get_record_sql($sql);
-
-        // Do we want to delete the rating?
-        $deleterecord = ($pseudorating * 10 == $rating);
-        if ($deleterecord) {
-            return $DB->delete_records('moodleoverflow_ratings', array('id' => $oldrating->id));
-        }
-
-        // Insert the record if we do not need to update an older rating.
-        if (!$oldrating) {
-            return self::moodleoverflow_add_rating_record($moodleoverflow->id, $discussion->id, $post->id, $rating, $userid);
-        }
-
-        // Else we need to update an existing rating.
-        return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $oldrating->id);
-    }
-
-
-    // Check if a user can rate posts.
-    public static function moodleoverflow_user_can_rate($moodleoverflow, $cm = null, $modulecontext = null) {
-
-        // Guests and non-logged-in users can not rate.
-        if (isguestuser() OR !isloggedin()) {
-            return false;
-        }
-
-        // Retrieve the coursemodule.
-        if (!$cm) {
-            if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-                pint_error('invalidcoursemodule');
+            // If there is an old rating, update it. Else create a new rating record.
+            if ($otherrating) {
+                return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
+            } else {
+                return self::moodleoverflow_add_rating_record($moodleoverflow->id, $discussion->id, $post->id, $rating, $userid, $modulecontext);
             }
         }
 
-        // Get the context if not set in the parameters.
-        if (!$modulecontext) {
-            $modulecontext = context_module::instance($cm->id);
+        // Update an rating record.
+        if ($oldrating['normal']) {
+
+            if (!$CFG->moodleoverflow_allowratingchange) {
+                print_error('noratingchangeallowed', 'moodleoverflow');
+                return false;
+            }
+
+            // Check if the rating can still be changed.
+            if (!self::moodleoverflow_can_be_changed($postid, $oldrating['normal']->rating, $userid)) {
+                return false;
+            }
+
+            // Update the rating record.
+            return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $oldrating['normal']->id, $modulecontext);
         }
 
-        // Check the capability.
-        if (has_capability('mod/moodleoverflow:ratepost', $modulecontext)) {
-            return true;
-        } else {
-            return false;
+        // Create a new rating record.
+        return self::moodleoverflow_add_rating_record($moodleoverflow->id, $post->discussion, $postid, $rating, $userid, $modulecontext);
+    }
+
+    /**
+     * Get the reputation of a user.
+     * Whether within a course or an instance is decided by the settings.
+     *
+     * @param $moodleoverflowid
+     * @param null $userid
+     * @return int
+     */
+    public static function moodleoverflow_get_reputation($moodleoverflowid, $userid = null) {
+        global $DB, $USER, $CFG;
+
+        // Get the user id.
+        if (!isset($userid)) {
+            $userid = $USER->id;
         }
+
+        // Check the moodleoverflow instance.
+        if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
+            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+        }
+
+        // Check whether the reputation can be summed over the whole course.
+        if ($CFG->moodleoverflow_allowcoursereputation) {
+            return self::moodleoverflow_get_reputation_course($moodleoverflow->course, $userid);
+        }
+
+        // Else return the reputation within this instance.
+        return self::moodleoverflow_get_reputation_instance($moodleoverflow->id, $userid);
     }
 
-    // Update an existing rating record.
-    // This function is called only from functions in which the submitted variables are verified.
-    public static function moodleoverflow_update_rating_record($postid, $rating, $userid, $ratingid) {
-        global $DB;
-
-        // Update the record.
-        $sql = "UPDATE {moodleoverflow_ratings}
-                   SET postid = ?, userid = ?, rating=?, lastchanged = ?
-                 WHERE id = ?";
-        return $DB->execute($sql, array($postid, $userid, $rating, time(), $ratingid));
-    }
-
-    // Add a new rating record.
-    // This function is called only from functions in which the submitted variables are verified.
-    public static function moodleoverflow_add_rating_record($moodleoverflowid, $discussionid, $postid, $rating, $userid) {
-        global $DB;
-
-        // Create the rating record.
-        $record = new \stdClass();
-        $record->userid = $userid;
-        $record->postid = $postid;
-        $record->discussionid = $discussionid;
-        $record->moodleoverflowid = $moodleoverflowid;
-        $record->rating = $rating;
-        $record->firstrated = time();
-        $record->lastchanged = time();
-
-        // Add the record to the database.
-        return $DB->insert_record('moodleoverflow_ratings', $record);
-    }
-
+    /**
+     * Sort a discussion by the ratings of their posts.
+     *
+     * @param $posts
+     * @return array
+     */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
         global $CFG;
 
@@ -436,4 +305,469 @@ class ratings {
         // Return the sorted posts.
         return $sortedposts;
     }
+
+    /**
+     * Did the current user rated the post?
+     *
+     * @param $postid
+     * @param null $userid
+     * @return mixed
+     */
+    public static function moodleoverflow_user_rated($postid, $userid = null) {
+        global $DB, $USER;
+
+        // Is a user submitted?
+        if (!$userid) {
+            $userid = $USER->id;
+        }
+
+        // Get the rating.
+        $sql = "SELECT firstrated, rating 
+                  FROM {moodleoverflow_ratings}
+                 WHERE userid = $userid AND postid = $postid AND (rating = 1 OR rating = 2)
+                 LIMIT 1";
+        return ($DB->get_record_sql($sql));
+    }
+
+    /**
+     * Get the rating of a single post.
+     *
+     * @param $postid
+     * @return array
+     */
+    public static function moodleoverflow_get_rating($postid) {
+        global $DB;
+
+        // Retrieve the full post.
+        if (! $post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
+            print_error('postnotexist', 'moodleoverflow');
+        }
+
+        // Get the rating for this single post.
+        return self::moodleoverflow_get_ratings_by_discussion($post->discussion, $postid);
+    }
+
+    /**
+     * Get the ratings of all posts in a discussion.
+     *
+     * @param $discussionid
+     * @param null $postid
+     * @return array
+     */
+    public static function moodleoverflow_get_ratings_by_discussion($discussionid, $postid = null) {
+        global $DB;
+
+        // Get the amount of votes.
+        $sql = "SELECT id as postid,
+                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 1) AS downvotes,
+	                   (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 2) AS upvotes,
+                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 3) AS issolvedstarter,
+                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 4) AS issolvedteacher
+                  FROM mdl_moodleoverflow_posts p
+                 WHERE p.discussion = $discussionid
+              GROUP BY p.id";
+        $votes = $DB->get_records_sql($sql);
+
+        // A single post is requested.
+        if ($postid) {
+
+            // Check if the post is part of the discussion.
+            if (array_key_exists($postid, $votes)) {
+                return $votes[$postid];
+            }
+
+            // The requested post is not part of the discussion.
+            print_error('postnotpartofdiscussion', 'moodleoverflow');
+        }
+
+        // Return the array.
+        return $votes;
+    }
+
+    /**
+     * Check if a discussion is marked as solved or helpful.
+     *
+     * @param $discussionid
+     * @param bool $teacher
+     * @return bool|mixed
+     */
+    public static function moodleoverflow_discussion_is_solved($discussionid, $teacher = false) {
+        global $DB;
+
+        // Is the teachers solved-status requested?
+        if ($teacher) {
+
+            // Check if a teacher marked a solution as correct.
+            if ($DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4))) {
+
+                // Return the rating record.
+                return $DB->get_record('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4));
+            }
+
+            // The teacher has not marked the discussion as correct.
+            return false;
+        }
+
+        // Check if the topic starter marked a solution as correct.
+        if ($DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3))) {
+
+            // Return the rating record.
+            return $DB->get_record('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3));
+        }
+
+        // The topic starter has not marked a solution as correct.
+        return false;
+    }
+
+    /**
+     * Get the reputation of a user within a single instance.
+     *
+     * @param $moodleoverflowid
+     * @param null $userid
+     * @return int
+     */
+    private static function moodleoverflow_get_reputation_instance($moodleoverflowid, $userid = null) {
+        global $DB, $USER, $CFG;
+
+        // Get the user id.
+        if (!isset($userid)) {
+            $userid = $USER->id;
+        }
+
+        // Check the moodleoverflow instance.
+        if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
+            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+        }
+
+        // Get all posts of this user in this module.
+        // Do not count votes for own posts.
+        $sql = "SELECT r.id, r.postid as post, r.rating
+                  FROM {moodleoverflow_posts} p 
+                  JOIN {moodleoverflow_ratings} r ON p.id = r.postid
+                 WHERE p.userid = ? AND NOT r.userid = ?
+              ORDER BY r.postid ASC";
+        $params = array($userid, $userid);
+        $records = $DB->get_records_sql($sql, $params);
+
+        // Check if there are results.
+        $records = (isset($records)) ? $records : array();
+
+        // Initiate a variable.
+        $reputation = 0;
+
+        // Iterate through all ratings.
+        foreach ($records as $record) {
+
+            // The rating is a downvote.
+            if ($record->rating == RATING_DOWNVOTE) {
+                $reputation += $CFG->moodleoverflow_votescaledownvote;
+                continue;
+            }
+
+            // The rating is an upvote.
+            if ($record->rating == RATING_UPVOTE) {
+                $reputation += $CFG->moodleoverflow_votescaleupvote;
+                continue;
+            }
+
+            // The post has been marked as correct by the question owner.
+            if ($record->rating == RATING_SOLVED) {
+                $reputation += $CFG->moodleoverflow_votescalecorrect;
+                continue;
+            }
+
+            // The post has been marked as helpful by a teacher.
+            if ($record->rating == RATING_HELPFUL) {
+                $reputation += $CFG->moodleoverflow_votescalehelpful;
+                continue;
+            }
+
+            // Another rating should not exist.
+            continue;
+        }
+
+        // Get votes this user made.
+        // Votes for own posts are not counting.
+        $sql = "SELECT COUNT(id) as amount
+                FROM {moodleoverflow_ratings}
+                WHERE userid = ? AND (rating = 1 OR rating = 2)";
+        $votes = $DB->get_record_sql($sql, $params);
+
+        // Add reputation for the votes.
+        $reputation += ($CFG->moodleoverflow_votescalevote) * $votes->amount;
+
+        // Can the reputation of a user be negative?
+        if ($CFG->moodleoverflow_reputationnotnegative AND $reputation <= 0) {
+            $reputation = 0;
+        }
+
+        // Return the rating of the user.
+        return $reputation;
+    }
+
+    /**
+     * Get the reputation of a user within a course.
+     *
+     * @param $courseid
+     * @param null $userid
+     * @return int
+     */
+    private static function moodleoverflow_get_reputation_course($courseid, $userid = null) {
+        global $USER, $DB;
+
+        // Get the userid.
+        if (!isset($userid)) {
+            $userid = $USER->id;
+        }
+
+        // Initiate a variable.
+        $reputation = 0;
+
+        // Check if the course exists.
+        if (! $course = $DB->get_record('course', array('id' => $courseid))) {
+            print_error('invalidcourseid');
+        }
+
+        // Get all moodleoverflow instances in this course.
+        $sql = "SELECT id
+                  FROM {moodleoverflow}
+                 WHERE course = ?";
+        $params = array($course->id);
+        $instances = $DB->get_records_sql($sql, $params);
+
+        // Check if there are instances in this course.
+        $instances = (isset($instances)) ? $instances : array();
+
+        // Sum the reputation of each individual instance.
+        foreach ($instances as $instance) {
+            $reputation += self::moodleoverflow_get_reputation_instance($instance->id, $userid);
+        }
+
+        // The result does not need to be corrected.
+        return $reputation;
+    }
+
+    /**
+     * Check for all old rating records from a user for a specific post.
+     *
+     * @param $postid
+     * @param $userid
+     * @param null $oldrating
+     * @return array|mixed
+     */
+    private static function moodleoverflow_check_old_rating($postid, $userid, $oldrating = null) {
+        global $DB;
+
+        // Initiate the array.
+        $rating = array();
+
+        // Get the normal rating.
+        $sql = "SELECT *
+                FROM {moodleoverflow_ratings}
+                WHERE userid = $userid AND postid = $postid AND (rating = 1 OR rating = 2)
+                LIMIT 1";
+        $rating['normal'] = $DB->get_record_sql($sql);
+
+        // Return the rating if it is requested.
+        if ($oldrating == RATING_DOWNVOTE OR $oldrating == RATING_UPVOTE) {
+            return $rating['normal'];
+        }
+
+        // Get the solved rating.
+        $sql = "SELECT *
+                FROM {moodleoverflow_ratings}
+                WHERE userid = $userid AND postid = $postid AND rating = 3
+                LIMIT 1";
+        $rating['solved'] = $DB->get_record_sql($sql);
+
+        // Return the rating if it is requested.
+        if ($oldrating == RATING_SOLVED) {
+            return $rating['solved'];
+        }
+
+        // Get the helpful rating.
+        $sql = "SELECT *
+                FROM {moodleoverflow_ratings}
+                WHERE userid = $userid AND postid = $postid AND rating = 4
+                LIMIT 1";
+        $rating['helpful'] = $DB->get_record_sql($sql);
+
+        // Return the rating if it is requested.
+        if ($oldrating == RATING_HELPFUL) {
+            return $rating['helpful'];
+        }
+
+        // Return all ratings.
+        return $rating;
+    }
+
+    /**
+     * Check if the rating can be changed.
+     *
+     * @param $postid
+     * @param $rating
+     * @param $userid
+     * @return bool
+     */
+    private static function moodleoverflow_can_be_changed($postid, $rating, $userid) {
+        global $CFG;
+
+        // Check if the old read record exists.
+        $old = self::moodleoverflow_check_old_rating($postid, $userid, $rating);
+        if (!$old) {
+            return false;
+        }
+
+        // Only normal votes needs to be changed.
+        $withtimerestriction = array(RATING_DOWNVOTE, RATING_UPVOTE, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE);
+        if (!in_array($rating, $withtimerestriction)) {
+            return true;
+        }
+
+        // Check for the age of the post.
+        $age = time() - $old->firstrated;
+
+        // Can the rating still be edited?
+        if ($age < $CFG->maxeditingtime) {
+            return true;
+        }
+
+        // Print an error message.
+        print_error('ratingtoold', 'moodleoverflow');
+        return false;
+    }
+
+    /**
+     * Removes a rating record.
+     *
+     * @param $postid
+     * @param $rating
+     * @param $userid
+     * @return bool
+     */
+    private static function moodleoverflow_remove_rating($postid, $rating, $userid, $modulecontext) {
+        global $DB;
+
+        // Check if the post can be removed.
+        if (!self::moodleoverflow_can_be_changed($postid, $rating, $userid)) {
+            return false;
+        }
+
+        // Get the old rating record.
+        $oldrecord = self::moodleoverflow_check_old_rating($postid, $userid, $rating);
+
+        // Trigger an event.
+        $params = array(
+            'objectid' => $oldrecord->id,
+            'context' => $modulecontext,
+        );
+        $event = \mod_moodleoverflow\event\rating_deleted::create($params);
+        $event->add_record_snapshot('moodleoverflow_ratings', $oldrecord);
+        $event->trigger();
+
+        // Remove the rating record.
+        return $DB->delete_records('moodleoverflow_ratings', array('id' => $oldrecord->id));
+    }
+
+    /**
+     * Add a new rating record.
+     *
+     * @param $moodleoverflowid
+     * @param $discussionid
+     * @param $postid
+     * @param $rating
+     * @param $userid
+     * @return bool|int
+     */
+    private static function moodleoverflow_add_rating_record($moodleoverflowid, $discussionid, $postid, $rating, $userid, $mod) {
+        global $DB;
+
+        // Create the rating record.
+        $record = new \stdClass();
+        $record->userid = $userid;
+        $record->postid = $postid;
+        $record->discussionid = $discussionid;
+        $record->moodleoverflowid = $moodleoverflowid;
+        $record->rating = $rating;
+        $record->firstrated = time();
+        $record->lastchanged = time();
+
+        // Add the record to the database.
+        $recordid = $DB->insert_record('moodleoverflow_ratings', $record);
+
+        // Trigger an event.
+        $params = array(
+            'objectid' => $recordid,
+            'context' => $mod,
+        );
+        $event = \mod_moodleoverflow\event\rating_created::create($params);
+        $event->trigger();
+
+        // Add the record to the database.
+        return $recordid;
+    }
+
+    /**
+     * Update an existing rating record.
+     *
+     * @param $postid
+     * @param $rating
+     * @param $userid
+     * @param $ratingid
+     * @return bool
+     */
+    private static function moodleoverflow_update_rating_record($postid, $rating, $userid, $ratingid, $modulecontext) {
+        global $DB;
+
+        // Update the record.
+        $sql = "UPDATE {moodleoverflow_ratings}
+                   SET postid = ?, userid = ?, rating=?, lastchanged = ?
+                 WHERE id = ?";
+
+        // Trigger an event.
+        $params = array(
+            'objectid' => $ratingid,
+            'context' => $modulecontext,
+        );
+        $event = \mod_moodleoverflow\event\rating_updated::create($params);
+        $event->trigger();
+
+        return $DB->execute($sql, array($postid, $userid, $rating, time(), $ratingid));
+    }
+
+    /**
+     * Check if a user can rate the post.
+     *
+     * @param $moodleoverflow
+     * @param null $cm
+     * @param null $modulecontext
+     * @return bool
+     */
+    private static function moodleoverflow_user_can_rate($moodleoverflow, $cm = null, $modulecontext = null) {
+
+        // Guests and non-logged-in users can not rate.
+        if (isguestuser() OR !isloggedin()) {
+            return false;
+        }
+
+        // Retrieve the coursemodule.
+        if (!$cm) {
+            if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+                pint_error('invalidcoursemodule');
+            }
+        }
+
+        // Get the context if not set in the parameters.
+        if (!$modulecontext) {
+            $modulecontext = context_module::instance($cm->id);
+        }
+
+        // Check the capability.
+        if (has_capability('mod/moodleoverflow:ratepost', $modulecontext)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }

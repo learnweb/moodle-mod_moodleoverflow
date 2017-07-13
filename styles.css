@@ -310,8 +310,14 @@
 .moodleoverflowpost .topic .author {
     color: #848d95;
 }
+.moodleoverflowpost .topic .author .icon {
+    margin-right: 0px;
+}
 
 
+.moodleoverflowheaderlist .discussion .topic .icon {
+    margin-left: 0px;
+}
 
 .indent {
     margin-left:6%;

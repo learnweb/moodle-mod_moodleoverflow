@@ -86,7 +86,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         return parent::create_instance($record, (array)$options);
     }
 
-    public function create_discussion($record = null) {
+    public function create_discussion($modulecontext, $record = null) {
         global $DB;
 
         // Increment the discussion count.
@@ -124,7 +124,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $record = (object) $record;
 
         // Add the discussion.
-        $record->id = moodleoverflow_add_discussion($record, $record->userid);
+        $record->id = moodleoverflow_add_discussion($record, $modulecontext, $record->userid);
 
         // Return the id of the discussion.
         return $record->id;

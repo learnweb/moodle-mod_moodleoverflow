@@ -88,8 +88,11 @@
                 <td class="topic replies">
 
                     {{#statusboth}}
-                        {{# pix}} status/c_circle, moodleoverflow {{/ pix}}
-                        {{# pix}} status/b_box, moodleoverflow {{/ pix}}
+                        <a href="{{starterlink}}">
+                            {{# pix}} status/c_circle, moodleoverflow {{/ pix}}
+                            {{# pix}} status/b_box, moodleoverflow {{/ pix}}
+                        </a>
+
                     {{/statusboth}}
 
                     {{^statusboth}}
@@ -100,19 +103,27 @@
                                 {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
                             {{/statusteacher}}
                             {{#statusteacher}}
-                                {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                <a href="{{teacherlink}}">
+                                    {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                </a>
                             {{/statusteacher}}
 
                         {{/statusstarter}}
 
                         {{#statusstarter}}
                             {{^statusteacher}}
-                                {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                <a href="{{starterlink}}">
+                                    {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                </a>
                                 {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
                             {{/statusteacher}}
                             {{#statusteacher}}
-                                {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
-                                {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                <a href="{{starterlink}}">
+                                    {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                </a>
+                                <a href="{{teacherlink}}">
+                                    {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                </a>
                             {{/statusteacher}}
                         {{/statusstarter}}
                     {{/statusboth}}

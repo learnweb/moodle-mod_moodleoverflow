@@ -63,7 +63,7 @@ $string['markread'] = 'Mark read';
 $string['markunread'] = 'Mark unread';
 $string['permalink'] = 'Permalink';
 $string['postbyuser'] = '{$a->post} by {$a->user}';
-$string['bynameondate'] = 'by {$a->name} - {$a->date}';
+$string['bynameondate'] = 'by {$a->name} ({$a->rating}) - {$a->date}';
 $string['deletesure'] = 'Are you sure you want to delete this post?';
 $string['deletesureplural'] = 'Are you sure you want to delete this post and all replies? ({$a} posts)';
 
@@ -83,6 +83,27 @@ $string['forcedreadtracking'] = 'Allow forced read tracking';
 $string['configforcedreadtracking'] = 'Allows moodleoverflows to be set to forced read tracking. Will result in decreased performance for some users, particularly on courses with many moodleoverflows and posts. When off, any moodleoverflows previously set to Forced are treated as optional.';
 $string['cleanreadtime'] = 'Mark old posts as read hour';
 $string['configcleanreadtime'] = 'The hour of the day to clean old posts from the \'read\' table.';
+
+$string['votescalevote'] = 'Reputation: Vote.';
+$string['configvotescalevote'] = 'The amount of reputation voting gives.';
+$string['votescaledownvote'] = 'Reputation: Downvote';
+$string['configvotescaledownvote'] = 'The amount of reputation a downvote for your post gives.';
+$string['votescaleupvote'] = 'Reputation: Upvote';
+$string['configvotescaleupvote'] = 'The amount of reputation an upvote for your post gives.';
+$string['votescalecorrect'] = 'Reputation: Correct';
+$string['configvotescalecorrect'] = 'The amount of reputation a mark as correct on your post gives.';
+$string['votescalehelpful'] = 'Reputation: Helpful';
+$string['configvotescalehelpful'] = 'The amount of reputation a mark as helpful on your post gives.';
+$string['reputationnotnegative'] = 'Reputation just positive?';
+$string['configreputationnotnegative'] = 'Prohibits the users reputation being negative.';
+$string['allowcoursereputation'] = 'Sum reputation within a course.';
+$string['configallowcoursereputation'] = 'Allow to sum the reputation of all instances of the current course?';
+
+
+
+
+
+
 
 // Strings for the post.php.
 $string['invalidmoodleoverflowid'] = 'Moodleoverflow ID was incorrect';
@@ -133,6 +154,7 @@ $string['noratingchangeallowed'] = 'You are not allowed to change your ratings.'
 $string['invalidratingid'] = 'The submitted rating is neither an upvote nor a downvote.';
 $string['notstartuser'] = 'Only the user who started the discussion can mark an answer as the solution.';
 $string['notteacher'] = 'Only users with the status teacher can do this.';
+$string['ratingtoold'] = 'Ratings can only be changed within 30 minutes after the first vote. ';
 
 // Strings for the discussion.php.
 $string['invaliddiscussionid'] = 'Discussion ID was incorrect';
@@ -147,8 +169,8 @@ $string['addanewreply'] = 'Add a new answer';
 $string['ratingfailed'] = 'Rating failed. Try again.';
 $string['marksolved'] = 'Mark as Solved';
 $string['marknotsolved'] = 'Not Solved';
-$string['markcorrect'] = 'Mark as Correct';
-$string['marknotcorrect'] = 'Not Correct';
+$string['markcorrect'] = 'Mark as Helpful';
+$string['marknotcorrect'] = 'Not Helpful';
 
 // Strings for the readtracking.php
 $string['markreadfailed'] = 'A post of the discussion could not be marked as read.';
@@ -158,3 +180,16 @@ $string['noguesttracking'] = 'Sorry, guests are not allowed to set tracking opti
 
 // OTHER
 $string['unknownerror'] = 'This is not expected to happen.';
+$string['crontask'] = 'Moodleoverflow maintenance jobs';
+
+// EVENTS
+$string['eventdiscussioncreated'] = 'Discussion created';
+$string['eventdiscussiondeleted'] = 'Discussion deleted';
+$string['eventdiscussionviewed']  = 'Discussion viewed';
+$string['eventratingcreated'] = 'Rating created';
+$string['eventratingupdated'] = 'Rating updated';
+$string['eventratingdeleted'] = 'Rating deleted';
+$string['eventpostcreated'] = 'Post created';
+$string['eventpostupdated'] = 'Post updated';
+$string['eventpostdeleted'] = 'Post deleted';
+

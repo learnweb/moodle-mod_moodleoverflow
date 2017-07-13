@@ -15,24 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mod_moodleoverflow instance list viewed event.
+ * Definition of Moodleoverflow scheduled tasks.
  *
  * @package    mod_moodleoverflow
  * @copyright  2016 Your Name <your@email.address>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-namespace mod_moodleoverflow\event;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * The mod_moodleoverflow instance list viewed event class.
- *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class course_module_instance_list_viewed extends \core\event\course_module_instance_list_viewed {
-    // No need for any code here as everything is handled by the parent class.
-}
+$tasks = array(
+    array(
+        'classname' => 'mod_moodleoverflow\task\cron_task',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '0,6,12,18',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    )
+);

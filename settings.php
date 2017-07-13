@@ -33,8 +33,8 @@ if ($ADMIN->fulltree) {
     // Default read tracking settings.
     $options = array();
     $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
-    $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
-    $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
+    $options[MOODLEOVERFLOW_TRACKING_OFF]      = get_string('trackingoff', 'moodleoverflow');
+    $options[MOODLEOVERFLOW_TRACKING_FORCED]   = get_string('trackingon', 'moodleoverflow');
     $settings->add(new admin_setting_configselect('moodleoverflow_trackingtype', get_string('trackingtype', 'moodleoverflow'),
         get_string('configtrackingtype', 'moodleoverflow'), MOODLEOVERFLOW_TRACKING_OPTIONAL, $options));
 
@@ -65,6 +65,41 @@ if ($ADMIN->fulltree) {
     // Which mark is more important?
     $settings->add(new admin_setting_configcheckbox('moodleoverflow_preferteachersmark',
         get_string('preferteachersmark', 'moodleoverflow'), get_string('configpreferteachersmark', 'moodleoverflow'), 0));
+
+
+    //
+    //
+    //
+
+    //
+    $settings->add(new admin_setting_configcheckbox('moodleoverflow_allowcoursereputation',
+        get_string('allowcoursereputation', 'moodleoverflow'), get_string('configallowcoursereputation', 'moodleoverflow'), 1));
+
+
+
+    // Votescale: How much reputation gives a vote for another post?
+    $settings->add(new admin_setting_configtext('moodleoverflow_votescalevote', get_string('votescalevote', 'moodleoverflow'),
+        get_string('configvotescalevote', 'moodleoverflow'), 1, PARAM_INT));
+
+    // Votescale: How much reputation gives a post that has been downvoted?
+    $settings->add(new admin_setting_configtext('moodleoverflow_votescaledownvote', get_string('votescaledownvote', 'moodleoverflow'),
+        get_string('configvotescaledownvote', 'moodleoverflow'), -5, PARAM_INT));
+
+    // Votescale: How much reputation gives a post that has been upvoted?
+    $settings->add(new admin_setting_configtext('moodleoverflow_votescaleupvote', get_string('votescaleupvote', 'moodleoverflow'),
+        get_string('configvotescaleupvote', 'moodleoverflow'), 5, PARAM_INT));
+
+    // Votescale: How much reputation gives a post that is marked as helpful.
+    $settings->add(new admin_setting_configtext('moodleoverflow_votescalecorrect', get_string('votescalecorrect', 'moodleoverflow'),
+        get_string('configvotescalecorrect', 'moodleoverflow'), 30, PARAM_INT));
+
+    // Votescale: How much reputation gives a post that is marked as helpful.
+    $settings->add(new admin_setting_configtext('moodleoverflow_votescalehelpful', get_string('votescalehelpful', 'moodleoverflow'),
+        get_string('configvotescalehelpful', 'moodleoverflow'), 15, PARAM_INT));
+
+    // Can a user have a negative reputation in a single moodleoverflow instance?
+    $settings->add(new admin_setting_configcheckbox('moodleoverflow_reputationnotnegative',
+        get_string('reputationnotnegative', 'moodleoverflow'), get_string('configreputationnotnegative', 'moodleoverflow'), 1));
 
 
 }

@@ -44,6 +44,11 @@ define('MOODLEOVERFLOW_TRACKING_OFF', 0);
 define('MOODLEOVERFLOW_TRACKING_OPTIONAL', 1);
 define('MOODLEOVERFLOW_TRACKING_FORCED', 2);
 
+define('MOODLEOVERFLOW_CHOOSESUBSCRIBE', 0);
+define('MOODLEOVERFLOW_FORCESUBSCRIBE', 1);
+define('MOODLEOVERFLOW_INITIALSUBSCRIBE', 2);
+define('MOODLEOVERFLOW_DISALLOWSUBSCRIBE',3);
+
 
 /* Moodle core API */
 
@@ -257,19 +262,6 @@ function moodleoverflow_get_recent_mod_activity(&$activities, &$index, $timestar
 function moodleoverflow_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
 }
 
-/**
- * Function to be run periodically according to the moodle cron
- *
- * This function searches for things that need to be done, such
- * as sending out mail, toggling flags etc ...
- *
- * Note that this has been deprecated in favour of scheduled task API.
- *
- * @return boolean
- */
-function moodleoverflow_cron () {
-    return true;
-}
 
 /**
  * Returns all other caps used in the module
@@ -375,4 +367,53 @@ function moodleoverflow_extend_navigation(navigation_node $navref, stdClass $cou
  */
 function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $moodleoverflownode=null) {
     // TODO Delete this function and its docblock, or implement it.
+}
+
+/**
+ * Trigger the discussion viewed event
+ *
+ * @param  stdClass $modcontext module context object
+ * @param  stdClass $forum      forum object
+ * @param  stdClass $discussion discussion object
+ * @since Moodle 2.9
+ */
+function moodleoverflow_discussion_view($modulecontext, $moodleoverflow, $discussion) {
+    $params = array(
+        'context' => $modulecontext,
+        'objectid' => $discussion->id,
+    );
+
+    $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
+    $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
+    $event->add_record_snapshot('moodleoverflow', $moodleoverflow);
+    $event->trigger();
+}
+
+/**
+ * Determine the current context if one wa not already specified.
+ *
+ * If a context of type context_module is specified, it is immediately returned and not checked.
+ *
+ * @param int $moodleoverflowid The moodleoverflow ID
+ * @param context_module $context The current context
+ * @return context_module The context determined
+ */
+function moodleoverflow_get_context($moodleoverflowid, $context = null) {
+    global $PAGE;
+    
+    // If the context does not exist, find the context.
+    if (!$context OR !($context instanceof context_module)) {
+        
+        // Try to take current page context to save on DB query.
+        if ($PAGE->cm AND $PAGE->cm->modname === 'moodleoverflow' AND $PAGE->cm->instance == $moodleoverflowid
+            AND $PAGE->context->contextlevel == CONTEXT_MODULE AND $PAGE->context->instanceid == $PAGE->cm->id) {
+           return $PAGE->context;
+        }
+        
+        // Get the context via the coursemodule.
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid);
+        return \context_module::instance($cm->id);
+    }
+    
+    
 }

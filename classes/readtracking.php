@@ -15,9 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace mod_moodleoverflow;
-
-// TODO: Use this?
-// use core\event\user_loggedin;
+use core\event\user_loggedin;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -283,5 +281,40 @@ class readtracking {
         } else {
             return $DB->delete_records_select('moodleoverflow_read', $select, $params);
         }
+    }
+
+    /**
+     * Deletes all read records that are related to posts that are older than the cutoffdate.
+     * This function is only called by the modules cronjob.
+     */
+    public static function moodleoverflow_clean_read_records() {
+        global $CFG, $DB;
+
+        // Stop if there cannot be old posts.
+        if (!isset($CFG->moodleoverflow_oldpostdays)) {
+            return;
+        }
+
+        // Find the timestamp for records older than allowed.
+        $cutoffdate = time() - ($CFG->moodleoverflow_oldpostdays * 24 * 60 * 60);
+
+        // Find the timestamp of the oldest read record.
+        // This will speedup the delete query.
+        $sql = "SELECT MIN(p.modified) AS first
+                FROM {moodleoverflow_posts} p
+                JOIN {moodleoverflow_read} r ON r.postid = p.id";
+
+        // If there is no old read record, end this method.
+        if (! $first = $DB->get_field_sql($sql)) {
+            return;
+        }
+
+        // Delete the old read tracking information between that timestamp and the cutoffdate.
+        $sql = "DELETE
+                FROM {moodleoverflow_read}
+                WHERE postid IN (SELECT p.id
+                                 FROM {moodleoverflow_posts} p
+                                 WHERE p.modified >= ? AND p.modified < ?)";
+        $DB->execute($sql, array($first, $cutoffdate));
     }
 }

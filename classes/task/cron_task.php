@@ -15,24 +15,39 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mod_moodleoverflow instance list viewed event.
+ * A scheduled task for moodleoverflow cron.
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
+ * @package    mod_forum
+ * @copyright  2014 Dan Poltawski <dan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace mod_moodleoverflow\task;
 
-namespace mod_moodleoverflow\event;
+require_once(__DIR__.'/../../locallib.php');
 
-defined('MOODLE_INTERNAL') || die();
+class cron_task extends \core\task\scheduled_task {
 
-/**
- * The mod_moodleoverflow instance list viewed event class.
- *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class course_module_instance_list_viewed extends \core\event\course_module_instance_list_viewed {
-    // No need for any code here as everything is handled by the parent class.
+    /**
+     * Get a descriptive name for this task (shown to admins).
+     *
+     * @return string
+     */
+    public function get_name() {
+        return get_string('crontask', 'mod_moodleoverflow');
+    }
+
+    /**
+     * Run moodleoverflow cron.
+     */
+    public function execute() {
+
+        // Delete the old read records.
+        \mod_moodleoverflow\readtracking::moodleoverflow_clean_read_records();
+
+        // The cron is finished.
+        return true;
+
+    }
+
 }
+

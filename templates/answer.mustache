@@ -1,7 +1,7 @@
 
 <style>
 
-        {{! The Votes. }}
+    {{! The Votes. }}
     .moodleoverflowpost td.votecell {
         float:left;
         width:43px;
@@ -23,7 +23,7 @@
         margin: 0px !important;
     }
 
-        {{! The Answers. }}
+    {{! The Answers. }}
     .moodleoverflowpost td.answercell {
         vertical-align: top;
         width: 100%;
@@ -41,7 +41,7 @@
         text-align: right;
     }
 
-        {{! The Info-Box.  }}
+    {{! The Info-Box.  }}
     .moodleoverflowpost td.answercell table.post-info {
         margin-bottom: 4px;
         width: 100%;
@@ -64,8 +64,8 @@
         color: #848d95;
     }
     .moodleoverflowpost td.answercell table.post-info td.rightbox .status .icon {
-        width: 24px;
-        height: 20px;
+        width: 16px;
+        height: 16px;
     }
 
     .moodleoverflowpost td.answercell table.post-info td.leftbox {
@@ -104,6 +104,10 @@
         line-height: 17px;
         word-wrap: break-word;
     }
+    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details .icon {
+        margin-right: 0px;
+        margin-bottom: 3px;
+    }
     .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-avatar + .user-details {
         margin-left:8px;
         width: calc(100% - 40px);
@@ -131,28 +135,7 @@
             <tr>
                 <td class="votecell">
                     <div class="votes">
-                        {{! Did the current user upvoted this post? }}
-                        {{#userupvoted}}
-                            {{# pix}} vote/upvoted, moodleoverflow {{/ pix}}
-                        {{/userupvoted}}
-                        {{^userupvoted}}
-                            <a href="{{{ upvotelink }}}">
-                                {{# pix}} vote/up, moodleoverflow {{/ pix}}
-                            </a>
-                        {{/userupvoted}}
-
-                        {{! Display the amount of votes. }}
-                        <p>{{ votes }}</p>
-
-                        {{! Did the current user upvoted this post? }}
-                        {{#userdownvoted}}
-                            {{# pix}} vote/downvoted, moodleoverflow {{/ pix}}
-                        {{/userdownvoted}}
-                        {{^userdownvoted}}
-                            <a href="{{{ downvotelink }}}">
-                                {{# pix}} vote/down, moodleoverflow {{/ pix}}
-                            </a>
-                        {{/userdownvoted}}
+                        {{> mod_moodleoverflow/postvoting }}
                     </div>
                 </td>
                 <td class="answercell">
@@ -168,7 +151,7 @@
                                             {{{ picture }}}
                                         </div>
                                         <div class="user-details">
-                                            {{{ byname }}}
+                                            {{{ byname }}} ({{#pix}}star, moodleoverflow{{/pix}}{{ byrating }})
                                             <div class="-flair">
                                                 <div class="user-action-time">
                                                     {{ bydate }}
@@ -180,23 +163,21 @@
                                 <td class="rightbox">
                                     <div class="status">
 
-                                        {{! The topics starters mark. }}
-                                        {{#statusstarter}}{{#pix}} status/check_green, moodleoverflow {{/pix}}{{/statusstarter}}
-
-                                        {{! The teachers mark. }}
-                                        {{#statusteacher}}{{#pix}} status/check_orange, moodleoverflow {{/pix}}{{/statusteacher}}
-
                                         {{! The displayed text. }}
                                         {{#statusstarter}}
                                             {{^statusteacher}}
+                                                {{#pix}} status/c_outline, moodleoverflow {{/pix}}
                                                 The question owner accepted this as the best answer.
                                             {{/statusteacher}}
                                             {{#statusteacher}}
+                                                {{#pix}} status/c_circle, moodleoverflow {{/pix}}
+                                                {{#pix}} status/b_box, moodleoverflow {{/pix}}
                                                 The question owner and a teacher accepted this as the best answer.
                                             {{/statusteacher}}
                                         {{/statusstarter}}
                                         {{^statusstarter}}
                                             {{#statusteacher}}
+                                                {{#pix}} status/b_outline, moodleoverflow {{/pix}}
                                                 This post is marked as most helpful by the teacher.
                                             {{/statusteacher}}
                                         {{/statusstarter}}
