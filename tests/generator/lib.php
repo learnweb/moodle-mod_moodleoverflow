@@ -77,7 +77,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $record->timemodified = time();
         }
         if (!isset($record->forcesubscribe)) {
-            $record->forcesubscribe = 1;
+            $record->forcesubscribe = MOODLEOVERFLOW_CHOOSESUBSCRIBE;
         }
         if (!isset($record->trackingtype)) {
             $record->trackingtype = 1;
@@ -86,7 +86,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         return parent::create_instance($record, (array)$options);
     }
 
-    public function create_discussion($modulecontext, $record = null) {
+    public function create_discussion($record = null) {
         global $DB;
 
         // Increment the discussion count.
@@ -122,6 +122,10 @@ class mod_moodleoverflow_generator extends testing_module_generator {
 
         // Transform the array into an object.
         $record = (object) $record;
+
+        // Get the module context.
+        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $modulecontext = \context_module::instance($cm->id);
 
         // Add the discussion.
         $record->id = moodleoverflow_add_discussion($record, $modulecontext, $record->userid);

@@ -315,5 +315,91 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017051801, 'moodleoverflow');
     }
 
+    // Create the status of the mail.
+    if ($oldversion < 2017071703) {
+
+        // Define field mailed to be added to moodleoverflow_posts.
+        $table = new xmldb_table('moodleoverflow_posts');
+        $field = new xmldb_field('mailed', XMLDB_TYPE_INTEGER, '1', null, null, null, '0', 'messageformat');
+
+        // Conditionally launch add field mailed.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017071703, 'moodleoverflow');
+    }
+
+    if ($oldversion < 2017071803) {
+
+        // Define table moodleoverflow_tracking to be created.
+        $table = new xmldb_table('moodleoverflow_tracking');
+
+        // Adding fields to table moodleoverflow_tracking.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('moodleoverflowid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table moodleoverflow_tracking.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Adding indexes to table moodleoverflow_tracking.
+        $table->add_index('userid-moodleoverflowid', XMLDB_INDEX_NOTUNIQUE, array('userid', 'moodleoverflowid'));
+
+        // Conditionally launch create table for moodleoverflow_tracking.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017071803, 'moodleoverflow');
+    }
+
+    if ($oldversion < 2017072002) {
+
+        // Define field ratingpreference to be added to moodleoverflow.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('ratingpreference', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'trackingtype');
+
+        // Conditionally launch add field ratingpreference.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017072002, 'moodleoverflow');
+    }
+
+    if ($oldversion < 2017072003) {
+
+        // Define field coursewidereputation to be added to moodleoverflow.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('coursewidereputation', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'ratingpreference');
+
+        // Conditionally launch add field coursewidereputation.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017072003, 'moodleoverflow');
+    }
+
+    if ($oldversion < 2017072004) {
+
+        // Define field allownegativereputation to be added to moodleoverflow.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('allownegativereputation', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'coursewidereputation');
+
+        // Conditionally launch add field allownegativereputation.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2017072004, 'moodleoverflow');
+    }
+
     return true;
 }

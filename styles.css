@@ -325,3 +325,16 @@
 .tmargin {
     margin-top: 20px;
 }
+
+#page-mod-moodleoverflow-index .subscription {
+    float: right;
+    text-align: right;
+    white-space: nowrap;
+    margin: 5px 0;
+}
+
+#page-mod-moodleoverflow-index span.unread img {
+    margin-left: 5px;
+    vertical-align: middle;
+    border-style: none;
+}

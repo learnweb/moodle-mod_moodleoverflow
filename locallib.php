@@ -150,6 +150,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $markallread = $CFG->wwwroot . '/mod/moodleoverflow/markposts.php?m=' . $moodleoverflow->id;
     } else {
         $unreads = array();
+        $markallread = null;
     }
 
     // Iterate through every visible discussion.
@@ -415,144 +416,6 @@ function moodleoverflow_get_discussions_unread($cm) {
     }
 }
 
-// TODO Currently unused.
-/**
- * CURRENTLY UNUSED
- *
- * This function prints the overview of a discussion in the moodleoverflow listing.
- * It needs some discussion information and some post information, these
- * happen to be combined for efficiency in the $post parameter by the function
- * that calls this one: moodleoverflow_print_latest_discussions().
- *
- * @param object reference $post
- * @param object $moodleoverflow
- * @param bool $cantrack
- * @param bool $istracked
- * @param object $context
- */
-function moodleoverflow_print_discussion_header(&$post, $moodleoverflow, $cantrack = true, $istracked = true, $context = null) {
-    global $COURSE, $USER, $CFG, $OUTPUT, $PAGE;
-
-    // Static variables.
-    static $rowcount;
-    static $strmarkalldread;
-
-    // Check the context.
-    if (empty($context)) {
-        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-            print_error('invalidcoursemodule');
-        }
-        $context = context_module::instance($cm->id);
-    }
-
-    // Check the static variables.
-    if (!isset($rowcount)) {
-        $rowcount = 0;
-    } else {
-        $rowcount = ($rowcount + 1) % 2;
-    }
-
-    // Check capabilities.
-    $canview = has_capability('mod/moodleoverflow:viewdiscussion', $context);
-
-    // Filter the subject of the discussion.
-    $post->subject = format_string($post->subject, true);
-
-    // Start a new row within the table.
-    echo "\n\n";
-    echo '<tr class="discussion r' . $rowcount . '" >';
-
-    // Print the subject of the topic.
-    echo '<td class="topic starter">';
-    echo '<a href="' . $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $post->discussion . '">' . $post->subject . '</a>';
-    echo "</td>\n";
-
-    // Picture of the user that started the discussion.
-    $startuser = new stdClass();
-    $startuserfields = explode(',', user_picture::fields());
-    $startuser = username_load_fields_from_object($startuser, $post, null, $startuserfields);
-    $startuser->id = $post->userid;
-    echo '<td class="picture">';
-    echo $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course));
-    echo "</td>\n";
-
-    // Display the username.
-    $fullname = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
-    echo '<td class="author">';
-    echo '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $post->userid .
-        '&amp;course=' . $moodleoverflow->course . '">' . $fullname . '</a>';
-    echo "</td>\n";
-
-    // Show the reply-columns only if the user has the capability to.
-    if (has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
-
-        // Amount of replies.
-        echo '<td class="replies">';
-        echo '<a href="' . $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' .
-            $post->discussion . '">' . $post->replies . '</a>';
-        echo "</td>\n";
-
-        // Display the column for unread replies.
-        if ($cantrack) {
-            echo '<td class="replies">';
-
-            // Dont display the amount of unread messages, if the discussion is not tracked.
-            if (!$istracked) {
-                echo '<span class="read">-</span>';
-            } else {
-
-                // Link the text if there are unread replies.
-                if ($post->unread > 0) {
-
-                    // Display the amount of unread messages.
-                    echo '<span class="unread">';
-                    echo '<a href="' . $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=';
-                    echo $post->discussion . '#unread">' . $post->unread . '</a>';
-
-                    // Display the icon to mark all as read.
-                    echo '<a title="' . get_string('markalldread', 'moodleoverflow') . '" href="' . $CFG->wwwroot .
-                        '/mod/moodleoverflow/markposts.php?m=' . $moodleoverflow->id . '&amp;d=' . $post->discussion .
-                        '&amp;mark=read&amp;returnpage=view.php&amp;sesskey=' . sesskey() . '">' . '<img src="' .
-                        $OUTPUT->pix_url('t/markasread') . '" class="iconsmall" alt="' . get_string('markalldread', 'moodleoverflow') . '" /></a>';
-                    echo '</span>';
-
-                } else {
-
-                    // Else there are no unread messages.
-                    echo '<span class="read">';
-                    echo $post->unread;
-                    echo '</span>';
-                }
-            }
-            echo "</td>\n";
-        }
-    }
-
-    // Display the latest post.
-    echo '<td class="lastpost">';
-
-    // Check the date. Just in case the database is not consistent.
-    $usedate = (empty($post->timemodified)) ? $post->modified : $post->timemodified;
-
-    // Get the name of the user, that is related to the latest post.
-    $usermodified = new stdClass();
-    $usermodified->id = $post->usermodified;
-    $usermodified = username_load_fields_from_object($usermodified, $post, 'um');
-    echo '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $post->usermodified . '&amp;course=' .
-        $moodleoverflow->course .  '">' . fullname($usermodified) . '</a><br />';
-
-    // Get the date of the latest post of the discussion.
-    $parenturl = (empty($post->lastpostid)) ? '' : '&amp;parent=' . $post->lastpostid;
-    echo '<a href="' . $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $post->discussion .
-        $parenturl . '">' . userdate($usedate, get_string('strftimerecentfull')) . '</a>';
-    echo "</td>\n";
-
-    // Enrolled users can subscribe to single discussions.
-    // ToDo: Wait for feedback. Then check this.
-
-    echo "</tr>\n\n";
-}
-
 /**
  * Gets a post with all info ready for moodleoverflow_print_post.
  * Most of these joins are just to get the forum id.
@@ -761,12 +624,10 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     // Trigger event.
     $params = array(
         'context' => $modulecontext,
-        'objectid' => $discussion->id,
+        'objectid' => $post->discussion,
     );
 
     $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
-    $event->add_record_snapshot('forum_discussions', $discussion);
-    $event->add_record_snapshot('forum', $forum);
     $event->trigger();
 
     // Return the id of the discussion.
@@ -924,10 +785,11 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     // Create the sql array.
     $params[] = $discussionid;
     $params[] = $discussionid;
-    $sql = "SELECT p.*, $allnames, d.name as subject, u.email, u.picture, u.imagealt $tracking_selector
+    $sql = "SELECT p.*, m.ratingpreference, $allnames, d.name as subject, u.email, u.picture, u.imagealt $tracking_selector
               FROM {moodleoverflow_posts} p
                    LEFT JOIN {user} u ON p.userid = u.id
                    LEFT JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                   LEFT JOIN {moodleoverflow} m on m.id = d.moodleoverflow
                    $tracking_join
              WHERE p.discussion = ?
           ORDER BY $sort";
@@ -1550,7 +1412,6 @@ function moodleoverflow_delete_post($post, $children, $course, $cm, $moodleoverf
                 $params['relateduserid'] = $post->userid;
             }
             $event = \mod_moodleoverflow\event\post_deleted::create($params);
-            $event->add_record_snapshot('moodleoverflow_posts', $post);
             $event->trigger();
 
             // The post has been deleted.
@@ -1609,4 +1470,69 @@ function moodleoverflow_set_return() {
             $SESSION->fromdiscussion = $referer;
         }
     }
+}
+
+/**
+ * Count the amount of discussions per moodleoverflow.
+ *
+ * @param $moodleoverflow
+ * @param $course
+ * @return int|mixed
+ */
+function moodleoverflow_count_discussions($moodleoverflow, $course) {
+    global $CFG, $DB;
+
+    // Create a cache.
+    static $cache = array();
+
+    // Initiate variables.
+    $now = round(time(), -2);
+    $params = array($course->id);
+
+    // Check whether the cache for the moodleoverflow is set.
+    if (!isset($cache[$course->id])) {
+
+        // Count the number of discussions.
+        $sql = "SELECT m.id, COUNT(d.id) as dcount
+                  FROM {moodleoverflow} m
+                  JOIN {moodleoverflow_discussions} d on d.moodleoverflow = m.id
+                 WHERE m.course = ?
+              GROUP BY m.id";
+        $counts = $DB->get_records_sql($sql, $params);
+
+        // Check whether there are discussions.
+        if ($counts) {
+
+            // Loop through all records.
+            foreach ($counts as $count) {
+                $counts[$count->id] = $count->dcount;
+            }
+
+            // Cache the course.
+            $cache[$course->id] = $counts;
+
+        } else {
+            // There are no records.
+
+            // Save the result into the cache.
+            $cache[$course->id] = array();
+        }
+    }
+
+    // Check whether there are discussions.
+    if (empty($cache[$course->id][$moodleoverflow->id])) {
+        return 0;
+    }
+
+    // Require the course library.
+    require_once($CFG->dirroot . '/course/lib.php');
+
+    // Count the discussions.
+    $sql = "SELECT COUNT(d.id)
+              FROM {moodleoverflow_discussions} d
+             WHERE d.moodleoverflow = ?";
+    $amount = $DB->get_field_sql($sql, array($moodleoverflow->id));
+
+    // Return the amount.
+    return $amount;
 }

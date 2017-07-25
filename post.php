@@ -376,7 +376,6 @@ if (!empty($moodleoverflow)) {
                 );
 
                 $event = \mod_moodleoverflow\event\discussion_deleted::create($params);
-                $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
                 $event->trigger();
 
                 // Redirect the user back to start page of the moodleoverflow instance.
@@ -596,8 +595,6 @@ if ($fromform = $mformpost->get_data()) {
             $message .= get_string('editedpostupdated', 'moodleoverflow', fullname($realuser));
         }
 
-        // TODO: Post-Subscription?
-
         // Create a link to go back to the discussion.
         $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id), 'p' . $fromform->id);
 
@@ -617,7 +614,6 @@ if ($fromform = $mformpost->get_data()) {
 
         // Trigger post updated event.
         $event = \mod_moodleoverflow\event\post_updated::create($params);
-        $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
         $event->trigger();
 
         // Redirect back to the discussion.
@@ -638,7 +634,11 @@ if ($fromform = $mformpost->get_data()) {
         // Create the new post.
         if ($fromform->id = moodleoverflow_add_new_post($addpost, $mformpost)) {
 
-            // TODO: Funktion forum_post_subscription benutzten?
+            // Subscribe to this thread.
+            $discussion = new \stdClass();
+            $discussion->id = $fromform->discussion;
+            $discussion->moodleoverflow = $moodleoverflow->id;
+            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform, $moodleoverflow, $discussion, $modulecontext);
 
             // Print a success-message.
             $message .= '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
@@ -647,7 +647,7 @@ if ($fromform = $mformpost->get_data()) {
             // Set the URL that links back to the discussion.
             $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id), 'p' . $fromform->id);
 
-            //
+            // Trigger post created event.
             $params = array(
                     'context' => $modulecontext,
                     'objectid' => $fromform->id,
@@ -655,13 +655,8 @@ if ($fromform = $mformpost->get_data()) {
                             'discussionid' => $discussion->id,
                             'moodleoverflowid' => $moodleoverflow->id,
                 ));
-
-            // Trigger post created event.
             $event = \mod_moodleoverflow\event\post_created::create($params);
-            $event->add_record_snapshot('moodleoverflow_posts', $fromform);
-            $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
             $event->trigger();
-
             redirect(
                     moodleoverflow_go_back_to($discussionurl),
                     $message,
@@ -681,8 +676,6 @@ if ($fromform = $mformpost->get_data()) {
 
         // The location to redirect the user after successfully posting.
         $redirectto = new moodle_url('view.php', array('m' => $fromform->moodleoverflow));
-
-        // TODO: mailnow?
 
         $discussion = $fromform;
         $discussion->name = $fromform->subject;
@@ -711,18 +704,16 @@ if ($fromform = $mformpost->get_data()) {
 
             // Trigger the discussion created event.
             $params = array(
-                'context' => $modcontext,
+                'context' => $modulecontext,
                 'objectid' => $discussion->id,
             );
             $event = \mod_moodleoverflow\event\discussion_created::create($params);
-            $event->add_record_snapshot('moodleoverflow_discussions', $discussion);
             $event->trigger();
-
-            // TODO: Mailnow?
-            // TODO: Subscribe-Message.
+            
+            // Subscribe to this thread.
+            $discussion->moodleoverflow = $moodleoverflow->id;
+            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform, $moodleoverflow, $discussion, $modulecontext);
         }
-
-        // TODO:  Completion Status?
 
         // Redirect back to te discussion.
         redirect(moodleoverflow_go_back_to($redirectto->out()), $message, null, \core\output\notification::NOTIFY_SUCCESS);

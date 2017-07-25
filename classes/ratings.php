@@ -103,7 +103,7 @@ class ratings {
             print_error('noratemoodleoverflow', 'moodleoverflow');
         }
 
-        // Check if we are removing a rating.
+        // Check if we are removing a mark.
         if (in_array($rating / 10, $possibleratings)) {
 
             if (!$CFG->moodleoverflow_allowratingchange) {
@@ -185,7 +185,7 @@ class ratings {
         }
 
         // Check whether the reputation can be summed over the whole course.
-        if ($CFG->moodleoverflow_allowcoursereputation) {
+        if ($moodleoverflow->coursewidereputation) {
             return self::moodleoverflow_get_reputation_course($moodleoverflow->course, $userid);
         }
 
@@ -200,11 +200,14 @@ class ratings {
      * @return array
      */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
-        global $CFG;
 
         // Create copies to manipulate.
         $parentcopy = $posts;
         $postscopy = $posts;
+        $anothercopy = $posts;
+
+        // Check if teacher ratings are prefered.
+        $preferteacher = (array_shift($anothercopy)->ratingpreference == 1);
 
         // Create an array with all the keys of the older array.
         $oldorder = array();
@@ -243,7 +246,7 @@ class ratings {
 
         // If the answers the teacher marks are preferred, and only
         // the teacher marked an answer as correct, display it first.
-        if ($CFG->moodleoverflow_preferteachersmark AND $statusteacher) {
+        if ($preferteacher AND $statusteacher) {
 
             // Add the post to the new order and delete it from the posts array.
             $neworder[] = (int) $statusteacher->postid;
@@ -490,14 +493,15 @@ class ratings {
         // Votes for own posts are not counting.
         $sql = "SELECT COUNT(id) as amount
                 FROM {moodleoverflow_ratings}
-                WHERE userid = ? AND (rating = 1 OR rating = 2)";
+                WHERE userid = ? AND moodleoverflowid = ? AND (rating = 1 OR rating = 2)";
+        $params = array($userid, $moodleoverflowid);
         $votes = $DB->get_record_sql($sql, $params);
 
         // Add reputation for the votes.
         $reputation += ($CFG->moodleoverflow_votescalevote) * $votes->amount;
 
         // Can the reputation of a user be negative?
-        if ($CFG->moodleoverflow_reputationnotnegative AND $reputation <= 0) {
+        if ($moodleoverflow->allownegativereputation AND $reputation <= 0) {
             $reputation = 0;
         }
 

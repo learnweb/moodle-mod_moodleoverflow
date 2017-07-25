@@ -58,7 +58,6 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         global $DB;
 
         $data = (object)$data;
-        $oldid = $data->id;
         $data->course = $this->get_courseid();
 
         if (empty($data->timecreated)) {
@@ -67,11 +66,6 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
         if (empty($data->timemodified)) {
             $data->timemodified = time();
-        }
-
-        if ($data->grade < 0) {
-            // Scale found, get mapping.
-            $data->grade = -($this->get_mappingid('scale', abs($data->grade)));
         }
 
         // Create the moodleoverflow instance.

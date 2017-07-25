@@ -48,4 +48,25 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     public function render_answer($data) {
         return $this->render_from_template('mod_moodleoverflow/answer', $data);
     }
+
+    /**
+     * Display a moodleoverflow post in the relevant context.
+     *
+     * @param \mod_moodleoverflow\output\moodleoverflow_post_email $post The post to display.
+     * @return string
+     */
+    public function render_moodleoverflow_email(\mod_moodleoverflow\output\moodleoverflow_email $post) {
+        $data = $post->export_for_template($this, $this->target === RENDERER_TARGET_TEXTEMAIL);
+        return $this->render_from_template('mod_moodleoverflow/' . $this->moodleoverflow_email_template(), $data);
+    }
+
+    /**
+     * The template name for this renderer.
+     * This method will be overwritten by other classes.
+     *
+     * @return string
+     */
+    public function moodleoverflow_email_template() {
+        return null;
+    }
 }

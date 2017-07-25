@@ -100,7 +100,7 @@ class subscriptions {
      * @param null $cm
      * @return bool
      */
-    private static function is_subscribed($userid, $moodleoverflow, $discussionid = null) {
+    public static function is_subscribed($userid, $moodleoverflow, $discussionid = null) {
 
         // Is the user forced to be subscribed to the moodleoverflow?
         if (self::is_forcesubscribed($moodleoverflow)) {
@@ -130,7 +130,7 @@ class subscriptions {
      * @param $moodleoverflow The record of the moodleoverflow to test
      * @return bool
      */
-    private static function is_forcesubscribed($moodleoverflow) {
+    public static function is_forcesubscribed($moodleoverflow) {
         return ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_FORCESUBSCRIBE);
     }
 
@@ -180,7 +180,7 @@ class subscriptions {
      * @param $moodleoverflowid The moodleoverflow to retrieve a cache for
      * @param null $userid The user ID
      */
-    private static function fill_subscription_cache($moodleoverflowid, $userid = null) {
+    public static function fill_subscription_cache($moodleoverflowid, $userid = null) {
         global $DB;
 
         // Check if the moodleoverflow has not been fetched as a whole.
@@ -209,7 +209,7 @@ class subscriptions {
             } else { // The request is not connected to a specific user.
 
                 // Request all records.
-                $params = array('moodleoverflow', $moodleoverflowid);
+                $params = array('moodleoverflow' => $moodleoverflowid);
                 $subscriptions = $DB->get_recordset('moodleoverflow_subscriptions', $params, '', 'id, userid');
 
                 // Loop through the records.
@@ -231,6 +231,7 @@ class subscriptions {
         }
     }
 
+
     /**
      * This is returned as an array of discussions for that moodleoverflow which contain the preference in a stdClass.
      *
@@ -238,7 +239,7 @@ class subscriptions {
      * @param null $userid The user ID
      * @return array of stClass objects
      */
-    private static function fetch_discussion_subscription($moodleoverflowid, $userid = null) {
+    public static function fetch_discussion_subscription($moodleoverflowid, $userid = null) {
 
         // Fill the discussion cache.
         self::fill_discussion_subscription_cache($moodleoverflowid, $userid);
@@ -261,7 +262,7 @@ class subscriptions {
      * @param $moodleoverflowid The moodleoverflow ID
      * @param null $userid The user ID
      */
-    private static function fill_discussion_subscription_cache($moodleoverflowid, $userid = null) {
+    public static function fill_discussion_subscription_cache($moodleoverflowid, $userid = null) {
         global $DB;
 
         // Check if the discussions of this moodleoverflow has been fetched as a whole.
@@ -342,7 +343,7 @@ class subscriptions {
      * @param $moodleoverflow The moodleoverflow ID
      * @return bool
      */
-    private static function subscription_disabled($moodleoverflow) {
+    public static function subscription_disabled($moodleoverflow) {
         return ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_DISALLOWSUBSCRIBE);
     }
 
@@ -352,7 +353,7 @@ class subscriptions {
      * @param $moodleoverflow The moodleoverflow ID
      * @return boolean
      */
-    private static function is_subscribable($moodleoverflow) {
+    public static function is_subscribable($moodleoverflow) {
 
         // Check if the user is an authenticated user.
         $authenticated = (isloggedin() AND !isguestuser());
@@ -376,11 +377,11 @@ class subscriptions {
      * @param int $status The new subscrription status
      * @return bool
      */
-    private static function set_subscription_mode($moodleoverflowid, $status = 1) {
+    public static function set_subscription_mode($moodleoverflowid, $status = 1) {
         global $DB;
 
         // Change the value in the database.
-        return $DB->set_field('moodleoverflow', 'forcedsubscribe', $status, array('id' => $moodleoverflowid));
+        return $DB->set_field('moodleoverflow', 'forcesubscribe', $status, array('id' => $moodleoverflowid));
     }
 
     /**
@@ -389,7 +390,7 @@ class subscriptions {
      * @param $moodleoverflow The moodleoverflow record
      * @return int The moodleoverflow subscription mode
      */
-    private static function get_subscription_mode($moodleoverflow) {
+    public static function get_subscription_mode($moodleoverflow) {
         return $moodleoverflow->forcesubscribe;
     }
 
@@ -398,7 +399,7 @@ class subscriptions {
      *
      * @return array Array of unsubscribable moodleoverflows
      */
-    private static function get_unsubscribable_moodleoverflows() {
+    public static function get_unsubscribable_moodleoverflows() {
         global $USER, $DB;
 
         // Get courses that the current user is enrolled to.
@@ -419,12 +420,12 @@ class subscriptions {
         // Find all moodleoverflows from the user's courses that they are subscribed to and which are not set to forced.
         // It is possible for users to be subscribed to a moodleoveflow in subscriptions disallowed mode so they must be
         // listed here so that they can be unsubscribed from.
-        $sql = "SELECT mo.id, cm.id as cm, mo.course
-                FROM {moodleoverflow} mo
-                JOIN {course_modules} cm ON cm.instance = mo.id
-                JOIN {modules} mod ON mod.name = :modulename AND mod.id = cm.module
-                LEFT JOIN {moodleoverflow_subscriptions} ms ON (ms.moodleoverflow = mo.id AND ms.userid = :userid)
-                WHERE mo.forcesubscribe <> :forcesubscribe AND ms.id IS NOT NULL AND cm.course $coursesql";
+        $sql = "SELECT m.id, cm.id as cm, m.course
+                FROM {moodleoverflow} m
+                JOIN {course_modules} cm ON cm.instance = m.id
+                JOIN {modules} mo ON mo.name = :modulename AND mo.id = cm.module
+                LEFT JOIN {moodleoverflow_subscriptions} ms ON (ms.moodleoverflow = m.id AND ms.userid = :userid)
+                WHERE m.forcesubscribe <> :forcesubscribe AND ms.id IS NOT NULL AND cm.course $coursesql";
         $params = array('modulename' => 'moodleoverflow', 'userid' => $USER->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
         $mergedparams = array_merge($courseparams, $params);
         $moodleoverflows = $DB->get_recordset_sql($sql, $mergedparams);
@@ -448,7 +449,7 @@ class subscriptions {
      * @param string string $sort Sort order.
      * @return array List of users.
      */
-    private static function get_potential_subscribers($context, $fields, $sort = '') {
+    public static function get_potential_subscribers($context, $fields, $sort = '') {
         global $DB;
 
         // Only enrolled users can subscribe.
@@ -463,7 +464,7 @@ class subscriptions {
         // Fetch results from the database.
         $sql = "SELECT $fields
                 FROM {user} u
-                JOIN {$esql} je ON je.id = u.id
+                JOIN ($esql) je ON je.id = u.id
                 ORDER BY $sort";
         return $DB->get_records_sql($sql, $params);
     }
@@ -474,7 +475,7 @@ class subscriptions {
      * @param int $courseid The course ID
      * @param int $userid The user ID
      */
-    private static function fill_subscription_cache_for_course($courseid, $userid) {
+    public static function fill_subscription_cache_for_course($courseid, $userid) {
         global $DB;
 
         // Create an array for the user if necessary.
@@ -483,13 +484,13 @@ class subscriptions {
         }
 
         // Fetch a record set for all moodleoverflowids and their subscription id.
-        $sql = "SELECT m.id as moodleoverflowid, s.id as subscriptionid
-                FROM {moodleoverflow} f
-                LEFT JOIN {moodleoverflow_subscriptions} s ON (s.moodleoverflow = m.id AND s.userid = :userid)
-                WHERE m.course = :course AND m.forcesubscribe <> :subscriptionforced";
+        $sql = "SELECT m.id AS moodleoverflowid,s.id AS subscriptionid
+                  FROM {moodleoverflow} m
+             LEFT JOIN {moodleoverflow_subscriptions} s ON (s.moodleoverflow = m.id AND s.userid = :userid)
+                 WHERE m.course = :course AND m.forcesubscribe <> :subscriptionforced";
         $params = array(
-            'course' => $courseid,
             'userid' => $userid,
+            'course' => $courseid,
             'subscriptionforced' => MOODLEOVERFLOW_FORCESUBSCRIBE,
         );
         $subscriptions = $DB->get_recordset_sql($sql, $params);
@@ -500,7 +501,7 @@ class subscriptions {
         }
 
         // Close the recordset.
-        $subscriptions->close;
+        $subscriptions->close();
     }
 
     /**
@@ -512,7 +513,7 @@ class subscriptions {
      * @param boolean $includediscussions Whether to take discussion subscriptions into consideration
      * @return array list of users
      */
-    private static function get_subscribed_users($moodleoverflow, $context = null, $fields = null, $includediscussions = false) {
+    public static function get_subscribed_users($moodleoverflow, $context, $fields = null, $includediscussions = false) {
         global $CFG, $DB;
 
         // Default fields if none are submitted.
@@ -523,9 +524,6 @@ class subscriptions {
                 u.picture, u.timezone, u.theme, u.lang, u.trackforums, u.mnethostid";
         }
 
-        // Retrieve the moodleoverflow context if not specified.
-        $context = moodleoverflow_get_context($moodleoverflow->id, $context);
-
         // Check if the user is forced to e subscribed to a moodleoverflow
         if (self::is_forcesubscribed($moodleoverflow)) {
 
@@ -535,7 +533,7 @@ class subscriptions {
         } else {
 
             // Only enrolled users can subscribe to a moodleoverflow.
-            list($esql, $params) = get_enrolled_sql($context);
+            list($esql, $params) = get_enrolled_sql($context, '', 0, true);
             $params['moodleoverflowid'] = $moodleoverflow->id;
 
             // Check discussion subscriptions as well?
@@ -547,16 +545,16 @@ class subscriptions {
                 $params['unsubscribed'] = self::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED;
 
                 // SQL-statement to fetch all needed fields from the database.
-                $sql = "SELECT fields
+                $sql = "SELECT $fields
                         FROM (
                             SELECT userid FROM {moodleoverflow_subscriptions} s
-                            WHERE s.moodleoverflow = s:smoodleoverflowid
+                            WHERE s.moodleoverflow = :smoodleoverflowid
                             UNION
                             SELECT userid FROM {moodleoverflow_discuss_subs} ds
                             WHERE ds.moodleoverflow = :dsmoodleoverflowid AND ds.preference <> :unsubscribed
                         ) subscriptions
                         JOIN {user} u ON u.id = subscriptions.userid
-                        JOIN {$esql} je ON je.id = u.id
+                        JOIN ($esql) je ON je.id = u.id
                         ORDER BY u.email ASC";
 
             } else {
@@ -565,7 +563,7 @@ class subscriptions {
                 // SQL-statement to fetch all needed fields from the database.
                 $sql = "SELECT $fields
                         FROM {user} u
-                        JOIN {$esql} je ON je.id = u.id
+                        JOIN ($esql) je ON je.id = u.id
                         JOIN {moodleoverflow_subscriptions} s ON s.userid = u.id
                         WHERE s.moodleoverflow = :moodleoverflowid
                         ORDER BY u.email ASC";
@@ -594,7 +592,7 @@ class subscriptions {
      * This cache is used to reduce the number of database queries
      * when checking moodleoverflow discussion subscriptions states.
      */
-    private static function reset_discussion_cache() {
+    public static function reset_discussion_cache() {
 
         // Reset the discussion cache.
         self::$discussioncache = array();
@@ -609,7 +607,7 @@ class subscriptions {
      * This cache is used to reduce the number of database queries
      * when checking moodleoverflow subscription states.
      */
-    private static function reset_moodleoverflow_cache() {
+    public static function reset_moodleoverflow_cache() {
 
         // Reset the cache.
         self::$moodleoverflowcache = array();
@@ -627,7 +625,7 @@ class subscriptions {
      * @param bool $userrequest Whether the user requested this change themselves.
      * @return bool|int Returns true if the user is already subscribed or the subscription id if successfully subscribed.
      */
-    private static function subscribe_user($userid, $moodleoverflow, $context = null, $userrequest = false) {
+    public static function subscribe_user($userid, $moodleoverflow, $context, $userrequest = false) {
         global $DB;
 
         // Check if the user is already subscribed.
@@ -669,7 +667,6 @@ class subscriptions {
         self::$moodleoverflowcache[$userid][$moodleoverflow->id] = true;
 
         // Trigger an subscription created event.
-        $context = moodleoverflow_get_context($moodleoverflow->id, $context);
         $params = array(
             'context' => $context,
             'objectid' => $result,
@@ -677,7 +674,7 @@ class subscriptions {
             'other' => array('moodleoverflowid' => $moodleoverflow->id),
         );
         $event = event\subscription_created::create($params);
-        $event->trigger;
+        $event->trigger();
 
         // Return the subscription ID.
         return $result;
@@ -692,7 +689,7 @@ class subscriptions {
      * @param boolean $userrequest Whether the user requested this change themselves.
      * @return bool Always returns true
      */
-    private static function unsubscribe_user($userid, $moodleoverflow, $context = null, $userrequest = null) {
+    public static function unsubscribe_user($userid, $moodleoverflow, $context, $userrequest = null) {
         global $DB;
 
         // TODO: DELETE DIGEST RECORDS?
@@ -725,7 +722,6 @@ class subscriptions {
             self::$moodleoverflowcache[$userid][$moodleoverflow->id] = false;
 
             // Trigger an subscription deletion event.
-            $context = moodleoverflow_get_context($moodleoverflow->id, $context);
             $params = array(
                 'context' => $context,
                 'objectid' => $subscription->id,
@@ -749,7 +745,7 @@ class subscriptions {
      * @param \context_module $context The module context
      * @return bool Whether a change was made
      */
-    private static function subscribe_user_to_discussion($userid, $discussion, $context = null) {
+    public static function subscribe_user_to_discussion($userid, $discussion, $context) {
         global $DB;
 
         // Check if the user is already subscribed to the discussion.
@@ -763,7 +759,7 @@ class subscriptions {
 
         // Check if the user is already subscribed to the moodleoverflow.
         $params = array('userid' => $userid, 'moodleoverflow' => $discussion->moodleoverflow);
-        if ($DB->record_exists('moodleoveflow_subscriptions', $params)) {
+        if ($DB->record_exists('moodleoverflow_subscriptions', $params)) {
 
             // Check if the user is unsubscribed from the discussion.
             if ($subscription AND $subscription->preference == self::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED) {
@@ -802,7 +798,6 @@ class subscriptions {
         }
 
         // Create a discussion subscription created event.
-        $context = moodleoverflow_get_context($discussion->moodleoverflow, $context);
         $params = array(
             'context' => $context,
             'objectid' => $subscription->id,
@@ -824,7 +819,7 @@ class subscriptions {
      * @param \context_module $context The context module
      * @return bool Whether a change was made
      */
-    private static function unsubscribe_user_from_discussion($userid, $discussion, $context = null) {
+    public static function unsubscribe_user_from_discussion($userid, $discussion, $context) {
         global $DB;
 
         // Check the users subscription preference for this discussion.
@@ -883,7 +878,6 @@ class subscriptions {
         }
 
         // Trigger an discussion subscription deletetion event.
-        $context = moodleoverflow_get_context($discussion->moodleoverflow, $context);
         $params = array(
             'context' => $context,
             'objectid' => $subscription->id,
@@ -894,6 +888,113 @@ class subscriptions {
         $event->trigger();
 
         // The user was successfully unsubscribed from the discussion.
+        return true;
+    }
+
+    /**
+     * Generate and return the subscribe or unsubscribe link for a moodleoverflow.
+     *
+     * @param object $moodleoverflow the moodleoverflow. Fields used are $moodleoverflow->id and $moodleoverflow->forcesubscribe.
+     * @param object $context the context object for this moodleoverflow.
+     * @param array $messages text used for the link in its various states
+     *      (subscribed, unsubscribed, forcesubscribed or cantsubscribe).
+     *      Any strings not passed in are taken from the $defaultmessages array
+     *      at the top of the function.
+     * @return string
+     */
+    public static function moodleoverflow_get_subscribe_link($moodleoverflow, $context, $messages = array()) {
+        global $USER, $OUTPUT;
+
+        // Define strings.
+        $defaultmessages = array(
+            'subscribed' => get_string('unsubscribe', 'moodleoverflow'),
+            'unsubscribed' => get_string('subscribe', 'moodleoverflow'),
+            'forcesubscribed' => get_string('everyoneissubscribed', 'moodleoverflow'),
+            'cantsubscribe' => get_string('disallowsubscribe','moodleoverflow')
+        );
+
+        // Combine strings the submitted messages.
+        $messages = $messages + $defaultmessages;
+
+        // Check whether the user is forced to be subscribed to the moodleoverflow.
+        $isforced = self::is_forcesubscribed($moodleoverflow);
+        $isdisabled = self::subscription_disabled($moodleoverflow);
+
+        // Return messages depending on the subscription state.
+        if ($isforced) {
+            return $messages['forcesubscribed'];
+        } else if ($isdisabled AND !has_capability('mod/moodleoverflow:managesubscriptions', $context)) {
+            return $messages['cantsubscribe'];
+        } else {
+
+            // The user needs to be enrolled.
+            if (!is_enrolled($context, $USER, '', true)) {
+                return '';
+            }
+
+            // Check whether the user is subscribed.
+            $issubscribed = self::is_subscribed($USER->id, $moodleoverflow);
+
+            // Define the text of the link depending on the subscription state.
+            if ($issubscribed) {
+                $linktext = $messages['subscribed'];
+                $linktitle = get_string('subscribestop', 'moodleoverflow');
+            } else {
+                $linktext = $messages['unsubscribed'];
+                $linktitle = get_string('subscribestart', 'moodleoverflow');
+            }
+
+            // Create an options array.
+            $options = array();
+            $options['id'] = $moodleoverflow->id;
+            $options['sesskey'] = sesskey();
+            $options['returnurl'] = 0;
+            $options['backtoindex'] = 1;
+
+            //
+            $url = new \moodle_url('/mod/moodleoverflow/subscribe.php', $options);
+            return $OUTPUT->single_button($url, $linktext, 'get', array('title' => $linktitle));
+        }
+    }
+
+    /**
+     * Given a new post, subscribes the user to the thread the post was posted in.
+     *
+     * @param object $fromform The submitted form
+     * @param $moodleoverflow The moodleoverflow record
+     * @param $discussion The discussion record
+     * @param $modulecontext The context of the module
+     * @return bool
+     */
+    public static function moodleoverflow_post_subscription($fromform, $moodleoverflow, $discussion, $modulecontext) {
+        global $USER;
+
+        // Check for some basic information.
+        $force = self::is_forcesubscribed($moodleoverflow);
+        $disabled = self::subscription_disabled($moodleoverflow);
+
+        // Do not continue if the user is already forced to be subscribed.
+        if ($force) {
+            return false;
+        }
+
+        // Do not continue if subscriptions are disabled.
+        if ($disabled) {
+
+            // If the user is subscribed, unsubscribe him.
+            $subscribed = self::is_subscribed($USER->id, $moodleoverflow);
+            $coursecontext = \context_course::instance($moodleoverflow->course);
+            $canmanage = has_capability('moodle/course:manageactivities', $coursecontext, $USER->id);
+            if ($subscribed AND !$canmanage) {
+                self::unsubscribe_user($USER->id, $moodleoverflow, $modulecontext);
+            }
+
+            // Do not continue.
+            return false;
+        }
+
+        // Subscribe the user to the discussion.
+        self::subscribe_user_to_discussion($USER->id, $discussion, $modulecontext);
         return true;
     }
 }

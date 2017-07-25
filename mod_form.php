@@ -44,6 +44,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
     public function definition() {
         global $CFG;
 
+        // Define the modform.
         $mform = $this->_form;
 
         // Adding the "general" fieldset, where all the common settings are showed.
@@ -67,15 +68,59 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $this->add_intro_editor();
         }
 
-        // Adding the rest of moodleoverflow settings, spreading all them into this fieldset
-        // ... or adding more fieldsets ('header' elements) if needed for better logic.
-        $mform->addElement('static', 'label1', 'moodleoverflowsetting1', 'Your moodleoverflow fields go here. Replace me!');
+        // Subscription Handling.
+        $mform->addElement('header', 'subscriptiontrackingheader', get_string('subscriptiontrackingheader', 'moodleoverflow'));
 
-        $mform->addElement('header', 'moodleoverflowfieldset', get_string('moodleoverflowfieldset', 'moodleoverflow'));
-        $mform->addElement('static', 'label2', 'moodleoverflowsetting2', 'Your moodleoverflow fields go here. Replace me!');
+        // Prepare the array with options for the subscription state.
+        $options = array();
+        $options[MOODLEOVERFLOW_CHOOSESUBSCRIBE] = get_string('subscriptionoptional', 'moodleoverflow');
+        $options[MOODLEOVERFLOW_FORCESUBSCRIBE] = get_string('subscriptionforced', 'moodleoverflow');
+        $options[MOODLEOVERFLOW_INITIALSUBSCRIBE] = get_string('subscriptionauto', 'moodleoverflow');
+        $options[MOODLEOVERFLOW_DISALLOWSUBSCRIBE] = get_string('subscriptiondisabled', 'moodleoverflow');
 
-        // Add standard grading elements.
-        $this->standard_grading_coursemodule_elements();
+        // Create the option to set the subscription state.
+        $mform->addElement('select', 'forcesubscribe', get_string('subscriptionmode', 'moodleoverflow'), $options);
+        $mform->addHelpButton('forcesubscribe', 'subscriptionmode', 'moodleoverflow');
+
+        // Set the options for the default readtracking.
+        $options = array();
+        $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
+        $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
+        if ($CFG->moodleoverflow_allowforcedreadtracking) {
+            $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
+        }
+
+        // Create the option to set the readtracking state.
+        $mform->addElement('select', 'trackingtype', get_string('trackingtype', 'moodleoverflow'), $options);
+        $mform->addHelpButton('trackingtype', 'trackingtype', 'moodleoverflow');
+
+        // Choose the default tracking type.
+        $default = $CFG->moodleoverflow_trackingtype;
+        if ((!$CFG->moodleoverflow_allowforcedreadtracking) AND ($default == MOODLEOVERFLOW_TRACKING_FORCED)) {
+            $default = MOODLEOVERFLOW_TRACKING_OPTIONAL;
+        }
+        $mform->setDefault('trackingtype', $default);
+
+        // Rating options.
+        $mform->addElement('header', 'ratingheading', get_string('ratingheading', 'moodleoverflow'));
+
+        // Which rating is more important?
+        $options = array();
+        $options[MOODLEOVERFLOW_PREFERENCE_STARTER] = get_string('starterrating', 'moodleoverflow');
+        $options[MOODLEOVERFLOW_PREFERENCE_TEACHER] = get_string('teacherrating', 'moodleoverflow');
+        $mform->addElement('select', 'ratingpreference', get_string('ratingpreference', 'moodleoverflow'), $options);
+        $mform->addHelpButton('ratingpreference', 'ratingpreference', 'moodleoverflow');
+        $mform->setDefault('ratingpreference', MOODLEOVERFLOW_PREFERENCE_STARTER);
+
+        // Course wide reputation?
+        $mform->addElement('selectyesno', 'coursewidereputation', get_string('coursewidereputation', 'moodleoverflow'));
+        $mform->addHelpButton('coursewidereputation', 'coursewidereputation', 'moodleoverflow');
+        $mform->setDefault('coursewidereputation', MOODLEOVERFLOW_REPUTATION_COURSE);
+
+        // Allow negative reputations?
+        $mform->addElement('selectyesno', 'allownegativereputation', get_string('allownegativereputation', 'moodleoverflow'));
+        $mform->addHelpButton('allownegativereputation', 'allownegativereputation', 'moodleoverflow');
+        $mform->setDefault('allownegativereputation', MOODLEOVERFLOW_REPUTATION_NEGATIVE);
 
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();

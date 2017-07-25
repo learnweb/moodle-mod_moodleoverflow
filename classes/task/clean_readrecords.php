@@ -17,15 +17,15 @@
 /**
  * A scheduled task for moodleoverflow cron.
  *
- * @package    mod_forum
- * @copyright  2014 Dan Poltawski <dan@moodle.com>
+ * @package    mod_moodleoverflow
+ * @copyright  2016 Your Name <your@email.address>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_moodleoverflow\task;
 
 require_once(__DIR__.'/../../locallib.php');
 
-class cron_task extends \core\task\scheduled_task {
+class clean_readrecords extends \core\task\scheduled_task {
 
     /**
      * Get a descriptive name for this task (shown to admins).
@@ -33,13 +33,15 @@ class cron_task extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('crontask', 'mod_moodleoverflow');
+        return get_string('taskcleanreadrecords', 'mod_moodleoverflow');
     }
 
     /**
      * Run moodleoverflow cron.
      */
     public function execute() {
+
+
 
         // Delete the old read records.
         \mod_moodleoverflow\readtracking::moodleoverflow_clean_read_records();

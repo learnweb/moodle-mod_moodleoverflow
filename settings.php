@@ -62,20 +62,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('moodleoverflow_allowratingchange',
         get_string('allowratingchange', 'moodleoverflow'), get_string('configallowratingchange', 'moodleoverflow'), 1));
 
-    // Which mark is more important?
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow_preferteachersmark',
-        get_string('preferteachersmark', 'moodleoverflow'), get_string('configpreferteachersmark', 'moodleoverflow'), 0));
-
-
     //
     //
     //
-
-    //
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow_allowcoursereputation',
-        get_string('allowcoursereputation', 'moodleoverflow'), get_string('configallowcoursereputation', 'moodleoverflow'), 1));
-
-
 
     // Votescale: How much reputation gives a vote for another post?
     $settings->add(new admin_setting_configtext('moodleoverflow_votescalevote', get_string('votescalevote', 'moodleoverflow'),
@@ -97,9 +86,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('moodleoverflow_votescalehelpful', get_string('votescalehelpful', 'moodleoverflow'),
         get_string('configvotescalehelpful', 'moodleoverflow'), 15, PARAM_INT));
 
-    // Can a user have a negative reputation in a single moodleoverflow instance?
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow_reputationnotnegative',
-        get_string('reputationnotnegative', 'moodleoverflow'), get_string('configreputationnotnegative', 'moodleoverflow'), 1));
+    // Number of discussions per page.
+    $settings->add(new admin_setting_configtext('moodleoverflow_maxmailingtime', get_string('maxmailingtime', 'moodleoverflow'),
+        get_string('configmaxmailingtime', 'moodleoverflow'), 48, PARAM_INT));
 
 
 }

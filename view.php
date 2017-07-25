@@ -78,8 +78,6 @@ $event = \mod_moodleoverflow\event\course_module_viewed::create(array(
     'objectid' => $PAGE->cm->instance,
     'context' => $PAGE->context,
 ));
-$event->add_record_snapshot('course', $PAGE->course);
-$event->add_record_snapshot($PAGE->cm->modname, $moodleoverflow);
 $event->trigger();
 
 // Print the page header.
@@ -103,7 +101,6 @@ $SESSION->fromdiscussion = qualified_me();
 
 // Print the discussions.
 echo '<br />';
-
 moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, $CFG->moodleoverflow_manydiscussions);
 
 // Finish the page.
