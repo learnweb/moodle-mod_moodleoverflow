@@ -68,17 +68,4 @@ class renderer extends \mod_moodleoverflow_renderer {
         // Return the message in html.
         return format_text($message, $post->messageformat, $options);
     }
-
-    // ToDo: Delete this?
-    /**
-     * The HTML version of the attachments list.
-     *
-     * @param \stdClass $cm
-     * @param \stdClass $post
-     * @return string
-     */
-    public function format_message_attachments($cm, $post) {
-        return null;
-        //return forum_print_attachments($post, $cm, "html");
-    }
 }

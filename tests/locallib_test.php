@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-global $CFG;
+defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/../locallib.php');
 
 class mod_moodleoverflow_locallib_testcase extends advanced_testcase {

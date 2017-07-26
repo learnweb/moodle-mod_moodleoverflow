@@ -156,7 +156,7 @@ if (!is_null($mode) AND has_capability('mod/moodleoverflow:managesubscriptions',
             redirect($strings['everyoneisnowsubscribed'], $string, null, $notify['success']);
             break;
 
-        //
+        // Default setting.
         case MOODLEOVERFLOW_INITIALSUBSCRIBE:
             // If users are not forced, subscribe all users.
             if ($moodleoverflow->forcesubscribe <> MOODLEOVERFLOW_INITIALSUBSCRIBE) {

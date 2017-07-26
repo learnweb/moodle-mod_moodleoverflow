@@ -127,13 +127,11 @@ echo $OUTPUT->heading(format_string($discussion->name), 3, 'discussionname');
 
 // Guests and users can not subscribe to a discussion.
 if ((!is_guest($modulecontext, $USER) AND isloggedin() AND $canviewdiscussion)) {
-
-    // TODO: Subscription Handling.;
     echo '';
 }
 
 // Check if the user can reply in this discussion.
-$canreply = moodleoverflow_user_can_post($moodleoverflow, $discussion, $USER, $cm, $course, $modulecontext);
+$canreply = moodleoverflow_user_can_post($moodleoverflow, $USER, $cm, $course, $modulecontext);
 
 // Link to the selfenrollment if not allowed.
 if (!$canreply) {

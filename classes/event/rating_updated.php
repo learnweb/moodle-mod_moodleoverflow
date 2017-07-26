@@ -33,16 +33,14 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2016 Your Name <your@email.address>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class rating_updated extends \core\event\base
-{
+class rating_updated extends \core\event\base {
 
     /**
      * Init method.
      *
      * @return void
      */
-    protected function init()
-    {
+    protected function init() {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_OTHER;
         $this->data['objecttable'] = 'moodleoverflow_ratings';
@@ -53,8 +51,7 @@ class rating_updated extends \core\event\base
      *
      * @return string
      */
-    public function get_description()
-    {
+    public function get_description() {
         return "The user with id '$this->userid' has updated the rating with id '$this->objectid' in the moodleoverflow " .
             "with course module id '$this->contextinstanceid'.";
     }
@@ -64,9 +61,7 @@ class rating_updated extends \core\event\base
      *
      * @return string
      */
-    public static function get_name()
-    {
+    public static function get_name() {
         return get_string('eventratingupdated', 'mod_moodleoverflow');
     }
-
 }

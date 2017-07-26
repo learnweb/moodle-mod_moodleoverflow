@@ -23,6 +23,7 @@
  */
 namespace mod_moodleoverflow\task;
 
+defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__.'/../../locallib.php');
 
 class clean_readrecords extends \core\task\scheduled_task {
@@ -41,14 +42,11 @@ class clean_readrecords extends \core\task\scheduled_task {
      */
     public function execute() {
 
-
-
         // Delete the old read records.
         \mod_moodleoverflow\readtracking::moodleoverflow_clean_read_records();
 
         // The cron is finished.
         return true;
-
     }
 
 }

@@ -322,7 +322,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $options    = array('userid' => $author->id, 'discussion' => $discussion->id);
         $count      = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
-        
+
         // Unsubscribing from the moodleoverflow should remove the per-discussion
         // subscription preference if the user requested the change himself.
         \mod_moodleoverflow\subscriptions::unsubscribe_user($author->id, $moodleoverflow, $modulecontext, true);
@@ -458,7 +458,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $discussion = new \stdClass();
         list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
         $discussion->moodleoverflow = $moodleoverflow->id;
-        
+
         // Attempting to unsubscribe from the discussion should not make a change.
         $this->assertFalse(\mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($author->id, $discussion, $modulecontext));
 
@@ -478,7 +478,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
     public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed_discussion_unsubscribed() {
         global $DB;
 
-        // Reset the database after
+        // Reset the database after testing.
         $this->resetAfterTest(true);
 
         // Create a course, with a moodleoverflow.
@@ -1358,7 +1358,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
 
         // Create a guest user.
-        $guest = $DB->get_record('user', array('username'=>'guest'));
+        $guest = $DB->get_record('user', array('username' => 'guest'));
         $this->setUser($guest);
 
         // Create a course, with a moodleoverflow.

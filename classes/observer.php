@@ -128,7 +128,7 @@ class mod_moodleoverflow_observer {
         if ($event->other['modulename'] === 'moodleoverflow') {
 
             // Require the library.
-            require_once ($CFG->dirroot . '/mod/moodleoverflow/lib.php');
+            require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
             // Create a snapshot of the created moodleoverflow record.
             $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $event->other['instanceid']));

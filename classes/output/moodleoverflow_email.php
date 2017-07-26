@@ -133,7 +133,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      *
      * @param \mod_moodleoverflow_renderer $renderer The render to be used for formatting the message
      * @param bool $plaintext Whether the target is a plaintext target
-     * @return stdClass Data ready for use in a mustache template
+     * @return mixed Data ready for use in a mustache template
      */
     public function export_for_template(\renderer_base $renderer, $plaintext = false) {
         if ($plaintext) {
@@ -151,19 +151,19 @@ class moodleoverflow_email implements \renderable, \templatable {
      */
     protected function export_for_template_text(\mod_moodleoverflow_renderer $renderer) {
 
-        return $array = array(
+        return array(
             'id'                            => html_entity_decode($this->post->id),
             'coursename'                    => html_entity_decode($this->get_coursename()),
             'courselink'                    => html_entity_decode($this->get_courselink()),
             'moodleoverflowname'            => html_entity_decode($this->get_moodleoverflowname()),
-            'showdiscussionname'            => html_entity_decode($this->get_showdiscussionname()),
+            'showdiscussionname'            => html_entity_decode($this->has_showdiscussionname()),
             'discussionname'                => html_entity_decode($this->get_discussionname()),
             'subject'                       => html_entity_decode($this->get_subject()),
             'authorfullname'                => html_entity_decode($this->get_author_fullname()),
             'postdate'                      => html_entity_decode($this->get_postdate()),
             'canreply'                      => $this->canreply,
             'permalink'                     => $this->get_permalink(),
-            'firstpost'                     => $this->get_is_firstpost(),
+            'firstpost'                     => $this->is_firstpost(),
             'replylink'                     => $this->get_replylink(),
             'unsubscribediscussionlink'     => $this->get_unsubscribediscussionlink(),
             'unsubscribemoodleoverflowlink' => $this->get_unsubscribemoodleoverflowlink(),
@@ -192,14 +192,14 @@ class moodleoverflow_email implements \renderable, \templatable {
             'coursename'                    => $this->get_coursename(),
             'courselink'                    => $this->get_courselink(),
             'moodleoverflowname'            => $this->get_moodleoverflowname(),
-            'showdiscussionname'            => $this->get_showdiscussionname(),
+            'showdiscussionname'            => $this->has_showdiscussionname(),
             'discussionname'                => $this->get_discussionname(),
             'subject'                       => $this->get_subject(),
             'authorfullname'                => $this->get_author_fullname(),
             'postdate'                      => $this->get_postdate(),
             'canreply'                      => $this->canreply,
             'permalink'                     => $this->get_permalink(),
-            'firstpost'                     => $this->get_is_firstpost(),
+            'firstpost'                     => $this->is_firstpost(),
             'replylink'                     => $this->get_replylink(),
             'unsubscribediscussionlink'     => $this->get_unsubscribediscussionlink(),
             'unsubscribemoodleoverflowlink' => $this->get_unsubscribemoodleoverflowlink(),
@@ -222,7 +222,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @param string $name
      * @param mixed $value
      */
-    public function __set($name, $value){
+    public function __set($name, $value) {
 
         // First attempt to use the setter function.
         $methodname = 'set_' . $name;
@@ -333,7 +333,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      *
      * @return boolean
      */
-    public function get_showdiscussionname() {
+    public function has_showdiscussionname() {
         return ($this->moodleoverflow->name !== $this->discussion->name);
     }
 
@@ -399,7 +399,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      *
      * @return boolean
      */
-    public function get_is_firstpost() {
+    public function is_firstpost() {
         return empty($this->post->parent);
     }
 
@@ -543,7 +543,7 @@ class moodleoverflow_email implements \renderable, \templatable {
             $groups = groups_get_all_groups($this->course->id, $this->author->id, $this->cm->groupingid);
         }
 
-        if ($this->get_is_firstpost()) {
+        if ($this->is_firstpost()) {
             return print_group_picture($groups, $this->course->id, false, true, true);
         }
     }

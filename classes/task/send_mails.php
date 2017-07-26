@@ -23,6 +23,7 @@
  */
 namespace mod_moodleoverflow\task;
 
+defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__.'/../../locallib.php');
 
 class send_mails extends \core\task\scheduled_task {

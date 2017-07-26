@@ -42,17 +42,9 @@ class mod_moodleoverflow_post_form extends moodleform {
      * @return void
      */
     public function definition() {
-        global $CFG, $OUTPUT;
 
         $modform =& $this->_form;
-
-        $course         = $this->_customdata['course'];
-        $cm             = $this->_customdata['cm'];
-        $coursecontext  = $this->_customdata['coursecontext'];
-        $modulecontext  = $this->_customdata['modulecontext'];
-        $moodleoverflow = $this->_customdata['moodleoverflow'];
-        $post           = $this->_customdata['post'];
-        $edit           = $this->_customdata['edit'];
+        $post = $this->_customdata['post'];
 
         // Fill in the data depending on page params later using set_data.
         $modform->addElement('header', 'general', '');
@@ -67,9 +59,6 @@ class mod_moodleoverflow_post_form extends moodleform {
         $modform->addElement('editor', 'message', get_string('message', 'moodleoverflow'), null);
         $modform->setType('message', PARAM_RAW);
         $modform->addRule('message', get_string('required'), 'required', null, 'client');
-
-        // TODO: Subscribe options.
-        // TODO: Pin discussions.
 
         // Submit buttons.
         if (isset($post->edit)) {

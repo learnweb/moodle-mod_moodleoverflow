@@ -97,7 +97,8 @@ if (isguestuser()) {
 if (!empty($discussionid)) {
 
     // Check if the discussion exists.
-    if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id))) {
+    $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id));
+    if (!$discussion) {
         print_error('invaliddiscussionid', 'moodleoverflow');
     }
 

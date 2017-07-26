@@ -152,7 +152,7 @@ class subscriptions {
      * @param $userid The user ID
      * @return boolean
      */
-    private static function fetch_subscription_cache($moodleoverflowid, $userid){
+    public static function fetch_subscription_cache($moodleoverflowid, $userid) {
 
         // If the cache is already filled, return the result.
         if (isset(self::$moodleoverflowcache[$userid]) AND isset(self::$moodleoverflowcache[$userid][$moodleoverflowid])) {
@@ -213,7 +213,7 @@ class subscriptions {
                 $subscriptions = $DB->get_recordset('moodleoverflow_subscriptions', $params, '', 'id, userid');
 
                 // Loop through the records.
-                foreach($subscriptions as $id => $data) {
+                foreach ($subscriptions as $id => $data) {
 
                     // Create a new record if necessary.
                     if (!isset(self::$moodleoverflowcache[$data->userid])) {
@@ -519,12 +519,12 @@ class subscriptions {
         // Default fields if none are submitted.
         if (empty($fields)) {
             $allnames = get_all_user_name_fields(true, 'u');
-            $fields = "u.id, u.username, $allnames, u.maildisplay, u.mailformat, u.maildigest, 
+            $fields = "u.id, u.username, $allnames, u.maildisplay, u.mailformat, u.maildigest,
                 u.imagealt, u.email, u.emailstop, u.city, u.country, u.lastaccess, u.lastlogin,
                 u.picture, u.timezone, u.theme, u.lang, u.trackforums, u.mnethostid";
         }
 
-        // Check if the user is forced to e subscribed to a moodleoverflow
+        // Check if the user is forced to e subscribed to a moodleoverflow.
         if (self::is_forcesubscribed($moodleoverflow)) {
 
             // Find the list of potential subscribers.
@@ -910,7 +910,7 @@ class subscriptions {
             'subscribed' => get_string('unsubscribe', 'moodleoverflow'),
             'unsubscribed' => get_string('subscribe', 'moodleoverflow'),
             'forcesubscribed' => get_string('everyoneissubscribed', 'moodleoverflow'),
-            'cantsubscribe' => get_string('disallowsubscribe','moodleoverflow')
+            'cantsubscribe' => get_string('disallowsubscribe', 'moodleoverflow'),
         );
 
         // Combine strings the submitted messages.
@@ -951,7 +951,7 @@ class subscriptions {
             $options['returnurl'] = 0;
             $options['backtoindex'] = 1;
 
-            //
+            // Return the link to subscribe the user.
             $url = new \moodle_url('/mod/moodleoverflow/subscribe.php', $options);
             return $OUTPUT->single_button($url, $linktext, 'get', array('title' => $linktitle));
         }

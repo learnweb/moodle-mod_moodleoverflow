@@ -187,14 +187,16 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $statusstarter = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, false);
         $starterlink = null;
         if ($statusstarter) {
-            $starterlink = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $statusstarter->discussionid . '#p' . $statusstarter->postid);
+            $link = '/mod/moodleoverflow/discussion.php?d=';
+            $starterlink = new moodle_url($link . $statusstarter->discussionid . '#p' . $statusstarter->postid);
         }
 
         // Check if a teacher marked a post as helpful.
         $statusteacher = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, true);
         $teacherlink = null;
         if ($statusteacher) {
-            $teacherlink = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $statusstarter->discussionid . '#p' . $statusteacher->postid);
+            $link = '/mod/moodleoverflow/discussion.php?d=';
+            $teacherlink = new moodle_url($link . $statusstarter->discussionid . '#p' . $statusteacher->postid);
         }
 
         // Check if a single post was marked by the question owner and a teacher.
@@ -238,7 +240,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $unreadamount = $discussion->unread;
         $hasunreads = ($unreadamount > 0) ? true : false;
         $unreadlink = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '#unread';
-        $markreadlink = $CFG->wwwroot . '/mod/moodleoverflow/markposts.php?m=' . $moodleoverflow->id . '&d=' . $discussion->discussion;
+        $link = '/mod/moodleoverflow/markposts.php?m=';
+        $markreadlink = $CFG->wwwroot . $link . $moodleoverflow->id . '&d=' . $discussion->discussion;
 
         // Check the date of the latest post. Just in case the database is not consistent.
         $usedate = (empty($discussion->timemodified)) ? $discussion->modified : $discussion->timemodified;
@@ -498,7 +501,8 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
     $canviewdiscussion = !empty($cm->cache->caps['mod/moodleoverflow:viewdiscussion']) ||
         has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext, $user->id);
     if (!$canviewdiscussion &&
-        !has_all_capabilities(array('moodle/user:viewdetails', 'moodle/user:readuserposts'), context_user::instance($post->userid))) {
+        !has_all_capabilities(array('moodle/user:viewdetails', 'moodle/user:readuserposts'),
+            context_user::instance($post->userid))) {
         return false;
     }
 
@@ -617,7 +621,9 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     $DB->set_field('moodleoverflow_posts', 'discussion', $post->discussion, array('id' => $post->id));
 
     // Mark the created post as read.
-    if (\mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow) AND \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow)) {
+    $cantrack  = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    if ($cantrack AND $istracked) {
         \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($post->userid, $post);
     }
 
@@ -647,7 +653,7 @@ function moodleoverflow_go_back_to($default) {
 }
 
 // Checks whether the user can reply to posts in a discussion.
-function moodleoverflow_user_can_post($moodleoverflow, $discussion, $user = null, $cm = null, $course = null, $modulecontext = null) {
+function moodleoverflow_user_can_post($moodleoverflow, $user = null, $cm = null, $course = null, $modulecontext = null) {
     global $USER, $DB;
 
     // If not user is submitted, use the current one.
@@ -774,8 +780,8 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
 
     // If tracking is enabled, another join is needed.
     if ($tracking) {
-        $tracking_selector = ", mr.id AS postread";
-        $tracking_join = "LEFT JOIN {moodleoverflow_read} mr ON (mr.postid = p.id AND mr.userid = ?)";
+        $trackingselector = ", mr.id AS postread";
+        $trackingjoin = "LEFT JOIN {moodleoverflow_read} mr ON (mr.postid = p.id AND mr.userid = ?)";
         $params[] = $USER->id;
     }
 
@@ -785,12 +791,12 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     // Create the sql array.
     $params[] = $discussionid;
     $params[] = $discussionid;
-    $sql = "SELECT p.*, m.ratingpreference, $allnames, d.name as subject, u.email, u.picture, u.imagealt $tracking_selector
+    $sql = "SELECT p.*, m.ratingpreference, $allnames, d.name as subject, u.email, u.picture, u.imagealt $trackingselector
               FROM {moodleoverflow_posts} p
                    LEFT JOIN {user} u ON p.userid = u.id
                    LEFT JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
                    LEFT JOIN {moodleoverflow} m on m.id = d.moodleoverflow
-                   $tracking_join
+                   $trackingjoin
              WHERE p.discussion = ?
           ORDER BY $sort";
 
@@ -871,7 +877,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Add some informationto the post.
     $post->course = $course->id;
     $post->moodleoverflow = $moodleoverflow->id;
-    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $modulecontext->id, 'mod_moodleoverflow', 'post', $post->id);
+    $mcid = $modulecontext->id;
+    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow', 'post', $post->id);
 
     // Caching.
     if (!isset($cm->cache)) {
@@ -891,7 +898,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // Check if the user has the capability to see posts.
-    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, NULL, $cm)) {
+    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, null, $cm)) {
 
         // No dummy message is requested.
         if (!$dummyifcantsee) {
@@ -949,25 +956,28 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     if ($canmarksolved) {
 
         // When the post is already marked, remove the mark instead.
+        $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusstarter) {
-            $editurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 30, 'rp' => $post->id));
+            $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 30, 'rp' => $post->id));
             $commands[] = array('url' => $editurl, 'text' => $str->marknotsolved);
         } else {
-            $editurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 3, 'rp' => $post->id));
+            $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 3, 'rp' => $post->id));
             $commands[] = array('url' => $editurl, 'text' => $str->marksolved);
         }
     }
 
     // A teacher can mark an answer as the correct solution.
-    $canmarkcorrect = (($iscomment != $post->parent) AND !empty($post->parent) AND $cm->cache->caps['mod/moodleoverflow:ratesolved']);
+    $cap = $cm->cache->caps['mod/moodleoverflow:ratesolved'];
+    $canmarkcorrect = (($iscomment != $post->parent) AND !empty($post->parent) AND $cap);
     if ($canmarkcorrect) {
 
         // When the post is already marked, remove the mark instead.
+        $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusteacher) {
-            $editurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 40, 'rp' => $post->id));
+            $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 40, 'rp' => $post->id));
             $commands[] = array('url' => $editurl, 'text' => $str->marknotcorrect);
         } else {
-            $editurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 4, 'rp' => $post->id));
+            $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 4, 'rp' => $post->id));
             $commands[] = array('url' => $editurl, 'text' => $str->markcorrect);
         }
     }
@@ -976,15 +986,18 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $age = time() - $post->created;
 
     // Make a link to edit your own post within the given time.
-    // TODO: maxeditingtime oder modulspezifische Einstellungen?
     if (($ownpost AND ($age < $CFG->maxeditingtime)) OR $cm->cache->caps['mod/moodleoverflow:editanypost']) {
         $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
         $commands[] = array('url' => $editurl, 'text' => $str->edit);
     }
 
     // Give the option to delete a post.
-    if (($ownpost AND ($age < $CFG->maxeditingtime) AND $cm->cache->caps['mod/moodleoverflow:deleteownpost']) OR $cm->cache->caps['mod/moodleoverflow:deleteanypost']) {
-        $commands[] = array('url'=>new moodle_url('/mod/moodleoverflow/post.php', array('delete'=>$post->id)), 'text'=>$str->delete);
+    $old = ($age < $CFG->maxeditingtime);
+    $capone = $cm->cache->caps['mod/moodleoverflow:deleteownpost'];
+    $captwo = $cm->cache->caps['mod/moodleoverflow:deleteanypost'];
+    if (($ownpost AND $old AND $capone) OR $captwo) {
+        $link = '/mod/moodleoverflow/post.php';
+        $commands[] = array('url' => new moodle_url($link, array('delete' => $post->id)), 'text' => $str->delete);
     }
 
     // Give the option to reply to a post.
@@ -1049,10 +1062,11 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // Create the links for voting this post.
-    $mustachedata->upvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 2, 'rp' => $post->id));
-    $mustachedata->removeupvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 20, 'rp' => $post->id));
-    $mustachedata->downvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 1, 'rp' => $post->id));
-    $mustachedata->removedownvotelink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'r' => 10, 'rp' => $post->id));
+    $link = '/mod/moodleoverflow/discussion.php';
+    $mustachedata->upvotelink         = new moodle_url($link, array('d' => $discussion->id, 'r' => 2,  'rp' => $post->id));
+    $mustachedata->removeupvotelink   = new moodle_url($link, array('d' => $discussion->id, 'r' => 20, 'rp' => $post->id));
+    $mustachedata->downvotelink       = new moodle_url($link, array('d' => $discussion->id, 'r' => 1,  'rp' => $post->id));
+    $mustachedata->removedownvotelink = new moodle_url($link, array('d' => $discussion->id, 'r' => 10, 'rp' => $post->id));
 
     // Check the reading status of the post.
     $postclass = '';
@@ -1090,7 +1104,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $mustachedata->isfirstpost = true;
     }
 
-    //
+    // Create an element for the user which posted the post.
     $postbyuser = new stdClass();
     $postbyuser->post = $post->subject;
     $postbyuser->user = $postinguser->fullname;
@@ -1110,7 +1124,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $by = new stdClass();
     $by->date = userdate($post->modified);
     $by->name = html_writer::link($postinguser->profilelink, $postinguser->fullname);
-    $by->rating = "<img class='icon iconsmall' src='".$OUTPUT->pix_url('star','moodleoverflow')."'>" . $postuserrating;
+    $by->rating = "<img class='icon iconsmall' src='" . $OUTPUT->pix_url('star', 'moodleoverflow') . "'>" . $postuserrating;
     $mustachedata->bytext = get_string('bynameondate', 'moodleoverflow', $by);
     $mustachedata->bydate = $by->date;
     $mustachedata->byname = $by->name;
@@ -1122,16 +1136,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $options->trusted = false;
     $options->context = $modulecontext;
 
-    // TODO: Shorten post?
-
     // Prepare the post.
     $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
-    // TODO: Highlight?
-    // TODO: Displaywordcount?
-    // TODO: AttachedImages?
-
-    // TODO: Ratings.
-
 
     // Output the commands.
     $commandhtml = array();
@@ -1144,13 +1150,11 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
     $mustachedata->commands = implode(' | ', $commandhtml);
 
-    // TODO: Link to post if required.
-
     // Print a footer if requested.
     $mustachedata->footer = $footer;
 
     // Mark the forum post as read.
-    if($istracked AND !$postisread) {
+    if ($istracked AND !$postisread) {
         \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
@@ -1162,6 +1166,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         return $renderer->render_question($mustachedata);
     } else if ($level == 1 || $level == 2) {
         return $renderer->render_answer($mustachedata);
+    } else {
+        return null;
     }
 }
 
@@ -1247,11 +1253,11 @@ function moodleoverflow_add_new_post($post, $mform) {
     $DB->set_field('moodleoverflow_discussions', 'usermodified', $post->userid, array('id' => $post->discussion));
 
     // Mark the created post as read if the user is tracking the discussion.
-    if (\mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow) AND \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow)) {
+    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    if ($cantrack AND $istracked) {
         \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($post->userid, $post);
     }
-
-    // TODO: Trigger event?
 
     // Return the id of the created post.
     return $post->id;
@@ -1296,7 +1302,9 @@ function moodleoverflow_update_post($newpost) {
     $DB->update_record('moodleoverflow_discussions', $discussion);
 
     // Mark the edited post as read.
-    if (\mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow) AND \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow)) {
+    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    if ($cantrack AND $istracked) {
         \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 

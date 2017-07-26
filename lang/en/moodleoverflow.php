@@ -160,7 +160,7 @@ $string['erroremptysubject'] = 'Post subject cannot be empty.';
 $string['erroremptymessage'] = 'Post message cannot be empty';
 $string['yournewtopic'] = 'Your new discussion topic';
 
-// Strings for the classes/ratings.php
+// Strings for the classes/ratings.php.
 $string['postnotexist'] = 'Requested post does not exist';
 $string['noratemoodleoverflow'] = 'Sorry, you are not allowed to vote in this moodleoverflow.';
 $string['configallowratingchange'] = 'Can a user change its ratings?';
@@ -189,13 +189,13 @@ $string['marknotsolved'] = 'Not Solved';
 $string['markcorrect'] = 'Mark as Helpful';
 $string['marknotcorrect'] = 'Not Helpful';
 
-// Strings for the readtracking.php
+// Strings for the readtracking.php.
 $string['markreadfailed'] = 'A post of the discussion could not be marked as read.';
 $string['markdiscussionreadsuccessful'] = 'The discussion has been marked as read.';
 $string['markmoodleoverflowreadsuccessful'] = 'All posts have been marked as read.';
 $string['noguesttracking'] = 'Sorry, guests are not allowed to set tracking options.';
 
-// OTHER
+// OTHER.
 $string['unknownerror'] = 'This is not expected to happen.';
 $string['crontask'] = 'Moodleoverflow maintenance jobs';
 $string['taskcleanreadrecords'] = 'Moodleoverflow maintenance job to clean old read records';
@@ -248,7 +248,7 @@ $string['everyoneissubscribed'] = 'Everyone is subscribed to this moodleoverflow
 $string['mailindexlink'] = 'Change your moodleoverflow preferences: {$a}';
 $string['gotoindex'] = 'Manage preferences';
 
-// EVENTS
+// EVENTS.
 $string['eventdiscussioncreated'] = 'Discussion created';
 $string['eventdiscussiondeleted'] = 'Discussion deleted';
 $string['eventdiscussionviewed']  = 'Discussion viewed';

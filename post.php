@@ -201,7 +201,7 @@ if (!empty($moodleoverflow)) {
     $coursecontext = context_course::instance($course->id);
 
     // Check whether the user is allowed to post.
-    if (!moodleoverflow_user_can_post($moodleoverflow, $discussion, $USER, $cm, $course, $modulecontext)) {
+    if (!moodleoverflow_user_can_post($moodleoverflow, $USER, $cm, $course, $modulecontext)) {
 
         // Give the user the chance to enroll himself to the course.
         if (!isguestuser() AND !is_enrolled($coursecontext)) {
@@ -310,7 +310,6 @@ if (!empty($moodleoverflow)) {
 
 } else if (!empty($delete)) {
     // Fourth possibility: The user is deleting a post.
-    
     // Check if the post is existing.
     if (! $post = moodleoverflow_get_post_full($delete)) {
         print_error('invalidpostid', 'moodleoverflow');
@@ -356,12 +355,14 @@ if (!empty($moodleoverflow)) {
         // Check if the user has the capability to delete the post.
         $timepassed = time() - $post->created;
         if (($timepassed > $CFG->maxeditingtime) AND !$deleteanypost) {
-            print_error('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion))));
+            $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
+            print_error('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to($url));
         }
 
         // A normal user cannot delete his post if there are direct replies.
         if ($replycount AND !$deleteanypost) {
-            print_error('couldnotdeletereplies', 'moodleoverflow', moodleoverflow_go_back_to(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion))));
+            $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
+            print_error('couldnotdeletereplies', 'moodleoverflow', moodleoverflow_go_back_to($url));
         } else {
             // Delete the post.
 
@@ -384,12 +385,11 @@ if (!empty($moodleoverflow)) {
 
             } else if (moodleoverflow_delete_post($post, $deleteanypost, $course, $cm, $moodleoverflow)) {
                 // Delete a single post.
-                
                 // Redirect back to the discussion.
                 $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id));
                 redirect(moodleoverflow_go_back_to($discussionurl));
                 exit;
-                
+
             } else {
                 // Something went wrong.
                 print_error('errorwhiledelete', 'moodleoverflow');
@@ -417,14 +417,14 @@ if (!empty($moodleoverflow)) {
             // Request a confirmation to delete the post.
             echo $OUTPUT->header();
             echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
-            echo $OUTPUT->confirm(get_string("deletesureplural", "moodleoverflow", $replycount+1),
+            echo $OUTPUT->confirm(get_string("deletesureplural", "moodleoverflow", $replycount + 1),
                 "post.php?delete=$delete&confirm=$delete", $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' .
                 $post->discussion . '#p' . $post->id);
 
         } else {
             // Delete a single post.
 
-            // Print a confirmation message,
+            // Print a confirmation message.
             echo $OUTPUT->header();
             echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
             echo $OUTPUT->confirm(get_string("deletesure", "moodleoverflow", $replycount),
@@ -479,7 +479,8 @@ if ($USER->id != $post->userid) {
 
     // Append the message depending on the messages format.
     if ($post->messageformat == FORMAT_HTML) {
-        $data->name = '<a href="' . $CFG->wwwroot . '/user/view.php?id' . $USER->id . '&course=' . $post->course . '">' . fullname($USER) . '</a>';
+        $data->name = '<a href="' . $CFG->wwwroot . '/user/view.php?id' . $USER->id .
+            '&course=' . $post->course . '">' . fullname($USER) . '</a>';
         $post->message .= '<p><span class="edited">(' . get_string('editedby', 'moodleoverflow', $data) . ')</span></p>';
     } else {
         $data->name = fullname($USER);
@@ -489,8 +490,6 @@ if ($USER->id != $post->userid) {
     // Delete the temporary object.
     unset($data);
 }
-
-// TODO: Maybe appending message to startpost if edit after maxedittime.
 
 // Define the heading for the form.
 $formheading = '';
@@ -519,11 +518,11 @@ $mformpost->set_data(array(
         'discussion' => $post->discussion,
         'course' => $course->id
     ) + $pageparams +
-    (isset($discussion->id)        ? array($discussion->id) : array()) +
-    (isset($post->format)          ? array ('format' => $post->format) : array()) +
+    (isset($discussion->id) ? array($discussion->id) : array()) +
+    (isset($post->format) ? array ('format' => $post->format) : array()) +
     (isset($discussion->timestart) ? array('timestart' => $discussion->timestart) : array()) +
-    (isset($discussion->timeend)   ? array('timeend' => $discussion->timeend) : array()) +
-    (isset($discussion->id)        ? array('discussion' => $discussion->id) : array()));
+    (isset($discussion->timeend) ? array('timeend' => $discussion->timeend) : array()) +
+    (isset($discussion->id) ? array('discussion' => $discussion->id) : array()));
 
 // Is it canceled?
 if ($mformpost->is_cancelled()) {
@@ -535,7 +534,7 @@ if ($mformpost->is_cancelled()) {
         redirect(new moodle_url('/mod/moodleoverflow/discuss.php', array('d' => $discussion->id)));
     }
 
-    // Do not continue!
+    // Cancel.
     exit();
 }
 
@@ -619,7 +618,7 @@ if ($fromform = $mformpost->get_data()) {
         // Redirect back to the discussion.
         redirect(moodleoverflow_go_back_to($discussionurl), $message, null, \core\output\notification::NOTIFY_SUCCESS);
 
-        // Do not continue!
+        // Cancel.
         exit;
 
     } else if ($fromform->discussion) {
@@ -645,7 +644,8 @@ if ($fromform = $mformpost->get_data()) {
             $message .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow", format_time($CFG->maxeditingtime)) . '</p>';
 
             // Set the URL that links back to the discussion.
-            $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id), 'p' . $fromform->id);
+            $link = '/mod/moodleoverflow/discussion.php';
+            $discussionurl = new moodle_url($link, array('d' => $discussion->id), 'p' . $fromform->id);
 
             // Trigger post created event.
             $params = array(

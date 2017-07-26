@@ -42,9 +42,6 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
      */
     protected function define_structure() {
 
-        // Get know if we are including userinfo.
-        $userinfo = $this->get_setting_value('userinfo');
-
         // Define the root element describing the moodleoverflow instance.
         $moodleoverflow = new backup_nested_element('moodleoverflow', array('id'), array(
             'name', 'intro', 'introformat', 'grade'));

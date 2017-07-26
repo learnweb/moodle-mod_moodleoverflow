@@ -62,17 +62,15 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('moodleoverflow_allowratingchange',
         get_string('allowratingchange', 'moodleoverflow'), get_string('configallowratingchange', 'moodleoverflow'), 1));
 
-    //
-    //
-    //
+    // Set scales for the reputation.
 
     // Votescale: How much reputation gives a vote for another post?
     $settings->add(new admin_setting_configtext('moodleoverflow_votescalevote', get_string('votescalevote', 'moodleoverflow'),
         get_string('configvotescalevote', 'moodleoverflow'), 1, PARAM_INT));
 
     // Votescale: How much reputation gives a post that has been downvoted?
-    $settings->add(new admin_setting_configtext('moodleoverflow_votescaledownvote', get_string('votescaledownvote', 'moodleoverflow'),
-        get_string('configvotescaledownvote', 'moodleoverflow'), -5, PARAM_INT));
+    $settings->add(new admin_setting_configtext('moodleoverflow_votescaledownvote',
+        get_string('votescaledownvote', 'moodleoverflow'), get_string('configvotescaledownvote', 'moodleoverflow'), -5, PARAM_INT));
 
     // Votescale: How much reputation gives a post that has been upvoted?
     $settings->add(new admin_setting_configtext('moodleoverflow_votescaleupvote', get_string('votescaleupvote', 'moodleoverflow'),

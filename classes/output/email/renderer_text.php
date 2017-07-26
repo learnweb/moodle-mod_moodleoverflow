@@ -61,17 +61,4 @@ class renderer_text extends renderer {
         // Print the message.
         return format_text_email($message, $post->messageformat);
     }
-
-    // ToDo: Delete?
-    /**
-     * The plaintext version of the attachments list.
-     *
-     * @param \stdClass $cm
-     * @param \stdClass $post
-     * @return string
-     */
-    public function format_message_attachments($cm, $post) {
-        return null;
-        //return forum_print_attachments($post, $cm, "text");
-    }
 }

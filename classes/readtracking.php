@@ -164,7 +164,7 @@ class readtracking {
             }
         }
 
-        // Else return true.
+        // The discussion has been marked as read.
         return true;
     }
 
@@ -223,7 +223,8 @@ class readtracking {
         $cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 3600);
 
         // Check for read records for this user an this post.
-        if (! $oldrecord = $DB->get_record('moodleoverflow_read', array('postid' => $postid, 'userid' => $userid))) {
+        $oldrecord = $DB->get_record('moodleoverflow_read', array('postid' => $postid, 'userid' => $userid));
+        if (!$oldrecord) {
 
             // If there are no old records, create a new one.
             $sql = "INSERT INTO {moodleoverflow_read} (userid, postid, discussionid, moodleoverflowid, firstread, lastread)
@@ -400,9 +401,9 @@ class readtracking {
             // Readtracking may be forced.
 
             // Create another sql-statement.
-            $trackingsql = "AND (m.trackingtype = ".MOODLEOVERFLOW_TRACKING_OFF."
-                            OR ((m.trackingtype = ".MOODLEOVERFLOW_TRACKING_OPTIONAL." 
-                            OR m.trackingtype = ".MOODLEOVERFLOW_TRACKING_FORCED.") AND mt.id IS NOT NULL))";
+            $trackingsql = "AND (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OFF .
+                            " OR ((m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL .
+                            " OR m.trackingtype = " . MOODLEOVERFLOW_TRACKING_FORCED . ") AND mt.id IS NOT NULL))";
         }
 
         // Create the sql-queryx.
@@ -496,8 +497,8 @@ class readtracking {
         global $CFG, $DB;
 
         // Get the current timestamp and calculate the cutoffdate.
-        $now = round(time(), -2);
-        $cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 60 *60);
+        $now = round(time(), - 2);
+        $cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 60 * 60);
 
         // Set parameters for the sql-query.
         $params = array($userid, $userid, $courseid, $cutoffdate, $userid);

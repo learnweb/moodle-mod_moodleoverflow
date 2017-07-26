@@ -50,8 +50,7 @@ class ratings {
      * @param null $userid
      * @return bool|int
      */
-    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null)
-    {
+    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null) {
         global $DB, $USER, $SESSION, $CFG;
 
         // Has a user been submitted?
@@ -87,13 +86,14 @@ class ratings {
         $coursecontext = \context_course::instance($course->id);
 
         // Redirect the user if capabilities are missing.
-        if (!$canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext)) {
+        $canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext);
+        if (!$canrate) {
 
             // Catch unenrolled users.
             if (!isguestuser() AND !is_enrolled($coursecontext)) {
                 $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
-                redirect(new moodle_url('/enrol/index.php', array(
+                redirect(new \moodle_url('/enrol/index.php', array(
                     'id' => $course->id,
                     'returnurl' => '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id
                 )), get_string('youneedtoenrol'));
@@ -138,7 +138,8 @@ class ratings {
             if ($otherrating) {
                 return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
             } else {
-                return self::moodleoverflow_add_rating_record($moodleoverflow->id, $discussion->id, $post->id, $rating, $userid, $modulecontext);
+                $mid = $moodleoverflow->id;
+                return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id, $rating, $userid, $modulecontext);
             }
         }
 
@@ -160,7 +161,9 @@ class ratings {
         }
 
         // Create a new rating record.
-        return self::moodleoverflow_add_rating_record($moodleoverflow->id, $post->discussion, $postid, $rating, $userid, $modulecontext);
+        $mid = $moodleoverflow->id;
+        $did = $post->discussion;
+        return self::moodleoverflow_add_rating_record($mid, $did, $postid, $rating, $userid, $modulecontext);
     }
 
     /**
@@ -172,7 +175,7 @@ class ratings {
      * @return int
      */
     public static function moodleoverflow_get_reputation($moodleoverflowid, $userid = null) {
-        global $DB, $USER, $CFG;
+        global $DB, $USER;
 
         // Get the user id.
         if (!isset($userid)) {
@@ -301,7 +304,7 @@ class ratings {
         // The new order is determined.
         // It has to be applied now.
         $sortedposts = array();
-        foreach($neworder as $k) {
+        foreach ($neworder as $k) {
             $sortedposts[$k] = $posts[$k];
         }
 
@@ -325,7 +328,7 @@ class ratings {
         }
 
         // Get the rating.
-        $sql = "SELECT firstrated, rating 
+        $sql = "SELECT firstrated, rating
                   FROM {moodleoverflow_ratings}
                  WHERE userid = $userid AND postid = $postid AND (rating = 1 OR rating = 2)
                  LIMIT 1";
@@ -445,7 +448,7 @@ class ratings {
         // Get all posts of this user in this module.
         // Do not count votes for own posts.
         $sql = "SELECT r.id, r.postid as post, r.rating
-                  FROM {moodleoverflow_posts} p 
+                  FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_ratings} r ON p.id = r.postid
                  WHERE p.userid = ? AND NOT r.userid = ?
               ORDER BY r.postid ASC";

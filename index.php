@@ -112,7 +112,7 @@ if ($cantrack) {
 // Retrieve the sections of the course.
 $usesections = course_format_uses_sections($course->format);
 
-// Initiate tables and variables
+// Initiate tables and variables.
 $table = new html_table();
 $generalmoodleoverflows = array();
 $modinfo = get_fast_modinfo($course);
@@ -275,7 +275,8 @@ if ($generalmoodleoverflows) {
                 }
 
                 // Check whether the moodleoverflow instance can be tracked.
-                if (($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED AND ($CFG->moodleoverflow_allowforcedreadtracking))) {
+                $isforced = $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED;
+                if ($isforced AND ($CFG->moodleoverflow_allowforcedreadtracking)) {
                     // Tracking is set to forced.
 
                     // Define the string.
@@ -342,7 +343,7 @@ if ($generalmoodleoverflows) {
                     'cantsubscribe' => '-',
                 );
 
-            //
+            // Add the subscription link to the row.
             $row[] = \mod_moodleoverflow\subscriptions::moodleoverflow_get_subscribe_link($moodleoverflow, $modulecontext, $suboptions);
         }
 
@@ -357,7 +358,7 @@ $PAGE->set_title($course->shortname. ': ' . $string['moodleoverflows']);
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 
-// Show the subscribe all option only to non-guest and enrolled users,
+// Show the subscribe all option only to non-guest and enrolled users.
 if (!isguestuser() AND isloggedin() AND $showsubscriptioncolumns) {
 
     // Create a box.

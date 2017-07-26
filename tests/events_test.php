@@ -1973,7 +1973,6 @@ class mod_moodleoverflow_events_testcase extends advanced_testcase {
         // Checking that the event contains the expected values.
         $this->assertInstanceOf('\mod_forum\event\discussion_subscription_created', $event);
 
-
         $cm = get_coursemodule_from_instance('forum', $discussion->forum);
         $context = \context_module::instance($cm->id);
         $this->assertEquals($context, $event->get_context());
@@ -2304,7 +2303,6 @@ class mod_moodleoverflow_events_testcase extends advanced_testcase {
 
         // Checking that the event contains the expected values.
         $this->assertInstanceOf('\mod_forum\event\discussion_subscription_deleted', $event);
-
 
         $cm = get_coursemodule_from_instance('forum', $discussion->forum);
         $context = \context_module::instance($cm->id);
