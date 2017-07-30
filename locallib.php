@@ -153,6 +153,12 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $markallread = null;
     }
 
+    // Check whether the user can subscribe to the discussion.
+    $cansubtodiscussion = false;
+    if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
+        $cansubtodiscussion = true;
+    }
+
     // Iterate through every visible discussion.
     $i = 0;
     $rowcount = 0;
@@ -258,6 +264,15 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $lastpostdate = userdate($usedate, get_string('strftimerecentfull'));
         $lastpostlink = $subjectlink . $parenturl;
 
+        // Check whether the discussion is subscribed.
+        $discussionsubicon = false;
+        if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
+            // Discussion subscription.
+            if (\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow)) {
+                $discussionsubicon = \mod_moodleoverflow\subscriptions::get_discussion_subscription_icon($moodleoverflow, $discussion->discussion);
+            }
+        }
+
         // Add all created data to an array.
         $preparedarray[$i] = array();
         $preparedarray[$i]['rowcount'] = $rowcount;
@@ -283,6 +298,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $preparedarray[$i]['votes'] = $votes;
         $preparedarray[$i]['votetext'] = $votetext;
         $preparedarray[$i]['answertext'] = $answertext;
+        $preparedarray[$i]['discussionsubicon'] = $discussionsubicon;
 
         // Go to the next discussion.
         $i++;
@@ -299,6 +315,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $mustachedata->hasdiscussions = (count($discussions) >= 0) ? true : false;
     $mustachedata->istracked = $istracked;
     $mustachedata->markallread = $markallread;
+    $mustachedata->cansubtodiscussion = $cansubtodiscussion;
 
     // Print the template.
     echo $renderer->render_discussion_list($mustachedata);
@@ -1513,7 +1530,7 @@ function moodleoverflow_delete_post($post, $children, $course, $cm, $moodleoverf
                 'objectid' => $post->id,
                 'other' => array(
                     'discussionid' => $post->discussion,
-                    'forumid' => $moodleoverflow->id
+                    'moodleoverflowid' => $moodleoverflow->id
                 )
             );
             if ($post->userid !== $USER->id) {

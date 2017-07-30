@@ -75,6 +75,14 @@
                 <th class="header lastpost" scope="col">
                     {{#str}} headerlastpost, moodleoverflow {{/str}}
                 </th>
+
+                {{#cansubtodiscussion}}
+                <th class="header discussionsubscription" scope="col">
+                    <span class="preload-subscribe">&nbsp;</span>
+                    <span class="preload-unsubscribe">&nbsp;</span>
+                </th>
+                {{/cansubtodiscussion}}
+
             </tr>
         </thead>
 
@@ -85,20 +93,17 @@
         {{#discussions}}
             <tr class="discussion r{{ rowcount }}">
 
+                {{! The status of the discussion. }}
                 <td class="topic replies">
-
                     {{#statusboth}}
                         <a href="{{starterlink}}">
                             {{# pix}} status/c_circle, moodleoverflow {{/ pix}}
                             {{# pix}} status/b_box, moodleoverflow {{/ pix}}
                         </a>
-
                     {{/statusboth}}
-
                     {{^statusboth}}
                         {{^statusstarter}}
                             {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
-
                             {{^statusteacher}}
                                 {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
                             {{/statusteacher}}
@@ -107,9 +112,7 @@
                                     {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
                                 </a>
                             {{/statusteacher}}
-
                         {{/statusstarter}}
-
                         {{#statusstarter}}
                             {{^statusteacher}}
                                 <a href="{{starterlink}}">
@@ -127,9 +130,9 @@
                             {{/statusteacher}}
                         {{/statusstarter}}
                     {{/statusboth}}
-
                 </td>
 
+                {{! The votes of the discussion. }}
                 <td class="topic replies">
                     {{ votes }} <br>
                     {{ votetext }}
@@ -193,6 +196,10 @@
                     <a href="{{ lastpostuserlink }}">{{ lastpostusername }}</a> <br />
                     <a href="{{ lastpostlink }}">{{ lastpostdate }}</a>
                 </td>
+
+                {{#cansubtodiscussion}}
+                    <td class="discussionsubscription"></td>
+                {{/cansubtodiscussion}}
 
             </tr>
 

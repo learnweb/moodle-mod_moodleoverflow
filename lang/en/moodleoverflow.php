@@ -301,3 +301,5 @@ $string['allownegativereputation'] = 'Allow negative reputation?';
 $string['allownegativereputation_help'] = 'If set to yes, the users reputation within a course or within a module can be negative or will stop to decrease at zero.';
 $string['coursewidereputation'] = 'Cross module reputation?';
 $string['coursewidereputation_help'] = 'If set to yes, the users reputations of all moodleoverflow modules in this course will be summed.';
+$string['clicktounsubscribe'] = 'You are subscribed to this discussion. Click to unsubscribe.';
+$string['clicktosubscribe'] = 'You are not subscribed to this discussion. Click to subscribe.';

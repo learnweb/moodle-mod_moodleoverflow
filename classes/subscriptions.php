@@ -995,4 +995,62 @@ class subscriptions {
         self::subscribe_user_to_discussion($USER->id, $discussion, $modulecontext);
         return true;
     }
+
+    /**
+     * Return the markup for the discussion subscription toggling icon.
+     *
+     * @param $moodleoverflow The forum moodleoverflow.
+     * @param int $discussionid The discussion to create an icon for.
+     * @return string The generated markup.
+     */
+    public static function get_discussion_subscription_icon($moodleoverflow, $discussionid) {
+        global $OUTPUT, $PAGE, $USER;
+
+        // Set the url to return to.
+        $returnurl = $PAGE->url->out();
+
+        // Check if the discussion is subscrived.
+        $status = self::is_subscribed($USER->id, $moodleoverflow, $discussionid);
+
+        // Create a link to subscribe or unsubscribe to the discussion.
+        $array = array(
+            'sesskey'   => sesskey(),
+            'id'        => $moodleoverflow->id,
+            'd'         => $discussionid,
+            'returnurl' => $returnurl,
+        );
+        $subscriptionlink = new moodle_url('/mod/moodleoverflow/subscribe.php', $array);
+
+        // Create an icon to unsubscribe.
+        if ($status) {
+
+            // Create the icon.
+            $string = get_string('clicktounsubscribe', 'moodleoverflow');
+            $output = $OUTPUT->pix_icon('t/subscribed', $string);
+
+            // Return the link.
+            $array = array(
+                'title' => get_string('clicktounsubscribe', 'moodleoverflow'),
+                'class' => 'discussiontoggle iconsmall',
+                'data-moodleoverflowid' => $moodleoverflow->id,
+                'data-discussionid' => $discussionid,
+                'data-includetext' => false,
+            );
+            return \html_writer::link($subscriptionlink, $output, $array);
+        }
+
+        // Create an icon to subscribe.
+        $string = get_string('clicktosubscribe', 'moodleoverflow');
+        $output = $OUTPUT->pix_icon('t/subscribed', $string);
+
+        // Return the link.
+        $array = array(
+            'title' => get_string('clicktosubscribe', 'moodleoverflow'),
+            'class' => 'discussiontoggle iconsmall',
+            'data-moodleoverflowid' => $moodleoverflow->id,
+            'data-discussionid' => $discussionid,
+            'data-includetext' => false,
+        );
+        return \html_writer::link($subscriptionlink, $output, $array);
+    }
 }
