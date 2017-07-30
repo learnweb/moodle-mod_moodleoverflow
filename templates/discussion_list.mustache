@@ -134,16 +134,14 @@
 
                 {{! The votes of the discussion. }}
                 <td class="topic replies">
-                    {{ votes }} <br>
-                    {{ votetext }}
+                    <a href="{{ subjectlink }}">{{ votes }}</a>
                 </td>
 
                 {{! Show the reply-columns only if the user has the capability to do so. }}
                 {{#canviewdiscussions}}
 
                     <td class="replies">
-                        {{ replyamount }} <br>
-                        {{ answertext }}
+                        <a href="{{ subjectlink }}">{{ replyamount }}</a>
                     </td>
 
                     {{#cantrack}}
