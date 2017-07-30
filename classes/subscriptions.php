@@ -1019,14 +1019,14 @@ class subscriptions {
             'd'         => $discussionid,
             'returnurl' => $returnurl,
         );
-        $subscriptionlink = new moodle_url('/mod/moodleoverflow/subscribe.php', $array);
+        $subscriptionlink = new \moodle_url('/mod/moodleoverflow/subscribe.php', $array);
 
         // Create an icon to unsubscribe.
         if ($status) {
 
             // Create the icon.
             $string = get_string('clicktounsubscribe', 'moodleoverflow');
-            $output = $OUTPUT->pix_icon('t/subscribed', $string);
+            $output = $OUTPUT->pix_icon('subscribed', $string, 'mod_moodleoverflow');
 
             // Return the link.
             $array = array(
@@ -1041,7 +1041,7 @@ class subscriptions {
 
         // Create an icon to subscribe.
         $string = get_string('clicktosubscribe', 'moodleoverflow');
-        $output = $OUTPUT->pix_icon('t/subscribed', $string);
+        $output = $OUTPUT->pix_icon('unsubscribed', $string, 'mod_moodleoverflow');
 
         // Return the link.
         $array = array(

@@ -166,7 +166,7 @@
 }
 .moodleoverflowpost .row .left .votes {
     display:block;
-    margin:0px 8px 0px 0px !important;
+    margin:0 8px 0 0;
     text-align:center;
 }
 .moodleoverflowpost .row .left .votes p {
@@ -176,7 +176,7 @@
 .moodleoverflowpost .row .left .votes .icon {
     color: #00aa00;
     height: 24px;
-    margin: 0 !important;
+    margin: 0;
     width: 24px;
 }
 .moodleoverflowpost .row .topic,.moodleoverflowpost .row .content-mask,.moodleoverflowpost .row .options {
@@ -313,7 +313,7 @@
     border-bottom:1px solid #ddd
 }
 .moodleoverflowpost .row {
-    margin-left:0!important
+    margin-left:0
 }
 .moodleoverflowpost .row:before,.moodleoverflowpost .row:after {
     content:none
@@ -322,7 +322,7 @@
     color: #848d95;
 }
 .moodleoverflowpost .topic .author .icon {
-    margin-right: 0px;
+    margin-right: 0;
 }
 
 /*
@@ -330,12 +330,12 @@
  */
 .moodleoverflowpost td.votecell {
     float:left;
+    overflow:hidden;
     width:43px;
-    overflow:hidden
 }
 .moodleoverflowpost td.votecell .votes {
     display:block;
-    margin:0 8px 0 0 !important;
+    margin:0 8px 0 0;
     text-align:center;
 }
 .moodleoverflowpost td.votecell .votes p {
@@ -345,7 +345,7 @@
 .moodleoverflowpost td.votecell .votes .icon {
     color: #00aa00;
     height: 24px;
-    margin: 0 !important;
+    margin: 0;
     width: 24px;
 }
 
@@ -428,7 +428,7 @@
 }
 .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details .icon {
     margin-bottom: 3px;
-    margin-right: 0px;
+    margin-right: 0;
 }
 .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-avatar + .user-details {
     margin-left:8px;
