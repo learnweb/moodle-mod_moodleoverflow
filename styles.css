@@ -376,15 +376,6 @@
     text-align: right;
     vertical-align: bottom;
 }
-.moodleoverflowpost td.answercell table.post-info td.rightbox .post-menu {
-    padding-top: 2px;
-}
-.moodleoverflowpost td.answercell table.post-info td.rightbox .post-menu > a {
-    padding: 0 3px 2px;
-}
-.moodleoverflowpost td.answercell table.post-info td.rightbox .post-menu > * {
-    display: inline-block;
-}
 .moodleoverflowpost td.answercell table.post-info td.rightbox .status {
     color: #848d95;
 }
