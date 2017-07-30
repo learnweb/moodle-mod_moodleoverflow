@@ -504,6 +504,11 @@ $postid = empty($post->id) ? null : $post->id;
 $postmessage = empty($post->message) ? null : $post->message;
 
 // Set data for the form.
+$param1 = (isset($discussion->id) ? array($discussion->id) : array());
+$param2 = (isset($post->format) ? array('format' => $post->format) : array());
+$param3 = (isset($discussion->timestart) ? array('timestart' => $discussion->timestart) : array());
+$param4 = (isset($discussion->timeend) ? array('timeend' => $discussion->timeend) : array());
+$param5 = (isset($discussion->id) ? array('discussion' => $discussion->id) : array());
 $mformpost->set_data(array(
         'general' => $heading,
         'subject' => $subject,
@@ -516,12 +521,7 @@ $mformpost->set_data(array(
         'parent' => $post->parent,
         'discussion' => $post->discussion,
         'course' => $course->id
-    ) + $pageparams + (isset($discussion->id) ? array(
-        $discussion->id) : array()) + (isset($post->format) ? array(
-            'format' => $post->format) : array()) + (isset($discussion->timestart) ? array(
-            'timestart' => $discussion->timestart) : array()) + (isset($discussion->timeend) ? array(
-            'timeend' => $discussion->timeend) : array()) + (isset($discussion->id) ? array(
-            'discussion' => $discussion->id) : array()));
+    ) + $pageparams + $param1 + $param2 + $param3 + $param4 + $param5);
 
 // Is it canceled?
 if ($mformpost->is_cancelled()) {
