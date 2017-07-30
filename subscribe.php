@@ -37,8 +37,6 @@ $discussionid   = optional_param('d', null, PARAM_INT);        // The discussion
 $sesskey        = optional_param('sesskey', null, PARAM_RAW);
 $returnurl      = optional_param('returnurl', null, PARAM_RAW);
 
-
-
 // Set the url to return to the same action.
 $url = new moodle_url('/mod/moodleoverflow/subscribe.php', array('id' => $id));
 if (!is_null($mode)) {
@@ -57,10 +55,8 @@ if (!is_null($discussionid)) {
     }
 }
 
-
+// Set the pages URL.
 $PAGE->set_url($url);
-
-
 
 // Get all necessary objects.
 $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $id), '*', MUST_EXIST);

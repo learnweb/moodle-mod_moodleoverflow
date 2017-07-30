@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Renderer definition
+ * Renderer definition.
  *
  * @package    mod_moodleoverflow
  * @copyright  2016 Your Name <your@email.address>
@@ -29,22 +29,42 @@ require_once($CFG->libdir. '/weblib.php');
 
 class mod_moodleoverflow_renderer extends plugin_renderer_base {
 
-    // Renders a list of discussions.
+    /**
+     * Display the discussion list for the view.php.
+     *
+     * @param $data The prepared variables.
+     * @return string
+     */
     public function render_discussion_list($data) {
         return $this->render_from_template('mod_moodleoverflow/discussion_list', $data);
     }
 
-    // Renders a dummy post if capabilities are missing.
+    /**
+     * Renders a dummy post for users that cannot see the post.
+     *
+     * @param $data The submitted variables.
+     * @return bool|string
+     */
     public function render_post_dummy_cantsee($data) {
         return $this->render_from_template('mod_moodleoverflow/post_dummy_cantsee', $data);
     }
 
-    // Renders the initial question of a discussion.
+    /**
+     * Renders the starting post of a discussion.
+     *
+     * @param $data The submitted variables.
+     * @return bool|string
+     */
     public function render_question($data) {
         return $this->render_from_template('mod_moodleoverflow/question', $data);
     }
 
-    // Renders an answer of the discussion.
+    /**
+     * Renders all answers of a discussion.
+     *
+     * @param $data The submitted variables.
+     * @return bool|string
+     */
     public function render_answer($data) {
         return $this->render_from_template('mod_moodleoverflow/answer', $data);
     }

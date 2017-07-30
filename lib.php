@@ -30,30 +30,46 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 
+// Readtracking constants.
 define('MOODLEOVERFLOW_TRACKING_OFF',      0);
 define('MOODLEOVERFLOW_TRACKING_OPTIONAL', 1);
 define('MOODLEOVERFLOW_TRACKING_FORCED',   2);
 
+// Subscription constants.
 define('MOODLEOVERFLOW_CHOOSESUBSCRIBE',   0);
 define('MOODLEOVERFLOW_FORCESUBSCRIBE',    1);
 define('MOODLEOVERFLOW_INITIALSUBSCRIBE',  2);
 define('MOODLEOVERFLOW_DISALLOWSUBSCRIBE', 3);
 
+// Mailing state constants.
 define('MOODLEOVERFLOW_MAILED_PENDING', 0);
 define('MOODLEOVERFLOW_MAILED_SUCCESS', 1);
 define('MOODLEOVERFLOW_MAILED_ERROR',   2);
 
+// Constants for the post rating.
 define('MOODLEOVERFLOW_PREFERENCE_STARTER', 0);
 define('MOODLEOVERFLOW_PREFERENCE_TEACHER', 1);
 
+// Reputation constants.
 define('MOODLEOVERFLOW_REPUTATION_MODULE', 0);
 define('MOODLEOVERFLOW_REPUTATION_COURSE', 1);
 
+// Allow negative reputations?
 define('MOODLEOVERFLOW_REPUTATION_POSITIVE', 0);
 define('MOODLEOVERFLOW_REPUTATION_NEGATIVE', 1);
+
+// Rating constants.
+define('RATING_NEUTRAL', 0);
+define('RATING_DOWNVOTE', 1);
+define('RATING_REMOVE_DOWNVOTE', 10);
+define('RATING_UPVOTE', 2);
+define('RATING_REMOVE_UPVOTE', 20);
+define('RATING_SOLVED', 3);
+define('RATING_REMOVE_SOLVED', 30);
+define('RATING_HELPFUL', 4);
+define('RATING_REMOVE_HELPFUL', 40);
 
 /* Moodle core API */
 
@@ -309,6 +325,9 @@ function moodleoverflow_get_extra_capabilities() {
     return array();
 }
 
+/**
+ * Deprecated.
+ */
 function moodleoverflow_cron() {
 
 }
@@ -464,9 +483,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     }
 }
 
-/*
- *
- */
+/* Cronjob functions. */
 
 /**
  * Trigger the discussion viewed event

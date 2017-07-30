@@ -692,8 +692,6 @@ class subscriptions {
     public static function unsubscribe_user($userid, $moodleoverflow, $context, $userrequest = null) {
         global $DB;
 
-        // TODO: DELETE DIGEST RECORDS?
-
         // Check if there is a subscription record.
         $params = array('userid' => $userid, 'moodleoverflow' => $moodleoverflow->id);
         if ($subscription = $DB->get_record('moodleoverflow_subscriptions', $params)) {

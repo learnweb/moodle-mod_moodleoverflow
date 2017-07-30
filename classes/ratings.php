@@ -19,17 +19,6 @@ use core\event\user_loggedin;
 
 defined('MOODLE_INTERNAL') || die();
 
-// Define static variables.
-define('RATING_NEUTRAL', 0);
-define('RATING_DOWNVOTE', 1);
-define('RATING_REMOVE_DOWNVOTE', 10);
-define('RATING_UPVOTE', 2);
-define('RATING_REMOVE_UPVOTE', 20);
-define('RATING_SOLVED', 3);
-define('RATING_REMOVE_SOLVED', 30);
-define('RATING_HELPFUL', 4);
-define('RATING_REMOVE_HELPFUL', 40);
-
 /**
  * Static methods for managing the ratings of posts.
  *

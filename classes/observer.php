@@ -58,8 +58,6 @@ class mod_moodleoverflow_observer {
             // Delete all records that are connected to those moodleoverflow instances.
             $DB->delete_records_select('moodleoverflow_subscriptions', 'userid = :userid AND moodleoverflow '.$select, $params);
             $DB->delete_records_select('moodleoverflow_read', 'userid = :userid AND moodleoverflowid '.$select, $params);
-
-            // ToDo: Delete track_prefs. Nur gibt es die Tabelle noch nicht.
         }
     }
 

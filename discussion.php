@@ -95,9 +95,6 @@ if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, null,
     print_error('noviewdiscussionspermission', 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
 }
 
-// TODO: User mark posts as (un-)read?!
-// TODO: Search-Form?!
-
 // Append the discussion name to the navigation.
 $forumnode = $PAGE->navigation->find($cm->id, navigation_node::TYPE_ACTIVITY);
 if (empty($forumnode)) {
@@ -139,14 +136,6 @@ if (!$canreply) {
         $canreply = enrol_selfenrol_available($course->id);
     }
 }
-
-// TODO: Neighbour Discussions?
-
-// TODO: Discussion ontrols?
-// TODO: -> Move discussion?
-// TODO: -> Pin discussion?
-
-// TODO: Capability: view qanda without posting?
 
 echo "<br><br>";
 

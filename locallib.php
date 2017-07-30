@@ -450,14 +450,14 @@ function moodleoverflow_get_post_full($postid) {
  * @return bool
  */
 function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $user = null, $cm) {
-    global $CFG, $USER, $DB;
+    global $USER, $DB;
 
     // Retrieve the modulecontext.
     $modulecontext = context_module::instance($cm->id);
 
     // Fetch the moodleoverflow instance object.
     if (is_numeric($moodleoverflow)) {
-        debugging('missing full moodleoverflow', DEBUG_DEVELOPER); // TODO: Delete.
+        debugging('missing full moodleoverflow', DEBUG_DEVELOPER);
         if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
             return false;
         }
@@ -465,7 +465,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
 
     // Fetch the discussion object.
     if (is_numeric($discussion)) {
-        debugging('missing full discussion', DEBUG_DEVELOPER); // TODO: Delete.
+        debugging('missing full discussion', DEBUG_DEVELOPER);
         if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussion))) {
             return false;
         }
@@ -473,7 +473,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
 
     // Fetch the post object.
     if (is_numeric($post)) {
-        debugging('missing full post', DEBUG_DEVELOPER); // TODO: Delete.
+        debugging('missing full post', DEBUG_DEVELOPER);
         if (! $post = $DB->get_record('moodleoverflow_posts', array('id' => $post))) {
             return false;
         }
@@ -486,7 +486,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
 
     // Find the coursemodule.
     if (!$cm) {
-        debugging('missing cm', DEBUG_DEVELOPER); // TODO: Delete.
+        debugging('missing cm', DEBUG_DEVELOPER);
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
             print_error('invalidcoursemodule');
         }
@@ -563,6 +563,14 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
     return true;
 }
 
+/**
+ * Creates a new moodleoverflow discussion.
+ *
+ * @param stdClass $discussion The discussion object
+ * @param $modulecontext
+ * @param int $userid The user ID
+ * @return bool|int The id of the created discussion
+ */
 function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = null) {
     global $DB, $USER;
 
@@ -597,7 +605,6 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     $post->message        = $discussion->message;
     $post->moodleoverflow = $moodleoverflow->id;
     $post->course         = $moodleoverflow->course;
-    // TODO: messagetrust + messageformat?
 
     // Submit the post to the database and get its id.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
@@ -612,7 +619,6 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     $discussionobject->timemodified = $timenow;
     $discussionobject->timestart = $timenow;
     $discussionobject->usermodified = $post->userid;
-    // TODO: messagetrust + messageformat?
 
     // Submit the discussion to the database and get its id.
     $post->discussion = $DB->insert_record('moodleoverflow_discussions', $discussionobject);
@@ -640,6 +646,12 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     return $post->discussion;
 }
 
+/**
+ * Modifies the session to return back to where the user is coming from.
+ *
+ * @param $default
+ * @return mixed
+ */
 function moodleoverflow_go_back_to($default) {
     global $SESSION;
 
@@ -652,7 +664,16 @@ function moodleoverflow_go_back_to($default) {
     }
 }
 
-// Checks whether the user can reply to posts in a discussion.
+/**
+ * Checks whether the user can reply to posts in a discussion.
+ *
+ * @param stdClass $moodleoverflow The moodleoverflow object
+ * @param stdClass $user The user object
+ * @param $cm
+ * @param stdClass $course The course object
+ * @param context_module $modulecontext The modules context
+ * @return bool Whether the user can reply
+ */
 function moodleoverflow_user_can_post($moodleoverflow, $user = null, $cm = null, $course = null, $modulecontext = null) {
     global $USER, $DB;
 
@@ -685,8 +706,6 @@ function moodleoverflow_user_can_post($moodleoverflow, $user = null, $cm = null,
         $modulecontext = context_module::instance($cm->id);
     }
 
-    // TODO: Check if the discussion is locked.
-
     // Users with temporary guest access can not post.
     if (!is_viewing($modulecontext, $user->id) AND !is_enrolled($modulecontext, $user->id, '', true)) {
         return false;
@@ -701,9 +720,18 @@ function moodleoverflow_user_can_post($moodleoverflow, $user = null, $cm = null,
     return false;
 }
 
-// Prints a moodleoverflow discussion.
+/**
+ * Prints a moodleoverflow discussion.
+ *
+ * @param stdClass $course The course object
+ * @param $cm
+ * @param stdClass $moodleoverflow The moodleoverflow object
+ * @param stdClass $discussion The discussion object
+ * @param stdClass $post The post object
+ * @param boolean $canreply Whether the user can reply in this discussion
+ */
 function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply) {
-    global $USER, $OUTPUT, $CFG;
+    global $USER, $OUTPUT;
 
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() AND ($USER->id == $post->userid));
@@ -746,7 +774,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     $post->moodleoverflow = $moodleoverflow->id;
     $post->subject = format_string($post->subject);
 
-    // TODO: Warum nur parent?!
+    // Check if the post was read.
     $postread = !empty($post->postread);
 
     // Print a button to reply to the discussion.
@@ -760,22 +788,24 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     }
 
     // Print the starting post.
-    echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0);
+    echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
+        $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0);
 
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts);
 }
 
-// Get all posts in discussion including the startpost.
+/**
+ * Get all posts in discussion inculding the starting post.
+ *
+ * @param int $discussionid The ID of the discussion
+ * @param boolean $tracking Whether tracking is activated
+ * @return array
+ */
 function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     global $DB, $USER;
 
-    // TODO: Delete this.
-    $sort = "p.created ASC";
-
     // Initiate tracking settings.
-    $tracking_selector = '';
-    $tracking_join = '';
     $params = array();
 
     // If tracking is enabled, another join is needed.
@@ -798,7 +828,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
                    LEFT JOIN {moodleoverflow} m on m.id = d.moodleoverflow
                    $trackingjoin
              WHERE p.discussion = ?
-          ORDER BY $sort";
+          ORDER BY p.created ASC";
 
     // Return an empty array, if there are no posts.
     if (! $posts = $DB->get_records_sql($sql, $params)) {
@@ -855,11 +885,31 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     return $posts;
 }
 
-// Print a moodleoverflow post.
+/**
+ * Prints a moodleoverflow post.
+ *
+ * @param stdClass $post The post object
+ * @param stdClass $discussion The discussion object
+ * @param stdClass $moodleoverflow The moodleoverflow object
+ * @param $cm
+ * @param stdClass $course The course object
+ * @param bool $ownpost Whether the post was submitted by this user
+ * @param bool $canreply Whether the user can reply to the post
+ * @param bool $link Whether there is a link to this post
+ * @param string $footer A default footer for posts
+ * @param string $highlight A word to highlight in the post
+ * @param null $postisread Whether the post has been read
+ * @param bool $dummyifcantsee Whether to display an empty dummy
+ * @param bool $istracked Whether the discussion is tracked
+ * @param bool $iscomment Whether to post is a comment
+ * @param int $level Determines the level of a post
+ * @return null The output
+ */
 function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
                                    $ownpost = false, $canreply = false, $link = false,
                                    $footer = '', $highlight = '', $postisread = null,
-                                   $dummyifcantsee = true, $istracked = false, $iscomment = false, $level = 0) {
+                                   $dummyifcantsee = true, $istracked = false,
+                                   $iscomment = false, $level = 0) {
     global $USER, $CFG, $OUTPUT, $PAGE;
 
     // Require the filelib.
@@ -1171,7 +1221,22 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 }
 
-function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent, $canreply, $istracked, $posts, $iscomment = false) {
+/**
+ * Prints all posts of the discussion in a nested form.
+ *
+ * @param $course The course object
+ * @param $cm
+ * @param $moodleoverflow The moodleoverflow object
+ * @param $discussion The discussion object
+ * @param $parent The object of the parent post
+ * @param $canreply Whether the user has capabilities to reply
+ * @param $istracked Whether the user tracks the discussion
+ * @param $posts Array of posts within the discussion
+ * @param bool $iscomment Whether the current post is a comment
+ * @return string The html output.
+ */
+function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent,
+                                           $canreply, $istracked, $posts, $iscomment = false) {
     global $USER;
 
     // Prepare the output.
@@ -1226,7 +1291,13 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
     return $output;
 }
 
-// Add a new post in an existing discussion.
+/**
+ * Adds a new post in an existing discussion.
+ *
+ * @param $post The post object
+ * @param $mform The submitted form
+ * @return bool|int The Id of the post if operation was successful
+ */
 function moodleoverflow_add_new_post($post, $mform) {
     global $USER, $DB;
 
@@ -1263,8 +1334,14 @@ function moodleoverflow_add_new_post($post, $mform) {
     return $post->id;
 }
 
-// Update a specific post.
-// Capabilities are not checked, because this happens in the post.php.
+/**
+ * Updates a specific post.
+ *
+ * Capabilities are not checked, because this is happening in the post.php.
+ *
+ * @param $newpost The new post object
+ * @return bool Whether the update was successful
+ */
 function moodleoverflow_update_post($newpost) {
     global $DB, $USER;
 
@@ -1277,7 +1354,6 @@ function moodleoverflow_update_post($newpost) {
     $modifiablefields = [
         'message',
         'messageformat',
-        // TODO: Are more fields needed?
     ];
 
     // Iteratate through all modifiable fields and update the values.
@@ -1312,7 +1388,13 @@ function moodleoverflow_update_post($newpost) {
     return true;
 }
 
-// Count all replies of a post.
+/**
+ * Count all replies of a post.
+ *
+ * @param $post The post object
+ * @param bool $recursive Whether the deletion should be recursive
+ * @return int Amount of replies
+ */
 function moodleoverflow_count_replies($post, $recursive = true) {
     global $DB;
 
@@ -1339,9 +1421,17 @@ function moodleoverflow_count_replies($post, $recursive = true) {
     return $count;
 }
 
-// Deletes a discussion and handles all associated cleanup.
-function moodleoverflow_delete_discussion($discussion, $fulldelete, $course, $cm, $moodleoverflow) {
-    global $DB, $CFG;
+/**
+ * Deletes a discussion and handles all associated cleanups.
+ *
+ * @param $discussion The discussion object
+ * @param $course The course object
+ * @param $cm
+ * @param $moodleoverflow The moodleoverflow object
+ * @return bool Whether the deletion was successful.
+ */
+function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleoverflow) {
+    global $DB;
 
     // Initiate a pointer.
     $result = true;
@@ -1353,7 +1443,7 @@ function moodleoverflow_delete_discussion($discussion, $fulldelete, $course, $cm
         foreach ($posts as $post) {
             $post->course = $discussion->course;
             $post->moodleoverflow = $discussion->moodleoverflow;
-            if (! moodleoverflow_delete_post($post, 'ignore', $course, $cm, $moodleoverflow, $fulldelete)) {
+            if (! moodleoverflow_delete_post($post, 'ignore', $course, $cm, $moodleoverflow)) {
 
                 // If the deletion failed, change the pointer.
                 $result = false;
@@ -1374,9 +1464,18 @@ function moodleoverflow_delete_discussion($discussion, $fulldelete, $course, $cm
     return $result;
 }
 
-// Deletes a single moodleoverflow post.
+/**
+ * Deletes a single moodleoverflow post.
+ *
+ * @param $post The post ID
+ * @param array $children The child posts
+ * @param $course The course object.
+ * @param $cm The course module
+ * @param $moodleoverflow The moodleoverflow ID
+ * @return bool Whether the deletion was successful
+ */
 function moodleoverflow_delete_post($post, $children, $course, $cm, $moodleoverflow) {
-    global $DB, $CFG, $USER;
+    global $DB, $USER;
 
     // Iterate through all children and delete them.
     $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
@@ -1431,9 +1530,14 @@ function moodleoverflow_delete_post($post, $children, $course, $cm, $moodleoverf
     return false;
 }
 
-// Sets the last post for a given discussion.
+/**
+ * Sets the last post for a given discussion.
+ *
+ * @param $discussionid The discussion ID
+ * @return bool Whether the last post needs to be updated
+ */
 function moodleoverflow_discussion_update_last_post($discussionid) {
-    global $CFG, $DB;
+    global $DB;
 
     // Check if the given discussion exists.
     if (!$DB->record_exists('moodleoverflow_discussions', array('id' => $discussionid))) {
@@ -1465,7 +1569,9 @@ function moodleoverflow_discussion_update_last_post($discussionid) {
     return false;
 }
 
-// TODO: Needed?
+/**
+ * Save the referer for later redirection.
+ */
 function moodleoverflow_set_return() {
     global $CFG, $SESSION;
 
