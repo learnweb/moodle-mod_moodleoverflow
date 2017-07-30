@@ -395,7 +395,6 @@ if (!empty($moodleoverflow)) {
                 print_error('errorwhiledelete', 'moodleoverflow');
             }
         }
-        
     } else {
         // Deletion needs to be confirmed.
 
@@ -517,7 +516,12 @@ $mformpost->set_data(array(
         'parent' => $post->parent,
         'discussion' => $post->discussion,
         'course' => $course->id
-    ) + $pageparams + (isset($discussion->id) ? array($discussion->id) : array()) + (isset($post->format) ? array ('format' => $post->format) : array()) + (isset($discussion->timestart) ? array('timestart' => $discussion->timestart) : array()) + (isset($discussion->timeend) ? array('timeend' => $discussion->timeend) : array()) + (isset($discussion->id) ? array('discussion' => $discussion->id) : array()));
+    ) + $pageparams + (isset($discussion->id) ? array(
+        $discussion->id) : array()) + (isset($post->format) ? array(
+            'format' => $post->format) : array()) + (isset($discussion->timestart) ? array(
+            'timestart' => $discussion->timestart) : array()) + (isset($discussion->timeend) ? array(
+            'timeend' => $discussion->timeend) : array()) + (isset($discussion->id) ? array(
+            'discussion' => $discussion->id) : array()));
 
 // Is it canceled?
 if ($mformpost->is_cancelled()) {

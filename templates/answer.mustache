@@ -1,123 +1,25 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
 
-<style>
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-    {{! The Votes. }}
-    .moodleoverflowpost td.votecell {
-        float:left;
-        width:43px;
-        overflow:hidden
-    }
-    .moodleoverflowpost td.votecell .votes {
-        text-align:center;
-        display:block;
-        margin:0px 8px 0px 0px !important;
-    }
-    .moodleoverflowpost td.votecell .votes p {
-        margin-top: 0;
-        margin-bottom: 0;
-    }
-    .moodleoverflowpost td.votecell .votes .icon {
-        width: 24px;
-        height: 24px;
-        color: #00aa00;
-        margin: 0px !important;
-    }
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-    {{! The Answers. }}
-    .moodleoverflowpost td.answercell {
-        vertical-align: top;
-        width: 100%;
-    }
-    .moodleoverflowpost td.answercell .post-text {
-        width: 100%;
-        margin-bottom: 5px;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
-    .moodleoverflowpost td.answercell .comment-by {
-        color: #848d95;
-    }
-    .moodleoverflowpost td.answercell .comment-commands {
-        text-align: right;
-    }
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/answer
 
-    {{! The Info-Box.  }}
-    .moodleoverflowpost td.answercell table.post-info {
-        margin-bottom: 4px;
-        width: 100%;
-    }
-
-    .moodleoverflowpost td.answercell table.post-info td.rightbox {
-        text-align: right;
-        vertical-align: bottom;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.rightbox .post-menu {
-        padding-top: 2px;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.rightbox .post-menu > a {
-        padding: 0 3px 2px;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.rightbox .post-menu > * {
-        display: inline-block;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.rightbox .status {
-        color: #848d95;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.rightbox .status .icon {
-        width: 16px;
-        height: 16px;
-    }
-
-    .moodleoverflowpost td.answercell table.post-info td.leftbox {
-        text-align: left;
-        vertical-align: top;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info {
-        box-sizing: border-box;
-        padding: 5px 6px 7px 7px;
-        color: #848d95;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info::before {
-        content: "";
-        display: table;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info::after {
-        clear: both;
-    }
-
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-action-time {
-        margin-top: 1px;
-        margin-bottom: 4px;
-        white-space: nowrap;
-    }
-
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-avatar {
-        border-collapse: separate;
-        float: left;
-        width: 32px;
-        height: 32px;
-        border-radius: 1px;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details {
-        float: left;
-        width: 100%;
-        line-height: 17px;
-        word-wrap: break-word;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details .icon {
-        margin-right: 0px;
-        margin-bottom: 3px;
-    }
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-avatar + .user-details {
-        margin-left:8px;
-        width: calc(100% - 40px);
-    }
-    .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details .-flair {
-        display: block;
-    }
-
-
-</style>
+  Moodleoverflow answer template.
+  The purpose of this template is to render an answer in the discussion..
+}}
 
 {{! Print an anchor if the post is the first unread post of the discussion. }}
 {{# isfirstunread}}
