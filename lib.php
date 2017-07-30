@@ -259,8 +259,8 @@ function moodleoverflow_delete_instance($id) {
     // Delete the discussion recursivly.
     if ($discussions = $DB->get_records('moodleoverflow_discussions', array('moodleoverflow' => $moodleoverflow->id))) {
         require_once('locallib.php');
-        foreach($discussions as $discussion) {
-            if (!moodleoverflow_delete_discussion($discussion, true, $course, $cm, $moodleoverflow)) {
+        foreach ($discussions as $discussion) {
+            if (!moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleoverflow)) {
                 $result = false;
             }
         }
@@ -385,14 +385,16 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
  * @param array $options additional options affecting the file serving
  */
 function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
-    global $DB, $CFG;
 
+    // Check the context level.
     if ($context->contextlevel != CONTEXT_MODULE) {
         send_file_not_found();
     }
 
+    // Require a login.
     require_login($course, true, $cm);
 
+    // Send the pluginfile.
     send_file_not_found();
 }
 
@@ -484,24 +486,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
 }
 
 /* Cronjob functions. */
-
-/**
- * Trigger the discussion viewed event
- *
- * @param  stdClass $modcontext module context object
- * @param  stdClass $forum      forum object
- * @param  stdClass $discussion discussion object
- * @since Moodle 2.9
- */
-function moodleoverflow_discussion_view($modulecontext, $moodleoverflow, $discussion) {
-    $params = array(
-        'context' => $modulecontext,
-        'objectid' => $discussion->id,
-    );
-
-    $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
-    $event->trigger();
-}
 
 /**
  * Determine the current context if one wa not already specified.
@@ -788,14 +772,14 @@ function moodleoverflow_send_mails() {
                 // Sent the email.
 
                 // Preapare to actually send the post now. Build up the content.
-                $cleanmoodleoverflowname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
+                $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
                 $coursecontext = context_course::instance($course->id);
                 $shortname = format_string($course->shortname, true, array('context' => $coursecontext));
 
                 // Define a header to make mails easier to track.
                 $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);
                 $userfrom->customheaders = array(
-                    'List-Id: "' . $cleanmoodleoverflowname . '" ' . $emailmessageid,
+                    'List-Id: "' . $cleanname . '" ' . $emailmessageid,
                     'List-Help: ' . $CFG->wwwroot . '/mod/moodleoverflow/view.php?m=' . $moodleoverflow->id,
                     'Message-ID: ' . generate_email_messageid(hash('sha256', $post->id . 'to' . $userto->id)),
                     'X-Course-Id: ' . $course->id,
@@ -839,7 +823,7 @@ function moodleoverflow_send_mails() {
                 // Retrieve needed variables for the mail.
                 $var = new \stdClass();
                 $var->subject               = $data->get_subject();
-                $var->moodleoverflowname    = $cleanmoodleoverflowname;
+                $var->moodleoverflowname    = $cleanname;
                 $var->sitefullname          = format_string($site->fullname);
                 $var->siteshortname         = format_string($site->shortname);
                 $var->courseidnumber        = $data->get_courseidnumber();

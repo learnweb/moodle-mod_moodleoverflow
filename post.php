@@ -517,12 +517,7 @@ $mformpost->set_data(array(
         'parent' => $post->parent,
         'discussion' => $post->discussion,
         'course' => $course->id
-    ) + $pageparams +
-    (isset($discussion->id) ? array($discussion->id) : array()) +
-    (isset($post->format) ? array ('format' => $post->format) : array()) +
-    (isset($discussion->timestart) ? array('timestart' => $discussion->timestart) : array()) +
-    (isset($discussion->timeend) ? array('timeend' => $discussion->timeend) : array()) +
-    (isset($discussion->id) ? array('discussion' => $discussion->id) : array()));
+    ) + $pageparams + (isset($discussion->id) ? array($discussion->id) : array()) + (isset($post->format) ? array ('format' => $post->format) : array()) + (isset($discussion->timestart) ? array('timestart' => $discussion->timestart) : array()) + (isset($discussion->timeend) ? array('timeend' => $discussion->timeend) : array()) + (isset($discussion->id) ? array('discussion' => $discussion->id) : array()));
 
 // Is it canceled?
 if ($mformpost->is_cancelled()) {
@@ -637,7 +632,8 @@ if ($fromform = $mformpost->get_data()) {
             $discussion = new \stdClass();
             $discussion->id = $fromform->discussion;
             $discussion->moodleoverflow = $moodleoverflow->id;
-            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform, $moodleoverflow, $discussion, $modulecontext);
+            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform,
+                $moodleoverflow, $discussion, $modulecontext);
 
             // Print a success-message.
             $message .= '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
@@ -668,7 +664,7 @@ if ($fromform = $mformpost->get_data()) {
             print_error('couldnotadd', 'moodleoverflow', $errordestination);
         }
 
-        // Do not continue!
+        // The post has been added.
         exit;
 
     } else {
@@ -709,10 +705,10 @@ if ($fromform = $mformpost->get_data()) {
             );
             $event = \mod_moodleoverflow\event\discussion_created::create($params);
             $event->trigger();
-            
             // Subscribe to this thread.
             $discussion->moodleoverflow = $moodleoverflow->id;
-            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform, $moodleoverflow, $discussion, $modulecontext);
+            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform,
+                $moodleoverflow, $discussion, $modulecontext);
         }
 
         // Redirect back to te discussion.

@@ -37,12 +37,12 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     /**
      * @var int keep track of how many moodleoverflow discussions have been created.
      */
-    protected $moodleoverflowdiscussioncount = 0;
+    protected $discussioncount = 0;
 
     /**
      * @var int keep track of how many moodleoverflow posts have been created.
      */
-    protected $moodleoverflowpostcount = 0;
+    protected $postcount = 0;
 
     /**
      * To be called from data reset code only,
@@ -50,15 +50,15 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * @return void
      */
     public function reset() {
-        $this->moodleoverflowdiscussioncount = 0;
-        $this->moodleoverflowpostcount = 0;
+        $this->discussioncount = 0;
+        $this->postcount = 0;
 
         parent::reset();
     }
 
     public function create_instance($record = null, array $options = null) {
-        global $CFG;
 
+        // Transform the record.
         $record = (object)(array)$record;
 
         if (!isset($record->name)) {
@@ -90,7 +90,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         global $DB;
 
         // Increment the discussion count.
-        $this->moodleoverflowdiscussioncount++;
+        $this->discussioncount++;
 
         // Create the record.
         $record = (array) $record;
@@ -108,13 +108,13 @@ class mod_moodleoverflow_generator extends testing_module_generator {
 
         // Set default values.
         if (!isset($record['name'])) {
-            $record['name'] = 'Discussion ' . $this->moodleoverflowdiscussioncount;
+            $record['name'] = 'Discussion ' . $this->discussioncount;
         }
         if (!isset($record['subject'])) {
-            $record['subject'] = 'Subject for discussion ' . $this->moodleoverflowdiscussioncount;
+            $record['subject'] = 'Subject for discussion ' . $this->discussioncount;
         }
         if (!isset($record['message'])) {
-            $record['message'] = html_writer::tag('p', 'Message for discussion ' . $this->moodleoverflowdiscussioncount);
+            $record['message'] = html_writer::tag('p', 'Message for discussion ' . $this->discussioncount);
         }
         if (!isset($record['messageformat'])) {
             $record['messageformat'] = editors_get_preferred_format();

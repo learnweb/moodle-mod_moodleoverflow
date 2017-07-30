@@ -254,7 +254,8 @@ if ($generalmoodleoverflows) {
                 if (isset($untracked[$moodleoverflow->id])) {
                     $unreadlink = '-';
 
-                } else if ($unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm, $course)) {
+                } else if ($unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm,
+                    $course)) {
                     // There are unread posts in the moodleoverflow instance.
 
                     // Create a string to be displayed.
@@ -344,7 +345,8 @@ if ($generalmoodleoverflows) {
                 );
 
             // Add the subscription link to the row.
-            $row[] = \mod_moodleoverflow\subscriptions::moodleoverflow_get_subscribe_link($moodleoverflow, $modulecontext, $suboptions);
+            $row[] = \mod_moodleoverflow\subscriptions::moodleoverflow_get_subscribe_link($moodleoverflow,
+                $modulecontext, $suboptions);
         }
 
         // Add the rows to the table.

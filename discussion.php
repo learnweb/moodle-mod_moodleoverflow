@@ -78,7 +78,12 @@ if ($ratingid) {
 }
 
 // Trigger the discussion viewed event.
-moodleoverflow_discussion_view($modulecontext, $moodleoverflow, $discussion);
+$params = array(
+    'context' => $modulecontext,
+    'objectid' => $discussion->id,
+);
+$event = \mod_moodleoverflow\event\discussion_viewed::create($params);
+$event->trigger();
 
 // Unset where the user is coming from.
 // Allows to calculate the correct return url later.

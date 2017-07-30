@@ -27,9 +27,11 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertEquals(2, $DB->count_records('course_categories'), 'Creating new course category failed.');
 
         // Create a new course.
-        $course = $this->getDataGenerator()->create_course(array('fullname' => 'Created test course', 'category' => $coursecategory->id));
+        $course = $this->getDataGenerator()->create_course(
+            array('fullname' => 'Created test course', 'category' => $coursecategory->id));
         $this->assertEquals(2, $DB->count_records('course', array()), 'Creating course failed');
-        $this->assertEquals($coursecategory->id, $DB->get_record('course', array('fullname' => 'Created test course'))->category, 'Course not created correctly.');
+        $this->assertEquals($coursecategory->id, $DB->get_record('course',
+            array('fullname' => 'Created test course'))->category, 'Course not created correctly.');
 
         // Create a new moodleoverflow instance.
         $this->assertEquals(0, $DB->count_records('moodleoverflow'), 'Creating moodleoverflow instance can not be initiated.');
@@ -89,7 +91,8 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $j = $i + 1;
 
         // Create a new discussion.
-        $this->assertEquals($i, $DB->count_records('moodleoverflow_discussions'), 'Creating moodleoverflow discussion can not be initiated.');
+        $this->assertEquals($i, $DB->count_records('moodleoverflow_discussions'),
+            'Creating moodleoverflow discussion can not be initiated.');
         $record3 = new stdClass();
         $record3->course         = $course->id;
         $record3->moodleoverflow = $moodleoverflow->id;
@@ -100,7 +103,8 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $record3->timestart      = $timestamp;
         $record3->usermodified   = $user;
         $DB->insert_record('moodleoverflow_discussions', $record3);
-        $this->assertEquals($j, $DB->count_records('moodleoverflow_discussions'), 'Creating first moodleoverflow discussion can not be initiated.');
+        $this->assertEquals($j, $DB->count_records('moodleoverflow_discussions'),
+            'Creating first moodleoverflow discussion can not be initiated.');
         $discussion = $DB->get_record('moodleoverflow_discussions', array('timestart' => $timestamp));
 
         // Initiate the iteration.
@@ -108,7 +112,8 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $j = $i + 1;
 
         // Create a new startpost for the discussion.
-        $this->assertEquals($i, $DB->count_records('moodleoverflow_posts'), 'Creating startposts for discussions can not be initiated.');
+        $this->assertEquals($i, $DB->count_records('moodleoverflow_posts'),
+            'Creating startposts for discussions can not be initiated.');
         $record4 = new stdClass();
         $record4->discussion = $discussion->id;
         $record4->parent = 0;
@@ -138,7 +143,8 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $j = $i + 1;
 
         // Create a new post for the discussion.
-        $this->assertEquals($i, $DB->count_records('moodleoverflow_posts'), 'Creating startposts for discussions can not be initiated.');
+        $this->assertEquals($i, $DB->count_records('moodleoverflow_posts'),
+            'Creating startposts for discussions can not be initiated.');
         $record4 = new stdClass();
         $record4->discussion = $discussion->id;
         $record4->parent = $parent;
@@ -225,14 +231,14 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
 
         // Create more discussions.
         $discussion1 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703701);
-        $discussion2 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703702);
-        $discussion3 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703703);
-        $discussion4 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703704);
-        $discussion5 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703705);
-        $discussion6 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703706);
-        $discussion7 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703707);
-        $discussion8 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703708);
-        $discussion9 = $this->create_discussion($course, $moodleoverflow, $users[1], 1492703709);
+        $this->create_discussion($course, $moodleoverflow, $users[1], 1492703702);
+        $this->create_discussion($course, $moodleoverflow, $users[1], 1492703703);
+        $this->create_discussion($course, $moodleoverflow, $users[1], 1492703704);
+        $this->create_discussion($course, $moodleoverflow, $users[1], 1492703705);
+        $this->create_discussion($course, $moodleoverflow, $users[1], 1492703706);
+        $this->create_discussion($course, $moodleoverflow, $users[1], 1492703707);
+        $this->create_discussion($course, $moodleoverflow, $users[1], 1492703708);
+        $this->create_discussion($course, $moodleoverflow, $users[1], 1492703709);
         $this->assertEquals(10, count(moodleoverflow_get_discussions($cm, 0, 0)));
 
         // Test the join between posts and discussions.
@@ -372,7 +378,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
 
         // Create two users.
         // Login the first user.
-        $users = $this->create_enrol_users($course);
+        $this->create_enrol_users($course);
 
         // Test for the enrolled and logged in user.
         $this->assertTrue(moodleoverflow_user_can_post_discussion($moodleoverflow, $cm));
@@ -380,10 +386,6 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         // Test with context.
         $context = context_module::instance($cm->id);
         $this->assertTrue(moodleoverflow_user_can_post_discussion($moodleoverflow, $cm, $context));
-
-        // Test without the coursemodule.
-        // ToDo: This is causing an error because of a used function. What to do?
-        // $this->assertTrue(moodleoverflow_user_can_post_discussion($moodleoverflow));
 
         // Logout and try again.
         $this->setUser(null);
@@ -422,16 +424,20 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $this->assertEquals(2, $DB->count_records('course_categories'), 'Creating new course category failed.');
 
         // Create a new course.
-        $course = $this->getDataGenerator()->create_course(array('fullname' => 'Created test course', 'category' => $coursecategory->id));
+        $this->getDataGenerator()->create_course(array('fullname' => 'Created test course', 'category' => $coursecategory->id));
         $this->assertEquals(2, $DB->count_records('course', array()), 'Creating course failed');
-        $this->assertEquals($coursecategory->id, $DB->get_record('course', array('fullname' => 'Created test course'))->category, 'Course not created correctly.');
+        $this->assertEquals(
+            $coursecategory->id,
+            $DB->get_record('course',
+            array('fullname' => 'Created test course'))->category,
+            'Course not created correctly.');
 
         // Create an overflow instance.
         $course = $this->getDataGenerator()->create_course();
         $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
-        $moodleoverflow = $generator->create_instance(array('course'=>$course->id));
+        $moodleoverflow = $generator->create_instance(array('course' => $course->id));
         $this->assertEquals(1, $DB->count_records('moodleoverflow'), 'Creating moodleoverflow instance failed.');
         $this->assertEquals(1, $DB->count_records('course_modules'), 'Creating course module failed.');
-        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
+        get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
     }
 }

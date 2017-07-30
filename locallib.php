@@ -1236,7 +1236,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
  * @return string The html output.
  */
 function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent,
-                                           $canreply, $istracked, $posts, $iscomment = false) {
+                                           $canreply, $istracked, $posts, $iscomment = null) {
     global $USER;
 
     // Prepare the output.
@@ -1253,7 +1253,7 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
 
             // Answers should be seperated from each other.
             // While comments should be indented.
-            if (!$iscomment) {
+            if (!isset($iscomment)) {
                 $output .= "<div class='tmargin'>";
                 $level = 1;
                 $parentid = $post->id;
@@ -1277,10 +1277,12 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
             $postread = !empty($post->postread);
 
             // Print the answer.
-            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, $canreply, false, '', '', $postread, true, $istracked, $parentid, $level);
+            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
+                $ownpost, $canreply, false, '', '', $postread, true, $istracked, $parentid, $level);
 
             // Print its children.
-            $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts, $parentid);
+            $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow,
+                $discussion, $post, $canreply, $istracked, $posts, $parentid);
 
             // End the div.
             $output .= "</div>\n";
@@ -1306,7 +1308,6 @@ function moodleoverflow_add_new_post($post, $mform) {
     $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion));
     $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow));
     $cm         = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
-    $modulecontext    = context_module::instance($cm->id);
 
     // Add some variables to the post.
     $post->created = $post->modified = time();
@@ -1395,14 +1396,14 @@ function moodleoverflow_update_post($newpost) {
  * @param bool $recursive Whether the deletion should be recursive
  * @return int Amount of replies
  */
-function moodleoverflow_count_replies($post, $recursive = true) {
+function moodleoverflow_count_replies($post, $recursive = null) {
     global $DB;
 
     // Initiate the variable.
     $count = 0;
 
     // Count the posts recursively?
-    if ($recursive) {
+    if (isset($recursive)) {
         // Get all the direct children.
         if ($childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id))) {
 
@@ -1600,7 +1601,6 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
     static $cache = array();
 
     // Initiate variables.
-    $now = round(time(), -2);
     $params = array($course->id);
 
     // Check whether the cache for the moodleoverflow is set.

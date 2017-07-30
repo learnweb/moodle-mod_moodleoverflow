@@ -261,22 +261,30 @@ class readtracking {
 
         // Create the sql-Statement depending on the submitted parameters.
         if ($userid > -1) {
-            if ($select != '') $select .= ' AND ';
+            if ($select != '') {
+                $select .= ' AND ';
+            }
             $select .= 'userid = ?';
             $params[] = $userid;
         }
         if ($postid > -1) {
-            if ($select != '') $select .= ' AND ';
+            if ($select != '') {
+                $select .= ' AND ';
+            }
             $select .= 'postid = ?';
             $params[] = $postid;
         }
         if ($discussionid > -1) {
-            if ($select != '') $select .= ' AND ';
+            if ($select != '') {
+                $select .= ' AND ';
+            }
             $select .= 'discussionid = ?';
             $params[] = $discussionid;
         }
         if ($overflowid > -1) {
-            if ($select != '') $select .= ' AND ';
+            if ($select != '') {
+                $select .= ' AND ';
+            }
             $select .= 'moodleoverflowid = ?';
             $params[] = $overflowid;
         }
