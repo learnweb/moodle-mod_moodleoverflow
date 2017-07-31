@@ -337,20 +337,20 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
 
         // Subscribe to the discussion.
         \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($author->id, $discussion, $modulecontext);
-        $options    = array('userid' => $author->id, 'discussion' => $discussion->id);
-        $count      = $DB->count_records('moodleoverflow_discuss_subs', $options);
-        $this->assertEquals(1, $count);
         $options    = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
         $count      = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-
-        // Subscribe to the moodleoverflow without removing the discussion preferences.
-        \mod_moodleoverflow\subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
         $options    = array('userid' => $author->id, 'discussion' => $discussion->id);
         $count      = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
+
+        // Subscribe to the moodleoverflow without removing the discussion preferences.
+        \mod_moodleoverflow\subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
         $options    = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
         $count      = $DB->count_records('moodleoverflow_subscriptions', $options);
+        $this->assertEquals(1, $count);
+        $options    = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $count      = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
         // Unsubscribe from the discussion should result in a change.
@@ -643,24 +643,24 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // And is subscribed to the discussion again.
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $discussion->id));
 
-        // And one in the forum subscription tracking table.
-        $options    = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
-        $count      = $DB->count_records('moodleoverflow_subscriptions', $options);
-        $this->assertEquals(1, $count);
-
         // There should be no record in the discussion subscription tracking table.
         $options    = array('userid' => $author->id, 'discussion' => $discussion->id);
         $count      = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
 
+        // And one in the forum subscription tracking table.
+        $options    = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $count      = $DB->count_records('moodleoverflow_subscriptions', $options);
+        $this->assertEquals(1, $count);
+
         // And unsubscribe again.
         \mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($author->id, $discussion, $modulecontext);
 
-        // Check that the user is still subscribed to the moodleoverflow.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow));
-
         // But unsubscribed from the discussion.
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $discussion->id));
+
+        // Check that the user is still subscribed to the moodleoverflow.
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow));
 
         // There should be a record in the discussion subscription tracking table.
         $options    = array('userid' => $author->id, 'discussion' => $discussion->id);
@@ -1169,10 +1169,6 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // Create some users.
         $users = $this->helper_create_users($course, 20);
 
-        // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
-        $modulecontext = \context_module::instance($cm->id);
-
         // Post some discussions to the moodleoverflow.
         $discussions = array();
         $author = $users[0];
@@ -1183,6 +1179,10 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
             $discussion->moodleoverflow = $moodleoverflow->id;
             $discussions[] = $discussion;
         }
+
+        // Get the module context.
+        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $modulecontext = \context_module::instance($cm->id);
 
         // Unsubscribe half the users from the half the discussions.
         $moodleoverflowcount = 0;

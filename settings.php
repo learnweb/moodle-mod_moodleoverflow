@@ -28,7 +28,7 @@ if ($ADMIN->fulltree) {
 
     // Number of discussions per page.
     $settings->add(new admin_setting_configtext('moodleoverflow_manydiscussions', get_string('manydiscussions', 'moodleoverflow'),
-        get_string('configmanydiscussions', 'moodleoverflow'), 25, PARAM_INT));
+        get_string('configmanydiscussions', 'moodleoverflow'), 10, PARAM_INT));
 
     // Default read tracking settings.
     $options = array();

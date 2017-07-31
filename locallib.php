@@ -202,7 +202,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $teacherlink = null;
         if ($statusteacher) {
             $link = '/mod/moodleoverflow/discussion.php?d=';
-            $teacherlink = new moodle_url($link . $statusstarter->discussionid . '#p' . $statusteacher->postid);
+            $teacherlink = new moodle_url($link . $statusteacher->discussionid . '#p' . $statusteacher->postid);
         }
 
         // Check if a single post was marked by the question owner and a teacher.
