@@ -39,9 +39,9 @@
  *
  * The variable name for the capability definitions array is $capabilities
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();

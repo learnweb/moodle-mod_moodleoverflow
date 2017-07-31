@@ -17,21 +17,20 @@
 /**
  * The mod_moodleoverflow rating created event.
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_moodleoverflow\event;
-
 defined('MOODLE_INTERNAL') || die();
 
 /**
  * The mod_moodleoverflow rating created event class.
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class rating_created extends \core\event\base {
 

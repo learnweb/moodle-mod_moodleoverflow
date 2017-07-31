@@ -17,13 +17,12 @@
 /**
  * The mod_moodleoverflow discussion deleted event.
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_moodleoverflow\event;
-
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -35,9 +34,9 @@ defined('MOODLE_INTERNAL') || die();
  *      - int moodleoverflowid: The id of the forum the discussion is in.
  * }
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class discussion_deleted extends \core\event\base {
 

@@ -21,9 +21,9 @@
  * unsubscribe from a moodleoverflow (no 'mode' param provided), or by moodleoverflow managers
  * to control the subscription mode (by 'mode' param).
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');

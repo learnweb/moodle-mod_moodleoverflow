@@ -19,9 +19,9 @@
  *
  * This file is created by borrowing code from the mod_forum module.
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_moodleoverflow;
@@ -31,9 +31,9 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Moodleoverflow subscription manager.
  *
- * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class subscriptions {
 

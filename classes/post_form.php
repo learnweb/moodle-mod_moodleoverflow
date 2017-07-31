@@ -18,7 +18,7 @@
  * File containing the form definition to post in a moodleoverflow.
  *
  * @package   mod_moodleoverflow
- * @copyright 2016 Your Name <your@email.address>
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,7 +31,7 @@ require_once($CFG->dirroot . '/repository/lib.php');
  * Class to post in a moodleoverflow.
  *
  * @package   mod_moodleoverflow
- * @copyright 2016 Your Name <your@email.address>
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_post_form extends moodleform {
