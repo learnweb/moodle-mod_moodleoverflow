@@ -331,8 +331,10 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $options    = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
         $count      = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-        $options    = array('userid' => $author->id, 'discussion' => $discussion->id);
-        $count      = $DB->count_records('moodleoverflow_discuss_subs', $options);
+        $count      = $DB->count_records('moodleoverflow_discuss_subs', array(
+            'userid' => $author->id,
+            'discussion' => $discussion->id,
+        ));
         $this->assertEquals(0, $count);
 
         // Subscribe to the discussion.
@@ -340,8 +342,10 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $options    = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
         $count      = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-        $options    = array('userid' => $author->id, 'discussion' => $discussion->id);
-        $count      = $DB->count_records('moodleoverflow_discuss_subs', $options);
+        $count      = $DB->count_records('moodleoverflow_discuss_subs', array(
+            'userid' => $author->id,
+            'discussion' => $discussion->id,
+        ));
         $this->assertEquals(1, $count);
 
         // Subscribe to the moodleoverflow without removing the discussion preferences.
