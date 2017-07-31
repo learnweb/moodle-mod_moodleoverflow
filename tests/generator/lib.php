@@ -79,9 +79,6 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         if (!isset($record->forcesubscribe)) {
             $record->forcesubscribe = MOODLEOVERFLOW_CHOOSESUBSCRIBE;
         }
-        if (!isset($record->trackingtype)) {
-            $record->trackingtype = 1;
-        }
 
         return parent::create_instance($record, (array)$options);
     }
@@ -119,6 +116,18 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         if (!isset($record['messageformat'])) {
             $record['messageformat'] = editors_get_preferred_format();
         }
+        if (!isset($record['timestart'])) {
+            $record['timestart'] = "0";
+        }
+        if (!isset($record['timeend'])) {
+            $record['timeend'] = "0";
+        }
+        if (isset($record['mailed'])) {
+            $mailed = $record['mailed'];
+        }
+        if (isset($record['timemodified'])) {
+            $timemodified = $record['timemodified'];
+        }
 
         // Transform the array into an object.
         $record = (object) $record;
@@ -129,6 +138,22 @@ class mod_moodleoverflow_generator extends testing_module_generator {
 
         // Add the discussion.
         $record->id = moodleoverflow_add_discussion($record, $modulecontext, $record->userid);
+
+        if (isset($timemodified) || isset($mailed)) {
+            $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $record->id));
+
+            if (isset($mailed)) {
+                $post->mailed = $mailed;
+            }
+
+            if (isset($timemodified)) {
+                $record->timemodified = $timemodified;
+                $post->modified = $post->created = $timemodified;
+                $DB->update_record('moodleoverflow_discussions', $record);
+            }
+
+            $DB->update_record('moodleoverflow_discussions', $record);
+        }
 
         // Return the id of the discussion.
         return $record->id;
