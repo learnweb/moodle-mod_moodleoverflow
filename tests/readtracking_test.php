@@ -88,14 +88,15 @@ class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF); // Off.
-        $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED); // On.
+        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL);
+        $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+
+        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED);
         $moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL); // Optional.
-        $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF);
+        $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Allow force.
         $CFG->moodleoverflow_allowforcedreadtracking = 1;
