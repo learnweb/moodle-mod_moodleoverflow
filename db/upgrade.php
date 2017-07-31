@@ -375,7 +375,8 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
         // Define field coursewidereputation to be added to moodleoverflow.
         $table = new xmldb_table('moodleoverflow');
-        $field = new xmldb_field('coursewidereputation', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'ratingpreference');
+        $field = new xmldb_field('coursewidereputation', XMLDB_TYPE_INTEGER, '1', null,
+            XMLDB_NOTNULL, null, '0', 'ratingpreference');
 
         // Conditionally launch add field coursewidereputation.
         if (!$dbman->field_exists($table, $field)) {
@@ -390,7 +391,8 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
         // Define field allownegativereputation to be added to moodleoverflow.
         $table = new xmldb_table('moodleoverflow');
-        $field = new xmldb_field('allownegativereputation', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'coursewidereputation');
+        $field = new xmldb_field('allownegativereputation', XMLDB_TYPE_INTEGER, '1', null,
+            XMLDB_NOTNULL, null, '0', 'coursewidereputation');
 
         // Conditionally launch add field allownegativereputation.
         if (!$dbman->field_exists($table, $field)) {
