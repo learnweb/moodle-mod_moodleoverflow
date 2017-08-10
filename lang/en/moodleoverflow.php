@@ -295,8 +295,8 @@ $string['teacherrating'] = 'Helpful';
 $string['ratingpreference'] = 'Display first';
 $string['ratingpreference_help'] = 'Answers can be marked as correct and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
 
-* Correct - A teachers mark as helpful will be pinned at the top of the discussion
-* Helpful - A topic starters mark as correct will be pinned at the top of the discussion';
+* Correct - A topic starters mark as correct will be pinned at the top of the discussion
+* Helpful - A teachers mark as helpful will be pinned at the top of the discussion';
 $string['allownegativereputation'] = 'Allow negative reputation?';
 $string['allownegativereputation_help'] = 'If set to yes, the users reputation within a course or within a module can be negative or will stop to decrease at zero.';
 $string['coursewidereputation'] = 'Cross module reputation?';
