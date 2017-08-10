@@ -34,7 +34,6 @@ $string['modulenameplural'] = 'moodleoverflows';
 $string['modulename_help'] = 'The moodleoverflow module enables participants to use a StackOverflow-like forumstructure.';
 $string['moodleoverflowfieldset'] = 'Custom example fieldset';
 $string['moodleoverflowname'] = 'moodleoverflow name';
-$string['moodleoverflowname_help'] = 'This is the content of the help tooltip associated with the moodleoverflowname field. Markdown syntax is supported.';
 $string['moodleoverflow'] = 'Moodleoverflow';
 $string['pluginadministration'] = 'moodleoverflow administration';
 $string['pluginname'] = 'Moodleoverflow';
