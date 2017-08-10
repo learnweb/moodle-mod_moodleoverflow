@@ -962,7 +962,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $cm->cache->caps['mod/moodleoverflow:deleteanypost'] = has_capability('mod/moodleoverflow:deleteanypost', $modulecontext);
         $cm->cache->caps['mod/moodleoverflow:viewanyrating'] = has_capability('mod/moodleoverflow:viewanyrating', $modulecontext);
         $cm->cache->caps['moodle/site:viewfullnames'] = has_capability('moodle/site:viewfullnames', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:ratesolved'] = has_capability('mod/moodleoverflow:ratesolved', $modulecontext);
+        $cm->cache->caps['mod/moodleoverflow:ratehelpful'] = has_capability('mod/moodleoverflow:ratehelpful', $modulecontext);
     }
 
     // Check if the user has the capability to see posts.
@@ -1034,8 +1034,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         }
     }
 
-    // A teacher can mark an answer as the correct solution.
-    $cap = $cm->cache->caps['mod/moodleoverflow:ratesolved'];
+    // A teacher can mark an answer as helpful.
+    $cap = $cm->cache->caps['mod/moodleoverflow:ratehelpful'];
     $canmarkcorrect = (($iscomment != $post->parent) AND !empty($post->parent) AND $cap);
     if ($canmarkcorrect) {
 

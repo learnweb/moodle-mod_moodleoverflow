@@ -114,12 +114,17 @@ class ratings {
         // Check for an older rating in this discussion.
         $oldrating = self::moodleoverflow_check_old_rating($postid, $userid);
 
-        // Mark a post as solution.
-        if ($rating == RATING_SOLVED OR $rating == RATING_HELPFUL) {
+        // Mark a post as solution or as helpful.
+        if ($rating == RATING_SOLVED || $rating == RATING_HELPFUL) {
 
             // Check if the current user is the startuser.
-            if ($userid != $discussion->userid) {
+            if ($rating == RATING_SOLVED && $userid != $discussion->userid) {
                 print_error('notstartuser', 'moodleoverflow');
+            }
+
+            // Check if the current user is a teacher.
+            if ($rating == RATING_HELPFUL && !has_capability('mod/moodleoverflow:ratehelpful', $modulecontext)) {
+                print_error('notteacher', 'moodleoverflow');
             }
 
             // Get other ratings in the discussion.
