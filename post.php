@@ -101,7 +101,7 @@ if (!isloggedin() OR isguestuser()) {
     // The guest needs to login.
     echo $OUTPUT->header();
     $strlogin = get_string('noguestpost', 'forum') . '<br /><br />' . get_string('liketologin');
-    echo $OUTPUT->confirm($strlogin, get_login_url(), 'view.php?m=' . $moodleoverflow->id);
+    echo $OUTPUT->confirm($strlogin, get_login_url(), $CFG->wwwroot.'/mod/moodleoverflow/view.php?m=' . $moodleoverflow->id);
     echo $OUTPUT->footer();
     exit;
 }
@@ -532,7 +532,7 @@ if ($mformpost->is_cancelled()) {
     if (!isset($discussion->id)) {
         redirect(new moodle_url('/mod/moodleoverflow/view.php', array('m' => $moodleoverflow->id)));
     } else {
-        redirect(new moodle_url('/mod/moodleoverflow/discuss.php', array('d' => $discussion->id)));
+        redirect(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
     }
 
     // Cancel.
