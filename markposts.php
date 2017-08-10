@@ -100,7 +100,7 @@ if (!empty($discussionid)) {
 
     // Check if the discussion exists.
     $options = array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id);
-    $discussion = $DB->get_record('moodleoverflow_discussions', $optionstodo);
+    $discussion = $DB->get_record('moodleoverflow_discussions', $options);
     if (!$discussion) {
         print_error('invaliddiscussionid', 'moodleoverflow');
     }
