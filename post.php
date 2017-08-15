@@ -370,7 +370,7 @@ if (!empty($moodleoverflow)) {
 
             // The post is the starting post of a discussion. Delete the topic as well.
             if (! $post->parent) {
-                moodleoverflow_delete_discussion($discussion, false, $course, $cm, $moodleoverflow);
+                moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleoverflow);
 
                 // Trigger the discussion deleted event.
                 $params = array(
