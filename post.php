@@ -477,6 +477,7 @@ if ($USER->id != $post->userid) {
     // Create a temporary object.
     $data = new stdClass();
     $data->date = userdate($post->modified);
+    $post->messageformat = editors_get_preferred_format();
 
     // Append the message depending on the messages format.
     if ($post->messageformat == FORMAT_HTML) {
