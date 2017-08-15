@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow
+@mod @mod_moodleoverflow @mod_moodleoverflow_add
 Feature: Add moodleoverflow activities and discussions
   In order to discuss topics with other users
   As a teacher
@@ -17,12 +17,12 @@ Feature: Add moodleoverflow activities and discussions
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
     And I log in as "teacher1"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     And I turn editing mode on
-    And I add a "moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test forum name |
+    And I add a "Moodleoverflow" to section "1" and I fill the form with:
+      | Moodleoverflow name | Test moodleoverflow name |
       | Description | Test forum description |
-    And I add a new discussion to "Test moodleoverflow name" forum with:
+    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Forum post 1 |
       | Message | This is the body |
     And I log out

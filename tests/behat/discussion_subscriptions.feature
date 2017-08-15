@@ -65,7 +65,7 @@ Feature: A user can control their own subscription preferences for a discussion
 
   Scenario: An automatic subscription moodleoverflow can have discussions unsubscribed from
     Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | moodleoverflow name | Test moodleoverflow name |
+      | Moodleoverflow name | Test moodleoverflow name |
       | Description         | Test moodleoverflow description |
       | Subscription mode   | Auto subscription |
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
