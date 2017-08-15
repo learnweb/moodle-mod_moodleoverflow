@@ -292,7 +292,7 @@ $string['ratingpreference_help'] = 'Answers can be marked as solved and helpful.
 * Heplful - A topic starters mark as helpful will be pinned at the top of the discussion
 * Solved - A teachers mark as solved will be pinned at the top of the discussion';
 $string['allownegativereputation'] = 'Allow negative reputation?';
-$string['allownegativereputation_help'] = 'If set to yes, the users reputation within a course or within a module can be negative or will stop to decrease at zero.';
+$string['allownegativereputation_help'] = 'If set to yes, the users reputation within a course or within a module can be negative. If set to no, the reputation will stop to decrease at zero.';
 $string['coursewidereputation'] = 'Cross module reputation?';
 $string['coursewidereputation_help'] = 'If set to yes, the users reputations of all moodleoverflow modules in this course will be summed.';
 $string['clicktounsubscribe'] = 'You are subscribed to this discussion. Click to unsubscribe.';
