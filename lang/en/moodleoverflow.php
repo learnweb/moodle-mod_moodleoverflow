@@ -105,8 +105,8 @@ $string['votescaledownvote'] = 'Reputation: Downvote';
 $string['configvotescaledownvote'] = 'The amount of reputation a downvote for your post gives.';
 $string['votescaleupvote'] = 'Reputation: Upvote';
 $string['configvotescaleupvote'] = 'The amount of reputation an upvote for your post gives.';
-$string['votescalecorrect'] = 'Reputation: Correct';
-$string['configvotescalecorrect'] = 'The amount of reputation a mark as correct on your post gives.';
+$string['votescalesolved'] = 'Reputation: Solved';
+$string['configvotescalesolved'] = 'The amount of reputation a mark as solved on your post gives.';
 $string['votescalehelpful'] = 'Reputation: Helpful';
 $string['configvotescalehelpful'] = 'The amount of reputation a mark as helpful on your post gives.';
 $string['reputationnotnegative'] = 'Reputation just positive?';
@@ -115,11 +115,6 @@ $string['allowcoursereputation'] = 'Sum reputation within a course.';
 $string['configallowcoursereputation'] = 'Allow to sum the reputation of all instances of the current course?';
 $string['maxmailingtime'] = 'Maximal mailing time';
 $string['configmaxmailingtime'] = 'Posts older than this number of hours will not be mailed to the users. This will help to avoid problems where the cron has not een running for a long time.';
-
-
-
-
-
 
 // Strings for the post.php.
 $string['invalidmoodleoverflowid'] = 'Moodleoverflow ID was incorrect';
@@ -164,11 +159,11 @@ $string['postnotexist'] = 'Requested post does not exist';
 $string['noratemoodleoverflow'] = 'Sorry, you are not allowed to vote in this moodleoverflow.';
 $string['configallowratingchange'] = 'Can a user change its ratings?';
 $string['allowratingchange'] = 'Allow rating changes';
-$string['configpreferteachersmark'] = 'The answer marked as correct by a teacher are prioritized over the answer marked as correct by the starter of the discussion.';
+$string['configpreferteachersmark'] = 'The answer marked as solved by a teacher are prioritized over the answer marked as helpful by the starter of the discussion.';
 $string['preferteachersmark'] = 'Prefer teachers marks?';
 $string['noratingchangeallowed'] = 'You are not allowed to change your ratings.';
 $string['invalidratingid'] = 'The submitted rating is neither an upvote nor a downvote.';
-$string['notstartuser'] = 'Only the user who started the discussion can mark an answer as the solution.';
+$string['notstartuser'] = 'Only the user who started the discussion can mark an answer as helpful.';
 $string['notteacher'] = 'Only users with the status teacher can do this.';
 $string['ratingtoold'] = 'Ratings can only be changed within 30 minutes after the first vote. ';
 
@@ -185,8 +180,8 @@ $string['addanewreply'] = 'Add a new answer';
 $string['ratingfailed'] = 'Rating failed. Try again.';
 $string['marksolved'] = 'Mark as Solved';
 $string['marknotsolved'] = 'Not Solved';
-$string['markcorrect'] = 'Mark as Helpful';
-$string['marknotcorrect'] = 'Not Helpful';
+$string['markhelpful'] = 'Mark as Helpful';
+$string['marknothelpful'] = 'Not Helpful';
 
 // Strings for the readtracking.php.
 $string['markreadfailed'] = 'A post of the discussion could not be marked as read.';
@@ -289,13 +284,13 @@ If set to optional, participants can choose whether to turn tracking on or off v
 
 If \'Allow forced read tracking\' is enabled in the site administration, then a further option is available - forced. This means that tracking is always on.';
 $string['ratingheading'] = 'Rating and reputation';
-$string['starterrating'] = 'Correct';
-$string['teacherrating'] = 'Helpful';
+$string['starterrating'] = 'Helpful';
+$string['teacherrating'] = 'Solved';
 $string['ratingpreference'] = 'Display first';
-$string['ratingpreference_help'] = 'Answers can be marked as correct and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
+$string['ratingpreference_help'] = 'Answers can be marked as solved and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
 
-* Correct - A topic starters mark as correct will be pinned at the top of the discussion
-* Helpful - A teachers mark as helpful will be pinned at the top of the discussion';
+* Heplful - A topic starters mark as helpful will be pinned at the top of the discussion
+* Solved - A teachers mark as solved will be pinned at the top of the discussion';
 $string['allownegativereputation'] = 'Allow negative reputation?';
 $string['allownegativereputation_help'] = 'If set to yes, the users reputation within a course or within a module can be negative or will stop to decrease at zero.';
 $string['coursewidereputation'] = 'Cross module reputation?';

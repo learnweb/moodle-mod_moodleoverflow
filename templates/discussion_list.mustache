@@ -103,28 +103,28 @@
                     {{/statusboth}}
                     {{^statusboth}}
                         {{^statusstarter}}
-                            {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
                             {{^statusteacher}}
-                                {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
+                                {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
                             {{/statusteacher}}
                             {{#statusteacher}}
                                 <a href="{{teacherlink}}">
-                                    {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
                                 </a>
                             {{/statusteacher}}
+                            {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
                         {{/statusstarter}}
                         {{#statusstarter}}
                             {{^statusteacher}}
+                                {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
                                 <a href="{{starterlink}}">
-                                    {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
                                 </a>
-                                {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
                             {{/statusteacher}}
                             {{#statusteacher}}
-                                <a href="{{starterlink}}">
+                                <a href="{{teacherlink}}">
                                     {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
                                 </a>
-                                <a href="{{teacherlink}}">
+                                <a href="{{starterlink}}">
                                     {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
                                 </a>
                             {{/statusteacher}}

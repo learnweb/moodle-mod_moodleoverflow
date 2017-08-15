@@ -76,9 +76,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('moodleoverflow_votescaleupvote', get_string('votescaleupvote', 'moodleoverflow'),
         get_string('configvotescaleupvote', 'moodleoverflow'), 5, PARAM_INT));
 
-    // Votescale: How much reputation gives a post that is marked as helpful.
-    $settings->add(new admin_setting_configtext('moodleoverflow_votescalecorrect', get_string('votescalecorrect', 'moodleoverflow'),
-        get_string('configvotescalecorrect', 'moodleoverflow'), 30, PARAM_INT));
+    // Votescale: How much reputation gives a post that is marked as solved.
+    $settings->add(new admin_setting_configtext('moodleoverflow_votescalesolved', get_string('votescalesolved', 'moodleoverflow'),
+        get_string('configvotescalesolved', 'moodleoverflow'), 30, PARAM_INT));
 
     // Votescale: How much reputation gives a post that is marked as helpful.
     $settings->add(new admin_setting_configtext('moodleoverflow_votescalehelpful', get_string('votescalehelpful', 'moodleoverflow'),

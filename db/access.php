@@ -187,7 +187,7 @@ $capabilities = array(
         )
     ),
 
-    'mod/moodleoverflow:ratehelpful' => array(
+    'mod/moodleoverflow:marksolved' => array(
 
         'riskbitmask' => RISK_SPAM,
 

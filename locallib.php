@@ -189,7 +189,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             }
         }
 
-        // Check if the question owner marked the question as answered.
+        // Check if the question owner marked the question as helpful.
         $statusstarter = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, false);
         $starterlink = null;
         if ($statusstarter) {
@@ -197,7 +197,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             $starterlink = new moodle_url($link . $statusstarter->discussionid . '#p' . $statusstarter->postid);
         }
 
-        // Check if a teacher marked a post as helpful.
+        // Check if a teacher marked a post as solved.
         $statusteacher = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, true);
         $teacherlink = null;
         if ($statusteacher) {
@@ -862,8 +862,8 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
         // Assign the ratings to the machting posts.
         $posts[$postid]->upvotes = $discussionratings[$post->id]->upvotes;
         $posts[$postid]->downvotes = $discussionratings[$post->id]->downvotes;
-        $posts[$postid]->statusstarter = $discussionratings[$post->id]->issolvedstarter;
-        $posts[$postid]->statusteacher = $discussionratings[$post->id]->issolvedteacher;
+        $posts[$postid]->statusstarter = $discussionratings[$post->id]->ishelpful;
+        $posts[$postid]->statusteacher = $discussionratings[$post->id]->issolved;
     }
 
     // Order the answers by their ratings.
@@ -962,7 +962,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $cm->cache->caps['mod/moodleoverflow:deleteanypost'] = has_capability('mod/moodleoverflow:deleteanypost', $modulecontext);
         $cm->cache->caps['mod/moodleoverflow:viewanyrating'] = has_capability('mod/moodleoverflow:viewanyrating', $modulecontext);
         $cm->cache->caps['moodle/site:viewfullnames'] = has_capability('moodle/site:viewfullnames', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:ratehelpful'] = has_capability('mod/moodleoverflow:ratehelpful', $modulecontext);
+        $cm->cache->caps['mod/moodleoverflow:marksolved'] = has_capability('mod/moodleoverflow:marksolved', $modulecontext);
     }
 
     // Check if the user has the capability to see posts.
@@ -996,8 +996,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $str->markunread     = get_string('markunread', 'moodleoverflow');
         $str->marksolved     = get_string('marksolved', 'moodleoverflow');
         $str->marknotsolved  = get_string('marknotsolved', 'moodleoverflow');
-        $str->markcorrect    = get_string('markcorrect', 'moodleoverflow');
-        $str->marknotcorrect = get_string('marknotcorrect', 'moodleoverflow');
+        $str->markhelpful    = get_string('markhelpful', 'moodleoverflow');
+        $str->marknothelpful = get_string('marknothelpful', 'moodleoverflow');
     }
 
     // Get the current link without unnecessary parameters.
@@ -1019,34 +1019,34 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $permalink->set_anchor('p' . $post->id);
     $commands[] = array('url' => $permalink, 'text' => get_string('permalink', 'moodleoverflow'));
 
-    // If the user has started the discussion, he can mark the answer as correct.
-    $canmarksolved = (($USER->id == $discussion->userid) AND ($iscomment != $post->parent) AND !empty($post->parent));
-    if ($canmarksolved) {
+    // If the user has started the discussion, he can mark the answer as helpful.
+    $canmarkhelpful = (($USER->id == $discussion->userid) AND ($iscomment != $post->parent) AND !empty($post->parent));
+    if ($canmarkhelpful) {
 
         // When the post is already marked, remove the mark instead.
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusstarter) {
+            $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 40, 'rp' => $post->id));
+            $commands[] = array('url' => $editurl, 'text' => $str->marknothelpful);
+        } else {
+            $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 4, 'rp' => $post->id));
+            $commands[] = array('url' => $editurl, 'text' => $str->markhelpful);
+        }
+    }
+
+    // A teacher can mark an answer as solved.
+    $cap = $cm->cache->caps['mod/moodleoverflow:marksolved'];
+    $canmarksolved = (($iscomment != $post->parent) AND !empty($post->parent) AND $cap);
+    if ($canmarksolved) {
+
+        // When the post is already marked, remove the mark instead.
+        $link = '/mod/moodleoverflow/discussion.php';
+        if ($post->statusteacher) {
             $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 30, 'rp' => $post->id));
             $commands[] = array('url' => $editurl, 'text' => $str->marknotsolved);
         } else {
             $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 3, 'rp' => $post->id));
             $commands[] = array('url' => $editurl, 'text' => $str->marksolved);
-        }
-    }
-
-    // A teacher can mark an answer as helpful.
-    $cap = $cm->cache->caps['mod/moodleoverflow:ratehelpful'];
-    $canmarkcorrect = (($iscomment != $post->parent) AND !empty($post->parent) AND $cap);
-    if ($canmarkcorrect) {
-
-        // When the post is already marked, remove the mark instead.
-        $link = '/mod/moodleoverflow/discussion.php';
-        if ($post->statusteacher) {
-            $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 40, 'rp' => $post->id));
-            $commands[] = array('url' => $editurl, 'text' => $str->marknotcorrect);
-        } else {
-            $editurl = new moodle_url($link, array('d' => $discussion->id, 'r' => 4, 'rp' => $post->id));
-            $commands[] = array('url' => $editurl, 'text' => $str->markcorrect);
         }
     }
 
@@ -1099,7 +1099,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Get the ratings.
     $mustachedata->votes = $post->upvotes - $post->downvotes;
 
-    // Check if the post is marked as the correct answer.
+    // Check if the post is marked.
     $mustachedata->statusstarter = $post->statusstarter;
     $mustachedata->statusteacher = $post->statusteacher;
 
