@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow @mod_moodleoverflow_add
+@mod @mod_moodleoverflow
 Feature: Add moodleoverflow activities and discussions
   In order to discuss topics with other users
   As a teacher

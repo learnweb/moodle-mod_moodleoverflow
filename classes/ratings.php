@@ -365,11 +365,11 @@ class ratings {
 
         // Get the amount of votes.
         $sql = "SELECT id as postid,
-                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 1) AS downvotes,
-	                   (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 2) AS upvotes,
-                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 3) AS issolved,
-                       (SELECT COUNT(rating) FROM mdl_moodleoverflow_ratings WHERE postid=p.id AND rating = 4) AS ishelpful
-                  FROM mdl_moodleoverflow_posts p
+                       (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 1) AS downvotes,
+	                   (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 2) AS upvotes,
+                       (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 3) AS issolved,
+                       (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 4) AS ishelpful
+                  FROM {moodleoverflow_posts} p
                  WHERE p.discussion = $discussionid
               GROUP BY p.id";
         $votes = $DB->get_records_sql($sql);

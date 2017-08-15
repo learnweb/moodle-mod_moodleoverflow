@@ -825,6 +825,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
 
     // Initiate tracking settings.
     $params = array();
+    $trackingselector = "";
 
     // If tracking is enabled, another join is needed.
     if ($tracking) {
