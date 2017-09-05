@@ -282,7 +282,7 @@ $string['trackingoptional'] = 'Optional';
 $string['trackingtype'] = 'Read tracking';
 $string['trackingtype_help'] = 'Read tracking enables participants to easily check which posts they have not yet seen by highlighting any new posts.
 
-If set to optional, participants can choose whether to turn tracking on or off via a link in the administration block.
+If set to optional, tracking is turned on by default but participants can turn tracking off.
 
 If \'Allow forced read tracking\' is enabled in the site administration, then a further option is available - forced. This means that tracking is always on.';
 $string['ratingheading'] = 'Rating and reputation';

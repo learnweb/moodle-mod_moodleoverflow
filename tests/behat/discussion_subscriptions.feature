@@ -106,4 +106,3 @@ Feature: A user can control their own subscription preferences for a discussion
     And I should see "Unsubscribe from this moodleoverflow"
     And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" "table_row"
     And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" "table_row"
- 
