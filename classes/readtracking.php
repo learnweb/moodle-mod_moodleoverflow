@@ -42,8 +42,9 @@ class readtracking {
      * @param object $moodleoverflow
      * @return boolean
      * */
+    //Benutzt einstellung vom forum
     public static function moodleoverflow_can_track_moodleoverflows($moodleoverflow = null) {
-        global $USER, $CFG;
+        global $USER, $CFG, $DB;
 
         // Check if readtracking is disabled for the module.
         if (empty($CFG->moodleoverflow_trackreadposts)) {
@@ -57,14 +58,18 @@ class readtracking {
 
         // If no specific moodleoverflow is submitted, check the modules basic settings.
         if (is_null($moodleoverflow)) {
-            return (bool)$CFG->moodleoverflow_allowforcedreadtracking;
+            if ($CFG->moodleoverflow_allowforcedreadtracking) {
+                // Since we can force tracking, assume yes without a specific forum.
+                return true;
+            } else {
+                // User tracks moodleoverflows by default.
+                return true;
+            }
         }
-
         // Check the settings of the moodleoverflow instance.
         $allowed = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
         $forced  = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
 
-        // Return a boolean whether read tracking is allowed/forced.
         return ($allowed || $forced);
     }
 
