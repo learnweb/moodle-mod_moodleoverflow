@@ -62,6 +62,7 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
         $contents = array();
 
         $contents[] = new restore_decode_content('moodleoverflow', array('intro'), 'moodleoverflow');
+        $contents[] = new restore_decode_content('moodleoverflow_posts', array('message'), 'moodleoverflow_post');
 
         return $contents;
     }
@@ -73,8 +74,18 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
     static public function define_decode_rules() {
         $rules = array();
 
-        $rules[] = new restore_decode_rule('moodleoverflowVIEWBYID', '/mod/moodleoverflow/view.php?id=$1', 'course_module');
-        $rules[] = new restore_decode_rule('moodleoverflowINDEX', '/mod/moodleoverflow/index.php?id=$1', 'course');
+        $rules[] = new restore_decode_rule('MOODLEOVERFLOWVIEWBYID', '/mod/moodleoverflow/view.php?id=$1', 'course_module');
+        $rules[] = new restore_decode_rule('MOODLEOVERFLOWINDEX', '/mod/moodleoverflow/index.php?id=$1', 'course');
+
+        $rules[] = new restore_decode_rule('MOODLEOVERFLOWVIEWBYF', '/mod/moodleoverflow/view.php?f=$1', 'forum');
+        // Link to forum discussion
+        $rules[] = new restore_decode_rule('MOODLEOVERFLOWDISCUSSIONVIEW', '/mod/moodleoverflow/discussion.php?d=$1', 'moodleoverflow_discussion');
+        // Link to discussion with parent and with anchor posts
+        $rules[] = new restore_decode_rule('MOODLEOVERFLOWDISCUSSIONVIEWPARENT', '/mod/moodleoverflow/discussion.php?d=$1&parent=$2',
+            array('moodleoverflow_discussion', 'moodleoverflow_post'));
+        $rules[] = new restore_decode_rule('MOODLEOVERFLOWDISCUSSIONVIEWINSIDE', '/mod/moodleoverflow/discussion.php?d=$1#$2',
+            array('moodleoverflow_discussion', 'moodleoverflow_post'));
+
 
         return $rules;
 
@@ -92,6 +103,19 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
         $rules[] = new restore_log_rule('moodleoverflow', 'add', 'view.php?id={course_module}', '{moodleoverflow}');
         $rules[] = new restore_log_rule('moodleoverflow', 'update', 'view.php?id={course_module}', '{moodleoverflow}');
         $rules[] = new restore_log_rule('moodleoverflow', 'view', 'view.php?id={course_module}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'view moodleoverflow', 'view.php?id={course_module}', '{moodleoverflow}');
+
+        $rules[] = new restore_log_rule('moodleoverflow', 'add discussion', 'discussion.php?d={moodleoverflow_discussion}', '{moodleoverflow_discussion}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'view discussion', 'discussion.php?d={moodleoverflow_discussion}', '{moodleoverflow_discussion}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'move discussion', 'discussion.php?d={moodleoverflow_discussion}', '{moodleoverflow_discussion}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'delete discussi', 'view.php?id={course_module}', '{moodleoverflow}',
+            null, 'delete discussion');
+        $rules[] = new restore_log_rule('moodleoverflow', 'delete discussion', 'view.php?id={course_module}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'add post', 'discussion.php?d={moodleoverflow_discussion}&parent={moodleoverflow_post}', '{moodleoverflow_post}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'update post', 'discussion.php?d={moodleoverflow_discussion}#p{moodleoverflow_post}&parent={moodleoverflow_post}', '{moodleoverflow_post}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'update post', 'discussion.php?d={moodleoverflow_discussion}&parent={moodleoverflow_post}', '{moodleoverflow_post}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'prune post', 'discussion.php?d={moodleoverflow_discussion}', '{moodleoverflow_post}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'delete post', 'discussion.php?d={moodleoverflow_discussion}', '[post]');
 
         return $rules;
     }

@@ -42,20 +42,74 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
      */
     protected function define_structure() {
 
+        // To know if we are including userinfo
+        $userinfo = $this->get_setting_value('userinfo');
+
         // Define the root element describing the moodleoverflow instance.
         $moodleoverflow = new backup_nested_element('moodleoverflow', array('id'), array(
-            'name', 'intro', 'introformat', 'grade'));
+            'name', 'intro', 'introformat', 'grade',
+            'forcesubscribe', 'trackingtype', 'timemodified',
+            'ratingpreference', 'coursewidereputation', 'allownegativereputation'));
 
-        // If we had more elements, we would build the tree here.
+        // Define each element separated
+        $discussions = new backup_nested_element('discussions');
+        $discussion = new backup_nested_element('discussion', array('id'), array(
+            'name', 'firstpost', 'userid', 'timemodified', 'usermodified', 'timestart'));
+
+        $posts = new backup_nested_element('posts');
+
+        $post = new backup_nested_element('post', array('id'), array(
+            'parent', 'userid', 'created', 'modified',
+            'mailed', 'message', 'messageformat'));
+
+        $ratings = new backup_nested_element('ratings');
+
+        $rating = new backup_nested_element('rating', array('id'), array(
+            'userid', 'rating', 'firstrated', 'lastchanged'));
+
+        $discussionsubs = new backup_nested_element('discussion_subs');
+
+        $discussionsub = new backup_nested_element('discussion_sub', array('id'), array(
+            'userid',
+            'preference',
+        ));
+        //Hier weitermachen.
+
+
+        // Build the tree.
+        $moodleoverflow->add_child($discussions);
+        $discussions->add_child($discussion);
+
+        $discussion->add_child($posts);
+        $posts->add_child($post);
+
+        $post->add_child($ratings);
+        $ratings->add_child($rating);
+
+        $discussion->add_child($discussionsubs);
+        $discussionsubs->add_child($discussionsub);
 
         // Define data sources.
         $moodleoverflow->set_source_table('moodleoverflow', array('id' => backup::VAR_ACTIVITYID));
 
-        // If we were referring to other tables, we would annotate the relation
-        // with the element's annotate_ids() method.
+        // All these source definitions only happen if we are including user info
+        if ($userinfo) {
+            $discussion->set_source_sql('
+                SELECT *
+                  FROM {moodleoverflow_discussions}
+                 WHERE moodleoverflow = ?',
+                array(backup::VAR_PARENTID));
+
+            // Need posts ordered by id so parents are always before childs on restore
+            $post->set_source_table('moodleoverflow_posts', array('discussion' => backup::VAR_PARENTID), 'id ASC');
+        }
+
+        // Define id annotations
+        $post->annotate_ids('user', 'userid');
 
         // Define file annotations (we do not use itemid in this example).
         $moodleoverflow->annotate_files('mod_moodleoverflow', 'intro', null);
+        $post->annotate_files('mod_moodleoverflow', 'post', 'id');
 
         // Return the root element (moodleoverflow), wrapped into standard activity structure.
         return $this->prepare_activity_structure($moodleoverflow);

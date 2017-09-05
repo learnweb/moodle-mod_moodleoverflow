@@ -43,7 +43,12 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
     protected function define_structure() {
 
         $paths = array();
+        $userinfo = $this->get_setting_value('userinfo');
+
         $paths[] = new restore_path_element('moodleoverflow', '/activity/moodleoverflow');
+        if ($userinfo) {
+            $paths[] = new restore_path_element('moodleoverflow_discussion', '/activity/moodleoverflow/discussions/discussion');
+        }
 
         // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
@@ -71,6 +76,50 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         // Create the moodleoverflow instance.
         $newitemid = $DB->insert_record('moodleoverflow', $data);
         $this->apply_activity_instance($newitemid);
+
+        // Add current enrolled user subscriptions if necessary.
+
+    }
+
+    protected function process_moodleoverflow_discussion($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+        $data->course = $this->get_courseid();
+
+        $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
+        $data->timemodified = $this->apply_date_offset($data->timemodified);
+        $data->timestart = $this->apply_date_offset($data->timestart);
+        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->usermodified = $this->get_mappingid('user', $data->usermodified);
+
+        $newitemid = $DB->insert_record('moodleoverflow_discussions', $data);
+        $this->set_mapping('moodleoverflow_discussion', $oldid, $newitemid);
+    }
+
+    protected function process_forum_post($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        $data->discussion = $this->get_new_parentid('moodleoverflow_discussion');
+        $data->created = $this->apply_date_offset($data->created);
+        $data->modified = $this->apply_date_offset($data->modified);
+        $data->userid = $this->get_mappingid('user', $data->userid);
+        // If post has parent, map it (it has been already restored)
+        if (!empty($data->parent)) {
+            $data->parent = $this->get_mappingid('moodleoverflow_post', $data->parent);
+        }
+
+        $newitemid = $DB->insert_record('moodleoverflow_posts', $data);
+        $this->set_mapping('moodleoverflow_post', $oldid, $newitemid, true);
+
+        // If !post->parent, it's the 1st post. Set it in discussion
+        if (empty($data->parent)) {
+            $DB->set_field('moodleoverflow_discussions', 'firstpost', $newitemid, array('id' => $data->discussion));
+        }
     }
 
     /**
@@ -80,4 +129,5 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         // Add moodleoverflow related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_moodleoverflow', 'intro', null);
     }
+
 }
