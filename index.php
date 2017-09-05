@@ -50,7 +50,7 @@ if (!$course = $DB->get_record('course', array('id' => $id))) {
 
 // From now on, the user must be enrolled to a course.
 require_course_login($course);
-$PAGE->set_pagetype('mod-moodleoverflow-index');
+$PAGE->set_pagelayout('incourse');
 $coursecontext = context_course::instance($course->id);
 unset($SESSION->fromdiscussion);
 
@@ -260,7 +260,7 @@ if ($generalmoodleoverflows) {
                     $unreadlink .= '<a href="view.php?m=' . $moodleoverflow->id . '">' . $unread . '</a>';
                     $unreadlink .= '<a title="' . $string['markallread'] . '" href="markposts.php?m=' . $moodleoverflow->id .
                         '&amp;mark=read&amp;sesskey=' . sesskey() . '">';
-                    $unreadlink .= '<img src="' . $OUTPUT->pix_url('t/markasread') . '" alt="' .
+                    $unreadlink .= '<img src="' . $OUTPUT->image_url('t/markasread') . '" alt="' .
                         $string['markallread'] . '" class="iconsmall" />';
                     $unreadlink .= '</a>';
                     $unreadlink .= '</span>';
