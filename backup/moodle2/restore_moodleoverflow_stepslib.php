@@ -174,26 +174,24 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         global $DB;
 
         $data = (object)$data;
-        $oldid = $data->id;
 
         $data->moodleoverflowid = $this->get_new_parentid('moodleoverflow');
         $data->discussionid = $this->get_mappingid('moodleoverflow_discussion', $data->discussionid);
         $data->postid = $this->get_mappingid('moodleoverflow_post', $data->postid);
         $data->userid = $this->get_mappingid('user', $data->userid);
 
-        $newitemid = $DB->insert_record('moodleoverflow_read', $data);
+        $DB->insert_record('moodleoverflow_read', $data);
     }
 
     protected function process_moodleoverflow_track($data) {
         global $DB;
 
         $data = (object)$data;
-        $oldid = $data->id;
 
         $data->moodleoverflowid = $this->get_new_parentid('moodleoverflow');
         $data->userid = $this->get_mappingid('user', $data->userid);
 
-        $newitemid = $DB->insert_record('moodleoverflow_tracking', $data);
+        $DB->insert_record('moodleoverflow_tracking', $data);
     }
 
     /**

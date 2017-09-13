@@ -859,7 +859,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
 
         // Create some user enrolled in the course as a student.
         $usercount = 5;
-        $users = $this->helper_create_users($course, $usercount);
+        $this->helper_create_users($course, $usercount);
 
         // All users should be subscribed.
         $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext);
