@@ -547,17 +547,3 @@ span.unread {
 .moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details .-flair {
     display: block;
 }
-
-.moodleoverflowpost table {
-    border: 0;
-    cellpadding: 3;
-    cellspacing: 0;
-}
-
-.left td {
-    valign: top;
-}
-
-#authorpicture {
-    width: 35px;
-}
