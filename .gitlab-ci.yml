@@ -9,6 +9,11 @@ variables:
  DB: "mysqli"
  MYSQL_ROOT_PASSWORD: "superrootpass"
  TRAVIS_BUILD_DIR: "$CI_PROJECT_DIR"
+ 
+ env:
+  global:
+    - MUSTACHE_IGNORE_NAMES=email_html_body.mustache
+    - MUSTACHE_IGNORE_NAMES=email_text.mustache
 
 before_script:
  # Prepare oracle-java8
