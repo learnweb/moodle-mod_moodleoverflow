@@ -41,6 +41,33 @@
     * unsubscribemoodleoverflowlink
     * unsubscribediscussionlink
     * moodleoverflowindexlink
+
+    Example context (json):
+    {
+        "courselink": "https://example.com/course/view.php?id=2",
+        "coursename": "Example course",
+        "moodleoverflowindexlink": "https://example.com/mod/moodleoverflow/index.php?id=2",
+        "moodleoverflowviewlink": "https://example.com/mod/moodleoverflow/view.php?f=2",
+        "moodleoverflowname": "Lorem ipsum dolor",
+        "discussionlink": "https://example.com/mod/moodleoverflow/discuss.php?d=70",
+        "discussionname": "Is Lorem ipsum Latin?",
+        "showdiscussionname": 1,
+        "firstpost": 1,
+        "subject": "Is Lorem ipsum Latin?",
+        "authorlink": "https://example.com/user/view.php?id=2&course=2",
+        "authorpicture": "<a href=\"https://example.com/user/view.php?id=2&amp;course=6\"><img src=\"https://example.com/theme/image.php?theme=clean&amp;component=core&amp;image=u%2Ff2&amp;svg=0\" alt=\"Picture of Admin User\" title=\"Picture of Admin User\" class=\"userpicture defaultuserpic\" width=\"35\" height=\"35\" /></a>",
+        "authorfullname": "Lucius Caecilius lucundus",
+        "postdate": "Sunday, 13 September 2015, 2:22 pm",
+        "grouppicture": "",
+        "attachments": "",
+        "message": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum et auctor libero. Quisque porta egestas neque, et bibendum libero dignissim at. Nulla facilisi. Morbi eget accumsan felis. Nunc et vulputate odio, vel venenatis nisl. Nunc maximus ipsum sed tincidunt mollis. Integer nunc erat, luctus sit amet arcu tincidunt, volutpat dignissim mi. Sed ut magna quam.  Mauris accumsan porta turpis sed aliquam. Etiam at justo tristique, imperdiet augue quis, consectetur sapien. Ut nec erat malesuada sem suscipit lobortis. Vivamus posuere nibh eu ipsum porta fringilla.  Sed vitae dapibus ipsum, ac condimentum enim. Sed dignissim ante at elit mollis, ac tempor lacus iaculis. Etiam nec lectus vitae nibh vulputate volutpat. Nulla quis tellus aliquam, commodo nisi et, dictum est.</p><p><br /></p>",
+        "parentpostlink": "",
+        "canreply": 1,
+        "replylink": "https://example.com/mod/moodleoverflow/post.php?reply=2",
+        "permalink": "https://example.com/mod/moodleoverflow/discuss.php?d=2#2",
+        "unsubscribemoodleoverflowlink": "https://example.com/mod/moodleoverflow/subscribe.php?id=2",
+        "unsubscribediscussionlink": "https://example.com/mod/discussion/subscribe.php?id=2&d=2"
+    }
 }}
 {{{ coursename }}} -> {{# str }} moodleoverflows, moodleoverflow {{/ str }} -> {{{ moodleoverflowname }}}{{# showdiscussionname }} -> {{{ discussionname }}} {{/ showdiscussionname }}
 {{ permalink }}
