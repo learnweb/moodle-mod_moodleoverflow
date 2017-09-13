@@ -997,7 +997,6 @@ function moodleoverflow_minimise_user_record(stdClass $user) {
  * similar), to the course-module object.
  * @param cm_info $cm Course-module object
  */
-//
 function moodleoverflow_cm_info_view(cm_info $cm) {
     global $CFG;
 

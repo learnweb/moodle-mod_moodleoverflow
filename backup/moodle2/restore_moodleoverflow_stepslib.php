@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
 class restore_moodleoverflow_activity_structure_step extends restore_activity_structure_step {
 
     /**
-     * Defines structure of path elements to be processed during the restore
+     * Defines structure of path elements to be processed during the restore.
      *
      * @return array of {@link restore_path_element}
      */
@@ -113,7 +113,7 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $data->created = $this->apply_date_offset($data->created);
         $data->modified = $this->apply_date_offset($data->modified);
         $data->userid = $this->get_mappingid('user', $data->userid);
-        // If post has parent, map it (it has been already restored)
+        // If post has parent, map it (it has been already restored).
         if (!empty($data->parent)) {
             $data->parent = $this->get_mappingid('moodleoverflow_post', $data->parent);
         }
@@ -121,7 +121,7 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $newitemid = $DB->insert_record('moodleoverflow_posts', $data);
         $this->set_mapping('moodleoverflow_post', $oldid, $newitemid, true);
 
-        // If !post->parent, it's the 1st post. Set it in discussion
+        // If !post->parent, it's the 1st post. Set it in discussion.
         if (empty($data->parent)) {
             $DB->set_field('moodleoverflow_discussions', 'firstpost', $newitemid, array('id' => $data->discussion));
         }

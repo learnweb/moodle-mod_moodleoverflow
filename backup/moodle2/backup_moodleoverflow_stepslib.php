@@ -42,7 +42,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
      */
     protected function define_structure() {
 
-        // To know if we are including userinfo
+        // To know if we are including userinfo.
         $userinfo = $this->get_setting_value('userinfo');
 
         // Define the root element describing the moodleoverflow instance.
@@ -51,7 +51,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
             'forcesubscribe', 'trackingtype', 'timecreated', 'timemodified',
             'ratingpreference', 'coursewidereputation', 'allownegativereputation'));
 
-        // Define each element separated
+        // Define each element separated.
         $discussions = new backup_nested_element('discussions');
         $discussion = new backup_nested_element('discussion', array('id'), array(
             'name', 'firstpost', 'userid', 'timemodified', 'usermodified', 'timestart'));
@@ -90,7 +90,6 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $track = new backup_nested_element('track', array('id'), array(
             'userid'));
 
-
         // Build the tree.
         $moodleoverflow->add_child($discussions);
         $discussions->add_child($discussion);
@@ -116,7 +115,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         // Define data sources.
         $moodleoverflow->set_source_table('moodleoverflow', array('id' => backup::VAR_ACTIVITYID));
 
-        // All these source definitions only happen if we are including user info
+        // All these source definitions only happen if we are including user info.
         if ($userinfo) {
             $discussion->set_source_sql('
                 SELECT *
@@ -124,7 +123,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
                  WHERE moodleoverflow = ?',
                 array(backup::VAR_PARENTID));
 
-            // Need posts ordered by id so parents are always before childs on restore
+            // Need posts ordered by id so parents are always before childs on restore.
             $post->set_source_table('moodleoverflow_posts', array('discussion' => backup::VAR_PARENTID), 'id ASC');
             $rating->set_source_table('moodleoverflow_ratings', array('postid' => backup::VAR_PARENTID));
             $discussionsub->set_source_table('moodleoverflow_discuss_subs', array('discussion' => backup::VAR_PARENTID));
@@ -133,7 +132,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
             $track->set_source_table('moodleoverflow_tracking', array('moodleoverflowid' => backup::VAR_PARENTID));
         }
 
-        // Define id annotations
+        // Define id annotations.
         $post->annotate_ids('user', 'userid');
         $subscription->annotate_ids('user', 'userid');
         $read->annotate_ids('user', 'userid');

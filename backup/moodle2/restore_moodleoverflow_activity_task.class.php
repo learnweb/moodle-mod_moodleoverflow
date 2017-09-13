@@ -86,7 +86,6 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
         $rules[] = new restore_decode_rule('MOODLEOVERFLOWDISCUSSIONVIEWINSIDE', '/mod/moodleoverflow/discussion.php?d=$1#$2',
             array('moodleoverflow_discussion', 'moodleoverflow_post'));
 
-
         return $rules;
 
     }
@@ -99,7 +98,6 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
      */
     static public function define_restore_log_rules() {
         $rules = array();
-        //welche brauche ich?
 
         $rules[] = new restore_log_rule('moodleoverflow', 'add', 'view.php?id={course_module}', '{moodleoverflow}');
         $rules[] = new restore_log_rule('moodleoverflow', 'update', 'view.php?id={course_module}', '{moodleoverflow}');
@@ -121,7 +119,8 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
         $rules[] = new restore_log_rule('moodleoverflow', 'delete discussion', 'view.php?id={course_module}', '{moodleoverflow}');
         $rules[] = new restore_log_rule('moodleoverflow', 'add post', 'discussion.php?d={moodleoverflow_discussion}&parent={moodleoverflow_post}', '{moodleoverflow_post}');
         $rules[] = new restore_log_rule('moodleoverflow', 'update post', 'discussion.php?d={moodleoverflow_discussion}#p{moodleoverflow_post}&parent={moodleoverflow_post}', '{moodleoverflow_post}');
-        $rules[] = new restore_log_rule('moodleoverflow', 'update post', 'discussion.php?d={moodleoverflow_discussion}&parent={moodleoverflow_post}', '{moodleoverflow_post}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'update post',
+            'discussion.php?d={moodleoverflow_discussion}&parent={moodleoverflow_post}', '{moodleoverflow_post}');
         $rules[] = new restore_log_rule('moodleoverflow', 'prune post', 'discussion.php?d={moodleoverflow_discussion}', '{moodleoverflow_post}');
         $rules[] = new restore_log_rule('moodleoverflow', 'delete post', 'discussion.php?d={moodleoverflow_discussion}', '[post]');
 

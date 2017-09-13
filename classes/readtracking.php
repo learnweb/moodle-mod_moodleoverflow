@@ -42,7 +42,6 @@ class readtracking {
      * @param object $moodleoverflow
      * @return boolean
      * */
-    //Benutzt einstellung vom forum
     public static function moodleoverflow_can_track_moodleoverflows($moodleoverflow = null) {
         global $USER, $CFG, $DB;
 
