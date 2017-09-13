@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 $plugin->component = 'mod_moodleoverflow';
 $plugin->version = 2017081504;
 $plugin->release = 'v1.0';
-$plugin->requires = 2016120502;
+$plugin->requires = 2017051500;
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->cron = 0;
 $plugin->dependencies = array();

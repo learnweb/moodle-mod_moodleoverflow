@@ -47,8 +47,8 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
 
         // Define the root element describing the moodleoverflow instance.
         $moodleoverflow = new backup_nested_element('moodleoverflow', array('id'), array(
-            'name', 'intro', 'introformat', 'grade',
-            'forcesubscribe', 'trackingtype', 'timemodified',
+            'name', 'intro', 'introformat',
+            'forcesubscribe', 'trackingtype', 'timecreated', 'timemodified',
             'ratingpreference', 'coursewidereputation', 'allownegativereputation'));
 
         // Define each element separated
@@ -67,13 +67,28 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $rating = new backup_nested_element('rating', array('id'), array(
             'userid', 'rating', 'firstrated', 'lastchanged'));
 
-        $discussionsubs = new backup_nested_element('discussion_subs');
+        $discussionsubs = new backup_nested_element('discuss_subs');
 
-        $discussionsub = new backup_nested_element('discussion_sub', array('id'), array(
+        $discussionsub = new backup_nested_element('discuss_sub', array('id'), array(
             'userid',
             'preference',
         ));
-        //Hier weitermachen.
+
+        $subscriptions = new backup_nested_element('subscriptions');
+
+        $subscription = new backup_nested_element('subscription', array('id'), array(
+            'userid'));
+
+        $readposts = new backup_nested_element('readposts');
+
+        $read = new backup_nested_element('read', array('id'), array(
+            'userid', 'discussionid', 'postid', 'firstread',
+            'lastread'));
+
+        $tracking = new backup_nested_element('tracking');
+
+        $track = new backup_nested_element('track', array('id'), array(
+            'userid'));
 
 
         // Build the tree.
@@ -89,6 +104,15 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $discussion->add_child($discussionsubs);
         $discussionsubs->add_child($discussionsub);
 
+        $moodleoverflow->add_child($subscriptions);
+        $subscriptions->add_child($subscription);
+
+        $moodleoverflow->add_child($readposts);
+        $readposts->add_child($read);
+
+        $moodleoverflow->add_child($tracking);
+        $tracking->add_child($track);
+
         // Define data sources.
         $moodleoverflow->set_source_table('moodleoverflow', array('id' => backup::VAR_ACTIVITYID));
 
@@ -102,10 +126,19 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
 
             // Need posts ordered by id so parents are always before childs on restore
             $post->set_source_table('moodleoverflow_posts', array('discussion' => backup::VAR_PARENTID), 'id ASC');
+            $rating->set_source_table('moodleoverflow_ratings', array('postid' => backup::VAR_PARENTID));
+            $discussionsub->set_source_table('moodleoverflow_discuss_subs', array('discussion' => backup::VAR_PARENTID));
+            $subscription->set_source_table('moodleoverflow_subscriptions', array('moodleoverflow' => backup::VAR_PARENTID));
+            $read->set_source_table('moodleoverflow_read', array('moodleoverflowid' => backup::VAR_PARENTID));
+            $track->set_source_table('moodleoverflow_tracking', array('moodleoverflowid' => backup::VAR_PARENTID));
         }
 
         // Define id annotations
         $post->annotate_ids('user', 'userid');
+        $subscription->annotate_ids('user', 'userid');
+        $read->annotate_ids('user', 'userid');
+        $rating->annotate_ids('user', 'userid');
+        $track->annotate_ids('user', 'userid');
 
         // Define file annotations (we do not use itemid in this example).
         $moodleoverflow->annotate_files('mod_moodleoverflow', 'intro', null);

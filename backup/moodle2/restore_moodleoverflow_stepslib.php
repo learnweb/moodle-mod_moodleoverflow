@@ -48,6 +48,12 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $paths[] = new restore_path_element('moodleoverflow', '/activity/moodleoverflow');
         if ($userinfo) {
             $paths[] = new restore_path_element('moodleoverflow_discussion', '/activity/moodleoverflow/discussions/discussion');
+            $paths[] = new restore_path_element('moodleoverflow_post', '/activity/moodleoverflow/discussions/discussion/posts/post');
+            $paths[] = new restore_path_element('moodleoverflow_discuss_sub', '/activity/moodleoverflow/discussions/discussion/discuss_subs/discuss_sub');
+            $paths[] = new restore_path_element('moodleoverflow_rating', '/activity/moodleoverflow/discussions/discussion/posts/post/ratings/rating');
+            $paths[] = new restore_path_element('moodleoverflow_subscription', '/activity/moodleoverflow/subscriptions/subscription');
+            $paths[] = new restore_path_element('moodleoverflow_read', '/activity/moodleoverflow/readposts/read');
+            $paths[] = new restore_path_element('moodleoverflow_track', '/activity/moodleoverflow/tracking/track');
         }
 
         // Return the paths wrapped into standard activity structure.
@@ -78,7 +84,6 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $this->apply_activity_instance($newitemid);
 
         // Add current enrolled user subscriptions if necessary.
-
     }
 
     protected function process_moodleoverflow_discussion($data) {
@@ -98,7 +103,7 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $this->set_mapping('moodleoverflow_discussion', $oldid, $newitemid);
     }
 
-    protected function process_forum_post($data) {
+    protected function process_moodleoverflow_post($data) {
         global $DB;
 
         $data = (object)$data;
@@ -122,6 +127,75 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         }
     }
 
+    protected function process_moodleoverflow_rating($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->postid = $this->get_new_parentid('moodleoverflow_post');
+        $data->discussionid = $this->get_new_parentid('moodleoverflow_discussion');
+        $data->moodleoverflowid = $this->get_new_parentid('moodleoverflow');
+
+        $newitemid = $DB->insert_record('moodleoverflow_ratings', $data);
+        $this->set_mapping('moodleoverflow_rating', $oldid, $newitemid, true);
+    }
+
+    protected function process_moodleoverflow_subscription($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
+        $data->userid = $this->get_mappingid('user', $data->userid);
+
+        $newitemid = $DB->insert_record('moodleoverflow_subscriptions', $data);
+        $this->set_mapping('moodleoverflow_subscription', $oldid, $newitemid, true);
+
+    }
+
+    protected function process_moodleoverflow_discuss_sub($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        $data->discussion = $this->get_new_parentid('moodleoverflow_discussion');
+        $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
+        $data->userid = $this->get_mappingid('user', $data->userid);
+
+        $newitemid = $DB->insert_record('moodleoverflow_discuss_subs', $data);
+        $this->set_mapping('moodleoverflow_discuss_sub', $oldid, $newitemid, true);
+    }
+
+    protected function process_moodleoverflow_read($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        $data->moodleoverflowid = $this->get_new_parentid('moodleoverflow');
+        $data->discussionid = $this->get_mappingid('moodleoverflow_discussion', $data->discussionid);
+        $data->postid = $this->get_mappingid('moodleoverflow_post', $data->postid);
+        $data->userid = $this->get_mappingid('user', $data->userid);
+
+        $newitemid = $DB->insert_record('moodleoverflow_read', $data);
+    }
+
+    protected function process_moodleoverflow_track($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        $data->moodleoverflowid = $this->get_new_parentid('moodleoverflow');
+        $data->userid = $this->get_mappingid('user', $data->userid);
+
+        $newitemid = $DB->insert_record('moodleoverflow_tracking', $data);
+    }
+
     /**
      * Post-execution actions
      */
@@ -129,5 +203,4 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         // Add moodleoverflow related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_moodleoverflow', 'intro', null);
     }
-
 }

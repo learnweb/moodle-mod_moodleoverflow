@@ -65,4 +65,4 @@ job1:
  <<: *job_definition
  image: php:7.1
  variables:
-  MOODLE_BRANCH: "MOODLE_32_STABLE"
+  MOODLE_BRANCH: "MOODLE_33_STABLE"
