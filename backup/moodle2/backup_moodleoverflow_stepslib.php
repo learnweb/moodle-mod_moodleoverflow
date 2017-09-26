@@ -47,7 +47,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
 
         // Define the root element describing the moodleoverflow instance.
         $moodleoverflow = new backup_nested_element('moodleoverflow', array('id'), array(
-            'name', 'intro', 'introformat',
+            'name', 'intro', 'introformat', 'maxbytes', 'maxattachments',
             'forcesubscribe', 'trackingtype', 'timecreated', 'timemodified',
             'ratingpreference', 'coursewidereputation', 'allownegativereputation'));
 
@@ -60,7 +60,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
 
         $post = new backup_nested_element('post', array('id'), array(
             'parent', 'userid', 'created', 'modified',
-            'mailed', 'message', 'messageformat'));
+            'mailed', 'message', 'messageformat', 'attachment'));
 
         $ratings = new backup_nested_element('ratings');
 
@@ -142,6 +142,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         // Define file annotations (we do not use itemid in this example).
         $moodleoverflow->annotate_files('mod_moodleoverflow', 'intro', null);
         $post->annotate_files('mod_moodleoverflow', 'post', 'id');
+        $post->annotate_files('mod_moodleoverflow', 'attachment', 'id');
 
         // Return the root element (moodleoverflow), wrapped into standard activity structure.
         return $this->prepare_activity_structure($moodleoverflow);

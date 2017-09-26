@@ -34,7 +34,8 @@
 <a id="p{{ postid }}"></a>
 
 {{! Start the post. Mark it read or unread. }}
-<div class="moodleoverflowpost clearfix{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
+<div class="moodleoverflowpost clearfix{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region"
+     aria-label="{{ discussionby }}">
 
     <div>
 
@@ -61,9 +62,10 @@
                     {{{ bytext }}}
                 </div>
 
-                {{^isfirstpost}}<div class="subject" role="heading" aria-level="2">
-                    &nbsp;
-                </div>{{/isfirstpost}}
+                {{^isfirstpost}}
+                    <div class="subject" role="heading" aria-level="2">
+                        &nbsp;
+                    </div>{{/isfirstpost}}
 
             </div>
             {{! End of the topic column. }}
@@ -93,6 +95,32 @@
 
         </div>
         {{! End of the post content row. }}
+
+        {{! Row with attachments. }}
+        <div class="attachments">
+
+            {{! Loop through all attachments. }}
+            {{#attachments}}
+
+                {{! Don't display images as links}}
+                {{#image}}
+                    <img src="{{filepath}}" alt=""/>
+                    <br>
+                {{/image}}
+                {{^image}}
+                    <a href="{{filepath}}">
+                        {{{icon}}}
+                    </a>
+                    <a href="{{filepath}}">
+                        {{filename}}
+                    </a>
+
+                {{/image}}
+
+                <br>
+            {{/attachments}}
+
+        </div>
 
         <div class="row side">
             <div class="left">

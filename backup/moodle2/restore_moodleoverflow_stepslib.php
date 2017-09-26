@@ -200,5 +200,7 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
     protected function after_execute() {
         // Add moodleoverflow related files, no need to match by itemname (just internally handled context).
         $this->add_related_files('mod_moodleoverflow', 'intro', null);
+        $this->add_related_files('mod_moodleoverflow', 'post', 'moodleoverflow_post');
+        $this->add_related_files('mod_moodleoverflow', 'attachment', 'moodleoverflow_post');
     }
 }

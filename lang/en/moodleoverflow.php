@@ -42,6 +42,7 @@ $string['pluginname'] = 'Moodleoverflow';
 $string['moodleoverflow:addinstance'] = 'Add a new moodleoverflow instance';
 $string['moodleoverflow:submit'] = 'Submit moodleoverflow';
 $string['moodleoverflow:allowforcesubscribe'] = 'Allow forced subscription';
+$string['moodleoverflow:createattachment'] = 'Create attachments';
 $string['moodleoverflow:managesubscriptions'] = 'Manage subscriptions';
 $string['moodleoverflow:ratehelpful'] = 'Mark a post as helpful';
 $string['moodleoverflow:ratepost'] = 'Rate a post';
@@ -85,6 +86,12 @@ $string['deletesureplural'] = 'Are you sure you want to delete this post and all
 // Strings for the settings.php.
 $string['configmanydiscussions'] = 'Maximum number of discussions shown in a moodleoverflow instance per page';
 $string['manydiscussions'] = 'Discussions per page';
+$string['maxattachmentsize'] = 'Maximum attachment size';
+$string['maxattachmentsize_help'] = 'This setting specifies the largest size of file that can be attached to a moodleoverflow post.';
+$string['configmaxbytes'] = 'Default maximum size for all moodleoverflow attachments on the site (subject to course limits and other local settings)';
+$string['maxattachments'] = 'Maximum number of attachments';
+$string['maxattachments_help'] = 'This setting specifies the maximum number of files that can be attached to a forum post.';
+$string['configmaxattachments'] = 'Default maximum number of attachments allowed per post.';
 $string['configoldpostdays'] = 'Number of days old any post is considered read.';
 $string['oldpostdays'] = 'Read after days';
 $string['trackingoff'] = 'Off';
@@ -243,6 +250,9 @@ $string['everyoneisnowsubscribed'] = 'Everyone is now subscribed to this moodleo
 $string['everyoneissubscribed'] = 'Everyone is subscribed to this moodleoverflow';
 $string['mailindexlink'] = 'Change your moodleoverflow preferences: {$a}';
 $string['gotoindex'] = 'Manage preferences';
+$string['areaattachment'] = 'Attachments';
+$string['areapost'] = 'Messages';
+
 
 // EVENTS.
 $string['eventdiscussioncreated'] = 'Discussion created';
@@ -299,3 +309,6 @@ $string['coursewidereputation'] = 'Cross module reputation?';
 $string['coursewidereputation_help'] = 'If set to yes, the users reputations of all moodleoverflow modules in this course will be summed.';
 $string['clicktounsubscribe'] = 'You are subscribed to this discussion. Click to unsubscribe.';
 $string['clicktosubscribe'] = 'You are not subscribed to this discussion. Click to subscribe.';
+$string['attachment'] = 'Attachment';
+$string['attachments'] = 'Attachments';
+$string['attachment_help'] = 'You can optionally attach one or more files to a forum post. If you attach an image, it will be displayed after the message.';

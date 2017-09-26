@@ -458,6 +458,10 @@ if ($edit) {
     $subject = $post->subject;
 }
 
+// Get attachments.
+$draftitemid = file_get_submitted_draft_itemid('attachments');
+file_prepare_draft_area($draftitemid, $modulecontext->id, 'mod_moodleoverflow', 'attachment', empty($post->id)?null:$post->id, mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
+
 // Prepare the form.
 $formarray = array(
         'course'         => $course,
@@ -513,6 +517,7 @@ $param3 = (isset($discussion->timestart) ? array('timestart' => $discussion->tim
 $param4 = (isset($discussion->timeend) ? array('timeend' => $discussion->timeend) : array());
 $param5 = (isset($discussion->id) ? array('discussion' => $discussion->id) : array());
 $mformpost->set_data(array(
+        'attachments'=>$draftitemid,
         'general' => $heading,
         'subject' => $subject,
         'message' => array(
@@ -633,7 +638,7 @@ if ($fromform = $mformpost->get_data()) {
         $addpost->moodleoverflow = $moodleoverflow->id;
 
         // Create the new post.
-        if ($fromform->id = moodleoverflow_add_new_post($addpost, $mformpost)) {
+        if ($fromform->id = moodleoverflow_add_new_post($addpost)) {
 
             // Subscribe to this thread.
             $discussion = new \stdClass();

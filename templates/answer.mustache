@@ -48,6 +48,23 @@
                     <div class="post-text">
                         {{{ postcontent }}}
                     </div>
+                    <div class="attachments">
+                        {{#attachments}}
+                            {{#image}}
+                                <img src="{{filepath}}" alt=""/>
+                                <br>
+                            {{/image}}
+                            {{^image}}
+                                <a href="{{filepath}}">
+                                    {{{icon}}}
+                                </a>
+                                <a href="{{filepath}}">
+                                    {{filename}}
+                                </a>
+                            {{/image}}
+                            <br>
+                        {{/attachments}}
+                    </div>
                     <table class="post-info">
                         <tbody>
                             <tr>

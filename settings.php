@@ -30,6 +30,20 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('moodleoverflow_manydiscussions', get_string('manydiscussions', 'moodleoverflow'),
         get_string('configmanydiscussions', 'moodleoverflow'), 10, PARAM_INT));
 
+    if (isset($CFG->maxbytes)) {
+        $maxbytes = 0;
+        if (isset($CFG->moodleoverflow_maxbytes)) {
+            $maxbytes = $CFG->moodleoverflow_maxbytes;
+        }
+        $settings->add(new admin_setting_configselect('moodleoverflow_maxbytes', get_string('maxattachmentsize', 'moodleoverflow'),
+            get_string('configmaxbytes', 'moodleoverflow'), 512000, get_max_upload_sizes($CFG->maxbytes, 0, 0, $maxbytes)));
+    }
+
+    // Default number of attachments allowed per post in all moodlevoerflows
+    $settings->add(new admin_setting_configtext('moodleoverflow_maxattachments', get_string('maxattachments', 'moodleoverflow'),
+        get_string('configmaxattachments', 'moodleoverflow'), 9, PARAM_INT));
+
+
     // Default read tracking settings.
     $options = array();
     $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');

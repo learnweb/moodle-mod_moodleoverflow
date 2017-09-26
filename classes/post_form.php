@@ -45,6 +45,8 @@ class mod_moodleoverflow_post_form extends moodleform {
 
         $modform =& $this->_form;
         $post = $this->_customdata['post'];
+        $modcontext = $this->_customdata['modulecontext'];
+        $moodleoverflow = $this->_customdata['moodleoverflow'];
 
         // Fill in the data depending on page params later using set_data.
         $modform->addElement('header', 'general', '');
@@ -59,6 +61,11 @@ class mod_moodleoverflow_post_form extends moodleform {
         $modform->addElement('editor', 'message', get_string('message', 'moodleoverflow'), null);
         $modform->setType('message', PARAM_RAW);
         $modform->addRule('message', get_string('required'), 'required', null, 'client');
+
+        if (moodleoverflow_can_create_attachment($moodleoverflow, $modcontext)) {
+            $modform->addElement('filemanager', 'attachments', get_string('attachment', 'moodleoverflow'), null, self::attachment_options($moodleoverflow));
+            $modform->addHelpButton('attachments', 'attachment', 'moodleoverflow');
+        }
 
         // Submit buttons.
         if (isset($post->edit)) {
@@ -110,6 +117,24 @@ class mod_moodleoverflow_post_form extends moodleform {
             $errors['subject'] = get_string('erroremptysubject', 'moodleoverflow');
         }
         return $errors;
+    }
+
+    /**
+     * Returns the options array to use in filemanager for moodleoverflow attachments
+     *
+     * @param stdClass $moodleoverflow
+     * @return array
+     */
+    public static function attachment_options($moodleoverflow) {
+        global $COURSE, $PAGE, $CFG;
+        $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes, $moodleoverflow->maxbytes);
+        return array(
+            'subdirs' => 0,
+            'maxbytes' => $maxbytes,
+            'maxfiles' => $moodleoverflow->maxattachments,
+            'accepted_types' => '*',
+            'return_types' => FILE_INTERNAL | FILE_CONTROLLED_LINK
+        );
     }
 
 }

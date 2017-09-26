@@ -33,7 +33,7 @@ require_once($CFG->dirroot.'/course/moodleform_mod.php');
  * Module instance settings form
  *
  * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
+ * @copyright  2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_mod_form extends moodleform_mod {
@@ -42,7 +42,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      * Defines forms elements
      */
     public function definition() {
-        global $CFG;
+        global $CFG, $COURSE;
 
         // Define the modform.
         $mform = $this->_form;
@@ -66,6 +66,35 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         } else {
             $this->add_intro_editor();
         }
+
+        // Attachments.
+        $mform->addElement('header', 'attachmentshdr', get_string('attachments', 'moodleoverflow'));
+
+        $choices = get_max_upload_sizes($CFG->maxbytes, $COURSE->maxbytes, 0, $CFG->moodleoverflow_maxbytes);
+        $choices[1] = get_string('uploadnotallowed');
+        $mform->addElement('select', 'maxbytes', get_string('maxattachmentsize', 'moodleoverflow'), $choices);
+        $mform->addHelpButton('maxbytes', 'maxattachmentsize', 'moodleoverflow');
+        $mform->setDefault('maxbytes', $CFG->moodleoverflow_maxbytes);
+
+        $choices = array(
+            0 => 0,
+            1 => 1,
+            2 => 2,
+            3 => 3,
+            4 => 4,
+            5 => 5,
+            6 => 6,
+            7 => 7,
+            8 => 8,
+            9 => 9,
+            10 => 10,
+            20 => 20,
+            50 => 50,
+            100 => 100
+        );
+        $mform->addElement('select', 'maxattachments', get_string('maxattachments', 'moodleoverflow'), $choices);
+        $mform->addHelpButton('maxattachments', 'maxattachments', 'moodleoverflow');
+        $mform->setDefault('maxattachments', $CFG->moodleoverflow_maxattachments);
 
         // Subscription Handling.
         $mform->addElement('header', 'subscriptiontrackingheader', get_string('subscriptiontrackingheader', 'moodleoverflow'));

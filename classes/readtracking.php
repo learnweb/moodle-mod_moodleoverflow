@@ -43,7 +43,7 @@ class readtracking {
      * @return boolean
      * */
     public static function moodleoverflow_can_track_moodleoverflows($moodleoverflow = null) {
-        global $USER, $CFG, $DB;
+        global $USER, $CFG;
 
         // Check if readtracking is disabled for the module.
         if (empty($CFG->moodleoverflow_trackreadposts)) {

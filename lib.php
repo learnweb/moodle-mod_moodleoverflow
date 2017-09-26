@@ -31,6 +31,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(__FILE__) . '/locallib.php');
 
 // Readtracking constants.
 define('MOODLEOVERFLOW_TRACKING_OFF',      0);
@@ -346,7 +347,10 @@ function moodleoverflow_cron() {
  * @return array of [(string)filearea] => (string)description
  */
 function moodleoverflow_get_file_areas($course, $cm, $context) {
-    return array();
+    return array(
+        'attachment' => get_string('areaattachment', 'mod_moodleoverflow'),
+        'post' => get_string('areapost', 'mod_moodleoverflow'),
+    );
 }
 
 /**
@@ -385,17 +389,59 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
  * @param array $options additional options affecting the file serving
  */
 function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
+    global $CFG, $DB;
 
-    // Check the context level.
     if ($context->contextlevel != CONTEXT_MODULE) {
-        send_file_not_found();
+        return false;
     }
 
-    // Require a login.
-    require_login($course, true, $cm);
+    require_course_login($course, true, $cm);
 
-    // Send the pluginfile.
-    send_file_not_found();
+    $areas = moodleoverflow_get_file_areas($course, $cm, $context);
+
+    // filearea must contain a real area
+    if (!isset($areas[$filearea])) {
+        return false;
+    }
+
+    $postid = (int)array_shift($args);
+
+    if (!$post = $DB->get_record('moodleoverflow_posts', array('id'=>$postid))) {
+        return false;
+    }
+
+    if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id'=>$post->discussion))) {
+        return false;
+    }
+
+    if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id'=>$cm->instance))) {
+        return false;
+    }
+
+    $fs = get_file_storage();
+    $relativepath = implode('/', $args);
+    $fullpath = "/$context->id/mod_moodleoverflow/$filearea/$postid/$relativepath";
+    if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+        return false;
+    }
+
+    // Make sure groups allow this user to see this file
+    if ($discussion->groupid > 0) {
+        $groupmode = groups_get_activity_groupmode($cm, $course);
+        if ($groupmode == SEPARATEGROUPS) {
+            if (!groups_is_member($discussion->groupid) and !has_capability('moodle/site:accessallgroups', $context)) {
+                return false;
+            }
+        }
+    }
+
+    // Make sure we're allowed to see it...
+    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, NULL, $cm)) {
+        return false;
+    }
+
+    // finally send the file
+    send_stored_file($file, 0, 0, true, $options); // download MUST be forced - security!
 }
 
 /* Navigation API */
@@ -1015,4 +1061,20 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
             $cm->set_after_link($out);
         }
     }
+}
+
+/**
+ * Check if the user can create attachments in moodleoverflow.
+ * @param  stdClass $moodleoverflow   moodleoverflow object
+ * @param  stdClass $context context object
+ * @return bool true if the user can create attachments, false otherwise
+ * @since  Moodle 3.3
+ */
+function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
+    // If maxbytes == 1 it means no attachments at all.
+    if (empty($moodleoverflow->maxattachments) || $moodleoverflow->maxbytes == 1 ||
+        !has_capability('mod/moodleoverflow:createattachment', $context)) {
+        return false;
+    }
+    return true;
 }
