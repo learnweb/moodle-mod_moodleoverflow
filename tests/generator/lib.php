@@ -128,6 +128,9 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         if (isset($record['timemodified'])) {
             $timemodified = $record['timemodified'];
         }
+        if (!isset($record['attachments'])) {
+            $record['attaments'] = null;
+        }
 
         // Transform the array into an object.
         $record = (object) $record;
