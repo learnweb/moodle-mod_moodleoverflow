@@ -9,7 +9,8 @@ variables:
  DB: "mysqli"
  MYSQL_ROOT_PASSWORD: "superrootpass"
  TRAVIS_BUILD_DIR: "$CI_PROJECT_DIR"
-
+ MUSTACHE_IGNORE_NAMES: "email_html_body.mustache, email_html.mustache, email_text.mustache"
+  
 before_script:
  # Prepare oracle-java8
  - echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" > /etc/apt/sources.list.d/webupd8team-java.list
