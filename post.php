@@ -460,7 +460,12 @@ if ($edit) {
 
 // Get attachments.
 $draftitemid = file_get_submitted_draft_itemid('attachments');
-file_prepare_draft_area($draftitemid, $modulecontext->id, 'mod_moodleoverflow', 'attachment', empty($post->id) ? null : $post->id, mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
+file_prepare_draft_area($draftitemid,
+    $modulecontext->id,
+    'mod_moodleoverflow',
+    'attachment', 
+    empty($post->id) ? null : $post->id,
+    mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
 
 // Prepare the form.
 $formarray = array(
