@@ -1216,7 +1216,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
 
-        // Output the commands.
+    // Output the commands.
     $commandhtml = array();
     foreach ($commands as $command) {
         if (is_array($command)) {
@@ -1361,7 +1361,7 @@ function get_attachments($post, $cm) {
             $attachments[$i]['filepath'] = $path;
 
             if (in_array($mimetype, array('image/gif', 'image/jpeg', 'image/png'))) {
-                // Image attachments don't get printed as links
+                // Image attachments don't get printed as links.
                 $attachments[$i]['image'] = true;
             } else {
                 $attachments[$i]['image'] = false;
@@ -1391,11 +1391,11 @@ function moodleoverflow_add_attachment($post, $forum, $cm) {
     $context = context_module::instance($cm->id);
 
     $info = file_get_draft_area_info($post->attachments);
-    $present = ($info['filecount']>0) ? '1' : '';
+    $present = ($info['filecount'] > 0) ? '1' : '';
     file_save_draft_area_files($post->attachments, $context->id, 'mod_moodleoverflow', 'attachment', $post->id,
         mod_moodleoverflow_post_form::attachment_options($forum));
 
-    $DB->set_field('moodleoverflow_posts', 'attachment', $present, array('id'=>$post->id));
+    $DB->set_field('moodleoverflow_posts', 'attachment', $present, array('id' => $post->id));
 
     return true;
 }

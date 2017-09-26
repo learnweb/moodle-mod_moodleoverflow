@@ -39,7 +39,7 @@ if ($ADMIN->fulltree) {
             get_string('configmaxbytes', 'moodleoverflow'), 512000, get_max_upload_sizes($CFG->maxbytes, 0, 0, $maxbytes)));
     }
 
-    // Default number of attachments allowed per post in all moodlevoerflows
+    // Default number of attachments allowed per post in all moodlevoerflows.
     $settings->add(new admin_setting_configtext('moodleoverflow_maxattachments', get_string('maxattachments', 'moodleoverflow'),
         get_string('configmaxattachments', 'moodleoverflow'), 9, PARAM_INT));
 
