@@ -294,6 +294,7 @@
     display: block;
     margin-bottom: 5px;
     position: relative;
+    padding: 6px;
 }
 
 .moodleoverflowpost.statusboth:before {
@@ -348,10 +349,6 @@
     min-height: 45rem;
     overflow-x: auto;
     overflow-y: visible;
-}
-
-.moodleoverflowpost {
-    padding: 6px;
 }
 
 .moodleoverflowpost .header {
@@ -422,6 +419,11 @@ span.unread {
 
 .moodleoverflowpost .topic .author .icon {
     margin-right: 0;
+}
+
+.moodleoverflowpost .attachments img {
+    max-width: 40em;
+    max-height: 30em;
 }
 
 /*
