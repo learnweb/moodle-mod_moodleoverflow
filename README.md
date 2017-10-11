@@ -20,7 +20,8 @@ The discussion overview shows the status, among other things. Thus users can see
 <img src="https://wiwi-gitlab.uni-muenster.de/learnweb/moodle-mod_moodleoverflow/uploads/352944ce0e7c06cf7844275f0e948f57/discussion_list.png" width="500">
 <br><br>
 Posts can be marked as helpful (orange) by the question owner or as solved (green) by a teacher. The current post is marked blue.
-Additionally, everybody can vote posts up or down. Post owners can edit their posts until 30 minutes after posting. Teachers can edit and delete posts from everybody without the time restriction.
+Additionally, everybody can vote posts up or down. The post are ordered by the number of upvotes. The post owner's reputation increases if the post is upvoted and decreases it the post is downvoted.
+Post owners can edit their posts until 30 minutes after posting. Teachers can edit and delete posts from everybody without the time restriction.
 <br><br>
 <img src="https://wiwi-gitlab.uni-muenster.de/learnweb/moodle-mod_moodleoverflow/uploads/78af33c7f0357d8c0932fab266e5134c/post.png" width="500">
 <br><br>
