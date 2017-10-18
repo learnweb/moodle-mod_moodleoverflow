@@ -5,9 +5,15 @@ The plugin has the same features as the moodle forum.
 Additionally, users can rate posts and have an own rating score.
 Users, who have started a discussion, can mark a post as helpful and teachers can mark a post as solution.
 
-
 ## Installation
 This plugin should go into `mod/mooodleoverflow`.
+
+## Rating
+If a post is rated up or down, the post owner's rating score increases or decreases. The rating score of a user is always shown after the user name.
+In the settings you can define what amount of reputation a downvote or upvote gives. 
+Posts with a high score are displayed further up than posts with a lower score. 
+If a post is marked as helpful or solved, the post owner's rating score also increases. By default, a mark gives a higher amount of reputation than an upvote.
+A marked post is always displayed first, but you can choose which mark (solved or helpful) is more important.
 
 ## Screenshots
 Moodleoverflow activity:<br><br>
