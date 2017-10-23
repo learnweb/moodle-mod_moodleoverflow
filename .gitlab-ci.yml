@@ -67,3 +67,4 @@ job1:
  image: php:7.1
  variables:
   MOODLE_BRANCH: "MOODLE_33_STABLE"
+  MOODLE_BRANCH: "master"
