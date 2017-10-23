@@ -368,18 +368,8 @@
     margin-top: 8px;
 }
 
-.moodleoverflowpost .row .topic,
-.moodleoverflowpost .row .content-mask,
-.moodleoverflowpost .row .options {
-    margin-left: 48px;
-}
-
 .moodleoverflowpost .row.side {
     clear: both;
-}
-
-.moodleoverflowpost .row .left {
-    width: 48px;
 }
 
 .moodleoverflowpost .options .commands {
