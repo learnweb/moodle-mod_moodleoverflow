@@ -1,0 +1,14 @@
+fixes:
+  - "moodle/mod/moodleoverflow/::"
+
+ignore:
+  # artificial/Moodle API files
+  - "tests/**/*"
+  - "lang/**/*"
+  - "db/**/*"
+  - "db/.*"
+  - "version.php"
+  # entry points (consider Behat instead)
+  - "index.php"
+  - "view.php"
+  - "mod_form.php"
