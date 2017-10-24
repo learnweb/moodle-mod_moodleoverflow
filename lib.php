@@ -389,7 +389,7 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
  * @param array $options additional options affecting the file serving
  */
 function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options = array()) {
-    global $CFG, $DB;
+    global $DB;
 
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
@@ -399,7 +399,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
 
     $areas = moodleoverflow_get_file_areas($course, $cm, $context);
 
-    // filearea must contain a real area
+    // Filearea must contain a real area.
     if (!isset($areas[$filearea])) {
         return false;
     }
@@ -425,7 +425,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
         return false;
     }
 
-    // Make sure groups allow this user to see this file
+    // Make sure groups allow this user to see this file.
     if ($discussion->groupid > 0) {
         $groupmode = groups_get_activity_groupmode($cm, $course);
         if ($groupmode == SEPARATEGROUPS) {
@@ -440,7 +440,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
         return false;
     }
 
-    // finally send the file
+    // Finally send the file.
     send_stored_file($file, 0, 0, true, $options); // download MUST be forced - security!
 }
 
@@ -466,8 +466,8 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $activeenrolled = is_enrolled($PAGE->cm->context, $USER, '', true);
     $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $PAGE->cm->context);
     $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
-    $subscriptionsdisabled = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
-    $cansubscribe = ($activeenrolled AND !$forcesubscribed AND (!$subscriptionsdisabled OR $canmanage));
+    $subscdisabled = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
+    $cansubscribe = ($activeenrolled AND !$forcesubscribed AND (!$subscdisabled OR $canmanage));
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
 
     // Display a link to the index.
@@ -1045,7 +1045,6 @@ function moodleoverflow_minimise_user_record(stdClass $user) {
  * @param cm_info $cm Course-module object
  */
 function moodleoverflow_cm_info_view(cm_info $cm) {
-    global $CFG;
 
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows();
     if ($cantrack) {

@@ -19,8 +19,6 @@ matrix:
 
 env:
  global:
-  - MOODLE_BRANCH=master
-  - MOODLE_BRANCH=MOODLE_33_STABLE
   - BEHAT=yes
  matrix:
   - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE

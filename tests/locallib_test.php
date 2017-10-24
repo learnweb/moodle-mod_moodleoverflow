@@ -37,7 +37,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
      * Test subscription using automatic subscription on create.
      */
     public function test_moodleoverflow_auto_subscribe_on_create() {
-        global $DB, $CFG;
+        global $DB;
 
         $this->resetAfterTest();
 

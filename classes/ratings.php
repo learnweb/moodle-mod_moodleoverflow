@@ -203,7 +203,6 @@ class ratings {
      * @return array
      */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
-
         // Create copies to manipulate.
         $parentcopy = $posts;
         $postscopy = $posts;

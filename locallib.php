@@ -164,6 +164,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $rowcount = 0;
     $preparedarray = array();
     foreach ($discussions as $discussion) {
+        $preparedarray[$i] = array();
 
         // Set the amount of replies for every discussion.
         if (!empty($replies[$discussion->discussion])) {
@@ -174,7 +175,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         }
 
         // Set the right text.
-        $answertext = ($discussion->replies == 1) ? 'answer' : 'answers';
+        $preparedarray[$i]['answertext'] = ($discussion->replies == 1) ? 'answer' : 'answers';
 
         // Set the amount of unread messages for each discussion.
         if (!$istracked) {
@@ -191,18 +192,20 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Check if the question owner marked the question as helpful.
         $statusstarter = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, false);
-        $starterlink = null;
+        $preparedarray[$i]['starterlink'] = null;
         if ($statusstarter) {
             $link = '/mod/moodleoverflow/discussion.php?d=';
-            $starterlink = new moodle_url($link . $statusstarter->discussionid . '#p' . $statusstarter->postid);
+            $preparedarray[$i]['starterlink'] = new moodle_url($link .
+                $statusstarter->discussionid . '#p' . $statusstarter->postid);
         }
 
         // Check if a teacher marked a post as solved.
         $statusteacher = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, true);
-        $teacherlink = null;
+        $preparedarray[$i]['teacherlink'] = null;
         if ($statusteacher) {
             $link = '/mod/moodleoverflow/discussion.php?d=';
-            $teacherlink = new moodle_url($link . $statusteacher->discussionid . '#p' . $statusteacher->postid);
+            $preparedarray[$i]['teacherlink'] = new moodle_url($link .
+                $statusteacher->discussionid . '#p' . $statusteacher->postid);
         }
 
         // Check if a single post was marked by the question owner and a teacher.
@@ -216,7 +219,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         // Get the amount of votes for the discussion.
         $votes = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->discussion, $discussion->id);
         $votes = $votes->upvotes - $votes->downvotes;
-        $votetext = ($votes == 1) ? 'vote' : 'votes';
+        $preparedarray[$i]['votetext'] = ($votes == 1) ? 'vote' : 'votes';
 
         // Use the discussions name instead of the subject of the first post.
         $discussion->subject = $discussion->name;
@@ -225,8 +228,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $rowcount = ($rowcount + 1) % 2;
 
         // Format the subjectname and the link to the topic.
-        $subjecttext = format_string($discussion->subject);
-        $subjectlink = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion;
+        $preparedarray[$i]['subjecttext'] = format_string($discussion->subject);
+        $preparedarray[$i]['subjectlink'] = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion;
 
         // Get information about the user who started the discussion.
         $startuser = new stdClass();
@@ -235,19 +238,21 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $startuser->id = $discussion->userid;
 
         // Get his picture, his name and the link to his profile.
-        $userpicture = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course));
-        $username = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
-        $userlink = $CFG->wwwroot . '/user/view.php?id=' . $discussion->userid . '&course=' . $moodleoverflow->course;
+        $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course));
+        $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
+        $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
+            $discussion->userid . '&course=' . $moodleoverflow->course;
 
         // Get the amount of replies and the link to the discussion.
-        $replyamount = $discussion->replies;
+        $preparedarray[$i]['replyamount'] = $discussion->replies;
 
         // Are there unread messages? Create a link to them.
-        $unreadamount = $discussion->unread;
-        $hasunreads = ($unreadamount > 0) ? true : false;
-        $unreadlink = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '#unread';
+        $preparedarray[$i]['unreadamount'] = $discussion->unread;
+        $preparedarray[$i]['unread'] = ($preparedarray[$i]['unreadamount'] > 0) ? true : false;
+        $preparedarray[$i]['unreadlink'] = $CFG->wwwroot .
+            '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '#unread';
         $link = '/mod/moodleoverflow/markposts.php?m=';
-        $markreadlink = $CFG->wwwroot . $link . $moodleoverflow->id . '&d=' . $discussion->discussion;
+        $preparedarray[$i]['markreadlink'] = $CFG->wwwroot . $link . $moodleoverflow->id . '&d=' . $discussion->discussion;
 
         // Check the date of the latest post. Just in case the database is not consistent.
         $usedate = (empty($discussion->timemodified)) ? $discussion->modified : $discussion->timemodified;
@@ -256,50 +261,32 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $usermodified = new stdClass();
         $usermodified->id = $discussion->usermodified;
         $usermodified = username_load_fields_from_object($usermodified, $discussion, 'um');
-        $usermodifiedname = fullname($usermodified);
-        $usermodifiedlink = $CFG->wwwroot . '/user/view.php?id=' . $discussion->usermodified . '&course=' . $moodleoverflow->course;
+        $preparedarray[$i]['lastpostusername'] = fullname($usermodified);
+        $preparedarray[$i]['lastpostuserlink'] = $CFG->wwwroot . '/user/view.php?id=' .
+            $discussion->usermodified . '&course=' . $moodleoverflow->course;
 
         // Get the date of the latest post of the discussion.
         $parenturl = (empty($discussion->lastpostid)) ? '' : '&parent=' . $discussion->lastpostid;
-        $lastpostdate = userdate($usedate, get_string('strftimerecentfull'));
-        $lastpostlink = $subjectlink . $parenturl;
+        $preparedarray[$i]['lastpostdate'] = userdate($usedate, get_string('strftimerecentfull'));
+        $preparedarray[$i]['lastpostlink'] = $preparedarray[$i]['subjectlink'] . $parenturl;
 
         // Check whether the discussion is subscribed.
-        $discussionsubicon = false;
+        $preparedarray[$i]['discussionsubicon'] = false;
         if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
             // Discussion subscription.
             if (\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow)) {
-                $discussionsubicon = \mod_moodleoverflow\subscriptions::get_discussion_subscription_icon($moodleoverflow,
-                    $discussion->discussion);
+                $preparedarray[$i]['discussionsubicon'] = \mod_moodleoverflow\subscriptions::get_discussion_subscription_icon(
+                    $moodleoverflow, $discussion->discussion);
             }
         }
 
         // Add all created data to an array.
-        $preparedarray[$i] = array();
+
         $preparedarray[$i]['rowcount'] = $rowcount;
-        $preparedarray[$i]['subjecttext'] = $subjecttext;
-        $preparedarray[$i]['subjectlink'] = $subjectlink;
-        $preparedarray[$i]['picture'] = $userpicture;
-        $preparedarray[$i]['username'] = $username;
-        $preparedarray[$i]['userlink'] = $userlink;
-        $preparedarray[$i]['replyamount'] = $replyamount;
-        $preparedarray[$i]['unread'] = $hasunreads;
-        $preparedarray[$i]['unreadamount'] = $unreadamount;
-        $preparedarray[$i]['unreadlink'] = $unreadlink;
-        $preparedarray[$i]['markreadlink'] = $markreadlink;
-        $preparedarray[$i]['lastpostuserlink'] = $usermodifiedlink;
-        $preparedarray[$i]['lastpostusername'] = $usermodifiedname;
-        $preparedarray[$i]['lastpostlink'] = $lastpostlink;
-        $preparedarray[$i]['lastpostdate'] = $lastpostdate;
         $preparedarray[$i]['statusstarter'] = $statusstarter;
         $preparedarray[$i]['statusteacher'] = $statusteacher;
-        $preparedarray[$i]['starterlink'] = $starterlink;
-        $preparedarray[$i]['teacherlink'] = $teacherlink;
         $preparedarray[$i]['statusboth'] = $statusboth;
         $preparedarray[$i]['votes'] = $votes;
-        $preparedarray[$i]['votetext'] = $votetext;
-        $preparedarray[$i]['answertext'] = $answertext;
-        $preparedarray[$i]['discussionsubicon'] = $discussionsubicon;
 
         // Go to the next discussion.
         $i++;
@@ -905,7 +892,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
         $posts[$post->parent]->children[$postid] =& $posts[$postid];
     }
 
-    // Return the objeckt.
+    // Return the object.
     return $posts;
 }
 
@@ -1354,8 +1341,11 @@ function get_attachments($post, $cm) {
             $attachments[$i]['filename'] = $file->get_filename();
 
             $mimetype = $file->get_mimetype();
-            $iconimage = $OUTPUT->pix_icon(file_file_icon($file), get_mimetype_description($file), 'moodle', array('class' => 'icon'));
-            $path = file_encode_url($CFG->wwwroot . '/pluginfile.php', '/' . $context->id . '/mod_moodleoverflow/attachment/' . $post->id . '/' . $attachments[$i]['filename']);
+            $iconimage = $OUTPUT->pix_icon(file_file_icon($file),
+                get_mimetype_description($file), 'moodle',
+                array('class' => 'icon'));
+            $path = file_encode_url($CFG->wwwroot . '/pluginfile.php', '/' .
+                $context->id . '/mod_moodleoverflow/attachment/' . $post->id . '/' . $attachments[$i]['filename']);
 
             $attachments[$i]['icon'] = $iconimage;
             $attachments[$i]['filepath'] = $path;
@@ -1385,7 +1375,7 @@ function moodleoverflow_add_attachment($post, $forum, $cm) {
     global $DB;
 
     if (empty($post->attachments)) {
-        return true;   // Nothing to do
+        return true;   // Nothing to do.
     }
 
     $context = context_module::instance($cm->id);

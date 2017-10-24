@@ -47,13 +47,20 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
         $paths[] = new restore_path_element('moodleoverflow', '/activity/moodleoverflow');
         if ($userinfo) {
-            $paths[] = new restore_path_element('moodleoverflow_discussion', '/activity/moodleoverflow/discussions/discussion');
-            $paths[] = new restore_path_element('moodleoverflow_post', '/activity/moodleoverflow/discussions/discussion/posts/post');
-            $paths[] = new restore_path_element('moodleoverflow_discuss_sub', '/activity/moodleoverflow/discussions/discussion/discuss_subs/discuss_sub');
-            $paths[] = new restore_path_element('moodleoverflow_rating', '/activity/moodleoverflow/discussions/discussion/posts/post/ratings/rating');
-            $paths[] = new restore_path_element('moodleoverflow_subscription', '/activity/moodleoverflow/subscriptions/subscription');
-            $paths[] = new restore_path_element('moodleoverflow_read', '/activity/moodleoverflow/readposts/read');
-            $paths[] = new restore_path_element('moodleoverflow_track', '/activity/moodleoverflow/tracking/track');
+            $paths[] = new restore_path_element('moodleoverflow_discussion',
+                '/activity/moodleoverflow/discussions/discussion');
+            $paths[] = new restore_path_element('moodleoverflow_post',
+                '/activity/moodleoverflow/discussions/discussion/posts/post');
+            $paths[] = new restore_path_element('moodleoverflow_discuss_sub',
+                '/activity/moodleoverflow/discussions/discussion/discuss_subs/discuss_sub');
+            $paths[] = new restore_path_element('moodleoverflow_rating',
+                '/activity/moodleoverflow/discussions/discussion/posts/post/ratings/rating');
+            $paths[] = new restore_path_element('moodleoverflow_subscription',
+                '/activity/moodleoverflow/subscriptions/subscription');
+            $paths[] = new restore_path_element('moodleoverflow_read',
+                '/activity/moodleoverflow/readposts/read');
+            $paths[] = new restore_path_element('moodleoverflow_track',
+                '/activity/moodleoverflow/tracking/track');
         }
 
         // Return the paths wrapped into standard activity structure.

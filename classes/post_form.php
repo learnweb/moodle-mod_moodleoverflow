@@ -63,7 +63,9 @@ class mod_moodleoverflow_post_form extends moodleform {
         $modform->addRule('message', get_string('required'), 'required', null, 'client');
 
         if (moodleoverflow_can_create_attachment($moodleoverflow, $modcontext)) {
-            $modform->addElement('filemanager', 'attachments', get_string('attachment', 'moodleoverflow'), null, self::attachment_options($moodleoverflow));
+            $modform->addElement('filemanager', 'attachments',
+                get_string('attachment', 'moodleoverflow'),
+                null, self::attachment_options($moodleoverflow));
             $modform->addHelpButton('attachments', 'attachment', 'moodleoverflow');
         }
 
