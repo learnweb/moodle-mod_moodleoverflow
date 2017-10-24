@@ -77,69 +77,9 @@
         "unsubscribediscussionlink": "https://example.com/mod/discussion/subscribe.php?id=2&d=2"
     }
 }}
-<style>
-    .moodleoverflowpost .header {
-        margin-bottom: 3px;
-    }
-
-    .moodleoverflowpost .picture img {
-        margin: 4px;
-    }
-
-    .moodleoverflowpost .left {
-        float: left;
-        overflow: hidden;
-        width: 43px;
-    }
-
-    .moodleoverflowpost table {
-        border: 0;
-        cellpadding: 3;
-        cellspacing: 0;
-    }
-
-    .moodleoverflowpost .topic .author {
-        color: #848d95;
-    }
-
-    .moodleoverflowpost .topic{
-        margin-left: 43px;
-    }
-
-    .moodleoverflowpost .content {
-        text-align: right;
-        max-width: 100%;
-        overflow: auto;
-    }
-
-    .moodleoverflowpost .content img{
-        max-width: 100%;
-    }
-
-    .moodleoverflowpost .content {
-        margin-top: 8px;
-    }
-
-    .moodleoverflowpost .commands {
-        margin-left: 0;
-        text-align: right;
-    }
-
-    .moodleoverflowpost .link {
-        text-align: right;
-    }
-
-    .left td {
-        valign: top;
-    }
-
-    #authorpicture {
-        width: 35px;
-    }
-</style>
-<table class="moodleoverflowpost">
+<table border="0" cellpadding="3" cellspacing="0" class="moodleoverflowpost">
     <tr class="header">
-        <td id="authorpicture" class="picture left">
+        <td width="35" valign="top" class="picture left">
             {{{ authorpicture }}}
         </td>
         <td class="topic {{# firstpost }}starter{{/ firstpost }}">
@@ -156,7 +96,7 @@
         </td>
     </tr>
     <tr>
-        <td class="left side">
+        <td class="left side" valign="top">
             {{# grouppicture }}
                 {{{ grouppicture }}}
             {{/ grouppicture }}

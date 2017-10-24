@@ -88,7 +88,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:viewdiscussion'
+        'clonepermissionsfrom' => 'mod/forum:viewdiscussion'
     ),
 
     'mod/moodleoverflow:replypost' => array(
@@ -103,7 +103,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:replypost'
+        'clonepermissionsfrom' => 'mod/forum:replypost'
     ),
 
     'mod/moodleoverflow:startdiscussion' => array(
@@ -118,7 +118,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:startdiscussion'
+        'clonepermissionsfrom' => 'mod/forum:startdiscussion'
     ),
 
     'mod/moodleoverflow:editanypost' => array(
@@ -132,7 +132,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:editanypost'
+        'clonepermissionsfrom' => 'mod/forum:editanypost'
     ),
 
     'mod/moodleoverflow:deleteownpost' => array(
@@ -145,7 +145,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:deleteownpost'
+        'clonepermissionsfrom' => 'mod/forum:deleteownpost'
     ),
 
     'mod/moodleoverflow:deleteanypost' => array(
@@ -157,7 +157,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:deleteanypost'
+        'clonepermissionsfrom' => 'mod/forum:deleteanypost'
     ),
 
     'mod/moodleoverflow:viewanyrating' => array(
@@ -170,7 +170,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:viewanyrating'
+        'clonepermissionsfrom' => 'mod/forum:viewanyrating'
     ),
 
     'mod/moodleoverflow:ratepost' => array(
@@ -212,7 +212,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:managesubscriptions'
+        'clonepermissionsfrom' => 'mod/forum:managesubscriptions'
     ),
 
     'mod/moodleoverflow:allowforcesubscribe' => array(
@@ -225,7 +225,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'frontpage' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:allowforcesubscribe'
+        'clonepermissionsfrom' => 'mod/forum:allowforcesubscribe'
     ),
 
     'mod/moodleoverflow:createattachment' => array(
@@ -240,6 +240,6 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/forum:createattachment'
+        'clonepermissionsfrom' => 'mod/forum:createattachment'
     ),
 );
