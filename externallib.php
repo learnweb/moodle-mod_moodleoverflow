@@ -64,4 +64,57 @@ class mod_moodleoverflow_external extends external_api {
             )
         );
     }
+
+    /**
+     * @param array $vote
+     * @return array with updated information about rating /reputation
+     */
+    public static function record_vote($vote) {
+        global $DB;
+
+        $params = self::validate_parameters(self::record_vote_paramenters(), array('vote'=>$vote));
+
+        $transaction = $DB->start_delegated_transaction();
+
+        $vote = array();
+
+        foreach($params['vote'] as $vote){
+            $vote = (object)$vote;
+
+            // Check if the discussion is valid.
+            if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $vote->discussionid))) {
+                print_error('invaliddiscussionid', 'moodleoverflow');
+            }
+
+            // Check if the related moodleoverflow instance is valid.
+            if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+                print_error('invalidmoodleoverflowid', 'moodleoverflow');
+            }
+
+            // Check if the related moodleoverflow instance is valid.
+            if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
+                print_error('invalidcourseid');
+            }
+
+            // Get the related coursemodule and its context.
+            if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+                print_error('invalidcoursemodule');
+            }
+
+            // Security checks
+            $context = context_module::instance($cm->id);
+            self::validate_context($context);
+            require_capability('mod/moodleoverflow:ratepost', $context);
+
+            // Rate the post.
+            if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $vote->postid, $vote->ratingid, $cm)) {
+                print_error('ratingfailed', 'moodleoverflow');
+            }
+
+            //TODO Return new values
+        }
+
+        $transaction->allow_commit();
+
+    }
 }
