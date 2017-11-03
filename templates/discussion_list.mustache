@@ -101,35 +101,35 @@
                 <td class="topic replies">
                     {{#statusboth}}
                         <a href="{{starterlink}}">
-                            {{# pix}} status/c_circle, moodleoverflow {{/ pix}}
-                            {{# pix}} status/b_box, moodleoverflow {{/ pix}}
+                            {{# pix}} status/c_circle, moodleoverflow, Solved {{/ pix}}
+                            {{# pix}} status/b_box, moodleoverflow, Helpful answer  {{/ pix}}
                         </a>
                     {{/statusboth}}
                     {{^statusboth}}
                         {{^statusstarter}}
                             {{^statusteacher}}
-                                {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
+                                {{# pix}} status/c_blank, moodleoverflow, Not solved {{/ pix}}
                             {{/statusteacher}}
                             {{#statusteacher}}
                                 <a href="{{teacherlink}}">
-                                    {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/c_outline, moodleoverflow, Solved {{/ pix}}
                                 </a>
                             {{/statusteacher}}
-                            {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
+                            {{# pix}} status/b_blank, moodleoverflow, No helpful answer {{/ pix}}
                         {{/statusstarter}}
                         {{#statusstarter}}
                             {{^statusteacher}}
-                                {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
+                                {{# pix}} status/c_blank, moodleoverflow, Not solved {{/ pix}}
                                 <a href="{{starterlink}}">
-                                    {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/b_outline, moodleoverflow, Helpful answer {{/ pix}}
                                 </a>
                             {{/statusteacher}}
                             {{#statusteacher}}
                                 <a href="{{teacherlink}}">
-                                    {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/c_outline, moodleoverflow, Solved {{/ pix}}
                                 </a>
                                 <a href="{{starterlink}}">
-                                    {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/b_outline, moodleoverflow, Helpful answer {{/ pix}}
                                 </a>
                             {{/statusteacher}}
                         {{/statusstarter}}
