@@ -1361,6 +1361,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
     }
 
     /**
+     * Tests if a moodleoverflow is subscribable when a user is logged out.
+     * @param array $options
      * @dataProvider is_subscribable_provider
      */
     public function test_is_subscribable_logged_out($options) {
@@ -1375,6 +1377,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
     }
 
     /**
+     * Tests if a moodleoverflow is subscribable by a guest.
+     * @param array $options
      * @dataProvider is_subscribable_provider
      */
     public function test_is_subscribable_is_guest($options) {
@@ -1394,6 +1398,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
     }
 
     /**
+     * Returns subscription obtions.
      * @return array
      */
     public function is_subscribable_loggedin_provider() {
@@ -1418,6 +1423,9 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
     }
 
     /**
+     * Tests if a moodleoverflow is subscribable when a user is logged in.
+     * @param array $options
+     * @param bool $expect
      * @dataProvider is_subscribable_loggedin_provider
      */
     public function test_is_subscribable_loggedin($options, $expect) {

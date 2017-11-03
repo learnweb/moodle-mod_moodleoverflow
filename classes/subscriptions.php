@@ -94,10 +94,9 @@ class subscriptions {
      * particular discussion, taking into account the moodleoverflow preference.
      * If it is not specified then considere only the moodleoverflows preference.
      *
-     * @param $userid
-     * @param $moodleoverflow
+     * @param int $userid
+     * @param object $moodleoverflow
      * @param null $discussionid
-     * @param null $cm
      * @return bool
      */
     public static function is_subscribed($userid, $moodleoverflow, $discussionid = null) {
@@ -127,7 +126,7 @@ class subscriptions {
     /**
      * Helper to determine whether a moodleoverflow has it's subscription mode set to forced.
      *
-     * @param $moodleoverflow The record of the moodleoverflow to test
+     * @param object $moodleoverflow The record of the moodleoverflow to test
      * @return bool
      */
     public static function is_forcesubscribed($moodleoverflow) {
@@ -137,8 +136,8 @@ class subscriptions {
     /**
      * Whether a user is subscribed to this moodloverflow.
      *
-     * @param $userid The user ID
-     * @param $moodleoverflow The record of the moodleoverflow to test
+     * @param int $userid The user ID
+     * @param object $moodleoverflow The record of the moodleoverflow to test
      * @return boolean
      */
     private static function is_subscribed_to_moodleoverflow($userid, $moodleoverflow) {
@@ -148,8 +147,8 @@ class subscriptions {
     /**
      * Fetch the moodleoverflow subscription data for the specified userid an moodleoverflow.
      *
-     * @param $moodleoverflowid The forum to retrieve a cache for
-     * @param $userid The user ID
+     * @param int $moodleoverflowid The forum to retrieve a cache for
+     * @param int $userid The user ID
      * @return boolean
      */
     public static function fetch_subscription_cache($moodleoverflowid, $userid) {
@@ -177,7 +176,7 @@ class subscriptions {
      * If the userid is not specified, then all subscription data for that moodleoverflow is fetched
      * in a single query and is used for subsequent lookups without requiring further database queries.
      *
-     * @param $moodleoverflowid The moodleoverflow to retrieve a cache for
+     * @param int $moodleoverflowid The moodleoverflow to retrieve a cache for
      * @param null $userid The user ID
      */
     public static function fill_subscription_cache($moodleoverflowid, $userid = null) {
@@ -235,7 +234,7 @@ class subscriptions {
     /**
      * This is returned as an array of discussions for that moodleoverflow which contain the preference in a stdClass.
      *
-     * @param $moodleoverflowid The moodleoverflow ID
+     * @param int $moodleoverflowid The moodleoverflow ID
      * @param null $userid The user ID
      * @return array of stClass objects
      */
@@ -259,7 +258,7 @@ class subscriptions {
      * If the user ID is not specified, all discussion subscription data for that moodleoverflow is
      * fetched in a single query and is used for subsequent lookups without requiring further database queries.
      *
-     * @param $moodleoverflowid The moodleoverflow ID
+     * @param int $moodleoverflowid The moodleoverflow ID
      * @param null $userid The user ID
      */
     public static function fill_discussion_subscription_cache($moodleoverflowid, $userid = null) {
@@ -340,7 +339,7 @@ class subscriptions {
     /**
      * Determines whether a moodleoverflow has it's subscription mode set to disabled.
      *
-     * @param $moodleoverflow The moodleoverflow ID
+     * @param object $moodleoverflow The moodleoverflow ID
      * @return bool
      */
     public static function subscription_disabled($moodleoverflow) {
@@ -350,7 +349,7 @@ class subscriptions {
     /**
      * Checks wheter the specified moodleoverflow can be subscribed to.
      *
-     * @param $moodleoverflow The moodleoverflow ID
+     * @param object $moodleoverflow The moodleoverflow ID
      * @return boolean
      */
     public static function is_subscribable($moodleoverflow) {
@@ -387,7 +386,7 @@ class subscriptions {
     /**
      * Returns the current subscription mode for the moodleoverflow.
      *
-     * @param $moodleoverflow The moodleoverflow record
+     * @param object $moodleoverflow The moodleoverflow record
      * @return int The moodleoverflow subscription mode
      */
     public static function get_subscription_mode($moodleoverflow) {
@@ -446,7 +445,7 @@ class subscriptions {
      *
      * @param \context_module $context The moodleoverflow context.
      * @param string $fields The list of fields to return for each user.
-     * @param string string $sort Sort order.
+     * @param string $sort Sort order.
      * @return array List of users.
      */
     public static function get_potential_subscribers($context, $fields, $sort = '') {
@@ -999,7 +998,7 @@ class subscriptions {
     /**
      * Return the markup for the discussion subscription toggling icon.
      *
-     * @param $moodleoverflow The forum moodleoverflow.
+     * @param object $moodleoverflow The forum moodleoverflow.
      * @param int $discussionid The discussion to create an icon for.
      * @return string The generated markup.
      */

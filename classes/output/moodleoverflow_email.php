@@ -111,11 +111,12 @@ class moodleoverflow_email implements \renderable, \templatable {
      *
      * @param object $course Course of the moodleoverflow
      * @param object $cm Course Module of the moodleoverflow
-     * @param object $forum The moodleoverflow of the post
+     * @param object $moodleoverflow The moodleoverflow of the post
      * @param object $discussion Discussion thread in which the post appears
      * @param object $post The post
      * @param object $author Author of the post
      * @param object $recipient Recipient of the email
+     * @param bool $canreply whether the user can reply to the post
      */
     public function __construct($course, $cm, $moodleoverflow, $discussion, $post, $author, $recipient, $canreply) {
         $this->course = $course;

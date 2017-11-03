@@ -76,6 +76,7 @@ class readtracking {
      * Tells whether a specific moodleoverflow is tracked by the user.
      *
      * @param object $moodleoverflow
+     * @param object|null $user
      * @return bool
      */
     public static function moodleoverflow_is_tracked($moodleoverflow, $user = null) {
@@ -115,8 +116,8 @@ class readtracking {
     /**
      * Marks a specific moodleoverflow instance as read by a specific user.
      *
-     * @param $moodleoverflowid
-     * @param $courseid
+     * @param object $cm
+     * @param int $courseid
      * @param null $userid
      */
     public static function moodleoverflow_mark_moodleoverflow_read($cm, $userid = null) {
@@ -146,8 +147,7 @@ class readtracking {
     /**
      * Marks a specific discussion as read by a specific user.
      *
-     * @param $discussionid
-     * @param int $view
+     * @param int $discussionid
      * @param null $userid
      */
     public static function moodleoverflow_mark_discussion_read($discussionid, $userid = null) {
@@ -183,8 +183,8 @@ class readtracking {
     /**
      * Marks a specific post as read by a specific user.
      *
-     * @param $userid
-     * @param $post
+     * @param int $userid
+     * @param object $post
      * @return bool
      */
     public static function moodleoverflow_mark_post_read($userid, $post) {
@@ -201,7 +201,7 @@ class readtracking {
     /**
      * Checks if a post is older than the limit.
      *
-     * @param $post
+     * @param object $post
      * @return bool
      */
     public static function moodleoverflow_is_old_post($post) {
@@ -223,8 +223,8 @@ class readtracking {
     /**
      * Mark a post as read by a user.
      *
-     * @param $userid
-     * @param $postid
+     * @param int $userid
+     * @param int $postid
      * @return bool
      */
     public static function moodleoverflow_add_read_record($userid, $postid) {
@@ -452,7 +452,7 @@ class readtracking {
     /**
      * Get number of unread posts in a moodleoverflow instance.
      *
-     * @param $cm
+     * @param object $cm
      * @param \stdClass $course The course the moodleoverflow is in
      * @return int|mixed
      */

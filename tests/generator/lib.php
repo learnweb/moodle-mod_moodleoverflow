@@ -56,6 +56,12 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         parent::reset();
     }
 
+    /**
+     * Creates a moodleoverflow instance.
+     * @param null $record
+     * @param array|null $options
+     * @return stdClass
+     */
     public function create_instance($record = null, array $options = null) {
 
         // Transform the record.
@@ -83,6 +89,12 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         return parent::create_instance($record, (array)$options);
     }
 
+    /**
+     * Creates a moodleoverflow discussion.
+     * @param null $record
+     * @return bool|int
+     * @throws coding_exception
+     */
     public function create_discussion($record = null) {
         global $DB;
 

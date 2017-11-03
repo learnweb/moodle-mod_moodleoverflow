@@ -93,6 +93,10 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         // Add current enrolled user subscriptions if necessary.
     }
 
+    /**
+     * Restores a moodleoverflow discussion from element data.
+     * @param array $data element data
+     */
     protected function process_moodleoverflow_discussion($data) {
         global $DB;
 
@@ -110,6 +114,10 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $this->set_mapping('moodleoverflow_discussion', $oldid, $newitemid);
     }
 
+    /**
+     * Resotres a mooodleoverflow post from element data.
+     * @param array $data element data
+     */
     protected function process_moodleoverflow_post($data) {
         global $DB;
 
@@ -134,6 +142,10 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         }
     }
 
+    /**
+     * Restores rating from element data.
+     * @param array $data element data
+     */
     protected function process_moodleoverflow_rating($data) {
         global $DB;
 
@@ -149,6 +161,10 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $this->set_mapping('moodleoverflow_rating', $oldid, $newitemid, true);
     }
 
+    /**
+     * Restores moodleoverflow subscriptions from element data.
+     * @param array $data element data
+     */
     protected function process_moodleoverflow_subscription($data) {
         global $DB;
 
@@ -163,6 +179,10 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
     }
 
+    /**
+     * Restores moodleoverflow disussion subscriptions from element data.
+     * @param array $data element data
+     */
     protected function process_moodleoverflow_discuss_sub($data) {
         global $DB;
 
@@ -177,6 +197,10 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $this->set_mapping('moodleoverflow_discuss_sub', $oldid, $newitemid, true);
     }
 
+    /**
+     * Restores moodleoverflow read records from element data.
+     * @param array $data element data
+     */
     protected function process_moodleoverflow_read($data) {
         global $DB;
 
@@ -190,6 +214,10 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $DB->insert_record('moodleoverflow_read', $data);
     }
 
+    /**
+     * Restores tracking records from element data.
+     * @param array $data element data
+     */
     protected function process_moodleoverflow_track($data) {
         global $DB;
 

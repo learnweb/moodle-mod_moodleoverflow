@@ -38,10 +38,10 @@ class ratings {
      * Add a rating.
      * This is the basic function to add or edit ratings.
      *
-     * @param $moodleoverflow
-     * @param $postid
-     * @param $rating
-     * @param $cm
+     * @param object $moodleoverflow
+     * @param int $postid
+     * @param object $rating
+     * @param object $cm
      * @param null $userid
      * @return bool|int
      */
@@ -170,7 +170,7 @@ class ratings {
      * Get the reputation of a user.
      * Whether within a course or an instance is decided by the settings.
      *
-     * @param $moodleoverflowid
+     * @param int $moodleoverflowid
      * @param null $userid
      * @return int
      */
@@ -199,7 +199,7 @@ class ratings {
     /**
      * Sort a discussion by the ratings of their posts.
      *
-     * @param $posts
+     * @param array $posts
      * @return array
      */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
@@ -314,7 +314,7 @@ class ratings {
     /**
      * Did the current user rated the post?
      *
-     * @param $postid
+     * @param int $postid
      * @param null $userid
      * @return mixed
      */
@@ -337,7 +337,7 @@ class ratings {
     /**
      * Get the rating of a single post.
      *
-     * @param $postid
+     * @param int $postid
      * @return array
      */
     public static function moodleoverflow_get_rating($postid) {
@@ -355,7 +355,7 @@ class ratings {
     /**
      * Get the ratings of all posts in a discussion.
      *
-     * @param $discussionid
+     * @param int $discussionid
      * @param null $postid
      * @return array
      */
@@ -392,7 +392,7 @@ class ratings {
     /**
      * Check if a discussion is marked as solved or helpful.
      *
-     * @param $discussionid
+     * @param int $discussionid
      * @param bool $teacher
      * @return bool|mixed
      */
@@ -427,7 +427,7 @@ class ratings {
     /**
      * Get the reputation of a user within a single instance.
      *
-     * @param $moodleoverflowid
+     * @param int $moodleoverflowid
      * @param null $userid
      * @return int
      */
@@ -514,7 +514,7 @@ class ratings {
     /**
      * Get the reputation of a user within a course.
      *
-     * @param $courseid
+     * @param int $courseid
      * @param null $userid
      * @return int
      */
@@ -556,8 +556,8 @@ class ratings {
     /**
      * Check for all old rating records from a user for a specific post.
      *
-     * @param $postid
-     * @param $userid
+     * @param int $postid
+     * @param int $userid
      * @param null $oldrating
      * @return array|mixed
      */
@@ -610,9 +610,9 @@ class ratings {
     /**
      * Check if the rating can be changed.
      *
-     * @param $postid
-     * @param $rating
-     * @param $userid
+     * @param int $postid
+     * @param int $rating
+     * @param int $userid
      * @return bool
      */
     private static function moodleoverflow_can_be_changed($postid, $rating, $userid) {
@@ -646,9 +646,9 @@ class ratings {
     /**
      * Removes a rating record.
      *
-     * @param $postid
-     * @param $rating
-     * @param $userid
+     * @param int $postid
+     * @param int $rating
+     * @param int $userid
      * @return bool
      */
     private static function moodleoverflow_remove_rating($postid, $rating, $userid, $modulecontext) {
@@ -678,11 +678,11 @@ class ratings {
     /**
      * Add a new rating record.
      *
-     * @param $moodleoverflowid
-     * @param $discussionid
-     * @param $postid
-     * @param $rating
-     * @param $userid
+     * @param int $moodleoverflowid
+     * @param int $discussionid
+     * @param int $postid
+     * @param int $rating
+     * @param int $userid
      * @return bool|int
      */
     private static function moodleoverflow_add_rating_record($moodleoverflowid, $discussionid, $postid, $rating, $userid, $mod) {
@@ -716,10 +716,10 @@ class ratings {
     /**
      * Update an existing rating record.
      *
-     * @param $postid
-     * @param $rating
-     * @param $userid
-     * @param $ratingid
+     * @param int $postid
+     * @param int $rating
+     * @param int $userid
+     * @param int $ratingid
      * @return bool
      */
     private static function moodleoverflow_update_rating_record($postid, $rating, $userid, $ratingid, $modulecontext) {
@@ -744,7 +744,7 @@ class ratings {
     /**
      * Check if a user can rate the post.
      *
-     * @param $moodleoverflow
+     * @param object $moodleoverflow
      * @param null $cm
      * @param null $modulecontext
      * @return bool
