@@ -42,6 +42,7 @@ class mod_moodleoverflow_external extends external_api {
                             'discussionid' => new external_value(PARAM_INT, 'id of discussion'),
                             'postid' => new external_value(PARAM_INT, 'id of post'),
                             'ratingid' => new external_value(PARAM_INT, 'rating'),
+                            'userid' => new external_value(PARAM_INT, 'user id'),
                         )
                     )
                 )
@@ -66,17 +67,17 @@ class mod_moodleoverflow_external extends external_api {
     }
 
     /**
+     * Records upvotes and downvotes.
      * @param array $vote
      * @return array with updated information about rating /reputation
      */
     public static function record_vote($vote) {
         global $DB;
 
+        // Parameter validation.
         $params = self::validate_parameters(self::record_vote_paramenters(), array('vote'=>$vote));
 
         $transaction = $DB->start_delegated_transaction();
-
-        $vote = array();
 
         foreach($params['vote'] as $vote){
             $vote = (object)$vote;
@@ -110,11 +111,17 @@ class mod_moodleoverflow_external extends external_api {
             if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $vote->postid, $vote->ratingid, $cm)) {
                 print_error('ratingfailed', 'moodleoverflow');
             }
+            $rating = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id, $vote->postid);
+            $postownerid = moodleoverflow_get_post_full($vote->postid)->userid;
+            $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
+            $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $vote->userid->id);
 
-            //TODO Return new values
+            $params['postrating'] = $rating->upvotes - $rating->downvotes;
+            $params['ownerreputation'] = $ownerrating;
+            $params['raterrepuation'] = $raterrating;
         }
 
         $transaction->allow_commit();
-
+        return $params;
     }
 }

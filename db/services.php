@@ -24,7 +24,7 @@
  */
 
 $services = array(
-    'mod_moodleoverflow_record_vote' => array(
+    'mod_moodleoverflow_service' => array(
         'functions' => array('mod_moodleoverflow_record_vote'),
         'requiredcapability' => 'mod/moodleoverflow:ratepost',
         'restrictedusers' => 0,
@@ -33,7 +33,7 @@ $services = array(
 );
 
 $funtions = array(
-    'mod_moodleoverflow_record_value' => array(
+    'mod_moodleoverflow_record_vote' => array(
         'classname' => 'mod_moodleoverflow_external',
         'methodname' => 'record_vote',
         'classpath' => 'mod/moodleoverflow/externallib.php',

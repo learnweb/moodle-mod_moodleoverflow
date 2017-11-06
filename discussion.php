@@ -69,6 +69,11 @@ if (!$canviewdiscussion) {
 // Has a request to rate a post been submitted?
 if ($ratingid) {
 
+    // Ajax - call web service function
+ //   require(['core/ajax'], function(ajax) {
+  //     var vote = ajax.call();
+  //  });
+
     // Rate the post.
     if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
         print_error('ratingfailed', 'moodleoverflow');
