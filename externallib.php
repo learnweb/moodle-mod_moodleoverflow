@@ -33,7 +33,7 @@ class mod_moodleoverflow_external extends external_api {
      * Returns description of method parameters
      * @return external_function_parameters
      */
-    public static function record_vote_paramenters() {
+    public static function record_vote_parameters() {
         return new external_function_parameters(
             array(
                 'vote' => new external_multiple_structure(
@@ -74,13 +74,20 @@ class mod_moodleoverflow_external extends external_api {
     public static function record_vote($vote) {
         global $DB;
 
+        var_dump($vote);
+
+        $myfile = fopen("logfile.txt", "w");
+        fwrite($myfile, "bis hierhin");
+        fclose($myfile);
+
         // Parameter validation.
         $params = self::validate_parameters(self::record_vote_paramenters(), array('vote'=>$vote));
 
         $transaction = $DB->start_delegated_transaction();
 
         foreach($params['vote'] as $vote){
-            $vote = (object)$vote;
+            $vote = (object)
+            $vote;
 
             // Check if the discussion is valid.
             if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $vote->discussionid))) {

@@ -70,9 +70,9 @@ if (!$canviewdiscussion) {
 if ($ratingid) {
 
     // Ajax - call web service function
- //   require(['core/ajax'], function(ajax) {
-  //     var vote = ajax.call();
-  //  });
+    $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
+        'recordvote',
+        array($d, $ratedpost, $ratingid, $USER->id));
 
     // Rate the post.
     if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
@@ -81,7 +81,7 @@ if ($ratingid) {
 
     // Return to the discussion.
     $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
-    redirect($returnto);
+  //  redirect($returnto);
 }
 
 // Trigger the discussion viewed event.

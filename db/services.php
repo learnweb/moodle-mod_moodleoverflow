@@ -15,13 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * External tool external functions and service definitions.
+ * Moodleoverflow external functions and service definitions.
  *
  * @package    mod_moodleoverflow
  * @category   external
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+$functions = array(
+    'mod_moodleoverflow_record_vote' => array(
+        'classname' => 'mod_moodleoverflow_external',
+        'methodname' => 'record_vote',
+        'classpath' => 'mod/moodleoverflow/externallib.php',
+        'description' => 'Records a vote and updates the reputation of a user',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'mod/moodleoverflow:ratepost'
+    )
+);
 
 $services = array(
     'mod_moodleoverflow_service' => array(
@@ -30,14 +42,4 @@ $services = array(
         'restrictedusers' => 0,
         'enabled' => 1,
     )
-);
-
-$funtions = array(
-    'mod_moodleoverflow_record_vote' => array(
-        'classname' => 'mod_moodleoverflow_external',
-        'methodname' => 'record_vote',
-        'classpath' => 'mod/moodleoverflow/externallib.php',
-        'description' => 'Records a vote and updates the reputation of a user',
-        'type' => 'write'
-    ),
 );
