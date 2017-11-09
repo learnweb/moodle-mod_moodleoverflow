@@ -21,7 +21,7 @@
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/ajax'], function ($, ajax) {
+define(['jquery', 'core/ajax', 'core/templates'], function($, ajax, templates) {
 
     var t = {
         /**
@@ -32,30 +32,51 @@ define(['jquery', 'core/ajax'], function ($, ajax) {
          * @param int userid
          * @returns {string}
          */
-        recordvote: function (discussionid, postid, ratingid, userid) {
+        recordvote: function(discussionid, postid, ratingid, userid) {
 
             var vote = ajax.call([{
                 methodname: 'mod_moodleoverflow_record_vote',
-                args: {discussionid: discussionid, postid: postid, ratingid: ratingid, userid: userid}
+                args: {
+                    discussionid: discussionid,
+                    postid: postid,
+                    ratingid: ratingid,
+                    userid: userid
+                }
             }
             ]);
 
+            vote[0].done(function(response) {
+                 // eslint-disable-next-line no-console
+                 console.log(response);
+
+                 var context;
+
+                 // Downvote
+                 if (ratingid === 1) {
+                     context = {userupvoted: false, userdownvoted: true, canchange: true, votes: response.postrating};
+                 } else {
+                     context = {userupvoted: true, userdownvoted: false, canchange: true, votes: response.postrating};
+                 }
 
 
-            vote[0].done(function (response) {
-                // eslint-disable-next-line no-console
-                console.log(response);
+                 // Render template
 
-            }.fail(function (ex) {
+                 templates.render('mod_moodleoverflow/postvoting', context).done(function(html, js) {
+                     // Update the page.
+                     $('.votes').fadeOut("fast", function() {
+                         templates.replaceNodeContents($('.votes').find('p'), html, js);
+                         $('.votes').fadeIn("fast");
+                     }.bind(this));
+                 }.bind(this)).fail(function(ex) {
+                     // eslint-disable-next-line no-console
+                     console.log(ex);
+                 });
+            });
+            vote[0].fail(function(ex) {
                 // eslint-disable-next-line no-console
                 console.log(ex);
-            }));
+            });
 
-            var out = '';
-            for (var i in vote) {
-                out += i + ": " + vote[i] + "\n";
-            }
-            alert("ahlo " +out);
 
             return vote;
         }

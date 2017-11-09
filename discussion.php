@@ -24,7 +24,7 @@
 
 // Include config and locallib.
 require_once('../../config.php');
-require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
+require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
@@ -35,22 +35,22 @@ $ratedpost = optional_param('rp', 0, PARAM_INT);
 $PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d));
 
 // Check if the discussion is valid.
-if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
+if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
     print_error('invaliddiscussionid', 'moodleoverflow');
 }
 
 // Check if the related moodleoverflow instance is valid.
-if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
     print_error('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Check if the related moodleoverflow instance is valid.
-if (! $course = $DB->get_record('course', array('id' => $discussion->course))) {
+if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
     print_error('invalidcourseid');
 }
 
 // Get the related coursemodule and its context.
-if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
     print_error('invalidcoursemodule');
 }
 
@@ -69,19 +69,22 @@ if (!$canviewdiscussion) {
 // Has a request to rate a post been submitted?
 if ($ratingid) {
 
-    // Ajax - call web service function
-    $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
-        'recordvote',
-        array($d, $ratedpost, $ratingid, $USER->id));
+    // TODO also rating remove up/downvote
+    if (in_array($ratingid, array(RATING_DOWNVOTE, RATING_UPVOTE))) {
+        // Ajax - call web service function
+        $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
+            'recordvote',
+            array($d, $ratedpost, $ratingid, $USER->id));
+    } else {
+        // Rate the post.
+        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
+            print_error('ratingfailed', 'moodleoverflow');
+        }
 
-    // Rate the post.
-    if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
-        print_error('ratingfailed', 'moodleoverflow');
+        // Return to the discussion.
+        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
+        redirect($returnto);
     }
-
-    // Return to the discussion.
-    $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
-  //  redirect($returnto);
 }
 
 // Trigger the discussion viewed event.
@@ -98,7 +101,7 @@ unset($SESSION->fromdiscussion);
 
 // Get the parent post.
 $parent = $discussion->firstpost;
-if (! $post = moodleoverflow_get_post_full($parent)) {
+if (!$post = moodleoverflow_get_post_full($parent)) {
     print_error("notexists", 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
 }
 

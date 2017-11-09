@@ -36,16 +36,10 @@ class mod_moodleoverflow_external extends external_api {
     public static function record_vote_parameters() {
         return new external_function_parameters(
             array(
-                'vote' => new external_multiple_structure(
-                    new external_single_structure(
-                        array(
-                            'discussionid' => new external_value(PARAM_INT, 'id of discussion'),
-                            'postid' => new external_value(PARAM_INT, 'id of post'),
-                            'ratingid' => new external_value(PARAM_INT, 'rating'),
-                            'userid' => new external_value(PARAM_INT, 'user id'),
-                        )
-                    )
-                )
+                'discussionid' => new external_value(PARAM_INT, 'id of discussion'),
+                'postid' => new external_value(PARAM_INT, 'id of post'),
+                'ratingid' => new external_value(PARAM_INT, 'rating'),
+                'userid' => new external_value(PARAM_INT, 'user id')
             )
         );
     }
@@ -55,14 +49,14 @@ class mod_moodleoverflow_external extends external_api {
      * @return external_multiple_structure
      */
     public static function record_vote_returns() {
-        return new external_multiple_structure(
-            new external_single_structure(
-                array(
-                    'postrating' => new external_value(PARAM_INT, 'new post rating'),
-                    'ownerreputation' => new external_value(PARAM_INT, 'new reputation of post owner'),
-                    'raterreputation' => new external_value(PARAM_INT, 'new reputation of rater'),
-                )
+        return new external_single_structure(
+
+            array(
+                'postrating' => new external_value(PARAM_INT, 'new post rating'),
+                'ownerreputation' => new external_value(PARAM_INT, 'new reputation of post owner'),
+                'raterreputation' => new external_value(PARAM_INT, 'new reputation of rater'),
             )
+
         );
     }
 
@@ -71,62 +65,56 @@ class mod_moodleoverflow_external extends external_api {
      * @param array $vote
      * @return array with updated information about rating /reputation
      */
-    public static function record_vote($vote) {
+    public static function record_vote($discussionid, $postid, $ratingid, $userid) {
         global $DB;
 
-        var_dump($vote);
-
-        $myfile = fopen("logfile.txt", "w");
-        fwrite($myfile, "bis hierhin");
-        fclose($myfile);
-
         // Parameter validation.
-        $params = self::validate_parameters(self::record_vote_paramenters(), array('vote'=>$vote));
+        $params = self::validate_parameters(self::record_vote_parameters(), array(
+            'discussionid' => $discussionid,
+            'postid' => $postid,
+            'ratingid' => $ratingid,
+            'userid' => $userid
+        ));
 
         $transaction = $DB->start_delegated_transaction();
 
-        foreach($params['vote'] as $vote){
-            $vote = (object)
-            $vote;
-
-            // Check if the discussion is valid.
-            if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $vote->discussionid))) {
-                print_error('invaliddiscussionid', 'moodleoverflow');
-            }
-
-            // Check if the related moodleoverflow instance is valid.
-            if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
-                print_error('invalidmoodleoverflowid', 'moodleoverflow');
-            }
-
-            // Check if the related moodleoverflow instance is valid.
-            if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
-                print_error('invalidcourseid');
-            }
-
-            // Get the related coursemodule and its context.
-            if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-                print_error('invalidcoursemodule');
-            }
-
-            // Security checks
-            $context = context_module::instance($cm->id);
-            self::validate_context($context);
-            require_capability('mod/moodleoverflow:ratepost', $context);
-
-            // Rate the post.
-            if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $vote->postid, $vote->ratingid, $cm)) {
-                print_error('ratingfailed', 'moodleoverflow');
-            }
-            $rating = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id, $vote->postid);
-            $postownerid = moodleoverflow_get_post_full($vote->postid)->userid;
-            $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
-            $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $vote->userid->id);
-
-            $params['postrating'] = $rating->upvotes - $rating->downvotes;
-            $params['ownerreputation'] = $ownerrating;
-            $params['raterrepuation'] = $raterrating;
+        // Check if the discussion is valid.
+        if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $params['discussionid']))) {
+            print_error('invaliddiscussionid', 'moodleoverflow');
         }
+
+        // Check if the related moodleoverflow instance is valid.
+        if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+        }
+
+        // Check if the related moodleoverflow instance is valid.
+        if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
+            print_error('invalidcourseid');
+        }
+
+        // Get the related coursemodule and its context.
+        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+            print_error('invalidcoursemodule');
+        }
+
+        // Security checks
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+        require_capability('mod/moodleoverflow:ratepost', $context);
+
+        // Rate the post.
+        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $params['postid'], $params['ratingid'], $cm)) {
+            print_error('ratingfailed', 'moodleoverflow');
+        }
+        $rating = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id, $params['postid']);
+        $postownerid = moodleoverflow_get_post_full($params['postid'])->userid;
+        $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
+        $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $params['userid']);
+
+        $params['postrating'] = $rating->upvotes - $rating->downvotes;
+        $params['ownerreputation'] = $ownerrating;
+        $params['raterreputation'] = $raterrating;
 
         $transaction->allow_commit();
         return $params;
