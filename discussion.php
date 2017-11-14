@@ -69,12 +69,13 @@ if (!$canviewdiscussion) {
 // Has a request to rate a post been submitted?
 if ($ratingid) {
 
-    // TODO also rating remove up/downvote
-    if (in_array($ratingid, array(RATING_DOWNVOTE, RATING_UPVOTE))) {
+    if (in_array($ratingid, array(RATING_DOWNVOTE, RATING_UPVOTE, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE))) {
         // Ajax - call web service function
+        $link = '/mod/moodleoverflow/discussion.php';
+        $link = new moodle_url($link, array('d' => $d, 'rp' => $ratedpost));
         $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
             'recordvote',
-            array($d, $ratedpost, $ratingid, $USER->id));
+            array($d, $ratedpost, $ratingid, $USER->id, $link->out()));
     } else {
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {

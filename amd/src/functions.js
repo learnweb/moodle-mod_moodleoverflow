@@ -21,7 +21,7 @@
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/ajax', 'core/templates'], function($, ajax, templates) {
+define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function ($, ajax, templates, notification) {
 
     var t = {
         /**
@@ -30,9 +30,10 @@ define(['jquery', 'core/ajax', 'core/templates'], function($, ajax, templates) {
          * @param int postid
          * @param int ratingid
          * @param int userid
+         * @param string link
          * @returns {string}
          */
-        recordvote: function(discussionid, postid, ratingid, userid) {
+        recordvote: function (discussionid, postid, ratingid, userid, link) {
 
             var vote = ajax.call([{
                 methodname: 'mod_moodleoverflow_record_vote',
@@ -45,38 +46,74 @@ define(['jquery', 'core/ajax', 'core/templates'], function($, ajax, templates) {
             }
             ]);
 
-            vote[0].done(function(response) {
-                 // eslint-disable-next-line no-console
-                 console.log(response);
-
-                 var context;
-
-                 // Downvote
-                 if (ratingid === 1) {
-                     context = {userupvoted: false, userdownvoted: true, canchange: true, votes: response.postrating};
-                 } else {
-                     context = {userupvoted: true, userdownvoted: false, canchange: true, votes: response.postrating};
-                 }
-
-
-                 // Render template
-
-                 templates.render('mod_moodleoverflow/postvoting', context).done(function(html, js) {
-                     // Update the page.
-                     $('.votes').fadeOut("fast", function() {
-                         templates.replaceNodeContents($('.votes').find('p'), html, js);
-                         $('.votes').fadeIn("fast");
-                     }.bind(this));
-                 }.bind(this)).fail(function(ex) {
-                     // eslint-disable-next-line no-console
-                     console.log(ex);
-                 });
-            });
-            vote[0].fail(function(ex) {
+            vote[0].done(function (response) {
                 // eslint-disable-next-line no-console
-                console.log(ex);
-            });
+                console.log(response);
 
+                var context;
+
+                // Context für Downvote
+                context = {userupvoted: false,
+                    userdownvoted: true,
+                    canchange: true,
+                    votes: response.postrating,
+                    removeupvotelink: link + "&amp;r=20",
+                    upvotelink: link + "&amp;r=2",
+                    removedownvotelink: link + "&amp;r=10",
+                    downvotelink: link + "&amp;r=1"};
+
+                // Upvote
+                if (ratingid === 2) {
+                    context.userupvoted = true;
+                    context.userdownvoted = false;
+                }
+                // Vote has been removed
+                else {
+                    context.userdownvoted = false;
+                    context.userupvoted = false;
+                }
+
+                // Update templates
+                templates.render('mod_moodleoverflow/postvoting', context)
+                    .then(function(html,js) {
+                        // Update votes
+                        templates.replaceNodeContents($('.votes a[href$="rp='+ postid +'"]').parent(), html, "");
+
+                    })
+                    .fail(notification.example);
+
+                // Update user reputation
+                templates.replaceNode($('.user-details,.author').find('a[href*="id='+ userid +'"]').siblings('span'), '<span>'+response.raterreputation+'</span>', "");
+                if(userid !== response.ownerid) {
+                    templates.replaceNode($('.user-details,.author').find('a[href*="id='+ response.ownerid +'"]').siblings('span'), '<span>'+response.ownerreputation+'</span>', "");
+                }
+
+                // Update order of posts
+                if(ratingid == 1 ||ratingid == 20) {
+                    // Postrating has been reduced
+                    // TODO does not work for comments
+                    // Save node
+                    var node = $('.tmargin a #p'+postid+'').parent();
+                    var nextsibling;
+                    console.log(node.text());
+
+                    node.siblings().each(function () {
+                       if(parseInt($('.votes p').text()) < respone.postrating) {
+                           nextsibling = $(this);
+                           return false;
+                       }
+                    });
+
+                    console.log(nextsibling);
+
+                    // TODO kann auch der letzte Post sein
+                    node.remove();
+                    node.insertBefore(nextsibling);
+
+                }
+
+
+            }).fail(notification.exception);
 
             return vote;
         }

@@ -55,8 +55,8 @@ class mod_moodleoverflow_external extends external_api {
                 'postrating' => new external_value(PARAM_INT, 'new post rating'),
                 'ownerreputation' => new external_value(PARAM_INT, 'new reputation of post owner'),
                 'raterreputation' => new external_value(PARAM_INT, 'new reputation of rater'),
+                'ownerid' => new external_value(PARAM_INT, 'user id of post owner'),
             )
-
         );
     }
 
@@ -115,6 +115,7 @@ class mod_moodleoverflow_external extends external_api {
         $params['postrating'] = $rating->upvotes - $rating->downvotes;
         $params['ownerreputation'] = $ownerrating;
         $params['raterreputation'] = $raterrating;
+        $params['ownerid'] = $postownerid;
 
         $transaction->allow_commit();
         return $params;
