@@ -70,7 +70,7 @@ if (!$canviewdiscussion) {
 if ($ratingid) {
 
     if (in_array($ratingid, array(RATING_DOWNVOTE, RATING_UPVOTE, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE))) {
-        // Ajax - call web service function
+        // Ajax - call web service function.
         $link = '/mod/moodleoverflow/discussion.php';
         $link = new moodle_url($link, array('d' => $d, 'rp' => $ratedpost));
         $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',

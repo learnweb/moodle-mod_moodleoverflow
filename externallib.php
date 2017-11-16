@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -98,7 +97,7 @@ class mod_moodleoverflow_external extends external_api {
             print_error('invalidcoursemodule');
         }
 
-        // Security checks
+        // Security checks.
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('mod/moodleoverflow:ratepost', $context);

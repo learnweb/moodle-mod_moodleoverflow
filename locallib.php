@@ -1185,7 +1185,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $by = new stdClass();
     $by->date = userdate($post->modified);
     $by->name = html_writer::link($postinguser->profilelink, $postinguser->fullname);
-    $by->rating = "<img class='icon iconsmall' src='" . $OUTPUT->image_url('star', 'moodleoverflow') . "'><span>" . $postuserrating . '</span>';
+    $by->rating = "<img class='icon iconsmall' src='" .
+        $OUTPUT->image_url('star', 'moodleoverflow') . "'><span>" . $postuserrating . '</span>';
     $mustachedata->bytext = get_string('bynameondate', 'moodleoverflow', $by);
     $mustachedata->bydate = $by->date;
     $mustachedata->byname = $by->name;
