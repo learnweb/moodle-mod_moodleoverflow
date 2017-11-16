@@ -47,20 +47,19 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
             ]);
 
             vote[0].done(function (response) {
-                // eslint-disable-next-line no-console
-                console.log(response);
-
                 var context;
 
                 // Context für Downvote
-                context = {userupvoted: false,
+                context = {
+                    userupvoted: false,
                     userdownvoted: true,
                     canchange: true,
                     votes: response.postrating,
                     removeupvotelink: link + "&amp;r=20",
                     upvotelink: link + "&amp;r=2",
                     removedownvotelink: link + "&amp;r=10",
-                    downvotelink: link + "&amp;r=1"};
+                    downvotelink: link + "&amp;r=1"
+                };
 
                 // Upvote
                 if (ratingid === 2) {
@@ -68,50 +67,89 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                     context.userdownvoted = false;
                 }
                 // Vote has been removed
-                else {
+                else if (ratingid === 10 || ratingid === 20) {
                     context.userdownvoted = false;
                     context.userupvoted = false;
                 }
 
                 // Update templates
                 templates.render('mod_moodleoverflow/postvoting', context)
-                    .then(function(html,js) {
+                    .then(function (html, js) {
                         // Update votes
-                        templates.replaceNodeContents($('.votes a[href$="rp='+ postid +'"]').parent(), html, "");
+                        templates.replaceNodeContents($('.votes a[href$="rp=' + postid + '"]').parent(), html, js);
 
                     })
                     .fail(notification.example);
 
                 // Update user reputation
-                templates.replaceNode($('.user-details,.author').find('a[href*="id='+ userid +'"]').siblings('span'), '<span>'+response.raterreputation+'</span>', "");
-                if(userid !== response.ownerid) {
-                    templates.replaceNode($('.user-details,.author').find('a[href*="id='+ response.ownerid +'"]').siblings('span'), '<span>'+response.ownerreputation+'</span>', "");
+                templates.replaceNode($('.user-details,.author').find('a[href*="id=' + userid + '"]').siblings('span'), '<span>' + response.raterreputation + '</span>', "");
+                if (userid !== response.ownerid) {
+                    templates.replaceNode($('.user-details,.author').find('a[href*="id=' + response.ownerid + '"]').siblings('span'), '<span>' + response.ownerreputation + '</span>', "");
                 }
 
-                // Update order of posts
-                if(ratingid == 1 ||ratingid == 20) {
-                    // Postrating has been reduced
-                    // TODO does not work for comments
-                    // Save node
-                    var node = $('.tmargin a #p'+postid+'').parent();
-                    var nextsibling;
-                    console.log(node.text());
+                // Check if post is an answer or a comment
+                var node = $('#p' + postid).parent();
+                var classattr = node.attr('class');
 
-                    node.siblings().each(function () {
-                       if(parseInt($('.votes p').text()) < respone.postrating) {
-                           nextsibling = $(this);
-                           return false;
-                       }
-                    });
+                if (node.attr('role') !== 'main' && node.children('div'.first().attr('class').indexOf('status') < 0)) {
+                    // Post is not the question and not marked as helpful/solved
+                    // Update order of posts
+                    if (ratingid === 1 || ratingid === 20) {
+                        // Post rating has been reduced
+                        // TODO does not work for comments
+                        // Save node
+                        var nextsibling;
+                        var success = false;
 
-                    console.log(nextsibling);
+                        node.nextAll().each(function () {
+                            nextsibling = $(this);
+                            if (parseInt($('.votes p', this).text()) < response.postrating) {
+                                success = true;
+                                return false;
+                            }
+                        });
 
-                    // TODO kann auch der letzte Post sein
-                    node.remove();
-                    node.insertBefore(nextsibling);
+                        // Insert before Sibling
+                        if (success) {
+                            node.remove();
+                            node.insertBefore(nextsibling);
+                        }
+                        else {
+                            if (nextsibling) {
+                                // Insert as last Element
+                                node.remove();
+                                node.insertAfter(nextsibling);
+                            }
+                        }
+                    }
+                    else {
+                        // Post reating has been increased
+                        // Save node
+                        var prevsibling;
+                        var success = false;
 
+                        node.prevUntil(':not(.' + classattr + ')').each(function () {
+                            prevsibling = $(this);
+                            if (parseInt($('.votes p', this).text()) >= response.postrating) {
+                                success = true;
+                                return false;
+                            }
+                        });
+
+                        // Insert after Sibling
+                        if (success) {
+                            node.remove();
+                            node.insertAfter(prevsibling);
+                        }
+                        else {
+                            if (prevsibling) {
+                                // Insert as first Element
+                                node.remove();
+                                node.insertBefore(prevsibling);
+                            }
+                        }
+                    }
                 }
-
 
             }).fail(notification.exception);
 
