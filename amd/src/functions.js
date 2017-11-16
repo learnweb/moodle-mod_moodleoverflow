@@ -91,12 +91,11 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                 var node = $('#p' + postid).parent();
                 var classattr = node.attr('class');
 
-                if (node.attr('role') !== 'main' && node.children('div'.first().attr('class').indexOf('status') < 0)) {
+                if (node.attr('role') !== 'main' && node.children('div').first().attr('class').indexOf('status') < 0) {
                     // Post is not the question and not marked as helpful/solved
                     // Update order of posts
                     if (ratingid === 1 || ratingid === 20) {
                         // Post rating has been reduced
-                        // TODO does not work for comments
                         // Save node
                         var nextsibling;
                         var success = false;
