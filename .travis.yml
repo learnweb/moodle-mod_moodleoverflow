@@ -28,6 +28,11 @@ matrix:
     env: DB=pgsql MOODLE_BRANCH=master
   - php: 5.6
     env: DB=mysqli MOODLE_BRANCH=master
+  - php: 5.6
+    env: DB=pgsql MOODE_BRANCH=MOODLE_34_STABLE
+  - php: 5.6
+    env: DB=mysqli MOODE_BRANCH=MOODLE_34_STABLE
+
   fast_finish: true
 
 env:
