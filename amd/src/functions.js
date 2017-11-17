@@ -166,6 +166,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                         }
                     }
                 }
+                $(window).scrollTop($('#p' + postid).offset().top);
 
             }).fail(notification.exception);
 
