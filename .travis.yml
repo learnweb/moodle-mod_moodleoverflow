@@ -21,8 +21,8 @@ addons:
 
 matrix:
   allow_failures:
-#    - env: DB=pgsql MOODLE_BRANCH=master
-#    - env: DB=mysqli MOODLE_BRANCH=master
+  - env: DB=pgsql MOODLE_BRANCH=master
+  - env: DB=mysqli MOODLE_BRANCH=master
   exclude:
   - php: 5.6
     env: DB=pgsql MOODLE_BRANCH=master
@@ -36,8 +36,10 @@ env:
   - MUSTACHE_IGNORE_NAMES="email_html_body.mustache, email_html.mustache, email_text.mustache"
  matrix:
   - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE
+  - DB=pgsql MOODLE_BRANCH=MOODLE_34_STABLE
   - DB=pgsql MOODLE_BRANCH=master
   - DB=mysqli MOODLE_BRANCH=MOODLE_33_STABLE
+  - DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE
   - DB=mysqli MOODLE_BRANCH=master
 
 before_install:
