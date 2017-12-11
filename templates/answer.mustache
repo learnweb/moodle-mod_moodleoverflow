@@ -90,18 +90,18 @@
                                         {{#statusstarter}}
                                             {{^statusteacher}}
                                                 {{#pix}} status/b_outline, moodleoverflow {{/pix}}
-                                                The question owner accepted this as the best answer.
+                                                {{#str}} helpfulanswer {{/str}}
                                             {{/statusteacher}}
                                             {{#statusteacher}}
                                                 {{#pix}} status/c_circle, moodleoverflow {{/pix}}
                                                 {{#pix}} status/b_box, moodleoverflow {{/pix}}
-                                                The question owner and a teacher accepted this as the best answer.
+                                                {{#str}} bestanswer {{/str}}
                                             {{/statusteacher}}
                                         {{/statusstarter}}
                                         {{^statusstarter}}
                                             {{#statusteacher}}
                                                 {{#pix}} status/c_outline, moodleoverflow {{/pix}}
-                                                This post is marked as solved by the teacher.
+                                                {{#str}} solvedanswer {{/str}}
                                             {{/statusteacher}}
                                         {{/statusstarter}}
                                     </div>
