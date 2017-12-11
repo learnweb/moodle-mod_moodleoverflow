@@ -186,6 +186,7 @@ $string['moodleoverflowauthorhidden'] = 'Author (hidden)';
 $string['moodleoverflowbodyhidden'] = 'This post cannot be viewed by you, probably because you have not posted in the discussion, the maximum editing time hasn\'t passed yet, the discussion has not started or the discussion has expired.';
 $string['addanewreply'] = 'Add a new answer';
 $string['ratingfailed'] = 'Rating failed. Try again.';
+$string['rateownpost'] = 'You cannot rate your own post.';
 $string['marksolved'] = 'Mark as Solved';
 $string['marknotsolved'] = 'Not Solved';
 $string['markhelpful'] = 'Mark as Helpful';

@@ -71,12 +71,18 @@ if ($ratingid) {
 	require_sesskey();
 
     if (in_array($ratingid, array(RATING_DOWNVOTE, RATING_UPVOTE, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE))) {
-        // Ajax - call web service function.
-        $link = '/mod/moodleoverflow/discussion.php';
-        $link = new moodle_url($link, array('d' => $d, 'seskey' => sesskey(), 'rp' => $ratedpost));
-        $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
-            'recordvote',
-            array($d, $ratedpost, $ratingid, $USER->id, $link->out()));
+    	// Users cannot rate their own posts
+	    if($USER->id !== moodleoverflow_get_post_full($ratedpost)->userid) {
+		    // Ajax - call web service function.
+		    $link = '/mod/moodleoverflow/discussion.php';
+		    $link = new moodle_url($link, array('d' => $d, 'sesskey' => sesskey(), 'rp' => $ratedpost));
+		    $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
+			    'recordvote',
+			    array($d, $ratedpost, $ratingid, $USER->id, $link->out()));
+	    }
+	    else {
+		    print_error('rateownpost', 'moodleoverflow');
+	    }
     } else {
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
