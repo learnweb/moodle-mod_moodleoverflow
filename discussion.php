@@ -32,7 +32,7 @@ $ratingid = optional_param('r', 0, PARAM_INT);
 $ratedpost = optional_param('rp', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
-$PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d));
+$PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d, 'sesskey' => sesskey()));
 
 // Check if the discussion is valid.
 if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
@@ -68,11 +68,12 @@ if (!$canviewdiscussion) {
 
 // Has a request to rate a post been submitted?
 if ($ratingid) {
+	require_sesskey();
 
     if (in_array($ratingid, array(RATING_DOWNVOTE, RATING_UPVOTE, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE))) {
         // Ajax - call web service function.
         $link = '/mod/moodleoverflow/discussion.php';
-        $link = new moodle_url($link, array('d' => $d, 'rp' => $ratedpost));
+        $link = new moodle_url($link, array('d' => $d, 'seskey' => sesskey(), 'rp' => $ratedpost));
         $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
             'recordvote',
             array($d, $ratedpost, $ratingid, $USER->id, $link->out()));
@@ -83,7 +84,7 @@ if ($ratingid) {
         }
 
         // Return to the discussion.
-        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
+        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '&sesskey=' . sesskey() . '#p' . $ratedpost);
         redirect($returnto);
     }
 }
@@ -120,7 +121,7 @@ if (empty($forumnode)) {
 }
 
 $node = $forumnode->add(format_string($discussion->name),
-    new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
+    new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'sesskey' => sesskey())));
 $node->display = false;
 if ($node AND ($post->id != $discussion->firstpost)) {
     $node->add(format_string($post->subject), $PAGE->url);
