@@ -75,7 +75,7 @@ if ($returndiscussion === 0) {
 } else {
 
     // Else relink back to the discussion we are coming from.
-    $returnto = new moodle_url("/mod/moodleoverflow/discussion.php", array('d' => $returndiscussion, 'sesskey' => sesskey()));
+    $returnto = new moodle_url("/mod/moodleoverflow/discussion.php", array('d' => $returndiscussion));
 }
 
 // Guests can't mark posts as read.

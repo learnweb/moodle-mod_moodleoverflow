@@ -357,13 +357,13 @@ if (!empty($moodleoverflow)) {
         // Check if the user has the capability to delete the post.
         $timepassed = time() - $post->created;
         if (($timepassed > $CFG->maxeditingtime) AND !$deleteanypost) {
-            $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion, 'sesskey' => sesskey()));
+            $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
             print_error('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to($url));
         }
 
         // A normal user cannot delete his post if there are direct replies.
         if ($replycount AND !$deleteanypost) {
-            $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion, 'sesskey' => sesskey()));
+            $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
             print_error('couldnotdeletereplies', 'moodleoverflow', moodleoverflow_go_back_to($url));
         } else {
             // Delete the post.
@@ -388,7 +388,7 @@ if (!empty($moodleoverflow)) {
             } else if (moodleoverflow_delete_post($post, $deleteanypost, $course, $cm, $moodleoverflow)) {
                 // Delete a single post.
                 // Redirect back to the discussion.
-                $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'sesskey' => sesskey()));
+                $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id));
                 redirect(moodleoverflow_go_back_to($discussionurl));
                 exit;
 
@@ -412,7 +412,7 @@ if (!empty($moodleoverflow)) {
             if (!$deleteanypost) {
                 print_error('couldnotdeletereplies', 'moodleoverflow',
                     moodleoverflow_go_back_to(new moodle_url('/mod/moodleoverflow/discussion.php',
-                        array('d' => $post->discussion, 'sesskey' => sesskey(), 'p' . $post->id))));
+                        array('d' => $post->discussion, 'p' . $post->id))));
             }
 
             // Request a confirmation to delete the post.
@@ -420,7 +420,7 @@ if (!empty($moodleoverflow)) {
             echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
             echo $OUTPUT->confirm(get_string("deletesureplural", "moodleoverflow", $replycount + 1),
                 "post.php?delete=$delete&confirm=$delete", $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' .
-                $post->discussion . '&sesskey=' . sesskey() . '#p' . $post->id);
+                $post->discussion . '#p' . $post->id);
 
         } else {
             // Delete a single post.
@@ -430,7 +430,7 @@ if (!empty($moodleoverflow)) {
             echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
             echo $OUTPUT->confirm(get_string("deletesure", "moodleoverflow", $replycount),
                 "post.php?delete=$delete&confirm=$delete",
-                $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $post->discussion . '&sesskey=' . sesskey() . '#p' . $post->id);
+                $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $post->discussion . '#p' . $post->id);
         }
     }
     echo $OUTPUT->footer();
@@ -543,7 +543,7 @@ if ($mformpost->is_cancelled()) {
     if (!isset($discussion->id)) {
         redirect(new moodle_url('/mod/moodleoverflow/view.php', array('m' => $moodleoverflow->id)));
     } else {
-        redirect(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'sesskey' => sesskey())));
+        redirect(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
     }
 
     // Cancel.
@@ -607,7 +607,7 @@ if ($fromform = $mformpost->get_data()) {
         }
 
         // Create a link to go back to the discussion.
-        $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'sesskey' => sesskey()), 'p' . $fromform->id);
+        $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id), 'p' . $fromform->id);
 
         // Set some parameters.
         $params = array(
@@ -658,7 +658,7 @@ if ($fromform = $mformpost->get_data()) {
 
             // Set the URL that links back to the discussion.
             $link = '/mod/moodleoverflow/discussion.php';
-            $discussionurl = new moodle_url($link, array('d' => $discussion->id, 'sesskey' => sesskey()), 'p' . $fromform->id);
+            $discussionurl = new moodle_url($link, array('d' => $discussion->id), 'p' . $fromform->id);
 
             // Trigger post created event.
             $params = array(

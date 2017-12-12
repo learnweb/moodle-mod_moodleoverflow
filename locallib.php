@@ -231,7 +231,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 		{
 			$link                             = '/mod/moodleoverflow/discussion.php?d=';
 			$preparedarray[$i]['starterlink'] = new moodle_url($link .
-				$statusstarter->discussionid . '&sesskey=' . sesskey() . '#p' . $statusstarter->postid);
+				$statusstarter->discussionid . '#p' . $statusstarter->postid);
 		}
 
 		// Check if a teacher marked a post as solved.
@@ -241,7 +241,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 		{
 			$link                             = '/mod/moodleoverflow/discussion.php?d=';
 			$preparedarray[$i]['teacherlink'] = new moodle_url($link .
-				$statusteacher->discussionid . '&sesskey=' . sesskey() . '#p' . $statusteacher->postid);
+				$statusteacher->discussionid . '#p' . $statusteacher->postid);
 		}
 
 		// Check if a single post was marked by the question owner and a teacher.
@@ -267,7 +267,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
 		// Format the subjectname and the link to the topic.
 		$preparedarray[$i]['subjecttext'] = format_string($discussion->subject);
-		$preparedarray[$i]['subjectlink'] = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '&sesskey' . sesskey();
+		$preparedarray[$i]['subjectlink'] = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion;
 
 		// Get information about the user who started the discussion.
 		$startuser       = new stdClass();
@@ -288,7 +288,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 		$preparedarray[$i]['unreadamount'] = $discussion->unread;
 		$preparedarray[$i]['unread']       = ($preparedarray[$i]['unreadamount'] > 0) ? true : false;
 		$preparedarray[$i]['unreadlink']   = $CFG->wwwroot .
-			'/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '&sesskey=' . sesskey() . '#unread';
+			'/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '#unread';
 		$link                              = '/mod/moodleoverflow/markposts.php?m=';
 		$preparedarray[$i]['markreadlink'] = $CFG->wwwroot . $link . $moodleoverflow->id . '&d=' . $discussion->discussion;
 
@@ -1118,7 +1118,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 	}
 
 	// Get the current link without unnecessary parameters.
-	$discussionlink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion, 'sesskey' => sesskey()));
+	$discussionlink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
 
 	// Build the object that represents the posting user.
 	$postinguser              = new stdClass();

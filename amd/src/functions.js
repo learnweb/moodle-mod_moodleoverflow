@@ -31,17 +31,18 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
          * @param int ratingid
          * @param int userid
          * @param string link
+         * @param string sesskey
          * @returns {string}
          */
-        recordvote: function (discussionid, postid, ratingid, userid, link) {
-
+        recordvote: function (discussionid, postid, ratingid, userid, link, sesskey) {
             var vote = ajax.call([{
                 methodname: 'mod_moodleoverflow_record_vote',
                 args: {
                     discussionid: discussionid,
                     postid: postid,
                     ratingid: ratingid,
-                    userid: userid
+                    userid: userid,
+                    sesskey: sesskey
                 }
             }
             ]);
@@ -55,10 +56,10 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                     userdownvoted: true,
                     canchange: true,
                     votes: response.postrating,
-                    removeupvotelink: link + "&amp;r=20",
-                    upvotelink: link + "&amp;r=2",
-                    removedownvotelink: link + "&amp;r=10",
-                    downvotelink: link + "&amp;r=1"
+                    removeupvotelink: link + "&r=20",
+                    upvotelink: link + "&r=2",
+                    removedownvotelink: link + "&r=10",
+                    downvotelink: link + "&r=1"
                 };
 
                 // Upvote.

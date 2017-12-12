@@ -28,11 +28,12 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
+$sesskey = optional_param('sesskey', null, PARAM_TEXT);
 $ratingid = optional_param('r', 0, PARAM_INT);
 $ratedpost = optional_param('rp', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
-$PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d, 'sesskey' => sesskey()));
+$PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d));
 
 // Check if the discussion is valid.
 if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
@@ -75,10 +76,10 @@ if ($ratingid) {
 	    if($USER->id !== moodleoverflow_get_post_full($ratedpost)->userid) {
 		    // Ajax - call web service function.
 		    $link = '/mod/moodleoverflow/discussion.php';
-		    $link = new moodle_url($link, array('d' => $d, 'sesskey' => sesskey(), 'rp' => $ratedpost));
+		    $link = new moodle_url($link, array('d' => $d, 'rp' => $ratedpost, 'sesskey' => $sesskey));
 		    $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
 			    'recordvote',
-			    array($d, $ratedpost, $ratingid, $USER->id, $link->out()));
+			    array($d, $ratedpost, $ratingid, $USER->id, $link->out(), $sesskey));
 	    }
 	    else {
 		    print_error('rateownpost', 'moodleoverflow');
@@ -90,7 +91,7 @@ if ($ratingid) {
         }
 
         // Return to the discussion.
-        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '&sesskey=' . sesskey() . '#p' . $ratedpost);
+        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
         redirect($returnto);
     }
 }
@@ -127,7 +128,7 @@ if (empty($forumnode)) {
 }
 
 $node = $forumnode->add(format_string($discussion->name),
-    new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id, 'sesskey' => sesskey())));
+    new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
 $node->display = false;
 if ($node AND ($post->id != $discussion->firstpost)) {
     $node->add(format_string($post->subject), $PAGE->url);
