@@ -506,7 +506,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
 
         // Check some basic capabilities.
         $isoptional = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
-        $forceallowed = $CFG->moodleoverflow_allowforcedreadtracking;
+        $forceallowed = get_config('moodleoverflow', 'allowforcedreadtracking');
         $isforced = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
 
         // Check whether the readtracking state can be changed.
@@ -599,8 +599,8 @@ function moodleoverflow_send_mails() {
     // Posts older than x days will not be mailed.
     // This will avoid problems with the cron not beeing ran for a long time.
     $timenow = time();
-    $endtime = $timenow - $CFG->maxeditingtime;
-    $starttime = $endtime - ($CFG->moodleoverflow_maxmailingtime * 60 * 60);
+    $endtime = $timenow - get_config('moodleoverflow', 'maxeditingtime');
+    $starttime = $endtime - (get_config('moodleoverflow', 'maxmailingtime') * 60 * 60);
 
     // Retrieve all unmailed posts.
     $posts = moodleoverflow_get_unmailed_posts($starttime, $endtime);

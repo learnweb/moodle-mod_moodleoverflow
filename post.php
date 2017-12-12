@@ -285,9 +285,9 @@ if (!empty($moodleoverflow)) {
     $PAGE->set_cm($cm, $course, $moodleoverflow);
 
     // Check if the post can be edited.
-    $intime = ((time() - $post->created) > $CFG->maxeditingtime);
+    $intime = ((time() - $post->created) > get_config('moodleoverflow', 'maxeditingtime'));
     if ($intime AND !has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
-        print_error('maxtimehaspassed', 'moodleoverflow', '', format_time($CFG->maxeditingtime));
+        print_error('maxtimehaspassed', 'moodleoverflow', '', format_time(get_config('moodleoverflow', 'maxeditingtime')));
     }
 
     // If the current user is not the one who posted this post.
@@ -356,7 +356,7 @@ if (!empty($moodleoverflow)) {
 
         // Check if the user has the capability to delete the post.
         $timepassed = time() - $post->created;
-        if (($timepassed > $CFG->maxeditingtime) AND !$deleteanypost) {
+        if (($timepassed > get_config('moodleoverflow', 'maxeditingtime')) AND !$deleteanypost) {
             $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
             print_error('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to($url));
         }
@@ -654,7 +654,7 @@ if ($fromform = $mformpost->get_data()) {
 
             // Print a success-message.
             $message .= '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
-            $message .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow", format_time($CFG->maxeditingtime)) . '</p>';
+            $message .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow", format_time(get_config('moodleoverflow', 'maxeditingtime'))) . '</p>';
 
             // Set the URL that links back to the discussion.
             $link = '/mod/moodleoverflow/discussion.php';

@@ -46,7 +46,7 @@ class ratings {
      * @return bool|int
      */
     public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null) {
-        global $DB, $USER, $SESSION, $CFG;
+        global $DB, $USER, $SESSION;
 
         // Has a user been submitted?
         if (!isset($userid)) {
@@ -101,7 +101,7 @@ class ratings {
         // Check if we are removing a mark.
         if (in_array($rating / 10, $possibleratings)) {
 
-            if (!$CFG->moodleoverflow_allowratingchange) {
+            if (! get_config('moodleoverflow', 'allowratingchange')) {
                 print_error('noratingchangeallowed', 'moodleoverflow');
                 return false;
             }
@@ -146,7 +146,7 @@ class ratings {
         // Update an rating record.
         if ($oldrating['normal']) {
 
-            if (!$CFG->moodleoverflow_allowratingchange) {
+            if (!get_config('moodleoverflow', 'allowratingchange')) {
                 print_error('noratingchangeallowed', 'moodleoverflow');
                 return false;
             }
@@ -432,7 +432,7 @@ class ratings {
      * @return int
      */
     private static function moodleoverflow_get_reputation_instance($moodleoverflowid, $userid = null) {
-        global $DB, $USER, $CFG;
+        global $DB, $USER;
 
         // Get the user id.
         if (!isset($userid)) {
@@ -465,25 +465,25 @@ class ratings {
 
             // The rating is a downvote.
             if ($record->rating == RATING_DOWNVOTE) {
-                $reputation += $CFG->moodleoverflow_votescaledownvote;
+                $reputation += get_config('moodleoverflow', 'votescaledownvote');
                 continue;
             }
 
             // The rating is an upvote.
             if ($record->rating == RATING_UPVOTE) {
-                $reputation += $CFG->moodleoverflow_votescaleupvote;
+                $reputation += get_config('moodleoverflow', 'votescaleupvote');
                 continue;
             }
 
             // The post has been marked as helpful by the question owner.
             if ($record->rating == RATING_HELPFUL) {
-                $reputation += $CFG->moodleoverflow_votescalehelpful;
+                $reputation += get_config('moodleoverflow', 'votescalehelpful');
                 continue;
             }
 
             // The post has been marked as solved by a teacher.
             if ($record->rating == RATING_SOLVED) {
-                $reputation += $CFG->moodleoverflow_votescalesolved;
+                $reputation += get_config('moodleoverflow', 'votescalesolved');
                 continue;
             }
 
@@ -500,7 +500,7 @@ class ratings {
         $votes = $DB->get_record_sql($sql, $params);
 
         // Add reputation for the votes.
-        $reputation += ($CFG->moodleoverflow_votescalevote) * $votes->amount;
+        $reputation += get_config('moodleoverflow', 'votescalevote') * $votes->amount;
 
         // Can the reputation of a user be negative?
         if ($moodleoverflow->allownegativereputation AND $reputation <= 0) {

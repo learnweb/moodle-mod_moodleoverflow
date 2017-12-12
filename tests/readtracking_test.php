@@ -33,133 +33,130 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-
  */
 class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
 
-    /**
-     * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.
-     */
-    public function test_moodleoverflow_can_track_moodleoverflows() {
-        global $CFG;
+	/**
+	 * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.
+	 */
+	public function test_moodleoverflow_can_track_moodleoverflows() {
 
-        // Reset after testing.
-        $this->resetAfterTest();
+		// Reset after testing.
+		$this->resetAfterTest();
 
-        $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF); // Off.
-        $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+		$course  = $this->getDataGenerator()->create_course();
+		$options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF); // Off.
+		$mooff   = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED); // On.
-        $moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+		$options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED); // On.
+		$moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL); // Optional.
-        $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+		$options    = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL); // Optional.
+		$mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        // Allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 1;
+		// Allow force.
+		set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
-        // Modleoverflow off, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooff);
-        $this->assertEquals(false, $result);
+		// Modleoverflow off, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooff);
+		$this->assertEquals(false, $result);
 
-        // Moodleoverflow on, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moforce);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow on, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moforce);
+		$this->assertEquals(false, $result);
 
-        // Moodleoverflow optional, should be false.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooptional);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow optional, should be false.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooptional);
+		$this->assertEquals(false, $result);
 
-        // Don't allow force.
-        $CFG->forum_allowforcedreadtracking = 0;
+		// Don't allow force.
+		set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
-        // Moodleoverflow off, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooff);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow off, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooff);
+		$this->assertEquals(false, $result);
 
-        // Moodleoverflow on, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moforce);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow on, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moforce);
+		$this->assertEquals(false, $result);
 
-        // Moodleoverflow optional, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooptional);
-        $this->assertEquals(false, $result);
-    }
+		// Moodleoverflow optional, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooptional);
+		$this->assertEquals(false, $result);
+	}
 
-    /**
-     * Test the logic in the test_forum_tp_is_tracked() function.
-     */
-    public function test_moodleoverflow_is_tracked() {
-        global $CFG;
+	/**
+	 * Test the logic in the test_forum_tp_is_tracked() function.
+	 */
+	public function test_moodleoverflow_is_tracked() {
 
-        $this->resetAfterTest();
+		$this->resetAfterTest();
 
-        $course = $this->getDataGenerator()->create_course();
+		$course = $this->getDataGenerator()->create_course();
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL);
-        $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+		$options    = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL);
+		$mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED);
-        $moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+		$options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED);
+		$moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF);
-        $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+		$options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF);
+		$mooff   = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        // Allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 1;
+		// Allow force.
+		set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
-        // Moodleoverflow off, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooff);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow off, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooff);
+		$this->assertEquals(false, $result);
 
-        // Moodleoverflow force, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow force, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
+		$this->assertEquals(false, $result);
 
-        // Moodleoverflow optional, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooptional);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow optional, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooptional);
+		$this->assertEquals(false, $result);
 
-        // Don't allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 0;
+		// Don't allow force.
+		set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
-        // Moodleoverflow off, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooff);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow off, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooff);
+		$this->assertEquals(false, $result);
 
-        // Moodleoverflow force, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow force, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
+		$this->assertEquals(false, $result);
 
-        // Moodleoverflow optional, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooptional);
-        $this->assertEquals(false, $result);
+		// Moodleoverflow optional, should be off.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooptional);
+		$this->assertEquals(false, $result);
 
-        // Stop tracking so we can test again.
-        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($moforce->id);
-        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($mooptional->id);
+		// Stop tracking so we can test again.
+		\mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($moforce->id);
+		\mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($mooptional->id);
 
-        // Allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 1;
+		// Allow force.
+		set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
-        // Preference off, moodleoverflow force, should be on.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
-        $this->assertEquals(false, $result);
+		// Preference off, moodleoverflow force, should be on.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
+		$this->assertEquals(false, $result);
 
-        // Preference off, moodleoverflow optional, should be on.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooptional);
-        $this->assertEquals(false, $result);
+		// Preference off, moodleoverflow optional, should be on.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooptional);
+		$this->assertEquals(false, $result);
 
-        // Don't allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 0;
+		// Don't allow force.
+		set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
-        // Preference off, moodleoverflow force, should be on.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
-        $this->assertEquals(false, $result);
+		// Preference off, moodleoverflow force, should be on.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
+		$this->assertEquals(false, $result);
 
-        // Preference off, moodleoverflow optional, should be on.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooptional);
-        $this->assertEquals(false, $result);
-    }
+		// Preference off, moodleoverflow optional, should be on.
+		$result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooptional);
+		$this->assertEquals(false, $result);
+	}
 }

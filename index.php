@@ -274,7 +274,7 @@ if ($generalmoodleoverflows) {
 
                 // Check whether the moodleoverflow instance can be tracked.
                 $isforced = $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED;
-                if ($isforced AND ($CFG->moodleoverflow_allowforcedreadtracking)) {
+                if ($isforced AND (get_config('moodleoverflow', 'allowforcedreadtracking'))) {
                     // Tracking is set to forced.
 
                     // Define the string.

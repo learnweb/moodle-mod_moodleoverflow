@@ -450,7 +450,7 @@ function moodleoverflow_get_discussions_unread($cm) {
 	// Get the current timestamp and the oldpost-timestamp.
 	$params     = array();
 	$now        = round(time(), -2);
-	$cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 60 * 60);
+	$cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
 	// Define the sql-query.
 	$sql                  = "SELECT d.id, COUNT(p.id) AS unread
@@ -1179,14 +1179,14 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 	$age = time() - $post->created;
 
 	// Make a link to edit your own post within the given time.
-	if (($ownpost AND ($age < $CFG->maxeditingtime)) OR $cm->cache->caps['mod/moodleoverflow:editanypost'])
+	if (($ownpost AND ($age < get_config('moodleoverflow', 'maxeditingtime'))) OR $cm->cache->caps['mod/moodleoverflow:editanypost'])
 	{
 		$editurl    = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
 		$commands[] = array('url' => $editurl, 'text' => $str->edit);
 	}
 
 	// Give the option to delete a post.
-	$old    = ($age < $CFG->maxeditingtime);
+	$old    = ($age < get_config('moodleoverflow', 'maxeditingtime'));
 	$capone = $cm->cache->caps['mod/moodleoverflow:deleteownpost'];
 	$captwo = $cm->cache->caps['mod/moodleoverflow:deleteanypost'];
 	if (($ownpost AND $old AND $capone) OR $captwo)
@@ -1257,12 +1257,12 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 		if ($rating == 1)
 		{
 			$mustachedata->userdownvoted = true;
-			$mustachedata->canchange     = ((time() - $ratingtime) < $CFG->maxeditingtime);
+			$mustachedata->canchange     = ((time() - $ratingtime) < get_config('moodleoverflow', 'maxeditingtime'));
 		}
 		else if ($rating == 2)
 		{
 			$mustachedata->userupvoted = true;
-			$mustachedata->canchange   = ((time() - $ratingtime) < $CFG->maxeditingtime);
+			$mustachedata->canchange   = ((time() - $ratingtime) < get_config('moodleoverflow', 'maxeditingtime'));
 		}
 	}
 

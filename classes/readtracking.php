@@ -43,10 +43,10 @@ class readtracking {
      * @return boolean
      * */
     public static function moodleoverflow_can_track_moodleoverflows($moodleoverflow = null) {
-        global $USER, $CFG;
+        global $USER;
 
         // Check if readtracking is disabled for the module.
-        if (empty($CFG->moodleoverflow_trackreadposts)) {
+        if (!get_config('moodleoverflow', 'trackreadposts')) {
             return false;
         }
 
@@ -57,7 +57,7 @@ class readtracking {
 
         // If no specific moodleoverflow is submitted, check the modules basic settings.
         if (is_null($moodleoverflow)) {
-            if ($CFG->moodleoverflow_allowforcedreadtracking) {
+            if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
                 // Since we can force tracking, assume yes without a specific forum.
                 return true;
             } else {
@@ -80,7 +80,7 @@ class readtracking {
      * @return bool
      */
     public static function moodleoverflow_is_tracked($moodleoverflow, $user = null) {
-        global $USER, $CFG, $DB;
+        global $USER, $DB;
 
         // Get the user.
         if (is_null($user)) {
@@ -106,7 +106,7 @@ class readtracking {
             array('userid' => $user->id, 'moodleoverflowid' => $moodleoverflow->id));
 
         // Return the boolean.
-        if ($CFG->moodleoverflow_allowforcedreadtracking) {
+        if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
             return ($forced || ($allowed && $userpreference === false));
         } else {
             return (($allowed || $forced) && $userpreference === false);
@@ -205,7 +205,6 @@ class readtracking {
      * @return bool
      */
     public static function moodleoverflow_is_old_post($post) {
-        global $CFG;
 
         // Transform objects into arrays.
         $post = (array) $post;
@@ -214,7 +213,7 @@ class readtracking {
         $currenttimestamp = time();
 
         // Calculate the time, where older posts are considered read.
-        $oldposttimestamp = $currenttimestamp - ($CFG->moodleoverflow_oldpostdays * 24 * 3600);
+        $oldposttimestamp = $currenttimestamp - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600);
 
         // Return if the post is newer than that time.
         return ($post['modified'] < $oldposttimestamp);
@@ -228,11 +227,11 @@ class readtracking {
      * @return bool
      */
     public static function moodleoverflow_add_read_record($userid, $postid) {
-        global $CFG, $DB;
+        global $DB;
 
         // Get the current time and the cutoffdate.
         $now = time();
-        $cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 3600);
+        $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600);
 
         // Check for read records for this user an this post.
         $oldrecord = $DB->get_record('moodleoverflow_read', array('postid' => $postid, 'userid' => $userid));
@@ -314,15 +313,15 @@ class readtracking {
      * This function is only called by the modules cronjob.
      */
     public static function moodleoverflow_clean_read_records() {
-        global $CFG, $DB;
+        global $DB;
 
         // Stop if there cannot be old posts.
-        if (!isset($CFG->moodleoverflow_oldpostdays)) {
+        if (!get_config('moodleoverflow', 'oldpostdays')) {
             return;
         }
 
         // Find the timestamp for records older than allowed.
-        $cutoffdate = time() - ($CFG->moodleoverflow_oldpostdays * 24 * 60 * 60);
+        $cutoffdate = time() - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Find the timestamp of the oldest read record.
         // This will speedup the delete query.
@@ -409,10 +408,10 @@ class readtracking {
      * @return array Array with untracked moodleoverflows
      */
     public static function get_untracked_moodleoverflows($userid, $courseid) {
-        global $CFG, $DB;
+        global $DB;
 
         // Check whether readtracking may be forced.
-        if ($CFG->forum_allowforcedreadtracking) {
+        if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
 
             // Create a part of a sql-statement.
             $trackingsql = "AND (m.trackingtype = ".MOODLEOVERFLOW_TRACKING_OFF."
@@ -492,7 +491,7 @@ class readtracking {
 
         // Get the current timestamp and the cutoffdate.
         $now = round(time(), -2);
-        $cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 60 * 60);
+        $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Define a sql-query.
         $params = array($USER->id, $moodleoverflowid, $cutoffdate);
@@ -514,17 +513,17 @@ class readtracking {
      * @return array Array of unread posts within a course
      */
     public static function moodleoverflow_count_unread_posts_course($userid, $courseid) {
-        global $CFG, $DB;
+        global $DB;
 
         // Get the current timestamp and calculate the cutoffdate.
         $now = round(time(), - 2);
-        $cutoffdate = $now - ($CFG->moodleoverflow_oldpostdays * 24 * 60 * 60);
+        $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Set parameters for the sql-query.
         $params = array($userid, $userid, $courseid, $cutoffdate, $userid);
 
         // Check if forced readtracking is allowed.
-        if ($CFG->moodleoverflow_allowforcedreadtracking) {
+        if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
             $trackingsql = "AND (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_FORCED .
                 " OR (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL . " AND tm.id IS NULL))";
         } else {
