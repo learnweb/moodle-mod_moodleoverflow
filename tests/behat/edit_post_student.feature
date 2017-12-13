@@ -18,7 +18,7 @@ Feature: Students can edit or delete their moodleoverflow posts within a set tim
       | activity       | name                     | intro                            | course  | idnumber       |
       | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow |
     And I log in as "student1"
-    And I follow "Course 1"
+    And I follow "C1"
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Moodleoverflow post subject |
       | Message | This is the body |

@@ -1069,8 +1069,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $age = time() - $post->created;
 
     // Make a link to edit your own post within the given time.
-    if (($ownpost
-            AND ($age < get_config('moodleoverflow', 'maxeditingtime')))
+    if (($ownpost AND ($age < get_config('moodleoverflow', 'maxeditingtime')))
             OR $cm->cache->caps['mod/moodleoverflow:editanypost']) {
         $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
         $commands[] = array('url' => $editurl, 'text' => $str->edit);

@@ -45,6 +45,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('moodleoverflow/maxattachments', get_string('maxattachments', 'moodleoverflow'),
         get_string('configmaxattachments', 'moodleoverflow'), 9, PARAM_INT));
 
+    $settings->add(new admin_setting_configtext('moodleoverflow/maxeditingtime', get_string('maxeditingtime', 'moodleoverflow'),
+        get_string('configmaxeditingtime', 'moodleoverflow'), 3600, PARAM_INT));
+
 
     // Default read tracking settings.
     $options                                   = array();
