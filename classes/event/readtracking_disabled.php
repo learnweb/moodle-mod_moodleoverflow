@@ -46,7 +46,7 @@ class readtracking_disabled extends \core\event\base {
      * @return void
      */
     protected function init() {
-        $this->data['crud'] = 'd';
+        $this->data['crud']     = 'd';
         $this->data['edulevel'] = self::LEVEL_OTHER;
     }
 

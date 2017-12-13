@@ -29,22 +29,22 @@ $tasks = array(
     // Deliver mail notification about new posts.
     array(
         'classname' => 'mod_moodleoverflow\task\send_mails',
-        'blocking' => 0,
-        'minute' => '*',
-        'hour' => '*',
-        'day' => '*',
-        'month' => '*',
+        'blocking'  => 0,
+        'minute'    => '*',
+        'hour'      => '*',
+        'day'       => '*',
+        'month'     => '*',
         'dayofweek' => '*'
     ),
 
     // Clean old read records.
     array(
         'classname' => 'mod_moodleoverflow\task\clean_readrecords',
-        'blocking' => 0,
-        'minute' => '*',
-        'hour' => '*',
-        'day' => '*',
-        'month' => '*',
+        'blocking'  => 0,
+        'minute'    => '*',
+        'hour'      => '*',
+        'day'       => '*',
+        'month'     => '*',
         'dayofweek' => '*'
     ),
 

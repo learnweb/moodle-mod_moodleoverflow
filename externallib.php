@@ -28,111 +28,105 @@ require_once("$CFG->libdir/externallib.php");
 
 class mod_moodleoverflow_external extends external_api {
 
-	/**
-	 * Returns description of method parameters
-	 * @return external_function_parameters
-	 */
-	public static function record_vote_parameters() {
-		return new external_function_parameters(
-			array(
-				'discussionid' => new external_value(PARAM_INT, 'id of discussion'),
-				'postid'       => new external_value(PARAM_INT, 'id of post'),
-				'ratingid'     => new external_value(PARAM_INT, 'rating'),
-				'userid'       => new external_value(PARAM_INT, 'user id'),
-				'sesskey'      => new external_value(PARAM_TEXT, 'session key'),
-			)
-		);
-	}
+    /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function record_vote_parameters() {
+        return new external_function_parameters(
+            array(
+                'discussionid' => new external_value(PARAM_INT, 'id of discussion'),
+                'postid'       => new external_value(PARAM_INT, 'id of post'),
+                'ratingid'     => new external_value(PARAM_INT, 'rating'),
+                'userid'       => new external_value(PARAM_INT, 'user id'),
+                'sesskey'      => new external_value(PARAM_TEXT, 'session key'),
+            )
+        );
+    }
 
-	/**
-	 * Returns the result of the vote (new rating and reputations).
-	 * @return external_multiple_structure
-	 */
-	public static function record_vote_returns() {
-		return new external_single_structure(
-			array(
-				'postrating'      => new external_value(PARAM_INT, 'new post rating'),
-				'ownerreputation' => new external_value(PARAM_INT, 'new reputation of post owner'),
-				'raterreputation' => new external_value(PARAM_INT, 'new reputation of rater'),
-				'ownerid'         => new external_value(PARAM_INT, 'user id of post owner'),
-			)
-		);
-	}
+    /**
+     * Returns the result of the vote (new rating and reputations).
+     * @return external_multiple_structure
+     */
+    public static function record_vote_returns() {
+        return new external_single_structure(
+            array(
+                'postrating'      => new external_value(PARAM_INT, 'new post rating'),
+                'ownerreputation' => new external_value(PARAM_INT, 'new reputation of post owner'),
+                'raterreputation' => new external_value(PARAM_INT, 'new reputation of rater'),
+                'ownerid'         => new external_value(PARAM_INT, 'user id of post owner'),
+            )
+        );
+    }
 
-	/**
-	 * Records upvotes and downvotes.
-	 *
-	 * @param array $vote
-	 *
-	 * @return array with updated information about rating /reputation
-	 */
-	public static function record_vote($discussionid, $postid, $ratingid, $userid, $sesskey) {
-		global $DB;
+    /**
+     * Records upvotes and downvotes.
+     *
+     * @param array $vote
+     *
+     * @return array with updated information about rating /reputation
+     */
+    public static function record_vote($discussionid, $postid, $ratingid, $userid, $sesskey) {
+        global $DB;
 
-		if (confirm_sesskey($sesskey))
-		{
-			// Parameter validation.
-			$params = self::validate_parameters(self::record_vote_parameters(), array(
-				'discussionid' => $discussionid,
-				'postid'       => $postid,
-				'ratingid'     => $ratingid,
-				'userid'       => $userid,
-				'sesskey'      => $sesskey,
-			));
+        if (confirm_sesskey($sesskey)) {
+            // Parameter validation.
+            $params = self::validate_parameters(self::record_vote_parameters(), array(
+                'discussionid' => $discussionid,
+                'postid'       => $postid,
+                'ratingid'     => $ratingid,
+                'userid'       => $userid,
+                'sesskey'      => $sesskey,
+            ));
 
-			$transaction = $DB->start_delegated_transaction();
+            $transaction = $DB->start_delegated_transaction();
 
-			// Check if the discussion is valid.
-			if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $params['discussionid'])))
-			{
-				print_error('invaliddiscussionid', 'moodleoverflow');
-			}
+            // Check if the discussion is valid.
+            if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $params['discussionid']))) {
+                print_error('invaliddiscussionid', 'moodleoverflow');
+            }
 
-			// Check if the related moodleoverflow instance is valid.
-			if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow)))
-			{
-				print_error('invalidmoodleoverflowid', 'moodleoverflow');
-			}
+            // Check if the related moodleoverflow instance is valid.
+            if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+                print_error('invalidmoodleoverflowid', 'moodleoverflow');
+            }
 
-			// Check if the related moodleoverflow instance is valid.
-			if (!$course = $DB->get_record('course', array('id' => $discussion->course)))
-			{
-				print_error('invalidcourseid');
-			}
+            // Check if the related moodleoverflow instance is valid.
+            if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
+                print_error('invalidcourseid');
+            }
 
-			// Get the related coursemodule and its context.
-			if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id))
-			{
-				print_error('invalidcoursemodule');
-			}
+            // Get the related coursemodule and its context.
+            if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+                print_error('invalidcoursemodule');
+            }
 
-			// Security checks.
-			$context = context_module::instance($cm->id);
-			self::validate_context($context);
-			require_capability('mod/moodleoverflow:ratepost', $context);
+            // Security checks.
+            $context = context_module::instance($cm->id);
+            self::validate_context($context);
+            require_capability('mod/moodleoverflow:ratepost', $context);
 
-			// Rate the post.
-			if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $params['postid'], $params['ratingid'], $cm))
-			{
-				print_error('ratingfailed', 'moodleoverflow');
-			}
-			$rating      = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id, $params['postid']);
-			$postownerid = moodleoverflow_get_post_full($params['postid'])->userid;
-			$ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
-			$raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $params['userid']);
+            // Rate the post.
+            if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,
+                $params['postid'], $params['ratingid'], $cm)) {
+                print_error('ratingfailed', 'moodleoverflow');
+            }
+            $rating      = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id,
+                $params['postid']);
+            $postownerid = moodleoverflow_get_post_full($params['postid'])->userid;
+            $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
+            $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $params['userid']);
 
-			$params['postrating']      = $rating->upvotes - $rating->downvotes;
-			$params['ownerreputation'] = $ownerrating;
-			$params['raterreputation'] = $raterrating;
-			$params['ownerid']         = $postownerid;
+            $params['postrating']      = $rating->upvotes - $rating->downvotes;
+            $params['ownerreputation'] = $ownerrating;
+            $params['raterreputation'] = $raterrating;
+            $params['ownerid']         = $postownerid;
 
-			$transaction->allow_commit();
+            $transaction->allow_commit();
 
-			return $params;
-		}
-		else
-		{
-			print_error('invalidsesskey');
-		}
-	}
+            return $params;
+        } else {
+            print_error('invalidsesskey');
+        }
+    }
 }

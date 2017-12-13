@@ -27,7 +27,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/course/moodleform_mod.php');
 
 /**
  * Module instance settings form
@@ -77,19 +77,19 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->setDefault('maxbytes', get_config('moodleoverflow', 'maxbytes'));
 
         $choices = array(
-            0 => 0,
-            1 => 1,
-            2 => 2,
-            3 => 3,
-            4 => 4,
-            5 => 5,
-            6 => 6,
-            7 => 7,
-            8 => 8,
-            9 => 9,
-            10 => 10,
-            20 => 20,
-            50 => 50,
+            0   => 0,
+            1   => 1,
+            2   => 2,
+            3   => 3,
+            4   => 4,
+            5   => 5,
+            6   => 6,
+            7   => 7,
+            8   => 8,
+            9   => 9,
+            10  => 10,
+            20  => 20,
+            50  => 50,
             100 => 100
         );
         $mform->addElement('select', 'maxattachments', get_string('maxattachments', 'moodleoverflow'), $choices);

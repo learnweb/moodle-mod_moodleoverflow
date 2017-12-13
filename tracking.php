@@ -34,17 +34,17 @@ $returnpage = optional_param('returnpage', 'index.php', PARAM_FILE); // The page
 require_sesskey();
 
 // Retrieve the moodleoverflow instance to track or untrack.
-if (! $moodleoverflow = $DB->get_record("moodleoverflow", array("id" => $id))) {
+if (!$moodleoverflow = $DB->get_record("moodleoverflow", array("id" => $id))) {
     print_error('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Retrieve the course of the instance.
-if (! $course = $DB->get_record("course", array("id" => $moodleoverflow->course))) {
+if (!$course = $DB->get_record("course", array("id" => $moodleoverflow->course))) {
     print_error('invalidcoursemodule');
 }
 
 // Retrieve the course module of that course.
-if (! $cm = get_coursemodule_from_instance("moodleoverflow", $moodleoverflow->id, $course->id)) {
+if (!$cm = get_coursemodule_from_instance("moodleoverflow", $moodleoverflow->id, $course->id)) {
     print_error('invalidcoursemodule');
 }
 
@@ -52,10 +52,10 @@ if (! $cm = get_coursemodule_from_instance("moodleoverflow", $moodleoverflow->id
 require_login($course, false, $cm);
 
 // Set the page to return to.
-$url = '/mod/moodleoverflow/' . $returnpage;
-$params = array('id' => $course->id, 'm' => $moodleoverflow->id);
+$url           = '/mod/moodleoverflow/' . $returnpage;
+$params        = array('id' => $course->id, 'm' => $moodleoverflow->id);
 $returnpageurl = new moodle_url($url, $params);
-$returnto = moodleoverflow_go_back_to($returnpageurl);
+$returnto      = moodleoverflow_go_back_to($returnpageurl);
 
 // Check whether the user can track the moodleoverflow instance.
 $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
@@ -67,7 +67,7 @@ if (!$cantrack) {
 }
 
 // Create an info object.
-$info = new stdClass();
+$info                 = new stdClass();
 $info->name           = fullname($USER);
 $info->moodleoverflow = format_string($moodleoverflow->name);
 

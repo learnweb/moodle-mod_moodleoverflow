@@ -42,7 +42,7 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
      */
     protected function define_structure() {
 
-        $paths = array();
+        $paths    = array();
         $userinfo = $this->get_setting_value('userinfo');
 
         $paths[] = new restore_path_element('moodleoverflow', '/activity/moodleoverflow');
@@ -75,7 +75,7 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
     protected function process_moodleoverflow($data) {
         global $DB;
 
-        $data = (object)$data;
+        $data         = (object) $data;
         $data->course = $this->get_courseid();
 
         if (empty($data->timecreated)) {
@@ -95,20 +95,21 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
     /**
      * Restores a moodleoverflow discussion from element data.
+     *
      * @param array $data element data
      */
     protected function process_moodleoverflow_discussion($data) {
         global $DB;
 
-        $data = (object)$data;
-        $oldid = $data->id;
+        $data         = (object) $data;
+        $oldid        = $data->id;
         $data->course = $this->get_courseid();
 
         $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
-        $data->timemodified = $this->apply_date_offset($data->timemodified);
-        $data->timestart = $this->apply_date_offset($data->timestart);
-        $data->userid = $this->get_mappingid('user', $data->userid);
-        $data->usermodified = $this->get_mappingid('user', $data->usermodified);
+        $data->timemodified   = $this->apply_date_offset($data->timemodified);
+        $data->timestart      = $this->apply_date_offset($data->timestart);
+        $data->userid         = $this->get_mappingid('user', $data->userid);
+        $data->usermodified   = $this->get_mappingid('user', $data->usermodified);
 
         $newitemid = $DB->insert_record('moodleoverflow_discussions', $data);
         $this->set_mapping('moodleoverflow_discussion', $oldid, $newitemid);
@@ -116,18 +117,19 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
     /**
      * Resotres a mooodleoverflow post from element data.
+     *
      * @param array $data element data
      */
     protected function process_moodleoverflow_post($data) {
         global $DB;
 
-        $data = (object)$data;
+        $data  = (object) $data;
         $oldid = $data->id;
 
         $data->discussion = $this->get_new_parentid('moodleoverflow_discussion');
-        $data->created = $this->apply_date_offset($data->created);
-        $data->modified = $this->apply_date_offset($data->modified);
-        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->created    = $this->apply_date_offset($data->created);
+        $data->modified   = $this->apply_date_offset($data->modified);
+        $data->userid     = $this->get_mappingid('user', $data->userid);
         // If post has parent, map it (it has been already restored).
         if (!empty($data->parent)) {
             $data->parent = $this->get_mappingid('moodleoverflow_post', $data->parent);
@@ -144,17 +146,18 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
     /**
      * Restores rating from element data.
+     *
      * @param array $data element data
      */
     protected function process_moodleoverflow_rating($data) {
         global $DB;
 
-        $data = (object)$data;
+        $data  = (object) $data;
         $oldid = $data->id;
 
-        $data->userid = $this->get_mappingid('user', $data->userid);
-        $data->postid = $this->get_new_parentid('moodleoverflow_post');
-        $data->discussionid = $this->get_new_parentid('moodleoverflow_discussion');
+        $data->userid           = $this->get_mappingid('user', $data->userid);
+        $data->postid           = $this->get_new_parentid('moodleoverflow_post');
+        $data->discussionid     = $this->get_new_parentid('moodleoverflow_discussion');
         $data->moodleoverflowid = $this->get_new_parentid('moodleoverflow');
 
         $newitemid = $DB->insert_record('moodleoverflow_ratings', $data);
@@ -163,16 +166,17 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
     /**
      * Restores moodleoverflow subscriptions from element data.
+     *
      * @param array $data element data
      */
     protected function process_moodleoverflow_subscription($data) {
         global $DB;
 
-        $data = (object)$data;
+        $data  = (object) $data;
         $oldid = $data->id;
 
         $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
-        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->userid         = $this->get_mappingid('user', $data->userid);
 
         $newitemid = $DB->insert_record('moodleoverflow_subscriptions', $data);
         $this->set_mapping('moodleoverflow_subscription', $oldid, $newitemid, true);
@@ -181,17 +185,18 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
     /**
      * Restores moodleoverflow disussion subscriptions from element data.
+     *
      * @param array $data element data
      */
     protected function process_moodleoverflow_discuss_sub($data) {
         global $DB;
 
-        $data = (object)$data;
+        $data  = (object) $data;
         $oldid = $data->id;
 
-        $data->discussion = $this->get_new_parentid('moodleoverflow_discussion');
+        $data->discussion     = $this->get_new_parentid('moodleoverflow_discussion');
         $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
-        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->userid         = $this->get_mappingid('user', $data->userid);
 
         $newitemid = $DB->insert_record('moodleoverflow_discuss_subs', $data);
         $this->set_mapping('moodleoverflow_discuss_sub', $oldid, $newitemid, true);
@@ -199,32 +204,34 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
     /**
      * Restores moodleoverflow read records from element data.
+     *
      * @param array $data element data
      */
     protected function process_moodleoverflow_read($data) {
         global $DB;
 
-        $data = (object)$data;
+        $data = (object) $data;
 
         $data->moodleoverflowid = $this->get_new_parentid('moodleoverflow');
-        $data->discussionid = $this->get_mappingid('moodleoverflow_discussion', $data->discussionid);
-        $data->postid = $this->get_mappingid('moodleoverflow_post', $data->postid);
-        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->discussionid     = $this->get_mappingid('moodleoverflow_discussion', $data->discussionid);
+        $data->postid           = $this->get_mappingid('moodleoverflow_post', $data->postid);
+        $data->userid           = $this->get_mappingid('user', $data->userid);
 
         $DB->insert_record('moodleoverflow_read', $data);
     }
 
     /**
      * Restores tracking records from element data.
+     *
      * @param array $data element data
      */
     protected function process_moodleoverflow_track($data) {
         global $DB;
 
-        $data = (object)$data;
+        $data = (object) $data;
 
         $data->moodleoverflowid = $this->get_new_parentid('moodleoverflow');
-        $data->userid = $this->get_mappingid('user', $data->userid);
+        $data->userid           = $this->get_mappingid('user', $data->userid);
 
         $DB->insert_record('moodleoverflow_tracking', $data);
     }

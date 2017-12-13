@@ -45,8 +45,8 @@ class subscription_deleted extends \core\event\base {
      * @return void
      */
     protected function init() {
-        $this->data['crud'] = 'd';
-        $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
+        $this->data['crud']        = 'd';
+        $this->data['edulevel']    = self::LEVEL_PARTICIPATING;
         $this->data['objecttable'] = 'forum_subscriptions';
     }
 

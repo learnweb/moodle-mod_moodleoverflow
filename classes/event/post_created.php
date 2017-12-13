@@ -46,8 +46,8 @@ class post_created extends \core\event\base {
      * @return void
      */
     protected function init() {
-        $this->data['crud'] = 'c';
-        $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
+        $this->data['crud']        = 'c';
+        $this->data['edulevel']    = self::LEVEL_PARTICIPATING;
         $this->data['objecttable'] = 'moodleoverflow_posts';
     }
 

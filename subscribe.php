@@ -26,16 +26,16 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once(dirname(__FILE__).'/locallib.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+require_once(dirname(__FILE__) . '/locallib.php');
 
 // Define required and optional params.
-$id             = required_param('id', PARAM_INT);             // The moodleoverflow to set subscription on.
-$mode           = optional_param('mode', null, PARAM_INT);     // The moodleoverflow's subscription mode.
-$user           = optional_param('user', 0, PARAM_INT);        // The userid of the user to subscribe, defaults to $USER.
-$discussionid   = optional_param('d', null, PARAM_INT);        // The discussionid to subscribe.
-$sesskey        = optional_param('sesskey', null, PARAM_RAW);
-$returnurl      = optional_param('returnurl', null, PARAM_RAW);
+$id           = required_param('id', PARAM_INT);             // The moodleoverflow to set subscription on.
+$mode         = optional_param('mode', null, PARAM_INT);     // The moodleoverflow's subscription mode.
+$user         = optional_param('user', 0, PARAM_INT);        // The userid of the user to subscribe, defaults to $USER.
+$discussionid = optional_param('d', null, PARAM_INT);        // The discussionid to subscribe.
+$sesskey      = optional_param('sesskey', null, PARAM_RAW);
+$returnurl    = optional_param('returnurl', null, PARAM_RAW);
 
 // Set the url to return to the same action.
 $url = new moodle_url('/mod/moodleoverflow/subscribe.php', array('id' => $id));
@@ -60,20 +60,20 @@ $PAGE->set_url($url);
 
 // Get all necessary objects.
 $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $id), '*', MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $moodleoverflow->course), '*', MUST_EXIST);
-$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
-$context = context_module::instance($cm->id);
+$course         = $DB->get_record('course', array('id' => $moodleoverflow->course), '*', MUST_EXIST);
+$cm             = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
+$context        = context_module::instance($cm->id);
 
 // Define variables.
-$notify = array();
-$notify['success'] = \core\output\notification::NOTIFY_SUCCESS;
-$notify['error'] = \core\output\notification::NOTIFY_ERROR;
-$strings = array();
-$strings['subscribeenrolledonly'] = get_string('subscribeenrolledonly', 'moodleoverflow');
-$strings['everyonecannowchoose'] = get_string('everyonecannowchoose', 'moodleoverflow');
+$notify                             = array();
+$notify['success']                  = \core\output\notification::NOTIFY_SUCCESS;
+$notify['error']                    = \core\output\notification::NOTIFY_ERROR;
+$strings                            = array();
+$strings['subscribeenrolledonly']   = get_string('subscribeenrolledonly', 'moodleoverflow');
+$strings['everyonecannowchoose']    = get_string('everyonecannowchoose', 'moodleoverflow');
 $strings['everyoneisnowsubscribed'] = get_string('everyoneisnowsubscribed', 'moodleoverflow');
-$strings['noonecansubscribenow'] = get_string('noonecansubscribenow', 'moodleoverflow');
-$strings['invalidforcesubscribe'] = get_string('invalidforcesubscribe', 'moodleoverflow');
+$strings['noonecansubscribenow']    = get_string('noonecansubscribenow', 'moodleoverflow');
+$strings['invalidforcesubscribe']   = get_string('invalidforcesubscribe', 'moodleoverflow');
 
 // Check if the user was requesting the subscription himself.
 if ($user) {
@@ -114,7 +114,7 @@ if (is_null($mode) AND !$isenrolled) {
     if (isguestuser()) {
         echo $OUTPUT->header();
         $message = $strings['subscribeenrolledonly'] . '<br /></ br>' . get_string('liketologin');
-        $url = new moodle_url('/mod/moodleoverflow/view.php', array('m' => $id));
+        $url     = new moodle_url('/mod/moodleoverflow/view.php', array('m' => $id));
         echo $OUTPUT->confirm($message, get_login_url(), $url);
         echo $OUTPUT->footer;
         exit;
@@ -190,8 +190,8 @@ if ($isforced) {
 }
 
 // Create an info object.
-$info = new stdClass();
-$info->name = fullname($user);
+$info                 = new stdClass();
+$info->name           = fullname($user);
 $info->moodleoverflow = format_string($moodleoverflow->name);
 
 // Check if the user is subscribed to the moodleoverflow.
@@ -213,9 +213,9 @@ if ($issubscribed) {
         if ($discussionid) {
 
             // Create a new info object.
-            $info2 = new stdClass();
+            $info2                 = new stdClass();
             $info2->moodleoverflow = format_string($moodleoverflow->name);
-            $info2->discussion = format_string($discussion->name);
+            $info2->discussion     = format_string($discussion->name);
 
             // Create a confirm statement.
             $string = get_string('confirmunsubscribediscussion', 'moodleoverflow', $info2);
@@ -262,9 +262,9 @@ if ($issubscribed) {
     // The user needs to be subscribed.
 
     // Check the capabilities.
-    $capabilities = array();
+    $capabilities                        = array();
     $capabilities['managesubscriptions'] = has_capability('mod/moodleoverflow:managesubscriptions', $context);
-    $capabilities['viewdiscussion'] = has_capability('mod/moodleoverflow:viewdiscussion', $context);
+    $capabilities['viewdiscussion']      = has_capability('mod/moodleoverflow:viewdiscussion', $context);
     require_sesskey();
 
     // Check if subscriptionsare allowed.
@@ -293,9 +293,9 @@ if ($issubscribed) {
         if ($discussionid) {
 
             // Create a new info object.
-            $info2 = new stdClass();
+            $info2                 = new stdClass();
             $info2->moodleoverflow = format_string($moodleoverflow->name);
-            $info2->discussion = format_string($discussion->name);
+            $info2->discussion     = format_string($discussion->name);
 
             // Create a confirm dialog.
             $string = get_string('confirmsubscribediscussion', 'moodleoverflow', $info2);

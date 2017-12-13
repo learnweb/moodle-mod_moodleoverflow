@@ -23,8 +23,8 @@
  */
 
 // Require needed files.
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once(dirname(__FILE__).'/locallib.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+require_once(dirname(__FILE__) . '/locallib.php');
 require_once($CFG->dirroot . '/course/lib.php');
 
 // Fetch submitted parameters.
@@ -58,12 +58,12 @@ unset($SESSION->fromdiscussion);
 $params = array(
     'context' => context_course::instance($course->id)
 );
-$event = \mod_moodleoverflow\event\course_module_instance_list_viewed::create($params);
+$event  = \mod_moodleoverflow\event\course_module_instance_list_viewed::create($params);
 $event->add_record_snapshot('course', $course);
 $event->trigger();
 
 // Cache some strings.
-$string = array();
+$string                           = array();
 $string['moodleoverflow']         = get_string('moodleoverflow', 'moodleoverflow');
 $string['moodleoverflows']        = get_string('moodleoverflows', 'moodleoverflow');
 $string['modulenameplural']       = get_string('modulenameplural', 'moodleoverflow');
@@ -85,8 +85,8 @@ $string['yes']                    = get_string('yes');
 $string['no']                     = get_string('no');
 
 // Begin to print a table for the general area.
-$generaltable = new html_table();
-$generaltable->head = array($string['moodleoverflow'], $string['description'], $string['discussions']);
+$generaltable        = new html_table();
+$generaltable->head  = array($string['moodleoverflow'], $string['description'], $string['discussions']);
 $generaltable->align = array('left', 'left', 'center');
 
 // Check whether moodleoverflows can be tracked.
@@ -110,13 +110,13 @@ if ($cantrack) {
 $usesections = course_format_uses_sections($course->format);
 
 // Initiate tables and variables.
-$table = new html_table();
-$generalmoodleoverflows = array();
-$modinfo = get_fast_modinfo($course);
+$table                   = new html_table();
+$generalmoodleoverflows  = array();
+$modinfo                 = get_fast_modinfo($course);
 $showsubscriptioncolumns = false;
 
 // Parse and organize all moodleoverflows.
-$sql = "SELECT m.*
+$sql             = "SELECT m.*
           FROM {moodleoverflow} m
          WHERE m.course = ?";
 $moodleoverflows = $DB->get_records_sql($sql, array($course->id));
@@ -131,7 +131,7 @@ foreach ($modinfo->get_instances_of('moodleoverflow') as $moodleoverflowid => $c
 
     // Get the current moodleoverflow instance and the context.
     $moodleoverflow = $moodleoverflows[$moodleoverflowid];
-    $modulecontext = context_module::instance($cm->id);
+    $modulecontext  = context_module::instance($cm->id);
 
     // Check whether the user can see the list.
     if (!has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext)) {
@@ -139,10 +139,10 @@ foreach ($modinfo->get_instances_of('moodleoverflow') as $moodleoverflowid => $c
     }
 
     // Get information about the subscription state.
-    $cansubscribe = \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow);
+    $cansubscribe                 = \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow);
     $moodleoverflow->cansubscribe = $cansubscribe || has_capability('mod/moodleoverflow:managesubscriptions', $modulecontext);
     $moodleoverflow->issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, null);
-    $showsubscriptioncolumns = $showsubscriptioncolumns || $moodleoverflow->issubscribed || $moodleoverflow->cansubscribe;
+    $showsubscriptioncolumns      = $showsubscriptioncolumns || $moodleoverflow->issubscribed || $moodleoverflow->cansubscribe;
 
     // Add the moodleoverflow to the cache.
     $generalmoodleoverflows[$moodleoverflowid] = $moodleoverflow;
@@ -153,7 +153,7 @@ if ($showsubscriptioncolumns) {
     // The user can subscribe to at least one moodleoverflow.
 
     // Add the subscription state to the table.
-    $generaltable->head[]  = $string['subscribed'];
+    $generaltable->head[] = $string['subscribed'];
 }
 
 // Handle course wide subscriptions or unsubscriptions if requested.
@@ -163,7 +163,7 @@ if (!is_null($subscribe)) {
     if (isguestuser() OR !$showsubscriptioncolumns) {
 
         // Redirect the user back.
-        $url = new moodle_url('/mod/moodleoverflow/index.php', array('id' => $id));
+        $url          = new moodle_url('/mod/moodleoverflow/index.php', array('id' => $id));
         $notification = \core\output\notification::NOTIFY_ERROR;
         redirect($url, $string['subscribeenrolledonly'], null, $notification);
     }
@@ -173,13 +173,13 @@ if (!is_null($subscribe)) {
 
         // Initiate variables.
         $moodleoverflow = $moodleoverflows[$moodleoverflowid];
-        $modulecontext = context_module::instance($cm->id);
-        $cansub = false;
+        $modulecontext  = context_module::instance($cm->id);
+        $cansub         = false;
 
         // Check capabilities.
         $cap['viewdiscussion']      = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext);
         $cap['managesubscriptions'] = has_capability('mod/moodleoverflow:managesubscriptions', $modulecontext);
-        $cap['manageactivities']      = has_capability('moodle/course:manageactivities', $coursecontext, $USER->id);
+        $cap['manageactivities']    = has_capability('moodle/course:manageactivities', $coursecontext, $USER->id);
 
         // Check whether the user can view the discussions.
         if ($cap['viewdiscussion']) {
@@ -196,7 +196,7 @@ if (!is_null($subscribe)) {
         if (!$forcesubscribed) {
 
             // Check the current state.
-            $subscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, null);
+            $subscribed   = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, null);
             $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow);
 
             // Check whether to subscribe or unsubscribe the user.
@@ -209,11 +209,11 @@ if (!is_null($subscribe)) {
     }
 
     // Create an url to return the user back to.
-    $url = new moodle_url('/mod/moodleoverflow/index.php', array('id' => $id));
+    $url      = new moodle_url('/mod/moodleoverflow/index.php', array('id' => $id));
     $returnto = moodleoverflow_go_back_to($url);
 
     // Prepare the message to be displayed.
-    $shortname = format_string($course->shortname, true, array('context' => context_course::instance($course->id)));
+    $shortname    = format_string($course->shortname, true, array('context' => context_course::instance($course->id)));
     $notification = \core\output\notification::NOTIFY_SUCCESS;
 
     // Redirect the user depending on the subscription state.
@@ -252,11 +252,12 @@ if ($generalmoodleoverflows) {
                     $unreadlink = '-';
 
                 } else if ($unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm,
-                    $course)) {
+                    $course)
+                ) {
                     // There are unread posts in the moodleoverflow instance.
 
                     // Create a string to be displayed.
-                    $unreadlink  = '<span class="unread">';
+                    $unreadlink = '<span class="unread">';
                     $unreadlink .= '<a href="view.php?m=' . $moodleoverflow->id . '">' . $unread . '</a>';
                     $unreadlink .= '<a title="' . $string['markallread'] . '" href="markposts.php?m=' . $moodleoverflow->id .
                         '&amp;mark=read&amp;sesskey=' . sesskey() . '">';
@@ -291,15 +292,15 @@ if ($generalmoodleoverflows) {
 
                     // Define the url the button is linked to.
                     $trackingurlparams = array('id' => $moodleoverflow->id, 'sesskey' => sesskey());
-                    $trackingurl = new moodle_url('/mod/moodleoverflow/tracking.php', $trackingurlparams);
+                    $trackingurl       = new moodle_url('/mod/moodleoverflow/tracking.php', $trackingurlparams);
 
                     // Check whether the moodleoverflow instance is tracked.
                     if (!isset($untracked[$moodleoverflow->id])) {
                         $trackingparam = array('title' => $string['notrackmoodleoverflow']);
-                        $trackedlink = $OUTPUT->single_button($trackingurl, $string['yes'], 'post', $trackingparam);
+                        $trackedlink   = $OUTPUT->single_button($trackingurl, $string['yes'], 'post', $trackingparam);
                     } else {
                         $trackingparam = array('title' => $string['trackmoodleoverflow']);
-                        $trackedlink = $OUTPUT->single_button($trackingurl, $string['no'], 'post', $trackingparam);
+                        $trackedlink   = $OUTPUT->single_button($trackingurl, $string['no'], 'post', $trackingparam);
                     }
                 }
             }
@@ -307,7 +308,7 @@ if ($generalmoodleoverflows) {
 
         // Get information about the moodleoverflow instance.
         $moodleoverflow->intro = shorten_text(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 300);
-        $moodleoverflowname = format_string($moodleoverflow->name, true);
+        $moodleoverflowname    = format_string($moodleoverflow->name, true);
 
         // Check if the context module is visible.
         if ($cm->visible) {
@@ -319,7 +320,7 @@ if ($generalmoodleoverflows) {
         // Create links to the moodleoverflow and the discussion.
         $moodleoverflowlink = "<a href=\"view.php?m=$moodleoverflow->id\" $style>"
             . format_string($moodleoverflow->name, true) . '</a>';
-        $discussionlink = "<a href=\"view.php?m=$moodleoverflow->id\" $style>" . $count . "</a>";
+        $discussionlink     = "<a href=\"view.php?m=$moodleoverflow->id\" $style>" . $count . "</a>";
 
         // Create rows.
         $row = array($moodleoverflowlink, $moodleoverflow->intro, $discussionlink);
@@ -335,11 +336,11 @@ if ($generalmoodleoverflows) {
 
             // Set options to create the subscription link.
             $suboptions = array(
-                    'subscribed' => $string['yes'],
-                    'unsubscribed' => $string['no'],
-                    'forcesubscribed' => $string['yes'],
-                    'cantsubscribe' => '-',
-                );
+                'subscribed'      => $string['yes'],
+                'unsubscribed'    => $string['no'],
+                'forcesubscribed' => $string['yes'],
+                'cantsubscribe'   => '-',
+            );
 
             // Add the subscription link to the row.
             $row[] = \mod_moodleoverflow\subscriptions::moodleoverflow_get_subscribe_link($moodleoverflow,
@@ -353,7 +354,7 @@ if ($generalmoodleoverflows) {
 
 // Output the page.
 $PAGE->navbar->add($string['moodleoverflows']);
-$PAGE->set_title($course->shortname. ': ' . $string['moodleoverflows']);
+$PAGE->set_title($course->shortname . ': ' . $string['moodleoverflows']);
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 
@@ -364,7 +365,7 @@ if (!isguestuser() AND isloggedin() AND $showsubscriptioncolumns) {
     echo $OUTPUT->box_start('subscription');
 
     // Create the subscription link.
-    $urlparams = array('id' => $course->id, 'sesskey' => sesskey());
+    $urlparams        = array('id' => $course->id, 'sesskey' => sesskey());
     $subscriptionlink = new moodle_url('/mod/moodleoverflow/index.php', $urlparams);
 
     // Give the option to subscribe to all.

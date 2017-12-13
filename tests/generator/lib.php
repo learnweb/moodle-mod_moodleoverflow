@@ -58,14 +58,16 @@ class mod_moodleoverflow_generator extends testing_module_generator {
 
     /**
      * Creates a moodleoverflow instance.
-     * @param null $record
+     *
+     * @param null       $record
      * @param array|null $options
+     *
      * @return stdClass
      */
     public function create_instance($record = null, array $options = null) {
 
         // Transform the record.
-        $record = (object)(array)$record;
+        $record = (object) (array) $record;
 
         if (!isset($record->name)) {
             $record->name = 'Test MO Instance';
@@ -86,12 +88,14 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $record->forcesubscribe = MOODLEOVERFLOW_CHOOSESUBSCRIBE;
         }
 
-        return parent::create_instance($record, (array)$options);
+        return parent::create_instance($record, (array) $options);
     }
 
     /**
      * Creates a moodleoverflow discussion.
+     *
      * @param null $record
+     *
      * @return bool|int
      * @throws coding_exception
      */

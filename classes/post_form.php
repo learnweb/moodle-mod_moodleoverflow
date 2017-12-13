@@ -43,9 +43,9 @@ class mod_moodleoverflow_post_form extends moodleform {
      */
     public function definition() {
 
-        $modform =& $this->_form;
-        $post = $this->_customdata['post'];
-        $modcontext = $this->_customdata['modulecontext'];
+        $modform        =& $this->_form;
+        $post           = $this->_customdata['post'];
+        $modcontext     = $this->_customdata['modulecontext'];
         $moodleoverflow = $this->_customdata['moodleoverflow'];
 
         // Fill in the data depending on page params later using set_data.
@@ -106,8 +106,9 @@ class mod_moodleoverflow_post_form extends moodleform {
     /**
      * Form validation.
      *
-     * @param array $data data from the form.
+     * @param array $data  data from the form.
      * @param array $files files uplaoded.
+     *
      * @return array of errors.
      */
     public function validation($data, $files) {
@@ -118,6 +119,7 @@ class mod_moodleoverflow_post_form extends moodleform {
         if (empty($data['subject'])) {
             $errors['subject'] = get_string('erroremptysubject', 'moodleoverflow');
         }
+
         return $errors;
     }
 
@@ -125,17 +127,19 @@ class mod_moodleoverflow_post_form extends moodleform {
      * Returns the options array to use in filemanager for moodleoverflow attachments
      *
      * @param stdClass $moodleoverflow
+     *
      * @return array
      */
     public static function attachment_options($moodleoverflow) {
         global $COURSE, $PAGE, $CFG;
         $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes, $moodleoverflow->maxbytes);
+
         return array(
-            'subdirs' => 0,
-            'maxbytes' => $maxbytes,
-            'maxfiles' => $moodleoverflow->maxattachments,
+            'subdirs'        => 0,
+            'maxbytes'       => $maxbytes,
+            'maxfiles'       => $moodleoverflow->maxattachments,
             'accepted_types' => '*',
-            'return_types' => FILE_INTERNAL | FILE_CONTROLLED_LINK
+            'return_types'   => FILE_INTERNAL | FILE_CONTROLLED_LINK
         );
     }
 

@@ -49,6 +49,7 @@ class renderer_text extends renderer {
      *
      * @param \stdClass $cm
      * @param \stdClass $post
+     *
      * @return string
      */
     public function format_message_text($cm, $post) {

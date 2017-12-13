@@ -29,7 +29,6 @@ require_once(dirname(__FILE__) . '/../locallib.php');
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-
  */
 class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
 

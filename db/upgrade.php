@@ -35,6 +35,7 @@ defined('MOODLE_INTERNAL') || die();
  * Execute moodleoverflow upgrade from the given old version
  *
  * @param int $oldversion
+ *
  * @return bool
  */
 function xmldb_moodleoverflow_upgrade($oldversion) {

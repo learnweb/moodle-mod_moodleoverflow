@@ -19,28 +19,28 @@
  *
  * @package    mod_moodleoverflow
  * @category   external
- * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die;
 
 $functions = array(
     'mod_moodleoverflow_record_vote' => array(
-        'classname' => 'mod_moodleoverflow_external',
-        'methodname' => 'record_vote',
-        'classpath' => 'mod/moodleoverflow/externallib.php',
-        'description' => 'Records a vote and updates the reputation of a user',
-        'type' => 'write',
-        'ajax' => true,
+        'classname'    => 'mod_moodleoverflow_external',
+        'methodname'   => 'record_vote',
+        'classpath'    => 'mod/moodleoverflow/externallib.php',
+        'description'  => 'Records a vote and updates the reputation of a user',
+        'type'         => 'write',
+        'ajax'         => true,
         'capabilities' => 'mod/moodleoverflow:ratepost'
     )
 );
 
 $services = array(
     'mod_moodleoverflow_service' => array(
-        'functions' => array('mod_moodleoverflow_record_vote'),
+        'functions'          => array('mod_moodleoverflow_record_vote'),
         'requiredcapability' => 'mod/moodleoverflow:ratepost',
-        'restrictedusers' => 0,
-        'enabled' => 1,
+        'restrictedusers'    => 0,
+        'enabled'            => 1,
     )
 );

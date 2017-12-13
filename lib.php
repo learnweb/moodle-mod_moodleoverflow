@@ -80,6 +80,7 @@ define('RATING_REMOVE_HELPFUL', 40);
  * See {@link plugin_supports()} for more info.
  *
  * @param string $feature FEATURE_xx constant for requested feature
+ *
  * @return mixed true if the feature is supported, null if unknown
  */
 function moodleoverflow_supports($feature) {
@@ -104,8 +105,9 @@ function moodleoverflow_supports($feature) {
  * will create a new instance and return the id number
  * of the new instance.
  *
- * @param stdClass $moodleoverflow Submitted data from the form in mod_form.php
- * @param mod_moodleoverflow_mod_form $mform The form instance itself (if needed)
+ * @param stdClass                    $moodleoverflow Submitted data from the form in mod_form.php
+ * @param mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
+ *
  * @return int The id of the newly inserted moodleoverflow record
  */
 function moodleoverflow_add_instance(stdClass $moodleoverflow, mod_moodleoverflow_mod_form $mform = null) {
@@ -125,7 +127,7 @@ function moodleoverflow_add_instance(stdClass $moodleoverflow, mod_moodleoverflo
  * Handle changes following the creation of a moodleoverflow instance.
  * This function is typically called by the course_module_created observer.
  *
- * @param object $context The context of the moodleoverflow
+ * @param object   $context        The context of the moodleoverflow
  * @param stdClass $moodleoverflow The moodleoverflow object
  */
 function moodleoverflow_instance_created($context, $moodleoverflow) {
@@ -150,15 +152,16 @@ function moodleoverflow_instance_created($context, $moodleoverflow) {
  * (defined by the form in mod_form.php) this function
  * will update an existing instance with new data.
  *
- * @param stdClass $moodleoverflow An object from the form in mod_form.php
- * @param mod_moodleoverflow_mod_form $mform The form instance itself (if needed)
+ * @param stdClass                    $moodleoverflow An object from the form in mod_form.php
+ * @param mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
+ *
  * @return boolean Success/Fail
  */
 function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleoverflow_mod_form $mform = null) {
     global $DB;
 
     $moodleoverflow->timemodified = time();
-    $moodleoverflow->id = $moodleoverflow->instance;
+    $moodleoverflow->id           = $moodleoverflow->instance;
 
     // Get the old record.
     $oldmoodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id));
@@ -167,7 +170,7 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
     $modulecontext = context_module::instance($moodleoverflow->coursemodule);
 
     // Check if the subscription state has changed.
-    $nowforced = ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE);
+    $nowforced   = ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE);
     $statechaged = ($moodleoverflow->forcesubscribe <> $oldmoodleoverflow->forcesubscribe);
     if ($nowforced AND $statechaged) {
 
@@ -194,6 +197,7 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
  * This is only required if the module is generating calendar events.
  *
  * @param int $courseid Course ID
+ *
  * @return bool
  */
 function moodleoverflow_refresh_events($courseid = 0) {
@@ -227,6 +231,7 @@ function moodleoverflow_refresh_events($courseid = 0) {
  * and any data that depends on it.
  *
  * @param int $id Id of the module instance
+ *
  * @return boolean Success/Failure
  */
 function moodleoverflow_delete_instance($id) {
@@ -287,17 +292,19 @@ function moodleoverflow_delete_instance($id) {
  * $return->time = the time they did it
  * $return->info = a short text description
  *
- * @param stdClass $course The course record
- * @param stdClass $user The user record
- * @param cm_info|stdClass $mod The course module info object or record
- * @param stdClass $moodleoverflow The moodleoverflow instance record
+ * @param stdClass         $course         The course record
+ * @param stdClass         $user           The user record
+ * @param cm_info|stdClass $mod            The course module info object or record
+ * @param stdClass         $moodleoverflow The moodleoverflow instance record
+ *
  * @return stdClass|null
  */
 function moodleoverflow_user_outline($course, $user, $mod, $moodleoverflow) {
 
-    $return = new stdClass();
+    $return       = new stdClass();
     $return->time = 0;
     $return->info = '';
+
     return $return;
 }
 
@@ -305,9 +312,10 @@ function moodleoverflow_user_outline($course, $user, $mod, $moodleoverflow) {
  * Given a course and a time, this module should find recent activity
  * that has occurred in moodleoverflow activities and print it out.
  *
- * @param stdClass $course The course record
- * @param bool $viewfullnames Should we display full names
- * @param int $timestart Print activity since this timestamp
+ * @param stdClass $course        The course record
+ * @param bool     $viewfullnames Should we display full names
+ * @param int      $timestart     Print activity since this timestamp
+ *
  * @return boolean True if anything was printed, otherwise false
  */
 function moodleoverflow_print_recent_activity($course, $viewfullnames, $timestart) {
@@ -344,30 +352,32 @@ function moodleoverflow_cron() {
  * @param stdClass $course
  * @param stdClass $cm
  * @param stdClass $context
+ *
  * @return array of [(string)filearea] => (string)description
  */
 function moodleoverflow_get_file_areas($course, $cm, $context) {
     return array(
         'attachment' => get_string('areaattachment', 'mod_moodleoverflow'),
-        'post' => get_string('areapost', 'mod_moodleoverflow'),
+        'post'       => get_string('areapost', 'mod_moodleoverflow'),
     );
 }
 
 /**
  * File browsing support for moodleoverflow file areas
  *
- * @package mod_moodleoverflow
+ * @package  mod_moodleoverflow
  * @category files
  *
  * @param file_browser $browser
- * @param array $areas
- * @param stdClass $course
- * @param stdClass $cm
- * @param stdClass $context
- * @param string $filearea
- * @param int $itemid
- * @param string $filepath
- * @param string $filename
+ * @param array        $areas
+ * @param stdClass     $course
+ * @param stdClass     $cm
+ * @param stdClass     $context
+ * @param string       $filearea
+ * @param int          $itemid
+ * @param string       $filepath
+ * @param string       $filename
+ *
  * @return file_info instance or null if not found
  */
 function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
@@ -377,16 +387,16 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
 /**
  * Serves the files from the moodleoverflow file areas
  *
- * @package mod_moodleoverflow
+ * @package  mod_moodleoverflow
  * @category files
  *
- * @param stdClass $course the course object
- * @param stdClass $cm the course module object
- * @param stdClass $context the moodleoverflow's context
- * @param string $filearea the name of the file area
- * @param array $args extra arguments (itemid, path)
- * @param bool $forcedownload whether or not force download
- * @param array $options additional options affecting the file serving
+ * @param stdClass $course        the course object
+ * @param stdClass $cm            the course module object
+ * @param stdClass $context       the moodleoverflow's context
+ * @param string   $filearea      the name of the file area
+ * @param array    $args          extra arguments (itemid, path)
+ * @param bool     $forcedownload whether or not force download
+ * @param array    $options       additional options affecting the file serving
  */
 function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options = array()) {
     global $DB;
@@ -404,7 +414,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
         return false;
     }
 
-    $postid = (int)array_shift($args);
+    $postid = (int) array_shift($args);
 
     if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
         return false;
@@ -418,9 +428,9 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
         return false;
     }
 
-    $fs = get_file_storage();
+    $fs           = get_file_storage();
     $relativepath = implode('/', $args);
-    $fullpath = "/$context->id/mod_moodleoverflow/$filearea/$postid/$relativepath";
+    $fullpath     = "/$context->id/mod_moodleoverflow/$filearea/$postid/$relativepath";
     if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
         return false;
     }
@@ -452,8 +462,8 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
  * This function is called when the context for the page is a moodleoverflow module. This is not called by AJAX
  * so it is safe to rely on the $PAGE.
  *
- * @param settings_navigation $settingsnav complete settings navigation tree
- * @param navigation_node $moodleoverflownode moodleoverflow administration node
+ * @param settings_navigation $settingsnav        complete settings navigation tree
+ * @param navigation_node     $moodleoverflownode moodleoverflow administration node
  */
 function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $moodleoverflownode = null) {
     global $CFG, $DB, $PAGE, $USER;
@@ -462,13 +472,13 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $PAGE->cm->instance));
 
     // Check if the user can subscribe to the instance.
-    $enrolled = is_enrolled($PAGE->cm->context, $USER, '', false);
-    $activeenrolled = is_enrolled($PAGE->cm->context, $USER, '', true);
-    $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $PAGE->cm->context);
+    $enrolled        = is_enrolled($PAGE->cm->context, $USER, '', false);
+    $activeenrolled  = is_enrolled($PAGE->cm->context, $USER, '', true);
+    $canmanage       = has_capability('mod/moodleoverflow:managesubscriptions', $PAGE->cm->context);
     $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
-    $subscdisabled = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
-    $cansubscribe = ($activeenrolled AND !$forcesubscribed AND (!$subscdisabled OR $canmanage));
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $subscdisabled   = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
+    $cansubscribe    = ($activeenrolled AND !$forcesubscribed AND (!$subscdisabled OR $canmanage));
+    $cantrack        = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
 
     // Display a link to the index.
     if ($enrolled AND $activeenrolled) {
@@ -477,9 +487,9 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
         $linktext = get_string('gotoindex', 'moodleoverflow');
 
         // Generate the link.
-        $url = '/mod/moodleoverflow/index.php';
+        $url    = '/mod/moodleoverflow/index.php';
         $params = array('id' => $moodleoverflow->course);
-        $link = new moodle_url($url, $params);
+        $link   = new moodle_url($url, $params);
 
         // Add the link to the menu.
         $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
@@ -505,9 +515,9 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     if ($enrolled AND $cantrack) {
 
         // Check some basic capabilities.
-        $isoptional = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
+        $isoptional   = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
         $forceallowed = get_config('moodleoverflow', 'allowforcedreadtracking');
-        $isforced = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
+        $isforced     = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
 
         // Check whether the readtracking state can be changed.
         if ($isoptional OR (!$forceallowed AND $isforced)) {
@@ -521,9 +531,9 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
             }
 
             // Generate the link.
-            $url = '/mod/moodleoverflow/tracking.php';
+            $url    = '/mod/moodleoverflow/tracking.php';
             $params = array('id' => $moodleoverflow->id, 'sesskey' => sesskey());
-            $link = new moodle_url($url, $params);
+            $link   = new moodle_url($url, $params);
 
             // Add the link to the menu.
             $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
@@ -538,8 +548,9 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
  *
  * If a context of type context_module is specified, it is immediately returned and not checked.
  *
- * @param int $moodleoverflowid The moodleoverflow ID
- * @param context_module $context The current context
+ * @param int            $moodleoverflowid The moodleoverflow ID
+ * @param context_module $context          The current context
+ *
  * @return context_module The context determined
  */
 function moodleoverflow_get_context($moodleoverflowid, $context = null) {
@@ -557,7 +568,7 @@ function moodleoverflow_get_context($moodleoverflowid, $context = null) {
         } else {
 
             // Get the context via the coursemodule.
-            $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid);
+            $cm      = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid);
             $context = \context_module::instance($cm->id);
         }
     }
@@ -582,24 +593,24 @@ function moodleoverflow_send_mails() {
     $textout = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
 
     // Initiate the arrays that are saving the users that are subscribed to posts that needs sending.
-    $users = array();
+    $users      = array();
     $userscount = 0; // Count($users) is slow. This avoids using this.
 
     // Status arrays.
-    $mailcount = array();
+    $mailcount  = array();
     $errorcount = array();
 
     // Cache arrays.
-    $discussions = array();
+    $discussions     = array();
     $moodleoverflows = array();
-    $courses = array();
-    $coursemodules = array();
+    $courses         = array();
+    $coursemodules   = array();
     $subscribedusers = array();
 
     // Posts older than x days will not be mailed.
     // This will avoid problems with the cron not beeing ran for a long time.
-    $timenow = time();
-    $endtime = $timenow - get_config('moodleoverflow', 'maxeditingtime');
+    $timenow   = time();
+    $endtime   = $timenow - get_config('moodleoverflow', 'maxeditingtime');
     $starttime = $endtime - (get_config('moodleoverflow', 'maxmailingtime') * 60 * 60);
 
     // Retrieve all unmailed posts.
@@ -609,6 +620,7 @@ function moodleoverflow_send_mails() {
         // Mark those posts as mailed.
         if (!moodleoverflow_mark_old_posts_as_mailed($endtime)) {
             mtrace('Errors occurred while trying to mark some posts as being mailed.');
+
             return false;
         }
 
@@ -685,7 +697,7 @@ function moodleoverflow_send_mails() {
                 $modulecontext = context_module::instance($coursemodules[$moodleoverflowid]->id);
 
                 // Retrieve all subscribed users.
-                $mid = $moodleoverflows[$moodleoverflowid];
+                $mid      = $moodleoverflows[$moodleoverflowid];
                 $subusers = \mod_moodleoverflow\subscriptions::get_subscribed_users($mid, $modulecontext, 'u.*', true);
                 if ($subusers) {
 
@@ -706,7 +718,7 @@ function moodleoverflow_send_mails() {
             }
 
             // Initiate the count of the mails send and errors.
-            $mailcount[$postid] = 0;
+            $mailcount[$postid]  = 0;
             $errorcount[$postid] = 0;
         }
     }
@@ -724,17 +736,17 @@ function moodleoverflow_send_mails() {
             mtrace('Processing user ' . $userto->id);
 
             // Initiate the user caches to save memory.
-            $userto = clone($userto);
+            $userto                = clone($userto);
             $userto->ciewfullnames = array();
-            $userto->canpost = array();
-            $userto->markposts = array();
+            $userto->canpost       = array();
+            $userto->markposts     = array();
 
             // Cache the capabilities of the user.
             cron_setup_user($userto);
 
             // Reset the caches.
             foreach ($coursemodules as $moodleoverflowid => $unused) {
-                $coursemodules[$moodleoverflowid]->cache = new stdClass();
+                $coursemodules[$moodleoverflowid]->cache       = new stdClass();
                 $coursemodules[$moodleoverflowid]->cache->caps = array();
                 unset($coursemodules[$moodleoverflowid]->uservisible);
             }
@@ -743,10 +755,10 @@ function moodleoverflow_send_mails() {
             foreach ($posts as $postid => $post) {
 
                 // Initiate variables for the post.
-                $discussion = $discussions[$post->discussion];
+                $discussion     = $discussions[$post->discussion];
                 $moodleoverflow = $moodleoverflows[$discussion->moodleoverflow];
-                $course = $courses[$moodleoverflow->course];
-                $cm =& $coursemodules[$moodleoverflow->id];
+                $course         = $courses[$moodleoverflow->course];
+                $cm             =& $coursemodules[$moodleoverflow->id];
 
                 // Check whether the user is subscribed.
                 if (!isset($subscribedusers[$moodleoverflow->id][$userto->id])) {
@@ -754,9 +766,9 @@ function moodleoverflow_send_mails() {
                 }
 
                 // Check whether the user is subscribed to the discussion.
-                $iscm = $coursemodules[$moodleoverflow->id];
-                $uid = $userto->id;
-                $did = $post->discussion;
+                $iscm         = $coursemodules[$moodleoverflow->id];
+                $uid          = $userto->id;
+                $did          = $post->discussion;
                 $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($uid, $moodleoverflow, $did, $iscm);
                 if (!$issubscribed) {
                     continue;
@@ -819,12 +831,12 @@ function moodleoverflow_send_mails() {
                 // Sent the email.
 
                 // Preapare to actually send the post now. Build up the content.
-                $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
+                $cleanname     = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
                 $coursecontext = context_course::instance($course->id);
-                $shortname = format_string($course->shortname, true, array('context' => $coursecontext));
+                $shortname     = format_string($course->shortname, true, array('context' => $coursecontext));
 
                 // Define a header to make mails easier to track.
-                $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);
+                $emailmessageid          = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);
                 $userfrom->customheaders = array(
                     'List-Id: "' . $cleanname . '" ' . $emailmessageid,
                     'List-Help: ' . $CFG->wwwroot . '/mod/moodleoverflow/view.php?m=' . $moodleoverflow->id,
@@ -868,22 +880,22 @@ function moodleoverflow_send_mails() {
                 }
 
                 // Retrieve needed variables for the mail.
-                $var = new \stdClass();
-                $var->subject = $data->get_subject();
+                $var                     = new \stdClass();
+                $var->subject            = $data->get_subject();
                 $var->moodleoverflowname = $cleanname;
-                $var->sitefullname = format_string($site->fullname);
-                $var->siteshortname = format_string($site->shortname);
-                $var->courseidnumber = $data->get_courseidnumber();
-                $var->coursefullname = $data->get_coursefullname();
-                $var->courseshortname = $data->get_coursename();
-                $postsubject = html_to_text(get_string('postmailsubject', 'moodleoverflow', $var), 0);
-                $rootid = generate_email_messageid(hash('sha256', $discussion->firstpost . 'to' . $userto->id));
+                $var->sitefullname       = format_string($site->fullname);
+                $var->siteshortname      = format_string($site->shortname);
+                $var->courseidnumber     = $data->get_courseidnumber();
+                $var->coursefullname     = $data->get_coursefullname();
+                $var->courseshortname    = $data->get_coursename();
+                $postsubject             = html_to_text(get_string('postmailsubject', 'moodleoverflow', $var), 0);
+                $rootid                  = generate_email_messageid(hash('sha256', $discussion->firstpost . 'to' . $userto->id));
 
                 // Check whether the post is a reply.
                 if ($post->parent) {
 
                     // Add a reply header.
-                    $parentid = generate_email_messageid(hash('sha256', $post->parent . 'to' . $userto->id));
+                    $parentid                  = generate_email_messageid(hash('sha256', $post->parent . 'to' . $userto->id));
                     $userfrom->customheaders[] = "In-Reply-To: $parentid";
 
                     // Comments need a reference to the starting post as well.
@@ -898,34 +910,34 @@ function moodleoverflow_send_mails() {
                 mtrace('Sending ', '');
 
                 // Create the message event.
-                $eventdata = new \core\message\message();
-                $eventdata->courseid = $course->id;
-                $eventdata->component = 'mod_moodleoverflow';
-                $eventdata->name = 'posts';
-                $eventdata->userfrom = $userfrom;
-                $eventdata->userto = $userto;
-                $eventdata->subject = $postsubject;
-                $eventdata->fullmessage = $textout->render($data);
+                $eventdata                    = new \core\message\message();
+                $eventdata->courseid          = $course->id;
+                $eventdata->component         = 'mod_moodleoverflow';
+                $eventdata->name              = 'posts';
+                $eventdata->userfrom          = $userfrom;
+                $eventdata->userto            = $userto;
+                $eventdata->subject           = $postsubject;
+                $eventdata->fullmessage       = $textout->render($data);
                 $eventdata->fullmessageformat = FORMAT_PLAIN;
-                $eventdata->fullmessagehtml = $htmlout->render($data);
-                $eventdata->notification = 1;
+                $eventdata->fullmessagehtml   = $htmlout->render($data);
+                $eventdata->notification      = 1;
 
                 // Initiate another message array.
-                $small = new \stdClass();
-                $small->user = fullname($userfrom);
-                $formatedstring = format_string($moodleoverflow->name, true);
+                $small                     = new \stdClass();
+                $small->user               = fullname($userfrom);
+                $formatedstring            = format_string($moodleoverflow->name, true);
                 $small->moodleoverflowname = "$shortname: " . $formatedstring . ": " . $discussion->name;
-                $small->message = $post->message;
+                $small->message            = $post->message;
 
                 // Make sure the language is correct.
-                $usertol = $userto->lang;
+                $usertol                 = $userto->lang;
                 $eventdata->smallmessage = get_string_manager()->get_string('smallmessage', 'moodleoverflow', $small, $usertol);
 
                 // Generate the url to view the post.
-                $url = '/mod/moodleoverflow/discussion.php';
-                $params = array('d' => $discussion->id);
-                $contexturl = new moodle_url($url, $params, 'p' . $post->id);
-                $eventdata->contexturl = $contexturl->out();
+                $url                       = '/mod/moodleoverflow/discussion.php';
+                $params                    = array('d' => $discussion->id);
+                $contexturl                = new moodle_url($url, $params, 'p' . $post->id);
+                $eventdata->contexturl     = $contexturl->out();
                 $eventdata->contexturlname = $discussion->name;
 
                 // Actually send the message.
@@ -973,17 +985,18 @@ function moodleoverflow_send_mails() {
  * Returns a list of all posts that have not been mailed yet.
  *
  * @param int $starttime posts created after this time
- * @param int $endtime posts created before this time
+ * @param int $endtime   posts created before this time
+ *
  * @return array
  */
 function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
     global $DB;
 
     // Set params for the sql query.
-    $params = array();
-    $params['mailed'] = MOODLEOVERFLOW_MAILED_PENDING;
+    $params               = array();
+    $params['mailed']     = MOODLEOVERFLOW_MAILED_PENDING;
     $params['ptimestart'] = $starttime;
-    $params['ptimeend'] = $endtime;
+    $params['ptimeend']   = $endtime;
 
     // Retrieve the records.
     $sql = "SELECT p.*, d.course, d.moodleoverflow
@@ -991,6 +1004,7 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
             JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
             WHERE p.mailed = :mailed AND p.created >= :ptimestart AND p.created < :ptimeend
             ORDER BY p.modified ASC";
+
     return $DB->get_records_sql($sql, $params);
 }
 
@@ -998,6 +1012,7 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
  * Marks posts before a certain time as being mailed already.
  *
  * @param int $endtime
+ *
  * @return bool
  */
 function moodleoverflow_mark_old_posts_as_mailed($endtime) {
@@ -1007,16 +1022,17 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
     $now = time();
 
     // Define variables for the sql query.
-    $params = array();
+    $params                  = array();
     $params['mailedsuccess'] = MOODLEOVERFLOW_MAILED_SUCCESS;
-    $params['now'] = $now;
-    $params['endtime'] = $endtime;
+    $params['now']           = $now;
+    $params['endtime']       = $endtime;
     $params['mailedpending'] = MOODLEOVERFLOW_MAILED_PENDING;
 
     // Define the sql query.
     $sql = "UPDATE {moodleoverflow_posts}
             SET mailed = :mailedsuccess
             WHERE (created < :endtime) AND mailed = :mailedpending";
+
     return $DB->execute($sql, $params);
 
 }
@@ -1042,6 +1058,7 @@ function moodleoverflow_minimise_user_record(stdClass $user) {
 /**
  * Adds information about unread messages, that is only required for the course view page (and
  * similar), to the course-module object.
+ *
  * @param cm_info $cm Course-module object
  */
 function moodleoverflow_cm_info_view(cm_info $cm) {
@@ -1065,8 +1082,10 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
 
 /**
  * Check if the user can create attachments in moodleoverflow.
+ *
  * @param  stdClass $moodleoverflow moodleoverflow object
- * @param  stdClass $context context object
+ * @param  stdClass $context        context object
+ *
  * @return bool true if the user can create attachments, false otherwise
  * @since  Moodle 3.3
  */
@@ -1077,5 +1096,6 @@ function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
     ) {
         return false;
     }
+
     return true;
 }

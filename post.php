@@ -37,10 +37,10 @@ $confirm = optional_param('confirm', 0, PARAM_INT);
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/post.php', array(
     'moodleoverflow' => $moodleoverflow,
-    'reply' => $reply,
-    'edit' => $edit,
-    'delete' => $delete,
-    'confirm' => $confirm,
+    'reply'          => $reply,
+    'edit'           => $edit,
+    'delete'         => $delete,
+    'confirm'        => $confirm,
 ));
 
 // These params will be passed as hidden variables later in the form.
@@ -140,7 +140,7 @@ if (!empty($moodleoverflow)) {
                 $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
                 redirect(new moodle_url('/enrol/index.php', array(
-                    'id' => $course->id,
+                    'id'        => $course->id,
                     'returnurl' => '/mod/moodleoverflow/view.php?m=' . $moodleoverflow->id
                 )), get_string('youneedtoenrol'));
             }
@@ -209,8 +209,8 @@ if (!empty($moodleoverflow)) {
         if (!isguestuser() AND !is_enrolled($coursecontext)) {
             $SESSION->wantsurl = qualified_me();
             $SESSION->enrolcancel = get_local_referer(false);
-            redirect(new moodle_url('/enrol/index.php', array('id' => $course->id,
-                'returnurl' => '/mod/moodleoverflow/view.php?m=' . $moodleoverflow->id)),
+            redirect(new moodle_url('/enrol/index.php',
+                array('id' => $course->id, 'returnurl' => '/mod/moodleoverflow/view.php?m=' . $moodleoverflow->id)),
                 get_string('youneedtoenrol'));
         }
 
@@ -375,7 +375,7 @@ if (!empty($moodleoverflow)) {
                 // Trigger the discussion deleted event.
                 $params = array(
                     'objectid' => $discussion->id,
-                    'context' => $modulecontext,
+                    'context'  => $modulecontext,
                 );
 
                 $event = \mod_moodleoverflow\event\discussion_deleted::create($params);
@@ -469,13 +469,13 @@ file_prepare_draft_area($draftitemid,
 
 // Prepare the form.
 $formarray = array(
-    'course' => $course,
-    'cm' => $cm,
-    'coursecontext' => $coursecontext,
-    'modulecontext' => $modulecontext,
+    'course'         => $course,
+    'cm'             => $cm,
+    'coursecontext'  => $coursecontext,
+    'modulecontext'  => $modulecontext,
     'moodleoverflow' => $moodleoverflow,
-    'post' => $post,
-    'edit' => $edit,
+    'post'           => $post,
+    'edit'           => $edit,
 );
 $mformpost = new mod_moodleoverflow_post_form('post.php', $formarray, 'post', '', array('id' => 'mformmoodleoverflow'));
 
@@ -523,17 +523,17 @@ $param4 = (isset($discussion->timeend) ? array('timeend' => $discussion->timeend
 $param5 = (isset($discussion->id) ? array('discussion' => $discussion->id) : array());
 $mformpost->set_data(array(
         'attachments' => $draftitemid,
-        'general' => $heading,
-        'subject' => $subject,
-        'message' => array(
-            'text' => $postmessage,
+        'general'     => $heading,
+        'subject'     => $subject,
+        'message'     => array(
+            'text'   => $postmessage,
             'format' => editors_get_preferred_format(),
             'itemid' => $postid,
         ),
-        'userid' => $post->userid,
-        'parent' => $post->parent,
-        'discussion' => $post->discussion,
-        'course' => $course->id
+        'userid'      => $post->userid,
+        'parent'      => $post->parent,
+        'discussion'  => $post->discussion,
+        'course'      => $course->id
     ) + $pageparams + $param1 + $param2 + $param3 + $param4 + $param5);
 
 // Is it canceled?
@@ -611,10 +611,10 @@ if ($fromform = $mformpost->get_data()) {
 
         // Set some parameters.
         $params = array(
-            'context' => $modulecontext,
+            'context'  => $modulecontext,
             'objectid' => $fromform->id,
-            'other' => array(
-                'discussionid' => $discussion->id,
+            'other'    => array(
+                'discussionid'     => $discussion->id,
                 'moodleoverflowid' => $moodleoverflow->id,
             ));
 
@@ -654,7 +654,8 @@ if ($fromform = $mformpost->get_data()) {
 
             // Print a success-message.
             $message .= '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
-            $message .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow", format_time(get_config('moodleoverflow', 'maxeditingtime'))) . '</p>';
+            $message .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow",
+                    format_time(get_config('moodleoverflow', 'maxeditingtime'))) . '</p>';
 
             // Set the URL that links back to the discussion.
             $link = '/mod/moodleoverflow/discussion.php';
@@ -662,10 +663,10 @@ if ($fromform = $mformpost->get_data()) {
 
             // Trigger post created event.
             $params = array(
-                'context' => $modulecontext,
+                'context'  => $modulecontext,
                 'objectid' => $fromform->id,
-                'other' => array(
-                    'discussionid' => $discussion->id,
+                'other'    => array(
+                    'discussionid'     => $discussion->id,
                     'moodleoverflowid' => $moodleoverflow->id,
                 ));
             $event = \mod_moodleoverflow\event\post_created::create($params);
@@ -706,9 +707,9 @@ if ($fromform = $mformpost->get_data()) {
         } else {    // The creation of the new discussion was successful.
 
             $params = array(
-                'context' => $modulecontext,
+                'context'  => $modulecontext,
                 'objectid' => $discussion->id,
-                'other' => array(
+                'other'    => array(
                     'moodleoverflowid' => $moodleoverflow->id,
                 )
             );
@@ -717,7 +718,7 @@ if ($fromform = $mformpost->get_data()) {
 
             // Trigger the discussion created event.
             $params = array(
-                'context' => $modulecontext,
+                'context'  => $modulecontext,
                 'objectid' => $discussion->id,
             );
             $event = \mod_moodleoverflow\event\discussion_created::create($params);

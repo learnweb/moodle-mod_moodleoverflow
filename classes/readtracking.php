@@ -40,6 +40,7 @@ class readtracking {
      * Checks the site settings and the moodleoverflow settings (if requested).
      *
      * @param object $moodleoverflow
+     *
      * @return boolean
      * */
     public static function moodleoverflow_can_track_moodleoverflows($moodleoverflow = null) {
@@ -75,8 +76,9 @@ class readtracking {
     /**
      * Tells whether a specific moodleoverflow is tracked by the user.
      *
-     * @param object $moodleoverflow
+     * @param object      $moodleoverflow
      * @param object|null $user
+     *
      * @return bool
      */
     public static function moodleoverflow_is_tracked($moodleoverflow, $user = null) {
@@ -117,8 +119,8 @@ class readtracking {
      * Marks a specific moodleoverflow instance as read by a specific user.
      *
      * @param object $cm
-     * @param int $courseid
-     * @param null $userid
+     * @param int    $courseid
+     * @param null   $userid
      */
     public static function moodleoverflow_mark_moodleoverflow_read($cm, $userid = null) {
         global $USER;
@@ -137,6 +139,7 @@ class readtracking {
             // Mark the discussion as read.
             if (!self::moodleoverflow_mark_discussion_read($discussionid, $userid)) {
                 print_error('markreadfailed', 'moodleoverflow');
+
                 return false;
             }
         }
@@ -147,7 +150,7 @@ class readtracking {
     /**
      * Marks a specific discussion as read by a specific user.
      *
-     * @param int $discussionid
+     * @param int  $discussionid
      * @param null $userid
      */
     public static function moodleoverflow_mark_discussion_read($discussionid, $userid = null) {
@@ -172,6 +175,7 @@ class readtracking {
             // Mark the post as read.
             if (!self::moodleoverflow_mark_post_read($userid, $post)) {
                 print_error('markreadfailed', 'moodleoverflow');
+
                 return false;
             }
         }
@@ -183,8 +187,9 @@ class readtracking {
     /**
      * Marks a specific post as read by a specific user.
      *
-     * @param int $userid
+     * @param int    $userid
      * @param object $post
+     *
      * @return bool
      */
     public static function moodleoverflow_mark_post_read($userid, $post) {
@@ -202,6 +207,7 @@ class readtracking {
      * Checks if a post is older than the limit.
      *
      * @param object $post
+     *
      * @return bool
      */
     public static function moodleoverflow_is_old_post($post) {
@@ -224,13 +230,14 @@ class readtracking {
      *
      * @param int $userid
      * @param int $postid
+     *
      * @return bool
      */
     public static function moodleoverflow_add_read_record($userid, $postid) {
         global $DB;
 
         // Get the current time and the cutoffdate.
-        $now = time();
+        $now        = time();
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600);
 
         // Check for read records for this user an this post.
@@ -243,6 +250,7 @@ class readtracking {
                    FROM {moodleoverflow_posts} p
                         JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
                   WHERE p.id = ? AND p.modified >= ?";
+
             return $DB->execute($sql, array($userid, $now, $now, $postid, $cutoffdate));
         }
 
@@ -250,6 +258,7 @@ class readtracking {
         $sql = "UPDATE {moodleoverflow_read}
                    SET lastread = ?
                  WHERE userid = ? AND postid = ?";
+
         return $DB->execute($sql, array($now, $userid, $userid));
     }
 
@@ -261,6 +270,7 @@ class readtracking {
      * @param int $postid
      * @param int $discussionid
      * @param int $moodleoverflowid
+     *
      * @return bool
      */
     public static function moodleoverflow_delete_read_records($userid = -1, $postid = -1, $discussionid = -1, $overflowid = -1) {
@@ -275,28 +285,28 @@ class readtracking {
             if ($select != '') {
                 $select .= ' AND ';
             }
-            $select .= 'userid = ?';
+            $select   .= 'userid = ?';
             $params[] = $userid;
         }
         if ($postid > -1) {
             if ($select != '') {
                 $select .= ' AND ';
             }
-            $select .= 'postid = ?';
+            $select   .= 'postid = ?';
             $params[] = $postid;
         }
         if ($discussionid > -1) {
             if ($select != '') {
                 $select .= ' AND ';
             }
-            $select .= 'discussionid = ?';
+            $select   .= 'discussionid = ?';
             $params[] = $discussionid;
         }
         if ($overflowid > -1) {
             if ($select != '') {
                 $select .= ' AND ';
             }
-            $select .= 'moodleoverflowid = ?';
+            $select   .= 'moodleoverflowid = ?';
             $params[] = $overflowid;
         }
 
@@ -330,7 +340,7 @@ class readtracking {
                 JOIN {moodleoverflow_read} r ON r.postid = p.id";
 
         // If there is no old read record, end this method.
-        if (! $first = $DB->get_field_sql($sql)) {
+        if (!$first = $DB->get_field_sql($sql)) {
             return;
         }
 
@@ -347,7 +357,8 @@ class readtracking {
      * Stop to track a moodleoverflow instance.
      *
      * @param int $moodleoverflowid The moodleoverflow ID
-     * @param int $userid The user ID
+     * @param int $userid           The user ID
+     *
      * @return bool Whether the deletion was successful
      */
     public static function moodleoverflow_stop_tracking($moodleoverflowid, $userid = null) {
@@ -359,15 +370,15 @@ class readtracking {
         }
 
         // Check if the user already stopped to track the moodleoverflow.
-        $params = array('userid' => $userid, 'moodleoverflowid' => $moodleoverflowid);
+        $params    = array('userid' => $userid, 'moodleoverflowid' => $moodleoverflowid);
         $isstopped = $DB->record_exists('moodleoverflow_tracking', $params);
 
         // Stop tracking the moodleoverflow if not already stopped.
         if (!$isstopped) {
 
             // Create the tracking object.
-            $tracking = new \stdClass();
-            $tracking->userid = $userid;
+            $tracking                   = new \stdClass();
+            $tracking->userid           = $userid;
             $tracking->moodleoverflowid = $moodleoverflowid;
 
             // Insert into the database.
@@ -385,7 +396,8 @@ class readtracking {
      * Start to track a moodleoverflow instance.
      *
      * @param int $moodleoverflowid The moodleoverflow ID
-     * @param int $userid The user ID
+     * @param int $userid           The user ID
+     *
      * @return bool Whether the deletion was successful
      */
     public static function moodleoverflow_start_tracking($moodleoverflowid, $userid = null) {
@@ -403,8 +415,9 @@ class readtracking {
     /**
      * Get a list of forums not tracked by the user.
      *
-     * @param int $userid The user ID
+     * @param int $userid   The user ID
      * @param int $courseid The course ID
+     *
      * @return array Array with untracked moodleoverflows
      */
     public static function get_untracked_moodleoverflows($userid, $courseid) {
@@ -414,15 +427,15 @@ class readtracking {
         if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
 
             // Create a part of a sql-statement.
-            $trackingsql = "AND (m.trackingtype = ".MOODLEOVERFLOW_TRACKING_OFF."
-                            OR (m.trackingtype = ".MOODLEOVERFLOW_TRACKING_OPTIONAL." AND mt.id IS NOT NULL))";
+            $trackingsql = "AND (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OFF . "
+                            OR (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL . " AND mt.id IS NOT NULL))";
         } else {
             // Readtracking may be forced.
 
             // Create another sql-statement.
             $trackingsql = "AND (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OFF .
-                            " OR ((m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL .
-                            " OR m.trackingtype = " . MOODLEOVERFLOW_TRACKING_FORCED . ") AND mt.id IS NOT NULL))";
+                " OR ((m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL .
+                " OR m.trackingtype = " . MOODLEOVERFLOW_TRACKING_FORCED . ") AND mt.id IS NOT NULL))";
         }
 
         // Create the sql-queryx.
@@ -451,8 +464,9 @@ class readtracking {
     /**
      * Get number of unread posts in a moodleoverflow instance.
      *
-     * @param object $cm
+     * @param object    $cm
      * @param \stdClass $course The course the moodleoverflow is in
+     *
      * @return int|mixed
      */
     public static function moodleoverflow_count_unread_posts_moodleoverflow($cm, $course) {
@@ -490,12 +504,12 @@ class readtracking {
         require_once($CFG->dirroot . '/course/lib.php');
 
         // Get the current timestamp and the cutoffdate.
-        $now = round(time(), -2);
+        $now        = round(time(), -2);
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Define a sql-query.
         $params = array($USER->id, $moodleoverflowid, $cutoffdate);
-        $sql = "SELECT COUNT(p.id)
+        $sql    = "SELECT COUNT(p.id)
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
              LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = ?)
@@ -508,15 +522,16 @@ class readtracking {
     /**
      * Get an array of unread posts within a course.
      *
-     * @param int $userid The user ID
+     * @param int $userid   The user ID
      * @param int $courseid The course ID
+     *
      * @return array Array of unread posts within a course
      */
     public static function moodleoverflow_count_unread_posts_course($userid, $courseid) {
         global $DB;
 
         // Get the current timestamp and calculate the cutoffdate.
-        $now = round(time(), - 2);
+        $now        = round(time(), -2);
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Set parameters for the sql-query.

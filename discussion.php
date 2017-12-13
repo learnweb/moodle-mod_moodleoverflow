@@ -27,9 +27,9 @@ require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
-$d = required_param('d', PARAM_INT); // The ID of the discussion.
-$sesskey = optional_param('sesskey', null, PARAM_TEXT);
-$ratingid = optional_param('r', 0, PARAM_INT);
+$d         = required_param('d', PARAM_INT); // The ID of the discussion.
+$sesskey   = optional_param('sesskey', null, PARAM_TEXT);
+$ratingid  = optional_param('r', 0, PARAM_INT);
 $ratedpost = optional_param('rp', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
@@ -69,21 +69,20 @@ if (!$canviewdiscussion) {
 
 // Has a request to rate a post been submitted?
 if ($ratingid) {
-	require_sesskey();
+    require_sesskey();
 
     if (in_array($ratingid, array(RATING_DOWNVOTE, RATING_UPVOTE, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE))) {
-    	// Users cannot rate their own posts
-	    if($USER->id !== moodleoverflow_get_post_full($ratedpost)->userid) {
-		    // Ajax - call web service function.
-		    $link = '/mod/moodleoverflow/discussion.php';
-		    $link = new moodle_url($link, array('d' => $d, 'rp' => $ratedpost, 'sesskey' => $sesskey));
-		    $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
-			    'recordvote',
-			    array($d, $ratedpost, $ratingid, $USER->id, $link->out(), $sesskey));
-	    }
-	    else {
-		    print_error('rateownpost', 'moodleoverflow');
-	    }
+        // Users cannot rate their own posts.
+        if ($USER->id !== moodleoverflow_get_post_full($ratedpost)->userid) {
+            // Ajax - call web service function.
+            $link = '/mod/moodleoverflow/discussion.php';
+            $link = new moodle_url($link, array('d' => $d, 'rp' => $ratedpost, 'sesskey' => $sesskey));
+            $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
+                'recordvote',
+                array($d, $ratedpost, $ratingid, $USER->id, $link->out(), $sesskey));
+        } else {
+            print_error('rateownpost', 'moodleoverflow');
+        }
     } else {
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
@@ -98,10 +97,10 @@ if ($ratingid) {
 
 // Trigger the discussion viewed event.
 $params = array(
-    'context' => $modulecontext,
+    'context'  => $modulecontext,
     'objectid' => $discussion->id,
 );
-$event = \mod_moodleoverflow\event\discussion_viewed::create($params);
+$event  = \mod_moodleoverflow\event\discussion_viewed::create($params);
 $event->trigger();
 
 // Unset where the user is coming from.
@@ -127,7 +126,7 @@ if (empty($forumnode)) {
     $forumnode->make_active();
 }
 
-$node = $forumnode->add(format_string($discussion->name),
+$node          = $forumnode->add(format_string($discussion->name),
     new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
 $node->display = false;
 if ($node AND ($post->id != $discussion->firstpost)) {

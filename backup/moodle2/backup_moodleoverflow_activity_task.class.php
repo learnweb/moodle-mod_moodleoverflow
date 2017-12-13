@@ -54,6 +54,7 @@ class backup_moodleoverflow_activity_task extends backup_activity_task {
      * Encodes URLs to the index.php and view.php scripts
      *
      * @param string $content some HTML text that eventually contains URLs to the activity instance scripts
+     *
      * @return string the content with the URLs encoded
      */
     static public function encode_content_links($content) {
@@ -62,27 +63,27 @@ class backup_moodleoverflow_activity_task extends backup_activity_task {
         $base = preg_quote($CFG->wwwroot, '/');
 
         // Link to the list of moodleoverflows.
-        $search = '/(' . $base . '\/mod\/moodleoverflow\/index.php\?id\=)([0-9]+)/';
+        $search  = '/(' . $base . '\/mod\/moodleoverflow\/index.php\?id\=)([0-9]+)/';
         $content = preg_replace($search, '$@MOODLEOVERFLOWINDEX*$2@$', $content);
 
         // Link to moodleoverflow view by moduleid.
-        $search = '/(' . $base . '\/mod\/moodleoverflow\/view.php\?id\=)([0-9]+)/';
+        $search  = '/(' . $base . '\/mod\/moodleoverflow\/view.php\?id\=)([0-9]+)/';
         $content = preg_replace($search, '$@MOODLEOVERFLOWVIEWBYID*$2@$', $content);
 
         // Link to moodleoverflow view by forumid.
-        $search = "/(" . $base . "\/mod\/forum\/view.php\?f\=)([0-9]+)/";
+        $search  = "/(" . $base . "\/mod\/forum\/view.php\?f\=)([0-9]+)/";
         $content = preg_replace($search, '$@MOODLEOVERFLOWVIEWBYF*$2@$', $content);
 
         // Link to moodleoverflow discussion with parent syntax.
-        $search = "/(" . $base . "\/mod\/forum\/discuss.php\?d\=)([0-9]+)(?:\&amp;|\&)parent\=([0-9]+)/";
+        $search  = "/(" . $base . "\/mod\/forum\/discuss.php\?d\=)([0-9]+)(?:\&amp;|\&)parent\=([0-9]+)/";
         $content = preg_replace($search, '$@MOODLEOVERFLOWDISCUSSIONVIEWPARENT*$2*$3@$', $content);
 
         // Link to moodleoverflow discussion with relative syntax.
-        $search = "/(" . $base . "\/mod\/forum\/discuss.php\?d\=)([0-9]+)\#([0-9]+)/";
+        $search  = "/(" . $base . "\/mod\/forum\/discuss.php\?d\=)([0-9]+)\#([0-9]+)/";
         $content = preg_replace($search, '$@MOODLEOVERFLOWDISCUSSIONVIEWINSIDE*$2*$3@$', $content);
 
         // Link to moodleoverflow discussion by discussionid.
-        $search = "/(" . $base . "\/mod\/forum\/discuss.php\?d\=)([0-9]+)/";
+        $search  = "/(" . $base . "\/mod\/forum\/discuss.php\?d\=)([0-9]+)/";
         $content = preg_replace($search, '$@MOODLEOVERFLOWDISCUSSIONVIEW*$2@$', $content);
 
         return $content;
