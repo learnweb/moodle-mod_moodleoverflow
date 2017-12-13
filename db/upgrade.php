@@ -39,5 +39,17 @@ defined('MOODLE_INTERNAL') || die();
  * @return bool
  */
 function xmldb_moodleoverflow_upgrade($oldversion) {
+    global $CFG, $DB;
+
+    $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
+
+    if ($oldversion < 2017110713) {
+        // Migrate config
+        set_config('manydiscussions', $CFG->moodleoverflow_manydiscussions, 'moodleoverflow');
+        // Delete old config
+
+        // Opencast savepoint reached.
+        upgrade_mod_savepoint(true, 2017110713, 'moodleoverflow');
+    }
     return true;
 }

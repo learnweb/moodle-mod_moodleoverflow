@@ -173,6 +173,13 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
 
             return vote;
         }
+
+        clickevent: function() {
+            $(".upvoteclick").click(this.recordvote());
+            $(".noupvoteclick").click(this.recordvote());
+            $(".downvoteclick").click(this.recordvote());
+            $(".nodownvoteclick").click(this.recordvote());
+        }
     };
 
     return t;

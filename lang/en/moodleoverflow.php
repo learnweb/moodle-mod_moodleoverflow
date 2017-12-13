@@ -318,7 +318,7 @@ $string['attachment_help']              = 'You can optionally attach one or more
 
 // Templates.
 $string['helpfulanswer'] = 'The question owner accepted this as the best answer.';
-$string['solvedanswer']  = 'This post is marked as solved by the teacher.';
+$string['solvedanswer']  = 'This post is marked as solved.';
 $string['bestanswer']    = 'The question owner and a teacher accepted this as the best answer.';
 $string['reputation'] = 'Reputation';
 $string['upvote'] = 'Upvote';
