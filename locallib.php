@@ -413,7 +413,7 @@ function moodleoverflow_get_discussions_unread($cm) {
               FROM {moodleoverflow_discussions} d
                    JOIN {moodleoverflow_posts} p ON p.discussion = d.id
                    LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = :userid)
-             WHERE d.moodleoverflow = {:instance}
+             WHERE d.moodleoverflow = :instance
                    AND p.modified >= :cutoffdate AND r.id is NULL
           GROUP BY d.id";
     $params['userid'] = $USER->id;
@@ -446,13 +446,12 @@ function moodleoverflow_get_post_full($postid) {
     global $DB;
 
     $allnames = get_all_user_name_fields(true, 'u');
-    $sql = "SELECT p.*, d.moodleoverflow, :names, u.email, u.picture, u.imagealt
+    $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
               FROM {moodleoverflow_posts} p
                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
               LEFT JOIN {user} u ON p.userid = u.id
                   WHERE p.id = :postid";
     $params = array();
-    $params['names'] = $allnames;
     $params['postid'] = $postid;
 
     return $DB->get_record_sql($sql, $params);
@@ -852,7 +851,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     $allnames = get_all_user_name_fields(true, 'u');
 
     // Create the sql array.
-    $sql = "SELECT p.*, m.ratingpreference, :names, d.name as subject, u.email, u.picture, u.imagealt $trackingselector
+    $sql = "SELECT p.*, m.ratingpreference, $allnames, d.name as subject, u.email, u.picture, u.imagealt $trackingselector
               FROM {moodleoverflow_posts} p
                    LEFT JOIN {user} u ON p.userid = u.id
                    LEFT JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
@@ -860,7 +859,6 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
                    $trackingjoin
              WHERE p.discussion = :discussion
           ORDER BY p.created ASC";
-    $params['names'] = $allnames;
     $params['discussion'] = $discussionid;
 
     // Return an empty array, if there are no posts.
