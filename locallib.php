@@ -1150,18 +1150,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $mustachedata->canchange = false;
     }
 
-    // Create the links for voting this post.
-    $link = '/mod/moodleoverflow/discussion.php';
-
-    $mustachedata->upvotelink = new moodle_url($link,
-        array('d' => $discussion->id, 'sesskey' => sesskey(), 'r' => 2, 'rp' => $post->id));
-    $mustachedata->removeupvotelink = new moodle_url($link,
-        array('d' => $discussion->id, 'sesskey' => sesskey(), 'r' => 20, 'rp' => $post->id));
-    $mustachedata->downvotelink = new moodle_url($link,
-        array('d' => $discussion->id, 'sesskey' => sesskey(), 'r' => 1, 'rp' => $post->id));
-    $mustachedata->removedownvotelink = new moodle_url($link,
-        array('d' => $discussion->id, 'sesskey' => sesskey(), 'r' => 10, 'rp' => $post->id));
-
     // Check the reading status of the post.
     $postclass = '';
     if ($istracked) {

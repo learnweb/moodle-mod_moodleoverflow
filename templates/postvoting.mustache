@@ -29,9 +29,9 @@
 {{#userupvoted}}
 {{! Can the user change the vote? }}
     {{#canchange}}
-        <div class="upvoteclick">
-        {{# pix}} vote/upvoted, moodleoverflow, {{#str}}upvote, moodleoverflow{{/str}}{{/ pix}}
-        </div>
+        <a class="upvote active">
+            {{# pix}} vote/upvoted, moodleoverflow, {{#str}}upvote, moodleoverflow{{/str}}{{/ pix}}
+        </a>
     {{/canchange}}
     {{^canchange}}
         {{# pix}} vote/upvotedfinal, moodleoverflow, {{#str}}upvotenotchangeable, moodleoverflow{{/str}}{{/ pix}}
@@ -39,9 +39,9 @@
 {{/userupvoted}}
 {{^userupvoted}}
     {{#canchange}}
-        <div class="noupvoteclick">
-        {{# pix}} vote/upvote, moodleoverflow, {{#str}}noupvote, moodleoverflow{{/str}}{{/ pix}}
-        </div>
+        <a class="upvote">
+            {{# pix}} vote/upvote, moodleoverflow, {{#str}}noupvote, moodleoverflow{{/str}}{{/ pix}}
+        </a>
     {{/canchange}}
     {{^canchange}}
         {{# pix}} vote/upvote, moodleoverflow, {{#str}}noupvote, moodleoverflow{{/str}}{{/ pix}}
@@ -55,9 +55,9 @@
 {{#userdownvoted}}
 {{! Can the user change its vote? }}
     {{#canchange}}
-        <div class="downvoteclick">
-        {{# pix}} vote/downvoted, moodleoverflow, {{#str}}downvote, moodleoverflow{{/str}}{{/ pix}}
-        </div>
+        <a class="downvote active">
+            {{# pix}} vote/downvoted, moodleoverflow, {{#str}}downvote, moodleoverflow{{/str}}{{/ pix}}
+        </a>
     {{/canchange}}
     {{^canchange}}
         {{# pix}} vote/downvotedfinal, moodleoverflow, {{#str}}downvotenotchangeable, moodleoverflow{{/str}}{{/ pix}}
@@ -65,9 +65,9 @@
 {{/userdownvoted}}
 {{^userdownvoted}}
     {{#canchange}}
-        <div class="nodownvoteclick">
-        {{# pix}} vote/downvote, moodleoverflow, {{#str}}nodownvote, moodleoverflow{{/str}}{{/ pix}}
-        </div>
+        <a class="downvote">
+            {{# pix}} vote/downvote, moodleoverflow, {{#str}}nodownvote, moodleoverflow{{/str}}{{/ pix}}
+        </a>
     {{/canchange}}
     {{^canchange}}
         {{# pix}} vote/downvote, moodleoverflow, {{#str}}nodownvote, moodleoverflow{{/str}}{{/ pix}}

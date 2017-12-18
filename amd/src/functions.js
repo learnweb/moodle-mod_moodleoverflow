@@ -34,7 +34,11 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
          * @param string sesskey
          * @returns {string}
          */
-        recordvote: function (discussionid, postid, ratingid, userid, link, sesskey) {
+        recordvote: function (discussionid, ratingid, userid, event) {
+            var target = $(event.target).closest('.moodleoverflowpost').prev();
+            var postid = target.attr('id');
+            var postid = postid.substring(1);
+
             var vote = ajax.call([{
                 methodname: 'mod_moodleoverflow_record_vote',
                 args: {
@@ -42,45 +46,29 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                     postid: postid,
                     ratingid: ratingid,
                     userid: userid,
-                    sesskey: sesskey
+                    sesskey: M.cfg.sesskey
                 }
             }
             ]);
 
             vote[0].done(function (response) {
-                var context;
 
-                // Context für Downvote.
-                context = {
-                    userupvoted: false,
-                    userdownvoted: true,
-                    canchange: true,
-                    votes: response.postrating,
-                    removeupvotelink: link + "&r=20",
-                    upvotelink: link + "&r=2",
-                    removedownvotelink: link + "&r=10",
-                    downvotelink: link + "&r=1"
-                };
-
-                // Upvote.
-                if (ratingid === 2) {
-                    context.userupvoted = true;
-                    context.userdownvoted = false;
+                var parentdiv = $(event.target).parent().parent();
+                // Update Votes.
+                if(ratingid == 2) {
+                    parentdiv.children('a:first-of-type').children().attr('src', M.util.image_url('vote/upvoted', 'moodleoverflow'));
+                    parentdiv.children('a:nth-of-type(2)').children().attr('src', M.util.image_url('vote/downvote', 'moodleoverflow'));
                 }
-                // Vote has been removed.
-                else if (ratingid === 10 || ratingid === 20) {
-                    context.userdownvoted = false;
-                    context.userupvoted = false;
+                else if(ratingid == 1) {
+                    parentdiv.children('a:first-of-type').children().attr('src', M.util.image_url('vote/upvote', 'moodleoverflow'));
+                    parentdiv.children('a:nth-of-type(2)').children().attr('src', M.util.image_url('vote/downvoted', 'moodleoverflow'));
+                }
+                else {
+                    parentdiv.children('a:first-of-type').children().attr('src', M.util.image_url('vote/upvote', 'moodleoverflow'));
+                    parentdiv.children('a:nth-of-type(2)').children().attr('src', M.util.image_url('vote/downvote', 'moodleoverflow'));
                 }
 
-                // Update templates.
-                templates.render('mod_moodleoverflow/postvoting', context)
-                    .then(function (html, js) {
-                        // Update votes.
-                        templates.replaceNodeContents($('.votes a[href$="rp=' + postid + '"]').parent(), html, js);
-
-                    })
-                    .fail(notification.example);
+                parentdiv.children('p').text(response.postrating);
 
                 // Update user reputation.
                 templates.replaceNode($('.user-details,.author').find('a[href*="id=' + userid + '"]')
@@ -125,13 +113,13 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
 
                         // Insert before Sibling.
                         if (success) {
-                            node.remove();
+                            node.detach();
                             node.insertBefore(nextsibling);
                         }
                         else {
                             if (nextsibling) {
                                 // Insert as last Element.
-                                node.remove();
+                                node.detach();
                                 node.insertAfter(nextsibling);
                             }
                         }
@@ -155,30 +143,56 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
 
                         // Insert after Sibling.
                         if (success) {
-                            node.remove();
+                            node.detach();
                             node.insertAfter(prevsibling);
                         }
                         else {
                             if (prevsibling) {
                                 // Insert as first Element.
-                                node.remove();
+                                node.detach();
                                 node.insertBefore(prevsibling);
                             }
                         }
                     }
                 }
+
                 $(window).scrollTop($('#p' + postid).offset().top);
 
             }).fail(notification.exception);
 
             return vote;
-        }
+        },
 
-        clickevent: function() {
-            $(".upvoteclick").click(this.recordvote());
-            $(".noupvoteclick").click(this.recordvote());
-            $(".downvoteclick").click(this.recordvote());
-            $(".nodownvoteclick").click(this.recordvote());
+        clickevent: function (discussionid, userid) {
+            $(".upvote").on("click", function (event) {
+                if($(event.target).is('a')) {
+                    event.target = $(event.target).children();
+                };
+
+                if($(event.target).parent().attr('class').indexOf('active') >= 0) {
+                    t.recordvote(discussionid, 20, userid, event);
+                }
+                else {
+                    t.recordvote(discussionid, 2, userid, event);
+                }
+                $(event.target).parent().toggleClass('active');
+                $(event.target).parent().nextAll('a').removeClass('active');
+            });
+
+            $(".downvote").on("click", function (event) {
+                if($(event.target).is('a')) {
+                    event.target = $(event.target).children();
+                };
+
+                if($(event.target).parent().attr('class').indexOf('active') >= 0) {
+                    t.recordvote(discussionid, 10, userid, event);
+                }
+                else {
+                    t.recordvote(discussionid, 1, userid, event);
+                }
+                $(event.target).parent().toggleClass('active');
+                $(event.target).parent().prevAll('a').removeClass('active');
+            });
         }
     };
 

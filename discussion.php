@@ -55,6 +55,9 @@ if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id,
     print_error('invalidcoursemodule');
 }
 
+$PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
+    'clickevent', array($d, $USER->id));
+
 // Set the modulecontext.
 $modulecontext = context_module::instance($cm->id);
 
@@ -71,19 +74,7 @@ if (!$canviewdiscussion) {
 if ($ratingid) {
     require_sesskey();
 
-    if (in_array($ratingid, array(RATING_DOWNVOTE, RATING_UPVOTE, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE))) {
-        // Users cannot rate their own posts.
-        if ($USER->id !== moodleoverflow_get_post_full($ratedpost)->userid) {
-            // Ajax - call web service function.
-            $link = '/mod/moodleoverflow/discussion.php';
-            $link = new moodle_url($link, array('d' => $d, 'rp' => $ratedpost, 'sesskey' => $sesskey));
-            $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
-                'recordvote',
-                array($d, $ratedpost, $ratingid, $USER->id, $link->out(), $sesskey));
-        } else {
-            print_error('rateownpost', 'moodleoverflow');
-        }
-    } else {
+    if (in_array($ratingid, array(RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL))) {
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
             print_error('ratingfailed', 'moodleoverflow');
