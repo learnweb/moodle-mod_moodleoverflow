@@ -55,17 +55,23 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
 
                 var parentdiv = $(event.target).parent().parent();
                 // Update Votes.
-                if(ratingid == 2) {
-                    parentdiv.children('a:first-of-type').children().attr('src', M.util.image_url('vote/upvoted', 'moodleoverflow'));
-                    parentdiv.children('a:nth-of-type(2)').children().attr('src', M.util.image_url('vote/downvote', 'moodleoverflow'));
+                if (ratingid == 2) {
+                    parentdiv.children('a:first-of-type').children().attr(
+                        'src', M.util.image_url('vote/upvoted', 'moodleoverflow'));
+                    parentdiv.children('a:nth-of-type(2)').children().attr(
+                        'src', M.util.image_url('vote/downvote', 'moodleoverflow'));
                 }
-                else if(ratingid == 1) {
-                    parentdiv.children('a:first-of-type').children().attr('src', M.util.image_url('vote/upvote', 'moodleoverflow'));
-                    parentdiv.children('a:nth-of-type(2)').children().attr('src', M.util.image_url('vote/downvoted', 'moodleoverflow'));
+                else if (ratingid == 1) {
+                    parentdiv.children('a:first-of-type').children().attr(
+                        'src', M.util.image_url('vote/upvote', 'moodleoverflow'));
+                    parentdiv.children('a:nth-of-type(2)').children().attr(
+                        'src', M.util.image_url('vote/downvoted', 'moodleoverflow'));
                 }
                 else {
-                    parentdiv.children('a:first-of-type').children().attr('src', M.util.image_url('vote/upvote', 'moodleoverflow'));
-                    parentdiv.children('a:nth-of-type(2)').children().attr('src', M.util.image_url('vote/downvote', 'moodleoverflow'));
+                    parentdiv.children('a:first-of-type').children().attr(
+                        'src', M.util.image_url('vote/upvote', 'moodleoverflow'));
+                    parentdiv.children('a:nth-of-type(2)').children().attr(
+                        'src', M.util.image_url('vote/downvote', 'moodleoverflow'));
                 }
 
                 parentdiv.children('p').text(response.postrating);
@@ -165,11 +171,11 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
 
         clickevent: function (discussionid, userid) {
             $(".upvote").on("click", function (event) {
-                if($(event.target).is('a')) {
+                if ($(event.target).is('a')) {
                     event.target = $(event.target).children();
-                };
+                }
 
-                if($(event.target).parent().attr('class').indexOf('active') >= 0) {
+                if ($(event.target).parent().attr('class').indexOf('active') >= 0) {
                     t.recordvote(discussionid, 20, userid, event);
                 }
                 else {
@@ -180,11 +186,11 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
             });
 
             $(".downvote").on("click", function (event) {
-                if($(event.target).is('a')) {
+                if ($(event.target).is('a')) {
                     event.target = $(event.target).children();
-                };
+                }
 
-                if($(event.target).parent().attr('class').indexOf('active') >= 0) {
+                if ($(event.target).parent().attr('class').indexOf('active') >= 0) {
                     t.recordvote(discussionid, 10, userid, event);
                 }
                 else {
