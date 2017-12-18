@@ -103,36 +103,38 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @var array $writablekeys
      */
     protected $writablekeys = array(
-        'viewfullnames'    => true,
+        'viewfullnames' => true,
     );
 
     /**
      * Builds a renderable moodleoverflow mail.
      *
-     * @param object $course Course of the moodleoverflow
-     * @param object $cm Course Module of the moodleoverflow
-     * @param object $forum The moodleoverflow of the post
-     * @param object $discussion Discussion thread in which the post appears
-     * @param object $post The post
-     * @param object $author Author of the post
-     * @param object $recipient Recipient of the email
+     * @param object $course         Course of the moodleoverflow
+     * @param object $cm             Course Module of the moodleoverflow
+     * @param object $moodleoverflow The moodleoverflow of the post
+     * @param object $discussion     Discussion thread in which the post appears
+     * @param object $post           The post
+     * @param object $author         Author of the post
+     * @param object $recipient      Recipient of the email
+     * @param bool   $canreply       whether the user can reply to the post
      */
     public function __construct($course, $cm, $moodleoverflow, $discussion, $post, $author, $recipient, $canreply) {
-        $this->course = $course;
-        $this->cm = $cm;
+        $this->course         = $course;
+        $this->cm             = $cm;
         $this->moodleoverflow = $moodleoverflow;
-        $this->discussion = $discussion;
-        $this->post = $post;
-        $this->author = $author;
-        $this->userto = $recipient;
-        $this->canreply = $canreply;
+        $this->discussion     = $discussion;
+        $this->post           = $post;
+        $this->author         = $author;
+        $this->userto         = $recipient;
+        $this->canreply       = $canreply;
     }
 
     /**
      * Export this data so it can be used as the context for a mustache template.
      *
-     * @param \mod_moodleoverflow_renderer $renderer The render to be used for formatting the message
-     * @param bool $plaintext Whether the target is a plaintext target
+     * @param \mod_moodleoverflow_renderer $renderer  The render to be used for formatting the message
+     * @param bool                         $plaintext Whether the target is a plaintext target
+     *
      * @return mixed Data ready for use in a mustache template
      */
     public function export_for_template(\renderer_base $renderer, $plaintext = false) {
@@ -147,6 +149,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * Export this data so it can be used as the context for a mustache template.
      *
      * @param \mod_forum_renderer $renderer The render to be used for formatting the message
+     *
      * @return array Data ready for use in a mustache template
      */
     protected function export_for_template_text(\mod_moodleoverflow_renderer $renderer) {
@@ -176,7 +179,7 @@ class moodleoverflow_email implements \renderable, \templatable {
             'grouppicture'                  => $this->get_group_picture(),
 
             // Format some components according to the renderer.
-            'message'                   => html_entity_decode($renderer->format_message_text($this->cm, $this->post)),
+            'message'                       => html_entity_decode($renderer->format_message_text($this->cm, $this->post)),
         );
     }
 
@@ -184,6 +187,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * Export this data so it can be used as the context for a mustache template.
      *
      * @param \mod_moodleoverflow_renderer $renderer The render to be used for formatting the message and attachments
+     *
      * @return stdClass Data ready for use in a mustache template
      */
     protected function export_for_template_html(\mod_moodleoverflow_renderer $renderer) {
@@ -212,7 +216,7 @@ class moodleoverflow_email implements \renderable, \templatable {
             'grouppicture'                  => $this->get_group_picture(),
 
             // Format some components according to the renderer.
-            'message' => $renderer->format_message_text($this->cm, $this->post),
+            'message'                       => $renderer->format_message_text($this->cm, $this->post),
         );
     }
 
@@ -220,7 +224,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * Magically sets a property against this object.
      *
      * @param string $name
-     * @param mixed $value
+     * @param mixed  $value
      */
     public function __set($name, $value) {
 
@@ -253,12 +257,13 @@ class moodleoverflow_email implements \renderable, \templatable {
         }
 
         // Prepare information.
-        $id = $this->moodleoverflow->id;
-        $d = $this->discussion->id;
+        $id  = $this->moodleoverflow->id;
+        $d   = $this->discussion->id;
         $url = '/mod/moodleoverflow/subscribe.php';
 
         // Generate a link to unsubscribe from the discussion.
         $link = new \moodle_url($url, array('id' => $id, 'd' => $d));
+
         return $link->out(false);
     }
 
@@ -311,7 +316,7 @@ class moodleoverflow_email implements \renderable, \templatable {
         $link = new \moodle_url(
         // Posts are viewed on the topic.
             '/course/view.php', array(
-                'id'    => $this->course->id,
+                'id' => $this->course->id,
             )
         );
 
@@ -481,7 +486,7 @@ class moodleoverflow_email implements \renderable, \templatable {
         $link = new \moodle_url(
         // Posts are viewed on the topic.
             '/mod/moodleoverflow/index.php', array(
-                'id'    => $this->course->id,
+                'id' => $this->course->id,
             )
         );
 
@@ -512,7 +517,7 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_authorlink() {
         $link = new \moodle_url(
             '/user/view.php', array(
-                'id' => $this->post->userid,
+                'id'     => $this->post->userid,
                 'course' => $this->course->id,
             )
         );

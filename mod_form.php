@@ -27,7 +27,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/course/moodleform_mod.php');
 
 /**
  * Module instance settings form
@@ -52,7 +52,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Adding the standard "name" field.
         $mform->addElement('text', 'name', get_string('moodleoverflowname', 'moodleoverflow'), array('size' => '64'));
-        if (!empty($CFG->formatstringstriptags)) {
+        if (!empty(get_config('moodleoverflow', 'formatstringstriptags'))) {
             $mform->setType('name', PARAM_TEXT);
         } else {
             $mform->setType('name', PARAM_CLEANHTML);
@@ -70,31 +70,31 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         // Attachments.
         $mform->addElement('header', 'attachmentshdr', get_string('attachments', 'moodleoverflow'));
 
-        $choices = get_max_upload_sizes($CFG->maxbytes, $COURSE->maxbytes, 0, $CFG->moodleoverflow_maxbytes);
+        $choices = get_max_upload_sizes($CFG->maxbytes, $COURSE->maxbytes, 0, get_config('moodleoverflow', 'maxbytes'));
         $choices[1] = get_string('uploadnotallowed');
         $mform->addElement('select', 'maxbytes', get_string('maxattachmentsize', 'moodleoverflow'), $choices);
         $mform->addHelpButton('maxbytes', 'maxattachmentsize', 'moodleoverflow');
-        $mform->setDefault('maxbytes', $CFG->moodleoverflow_maxbytes);
+        $mform->setDefault('maxbytes', get_config('moodleoverflow', 'maxbytes'));
 
         $choices = array(
-            0 => 0,
-            1 => 1,
-            2 => 2,
-            3 => 3,
-            4 => 4,
-            5 => 5,
-            6 => 6,
-            7 => 7,
-            8 => 8,
-            9 => 9,
-            10 => 10,
-            20 => 20,
-            50 => 50,
+            0   => 0,
+            1   => 1,
+            2   => 2,
+            3   => 3,
+            4   => 4,
+            5   => 5,
+            6   => 6,
+            7   => 7,
+            8   => 8,
+            9   => 9,
+            10  => 10,
+            20  => 20,
+            50  => 50,
             100 => 100
         );
         $mform->addElement('select', 'maxattachments', get_string('maxattachments', 'moodleoverflow'), $choices);
         $mform->addHelpButton('maxattachments', 'maxattachments', 'moodleoverflow');
-        $mform->setDefault('maxattachments', $CFG->moodleoverflow_maxattachments);
+        $mform->setDefault('maxattachments', get_config('moodleoverflow', 'maxattachments'));
 
         // Subscription Handling.
         $mform->addElement('header', 'subscriptiontrackingheader', get_string('subscriptiontrackingheader', 'moodleoverflow'));
@@ -114,7 +114,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $options = array();
         $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
         $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
-        if ($CFG->moodleoverflow_allowforcedreadtracking) {
+        if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
             $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
         }
 
@@ -123,8 +123,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('trackingtype', 'trackingtype', 'moodleoverflow');
 
         // Choose the default tracking type.
-        $default = $CFG->moodleoverflow_trackingtype;
-        if ((!$CFG->moodleoverflow_allowforcedreadtracking) AND ($default == MOODLEOVERFLOW_TRACKING_FORCED)) {
+        $default = get_config('moodleoverflow', 'trackingtype');
+        if ((!get_config('moodleoverflow', 'allowforcedreadtracking')) AND ($default == MOODLEOVERFLOW_TRACKING_FORCED)) {
             $default = MOODLEOVERFLOW_TRACKING_OPTIONAL;
         }
         $mform->setDefault('trackingtype', $default);

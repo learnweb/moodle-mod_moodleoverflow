@@ -21,11 +21,19 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace mod_moodleoverflow\task;
 
 defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__.'/../../locallib.php');
+require_once(__DIR__ . '/../../locallib.php');
 
+/**
+ * Class send_mails
+ * Class for sending mails to users who have subscribed a moodleoverflow.
+ * @package   mod_moodleoverflow\task
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class send_mails extends \core\task\scheduled_task {
 
     /**

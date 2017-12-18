@@ -51,6 +51,7 @@ class renderer extends \mod_moodleoverflow_renderer {
      *
      * @param \stdClass $cm
      * @param \stdClass $post
+     *
      * @return string
      */
     public function format_message_text($cm, $post) {
@@ -62,7 +63,7 @@ class renderer extends \mod_moodleoverflow_renderer {
             'mod_moodleoverflow', 'post', $post->id);
 
         // Initiate some options.
-        $options = new \stdClass();
+        $options       = new \stdClass();
         $options->para = true;
 
         // Return the message in html.

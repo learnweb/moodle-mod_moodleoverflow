@@ -62,7 +62,7 @@
 
                             {{! Display a symbol to mark all messages read if the forum is tracked by the user. }}
                             {{#istracked}}
-                                <a href="{{ markallread }}">{{# pix}} t/markasread, core {{/ pix}}</a>
+                                <a href="{{ markallread }}">{{# pix}} t/markasread, core, {{#str}}markallread, moodleoverflow{{/str}} {{/ pix}}</a>
                             {{/istracked}}
 
                         </th>
@@ -101,35 +101,35 @@
                 <td class="topic replies">
                     {{#statusboth}}
                         <a href="{{starterlink}}">
-                            {{# pix}} status/c_circle, moodleoverflow {{/ pix}}
-                            {{# pix}} status/b_box, moodleoverflow {{/ pix}}
+                            {{# pix}} status/c_circle, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}}{{/ pix}}
+                            {{# pix}} status/b_box, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}}{{/ pix}}
                         </a>
                     {{/statusboth}}
                     {{^statusboth}}
                         {{^statusstarter}}
                             {{^statusteacher}}
-                                {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
+                                {{# pix}} status/c_blank, moodleoverflow, {{#str}}marknotsolved, moodleoverflow{{/str}}{{/ pix}}
                             {{/statusteacher}}
                             {{#statusteacher}}
                                 <a href="{{teacherlink}}">
-                                    {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/ pix}}
                                 </a>
                             {{/statusteacher}}
-                            {{# pix}} status/b_blank, moodleoverflow {{/ pix}}
+                            {{# pix}} status/b_blank, moodleoverflow, {{#str}}marknothelpful, moodleoverflow{{/str}} {{/ pix}}
                         {{/statusstarter}}
                         {{#statusstarter}}
                             {{^statusteacher}}
-                                {{# pix}} status/c_blank, moodleoverflow {{/ pix}}
+                                {{# pix}} status/c_blank, moodleoverflow, {{#str}}marknotsolved, moodleoverflow{{/str}} {{/ pix}}
                                 <a href="{{starterlink}}">
-                                    {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/ pix}}
                                 </a>
                             {{/statusteacher}}
                             {{#statusteacher}}
                                 <a href="{{teacherlink}}">
-                                    {{# pix}} status/c_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}}{{/ pix}}
                                 </a>
                                 <a href="{{starterlink}}">
-                                    {{# pix}} status/b_outline, moodleoverflow {{/ pix}}
+                                    {{# pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/ pix}}
                                 </a>
                             {{/statusteacher}}
                         {{/statusstarter}}
@@ -165,7 +165,7 @@
                                     <span class="unread">
                                         <a href="{{ unreadlink }}">{{ unreadamount }}</a>
                                         <a href="{{ markreadlink }}">
-                                            {{# pix}} t/markasread, core {{/ pix}}
+                                            {{# pix}} t/markasread, core, {{#str}}markread, moodleoverflow{{/str}} {{/ pix}}
                                         </a>
                                     </span>
                                 {{/unread}}

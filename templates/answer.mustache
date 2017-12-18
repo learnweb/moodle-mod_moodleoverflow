@@ -74,7 +74,7 @@
                                             {{{ picture }}}
                                         </div>
                                         <div class="user-details">
-                                            {{{ byname }}} ({{#pix}}star, moodleoverflow{{/pix}}{{ byrating }})
+                                            {{{ byname }}} ({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span>{{ byrating }}</span>)
                                             <div class="-flair">
                                                 <div class="user-action-time">
                                                     {{ bydate }}
@@ -89,19 +89,19 @@
                                         {{! The displayed text. }}
                                         {{#statusstarter}}
                                             {{^statusteacher}}
-                                                {{#pix}} status/b_outline, moodleoverflow {{/pix}}
-                                                The question owner accepted this as the best answer.
+                                                {{#pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
+                                                {{#str}} helpfulanswer, moodleoverflow {{/str}}
                                             {{/statusteacher}}
                                             {{#statusteacher}}
-                                                {{#pix}} status/c_circle, moodleoverflow {{/pix}}
-                                                {{#pix}} status/b_box, moodleoverflow {{/pix}}
-                                                The question owner and a teacher accepted this as the best answer.
+                                                {{#pix}} status/c_circle, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
+                                                {{#pix}} status/b_box, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
+                                                {{#str}} bestanswer, moodleoverflow {{/str}}
                                             {{/statusteacher}}
                                         {{/statusstarter}}
                                         {{^statusstarter}}
                                             {{#statusteacher}}
-                                                {{#pix}} status/c_outline, moodleoverflow {{/pix}}
-                                                This post is marked as solved by the teacher.
+                                                {{#pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
+                                                {{#str}} solvedanswer, moodleoverflow {{/str}}
                                             {{/statusteacher}}
                                         {{/statusstarter}}
                                     </div>

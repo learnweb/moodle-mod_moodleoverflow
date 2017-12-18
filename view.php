@@ -101,7 +101,7 @@ $SESSION->fromdiscussion = qualified_me();
 
 // Print the discussions.
 echo '<br />';
-moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, $CFG->moodleoverflow_manydiscussions);
+moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, get_config('moodleoverflow', 'manydiscussions'));
 
 // Finish the page.
 echo $OUTPUT->footer();

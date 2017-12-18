@@ -49,44 +49,44 @@ defined('MOODLE_INTERNAL') || die();
 // Modify capabilities as needed and remove this comment.
 $capabilities = array(
     'mod/moodleoverflow:addinstance' => array(
-        'riskbitmask' => RISK_XSS,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'riskbitmask'          => RISK_XSS,
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_COURSE,
+        'archetypes'           => array(
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ),
 
     'mod/moodleoverflow:view' => array(
-        'captype' => 'read',
+        'captype'      => 'read',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
+        'archetypes'   => array(
             'guest' => CAP_ALLOW,
-            'user' => CAP_ALLOW,
+            'user'  => CAP_ALLOW,
         )
     ),
 
     'mod/moodleoverflow:submit' => array(
-        'riskbitmask' => RISK_SPAM,
-        'captype' => 'write',
+        'riskbitmask'  => RISK_SPAM,
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
+        'archetypes'   => array(
             'student' => CAP_ALLOW
         )
     ),
 
     'mod/moodleoverflow:viewdiscussion' => array(
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'frontpage' => CAP_ALLOW,
-            'guest' => CAP_ALLOW,
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'read',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'frontpage'      => CAP_ALLOW,
+            'guest'          => CAP_ALLOW,
+            'student'        => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:viewdiscussion'
     ),
@@ -95,13 +95,13 @@ $capabilities = array(
 
         'riskbitmask' => RISK_SPAM,
 
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'student'        => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:replypost'
     ),
@@ -110,13 +110,13 @@ $capabilities = array(
 
         'riskbitmask' => RISK_SPAM,
 
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'student'        => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:startdiscussion'
     ),
@@ -125,50 +125,50 @@ $capabilities = array(
 
         'riskbitmask' => RISK_SPAM,
 
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:editanypost'
     ),
 
     'mod/moodleoverflow:deleteownpost' => array(
 
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'read',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'student'        => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:deleteownpost'
     ),
 
     'mod/moodleoverflow:deleteanypost' => array(
 
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'read',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:deleteanypost'
     ),
 
     'mod/moodleoverflow:viewanyrating' => array(
 
-        'riskbitmask' => RISK_PERSONAL,
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
+        'riskbitmask'          => RISK_PERSONAL,
+        'captype'              => 'read',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:viewanyrating'
     ),
@@ -177,13 +177,13 @@ $capabilities = array(
 
         'riskbitmask' => RISK_SPAM,
 
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
+        'archetypes'   => array(
+            'student'        => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         )
     ),
 
@@ -191,13 +191,13 @@ $capabilities = array(
 
         'riskbitmask' => RISK_SPAM,
 
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'student' => CAP_PROHIBIT,
-            'teacher' => CAP_ALLOW,
+        'archetypes'   => array(
+            'student'        => CAP_PROHIBIT,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         )
     ),
 
@@ -205,25 +205,25 @@ $capabilities = array(
 
         'riskbitmask' => RISK_SPAM,
 
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'read',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:managesubscriptions'
     ),
 
     'mod/moodleoverflow:allowforcesubscribe' => array(
 
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'read',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'student'        => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'frontpage' => CAP_ALLOW
+            'frontpage'      => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:allowforcesubscribe'
     ),
@@ -232,13 +232,13 @@ $capabilities = array(
 
         'riskbitmask' => RISK_SPAM,
 
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'student'        => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:createattachment'
     ),

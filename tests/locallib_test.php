@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *  * @package   mod_moodleoverflow
+ * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -23,6 +23,13 @@
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/../locallib.php');
 
+/**
+ * Class mod_moodleoverflow_locallib_testcase
+ * Phpunit Tests for locallib
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
 
     public function setUp() {
