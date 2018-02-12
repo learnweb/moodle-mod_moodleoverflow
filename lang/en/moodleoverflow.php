@@ -121,7 +121,7 @@ $string['configreputationnotnegative'] = 'Prohibits the users reputation being n
 $string['allowcoursereputation'] = 'Sum reputation within a course.';
 $string['configallowcoursereputation'] = 'Allow to sum the reputation of all instances of the current course?';
 $string['maxmailingtime'] = 'Maximal mailing time';
-$string['configmaxmailingtime'] = 'Posts older than this number of hours will not be mailed to the users. This will help to avoid problems where the cron has not een running for a long time.';
+$string['configmaxmailingtime'] = 'Posts older than this number of hours will not be mailed to the users. This will help to avoid problems where the cron has not been running for a long time.';
 
 // Strings for the post.php.
 $string['invalidmoodleoverflowid'] = 'Moodleoverflow ID was incorrect';
