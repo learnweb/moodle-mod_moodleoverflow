@@ -24,15 +24,23 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__. '/lib.php');
-require_once($CFG->libdir. '/weblib.php');
+require_once(__DIR__ . '/lib.php');
+require_once($CFG->libdir . '/weblib.php');
 
+/**
+ * Class for rendering moodleoverflow.
+ *
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class mod_moodleoverflow_renderer extends plugin_renderer_base {
 
     /**
      * Display the discussion list for the view.php.
      *
-     * @param $data The prepared variables.
+     * @param object $data The prepared variables.
+     *
      * @return string
      */
     public function render_discussion_list($data) {
@@ -42,7 +50,8 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     /**
      * Renders a dummy post for users that cannot see the post.
      *
-     * @param $data The submitted variables.
+     * @param object $data The submitted variables.
+     *
      * @return bool|string
      */
     public function render_post_dummy_cantsee($data) {
@@ -52,7 +61,8 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     /**
      * Renders the starting post of a discussion.
      *
-     * @param $data The submitted variables.
+     * @param object $data The submitted variables.
+     *
      * @return bool|string
      */
     public function render_question($data) {
@@ -62,7 +72,8 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     /**
      * Renders all answers of a discussion.
      *
-     * @param $data The submitted variables.
+     * @param object $data The submitted variables.
+     *
      * @return bool|string
      */
     public function render_answer($data) {
@@ -72,11 +83,13 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     /**
      * Display a moodleoverflow post in the relevant context.
      *
-     * @param \mod_moodleoverflow\output\moodleoverflow_post_email $post The post to display.
+     * @param \mod_moodleoverflow\output\moodleoverflow_email $post The post to display.
+     *
      * @return string
      */
     public function render_moodleoverflow_email(\mod_moodleoverflow\output\moodleoverflow_email $post) {
         $data = $post->export_for_template($this, $this->target === RENDERER_TARGET_TEXTEMAIL);
+
         return $this->render_from_template('mod_moodleoverflow/' . $this->moodleoverflow_email_template(), $data);
     }
 

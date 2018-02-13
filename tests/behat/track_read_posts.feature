@@ -60,7 +60,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
 
   Scenario: Tracking moodleoverflow posts forced
     Given the following config values are set as admin:
-      | moodleoverflow_allowforcedreadtracking | 1 |
+      | allowforcedreadtracking | 1 | moodleoverflow |
     And I am on site homepage
     And I follow "Course 1"
     Given I add a "Moodleoverflow" to section "1" and I fill the form with:
@@ -82,7 +82,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
 
   Scenario: Tracking moodleoverflow posts forced (with force disabled)
     Given the following config values are set as admin:
-      | moodleoverflow_allowforcedreadtracking | 1 |
+      | allowforcedreadtracking | 1 | moodleoverflow |
     And I am on site homepage
     And I follow "Course 1"
     Given I add a "Moodleoverflow" to section "1" and I fill the form with:
@@ -93,7 +93,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
       | Subject | Test post subject |
       | Message | Test post message |
     And the following config values are set as admin:
-      | moodleoverflow_allowforcedreadtracking | 0 |
+      | allowforcedreadtracking | 0 | moodleoverflow |
     And I log out
     When I log in as "student1"
     And I follow "Course 1"

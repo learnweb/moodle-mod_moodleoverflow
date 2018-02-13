@@ -28,6 +28,7 @@
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 
 use Behat\Gherkin\Node\TableNode as TableNode;
+
 /**
  * moodleoverflow-related steps definitions.
  *
@@ -42,7 +43,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * Adds a topic to the moodleoverflow specified by it's name. Useful for the Announcements and blog-style moodleoverflow.
      *
      * @Given /^I add a new topic to "(?P<moodleoverflow_name_string>(?:[^"]|\\")*)" moodleoverflow with:$/
-     * @param string $moodleoverflowname
+     * @param string    $moodleoverflowname
      * @param TableNode $table
      */
     public function i_add_a_new_topic_to_moodleoverflow_with($moodleoverflowname, TableNode $table) {
@@ -54,7 +55,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * (usually Subject and Message). The step begins from the moodleoverflow's course page.
      *
      * @Given /^I add a new discussion to "(?P<moodleoverflow_name_string>(?:[^"]|\\")*)" moodleoverflow with:$/
-     * @param string $moodleoverflowname
+     * @param string    $moodleoverflowname
      * @param TableNode $table
      */
     public function i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($moodleoverflowname, TableNode $table) {
@@ -65,9 +66,11 @@ class behat_mod_moodleoverflow extends behat_base {
      * Adds a reply to the specified post of the specified moodleoverflow.
      * The step begins from the moodleoverflow's page or from the moodleoverflow's course page.
      *
-     * @Given /^I reply "(?P<post_subject_string>(?:[^"]|\\")*)" post from "(?P<moodleoverflow_name_string>(?:[^"]|\\")*)" moodleoverflow with:$/
-     * @param string $postname The subject of the post
-     * @param string $moodleoverflowname The moodleoverflow name
+     * @Given /^I reply "(?P<post_subject_string>(?:[^"]|\\")*)" post
+     * from "(?P<moodleoverflow_name_string>(?:[^"]|\\")*)" moodleoverflow with:$/
+     *
+     * @param string    $postsubject        The subject of the post
+     * @param string    $moodleoverflowname The moodleoverflow name
      * @param TableNode $table
      */
     public function i_reply_post_from_moodleoverflow_with($postsubject, $moodleoverflowname, TableNode $table) {
@@ -90,9 +93,9 @@ class behat_mod_moodleoverflow extends behat_base {
      * Abstracts add a new topic and add a new discussion, as depending
      * on the moodleoverflow type the button string changes.
      *
-     * @param string $moodleoverflowname
+     * @param string    $moodleoverflowname
      * @param TableNode $table
-     * @param string $buttonstr
+     * @param string    $buttonstr
      */
     protected function add_new_discussion($moodleoverflowname, TableNode $table, $buttonstr) {
 

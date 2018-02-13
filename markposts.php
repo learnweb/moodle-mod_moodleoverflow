@@ -24,7 +24,7 @@
 
 // We do not need the locallib here.
 require_once('../../config.php');
-require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
+require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Define the parameters.
 $moodleoverflowid = required_param('m', PARAM_INT);         // The moodleoverflowinstance to mark.
@@ -46,17 +46,17 @@ if ($returndiscussion !== 0) {
 $PAGE->set_url($url);
 
 // Retrieve the connected moodleoverflow instance.
-if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
+if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
     print_error('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Retrieve the connected course.
-if (! $course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
+if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
     print_error('invalidcourseid');
 }
 
 // Get the coursemodule.
-if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
     print_error('invalidcoursemodule');
 }
 
@@ -99,24 +99,24 @@ if (isguestuser()) {
 if (!empty($discussionid)) {
 
     // Check if the discussion exists.
-    $options = array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id);
+    $options    = array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id);
     $discussion = $DB->get_record('moodleoverflow_discussions', $options);
     if (!$discussion) {
         print_error('invaliddiscussionid', 'moodleoverflow');
     }
 
     // Mark all the discussions read.
-    if (! \mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read($discussionid, $user->id)) {
+    if (!\mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read($discussionid, $user->id)) {
 
         // Display an error, if something failes.
         $message = get_string('markreadfailed', 'moodleoverflow');
-        $status = \core\output\notification::NOTIFY_ERROR;
+        $status  = \core\output\notification::NOTIFY_ERROR;
 
     } else {
 
         // The discussion is successfully marked as read.
         $message = get_string('markmoodleoverflowreadsuccessful', 'moodleoverflow');
-        $status = \core\output\notification::NOTIFY_SUCCESS;
+        $status  = \core\output\notification::NOTIFY_SUCCESS;
     }
 
     // Redirect the user.
@@ -126,17 +126,17 @@ if (!empty($discussionid)) {
 } else {
 
     // Mark all message read in the current instance.
-    if (! \mod_moodleoverflow\readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $user->id)) {
+    if (!\mod_moodleoverflow\readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $user->id)) {
 
         // Display an error, if something fails.
         $message = get_string('markreadfailed', 'moodleoverflow');
-        $status = \core\output\notification::NOTIFY_ERROR;
+        $status  = \core\output\notification::NOTIFY_ERROR;
 
     } else {
 
         // All posts of the instance have been marked as read.
         $message = get_string('markdiscussionreadsuccessful', 'moodleoverflow');
-        $status = \core\output\notification::NOTIFY_SUCCESS;
+        $status  = \core\output\notification::NOTIFY_SUCCESS;
     }
 
     // Redirect the user back to the view.php.

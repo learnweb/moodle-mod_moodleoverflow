@@ -26,6 +26,8 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Event observer for mod_moodleoverflow.
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_observer {
 
@@ -38,7 +40,7 @@ class mod_moodleoverflow_observer {
         global $DB;
 
         // Get user enrolment info from event.
-        $cp = (object)$event->other['userenrolment'];
+        $cp = (object) $event->other['userenrolment'];
 
         // Check if the user was enrolled.
         if ($cp->lastenrol) {
@@ -56,8 +58,8 @@ class mod_moodleoverflow_observer {
             $params['userid'] = $cp->userid;
 
             // Delete all records that are connected to those moodleoverflow instances.
-            $DB->delete_records_select('moodleoverflow_subscriptions', 'userid = :userid AND moodleoverflow '.$select, $params);
-            $DB->delete_records_select('moodleoverflow_read', 'userid = :userid AND moodleoverflowid '.$select, $params);
+            $DB->delete_records_select('moodleoverflow_subscriptions', 'userid = :userid AND moodleoverflow ' . $select, $params);
+            $DB->delete_records_select('moodleoverflow_read', 'userid = :userid AND moodleoverflowid ' . $select, $params);
         }
     }
 
@@ -65,6 +67,7 @@ class mod_moodleoverflow_observer {
      * Observer for role_assigned event.
      *
      * @param \core\event\role_assigned $event
+     *
      * @return void
      */
     public static function role_assigned(\core\event\role_assigned $event) {
@@ -86,13 +89,15 @@ class mod_moodleoverflow_observer {
         $userid = $event->relateduserid;
 
         // Retrieve all moodleoverflows in this course.
-        $sql = "SELECT m.id, m.course as course, cm.id AS cmid, m.forcesubscribe
+        $sql             = "SELECT m.id, m.course as course, cm.id AS cmid, m.forcesubscribe
                   FROM {moodleoverflow} m
                   JOIN {course_modules} cm ON (cm.instance = m.id)
                   JOIN {modules} mo ON (mo.id = cm.module)
              LEFT JOIN {moodleoverflow_subscriptions} ms ON (ms.moodleoverflow = m.id AND ms.userid = :userid)
                  WHERE m.course = :courseid AND m.forcesubscribe = :initial AND mo.name = 'moodleoverflow' AND ms.id IS NULL";
-        $params = array('courseid' => $context->instanceid, 'userid' => $userid, 'initial' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $params          = array('courseid' => $context->instanceid,
+                                 'userid' => $userid,
+                                 'initial' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
         $moodleoverflows = $DB->get_records_sql($sql, $params);
 
         // Loop through all moodleoverflows.
@@ -117,6 +122,7 @@ class mod_moodleoverflow_observer {
      * Observer for \core\event\course_module_created event.
      *
      * @param \core\event\course_module_created $event
+     *
      * @return void
      */
     public static function course_module_created(\core\event\course_module_created $event) {

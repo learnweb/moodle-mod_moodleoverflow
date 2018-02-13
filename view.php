@@ -26,8 +26,8 @@
  */
 
 // Include config and locallib.
-require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once(dirname(__FILE__).'/locallib.php');
+require_once(__DIR__.'/../../config.php');
+require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
 $id      = optional_param('id', 0, PARAM_INT);       // Course Module ID.
@@ -44,7 +44,7 @@ if ($id) {
 if ($page) {
     $params['page'] = $page;
 }
-$PAGE->set_url('/mod/forum/view.php', $params);
+$PAGE->set_url('/mod/moodleoverflow/view.php', $params);
 
 // Check for the course and module.
 if ($id) {
@@ -101,7 +101,7 @@ $SESSION->fromdiscussion = qualified_me();
 
 // Print the discussions.
 echo '<br />';
-moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, $CFG->moodleoverflow_manydiscussions);
+moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, get_config('moodleoverflow', 'manydiscussions'));
 
 // Finish the page.
 echo $OUTPUT->footer();

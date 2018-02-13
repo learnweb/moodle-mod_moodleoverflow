@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * File to display a moodleoverflow discussion.
+ *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -22,35 +24,39 @@
 
 // Include config and locallib.
 require_once('../../config.php');
-require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
+require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
-$d = required_param('d', PARAM_INT); // The ID of the discussion.
-$ratingid = optional_param('r', 0, PARAM_INT);
+$d         = required_param('d', PARAM_INT); // The ID of the discussion.
+$sesskey   = optional_param('sesskey', null, PARAM_TEXT);
+$ratingid  = optional_param('r', 0, PARAM_INT);
 $ratedpost = optional_param('rp', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d));
 
 // Check if the discussion is valid.
-if (! $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
+if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
     print_error('invaliddiscussionid', 'moodleoverflow');
 }
 
 // Check if the related moodleoverflow instance is valid.
-if (! $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
     print_error('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Check if the related moodleoverflow instance is valid.
-if (! $course = $DB->get_record('course', array('id' => $discussion->course))) {
+if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
     print_error('invalidcourseid');
 }
 
 // Get the related coursemodule and its context.
-if (! $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
+if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
     print_error('invalidcoursemodule');
 }
+
+$PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
+    'clickevent', array($d, $USER->id));
 
 // Set the modulecontext.
 $modulecontext = context_module::instance($cm->id);
@@ -64,25 +70,28 @@ if (!$canviewdiscussion) {
     notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
 }
 
-// Has a request to rate a post been submitted?
+// Has a request to rate a post (as solved or helpful) or to remove rating been submitted?
 if ($ratingid) {
+    require_sesskey();
 
-    // Rate the post.
-    if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
-        print_error('ratingfailed', 'moodleoverflow');
+    if (in_array($ratingid, array(RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL))) {
+        // Rate the post.
+        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
+            print_error('ratingfailed', 'moodleoverflow');
+        }
+
+        // Return to the discussion.
+        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
+        redirect($returnto);
     }
-
-    // Return to the discussion.
-    $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
-    redirect($returnto);
 }
 
 // Trigger the discussion viewed event.
 $params = array(
-    'context' => $modulecontext,
+    'context'  => $modulecontext,
     'objectid' => $discussion->id,
 );
-$event = \mod_moodleoverflow\event\discussion_viewed::create($params);
+$event  = \mod_moodleoverflow\event\discussion_viewed::create($params);
 $event->trigger();
 
 // Unset where the user is coming from.
@@ -91,7 +100,7 @@ unset($SESSION->fromdiscussion);
 
 // Get the parent post.
 $parent = $discussion->firstpost;
-if (! $post = moodleoverflow_get_post_full($parent)) {
+if (!$post = moodleoverflow_get_post_full($parent)) {
     print_error("notexists", 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
 }
 
@@ -108,7 +117,7 @@ if (empty($forumnode)) {
     $forumnode->make_active();
 }
 
-$node = $forumnode->add(format_string($discussion->name),
+$node          = $forumnode->add(format_string($discussion->name),
     new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
 $node->display = false;
 if ($node AND ($post->id != $discussion->firstpost)) {

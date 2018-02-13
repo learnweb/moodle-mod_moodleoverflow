@@ -27,13 +27,19 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
+/**
+ * PHPUnit Tests for testing readtracking.
+ *
+ * @package   mod_moodleoverflow
+ * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
 
     /**
      * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.
      */
     public function test_moodleoverflow_can_track_moodleoverflows() {
-        global $CFG;
 
         // Reset after testing.
         $this->resetAfterTest();
@@ -49,7 +55,7 @@ class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
         $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 1;
+        set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
         // Modleoverflow off, should be off.
         $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooff);
@@ -64,7 +70,7 @@ class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
         $this->assertEquals(false, $result);
 
         // Don't allow force.
-        $CFG->forum_allowforcedreadtracking = 0;
+        set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
         $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooff);
@@ -83,7 +89,6 @@ class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
      * Test the logic in the test_forum_tp_is_tracked() function.
      */
     public function test_moodleoverflow_is_tracked() {
-        global $CFG;
 
         $this->resetAfterTest();
 
@@ -99,7 +104,7 @@ class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
         $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 1;
+        set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
         $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooff);
@@ -114,7 +119,7 @@ class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
         $this->assertEquals(false, $result);
 
         // Don't allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 0;
+        set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
         $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($mooff);
@@ -133,7 +138,7 @@ class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
         \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($mooptional->id);
 
         // Allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 1;
+        set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
         // Preference off, moodleoverflow force, should be on.
         $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
@@ -144,7 +149,7 @@ class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
         $this->assertEquals(false, $result);
 
         // Don't allow force.
-        $CFG->moodleoverflow_allowforcedreadtracking = 0;
+        set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
         // Preference off, moodleoverflow force, should be on.
         $result = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moforce);
