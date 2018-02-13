@@ -29,7 +29,7 @@
 {{#userupvoted}}
 {{! Can the user change the vote? }}
     {{#canchange}}
-        <a class="upvote active">
+        <a class="upvote active" href="javascript:void(0)">
             {{# pix}} vote/upvoted, moodleoverflow, {{#str}}upvote, moodleoverflow{{/str}}{{/ pix}}
         </a>
     {{/canchange}}
@@ -39,7 +39,7 @@
 {{/userupvoted}}
 {{^userupvoted}}
     {{#canchange}}
-        <a class="upvote">
+        <a class="upvote" href="javascript:void(0)">
             {{# pix}} vote/upvote, moodleoverflow, {{#str}}noupvote, moodleoverflow{{/str}}{{/ pix}}
         </a>
     {{/canchange}}
@@ -55,7 +55,7 @@
 {{#userdownvoted}}
 {{! Can the user change its vote? }}
     {{#canchange}}
-        <a class="downvote active">
+        <a class="downvote active" href="javascript:void(0)">
             {{# pix}} vote/downvoted, moodleoverflow, {{#str}}downvote, moodleoverflow{{/str}}{{/ pix}}
         </a>
     {{/canchange}}
@@ -65,7 +65,7 @@
 {{/userdownvoted}}
 {{^userdownvoted}}
     {{#canchange}}
-        <a class="downvote">
+        <a class="downvote" href="javascript:void(0)">
             {{# pix}} vote/downvote, moodleoverflow, {{#str}}nodownvote, moodleoverflow{{/str}}{{/ pix}}
         </a>
     {{/canchange}}
