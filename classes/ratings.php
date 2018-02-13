@@ -81,6 +81,11 @@ class ratings {
         $modulecontext = \context_module::instance($cm->id);
         $coursecontext = \context_course::instance($course->id);
 
+        // Make sure post author != current user.
+        if ($post->userid == $userid) {
+            print_error('rateownpost', 'moodleoverflow');
+        }
+
         // Redirect the user if capabilities are missing.
         $canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext);
         if (!$canrate) {

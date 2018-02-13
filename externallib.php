@@ -38,7 +38,6 @@ class mod_moodleoverflow_external extends external_api {
                 'discussionid' => new external_value(PARAM_INT, 'id of discussion'),
                 'postid'       => new external_value(PARAM_INT, 'id of post'),
                 'ratingid'     => new external_value(PARAM_INT, 'rating'),
-                'userid'       => new external_value(PARAM_INT, 'user id'),
                 'sesskey'      => new external_value(PARAM_TEXT, 'session key'),
             )
         );
@@ -66,15 +65,14 @@ class mod_moodleoverflow_external extends external_api {
      *
      * @return array with updated information about rating /reputation
      */
-    public static function record_vote($discussionid, $postid, $ratingid, $userid, $sesskey) {
-        global $DB;
+    public static function record_vote($discussionid, $postid, $ratingid, $sesskey) {
+        global $DB, $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::record_vote_parameters(), array(
             'discussionid' => $discussionid,
             'postid'       => $postid,
             'ratingid'     => $ratingid,
-            'userid'       => $userid,
             'sesskey'      => $sesskey,
         ));
 
@@ -107,6 +105,10 @@ class mod_moodleoverflow_external extends external_api {
         if (!confirm_sesskey($sesskey)) {
             print_error('invalidsesskey');
         }
+        $postownerid = moodleoverflow_get_post_full($params['postid'])->userid;
+        if ($postownerid == $USER->id) {
+            print_error('rateownpost', 'moodleoverflow');
+        }
 
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,
@@ -115,9 +117,8 @@ class mod_moodleoverflow_external extends external_api {
         }
         $rating      = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id,
             $params['postid']);
-        $postownerid = moodleoverflow_get_post_full($params['postid'])->userid;
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
-        $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $params['userid']);
+        $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
 
         $params['postrating']      = $rating->upvotes - $rating->downvotes;
         $params['ownerreputation'] = $ownerrating;

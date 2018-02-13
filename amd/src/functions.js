@@ -45,7 +45,6 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                     discussionid: discussionid,
                     postid: postid,
                     ratingid: ratingid,
-                    userid: userid,
                     sesskey: M.cfg.sesskey
                 }
             }
