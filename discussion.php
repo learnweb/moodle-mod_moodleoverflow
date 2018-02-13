@@ -70,7 +70,7 @@ if (!$canviewdiscussion) {
     notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
 }
 
-// Has a request to rate a post been submitted?
+// Has a request to rate a post (as solved or helpful) or to remove rating been submitted?
 if ($ratingid) {
     require_sesskey();
 
