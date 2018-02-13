@@ -138,7 +138,6 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return mixed Data ready for use in a mustache template
      */
     public function export_for_template(\renderer_base $renderer, $plaintext = false) {
-        /** @var \mod_moodleoverflow_renderer $renderer */
         if ($plaintext) {
             return $this->export_for_template_text($renderer);
         } else {
