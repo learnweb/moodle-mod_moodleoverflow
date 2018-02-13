@@ -43,7 +43,7 @@ Users can attach files. If a picture is attached, it will be displayed as image.
 A discussion can be deleted by deleting the first post.
 
 ### Students' view
-Unlike teachers students can't edit or delete a post or mark it as solved.
+Unlike teachers, students can't edit or delete a post or mark it as solved.
 <br><br>
 <img src="https://user-images.githubusercontent.com/432117/31946823-2646aece-b8d3-11e7-92d0-49745ada27e3.png" width="500">
 <br><br>
