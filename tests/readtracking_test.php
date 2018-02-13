@@ -28,8 +28,8 @@ global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
- * Class mod_moodleoverflow_readtracking_testcase
  * PHPUnit Tests for testing readtracking.
+ *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

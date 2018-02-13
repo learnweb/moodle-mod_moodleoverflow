@@ -28,7 +28,6 @@ require_once(__DIR__ . '/lib.php');
 require_once($CFG->libdir . '/weblib.php');
 
 /**
- * Class mod_moodleoverflow_renderer
  * Class for rendering moodleoverflow.
  *
  * @package   mod_moodleoverflow
@@ -62,7 +61,7 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     /**
      * Renders the starting post of a discussion.
      *
-     * @param $data The submitted variables.
+     * @param object $data The submitted variables.
      *
      * @return bool|string
      */
@@ -84,7 +83,7 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     /**
      * Display a moodleoverflow post in the relevant context.
      *
-     * @param \mod_moodleoverflow\output\moodleoverflow_post_email $post The post to display.
+     * @param \mod_moodleoverflow\output\moodleoverflow_email $post The post to display.
      *
      * @return string
      */

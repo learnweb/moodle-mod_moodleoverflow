@@ -672,6 +672,7 @@ class ratings {
      * @param int $postid
      * @param int $rating
      * @param int $userid
+     * @param \context_module $modulecontext
      *
      * @return bool
      */
@@ -707,6 +708,7 @@ class ratings {
      * @param int $postid
      * @param int $rating
      * @param int $userid
+     * @param \context_module $mod
      *
      * @return bool|int
      */
@@ -745,6 +747,7 @@ class ratings {
      * @param int $rating
      * @param int $userid
      * @param int $ratingid
+     * @param \context_module $modulecontext
      *
      * @return bool
      */

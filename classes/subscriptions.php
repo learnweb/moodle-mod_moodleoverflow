@@ -978,9 +978,9 @@ class subscriptions {
      * Given a new post, subscribes the user to the thread the post was posted in.
      *
      * @param object $fromform       The submitted form
-     * @param        $moodleoverflow The moodleoverflow record
-     * @param        $discussion     The discussion record
-     * @param        $modulecontext  The context of the module
+     * @param \stdClass       $moodleoverflow The moodleoverflow record
+     * @param \stdClass       $discussion     The discussion record
+     * @param \context_course $modulecontext  The context of the module
      *
      * @return bool
      */

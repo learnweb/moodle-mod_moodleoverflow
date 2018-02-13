@@ -71,7 +71,6 @@ class behat_mod_moodleoverflow extends behat_base {
      *
      * @param string    $postsubject        The subject of the post
      * @param string    $moodleoverflowname The moodleoverflow name
-     * @param object    $table
      * @param TableNode $table
      */
     public function i_reply_post_from_moodleoverflow_with($postsubject, $moodleoverflowname, TableNode $table) {

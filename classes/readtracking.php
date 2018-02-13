@@ -119,7 +119,6 @@ class readtracking {
      * Marks a specific moodleoverflow instance as read by a specific user.
      *
      * @param object $cm
-     * @param int    $courseid
      * @param null   $userid
      */
     public static function moodleoverflow_mark_moodleoverflow_read($cm, $userid = null) {
@@ -269,7 +268,7 @@ class readtracking {
      * @param int $userid
      * @param int $postid
      * @param int $discussionid
-     * @param int $moodleoverflowid
+     * @param int $overflowid
      *
      * @return bool
      */

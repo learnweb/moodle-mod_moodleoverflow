@@ -1415,7 +1415,7 @@ function moodleoverflow_add_attachment($post, $forum, $cm) {
 /**
  * Adds a new post in an existing discussion.
  *
- * @param $post The post object
+ * @param object $post The post object
  *
  * @return bool|int The Id of the post if operation was successful
  */

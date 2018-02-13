@@ -132,12 +132,13 @@ class moodleoverflow_email implements \renderable, \templatable {
     /**
      * Export this data so it can be used as the context for a mustache template.
      *
-     * @param \mod_moodleoverflow_renderer $renderer  The render to be used for formatting the message
+     * @param \renderer_base $renderer  The render to be used for formatting the message
      * @param bool                         $plaintext Whether the target is a plaintext target
      *
      * @return mixed Data ready for use in a mustache template
      */
     public function export_for_template(\renderer_base $renderer, $plaintext = false) {
+        /** @var \mod_moodleoverflow_renderer $renderer */
         if ($plaintext) {
             return $this->export_for_template_text($renderer);
         } else {
@@ -148,7 +149,7 @@ class moodleoverflow_email implements \renderable, \templatable {
     /**
      * Export this data so it can be used as the context for a mustache template.
      *
-     * @param \mod_forum_renderer $renderer The render to be used for formatting the message
+     * @param \mod_moodleoverflow_renderer $renderer The render to be used for formatting the message
      *
      * @return array Data ready for use in a mustache template
      */

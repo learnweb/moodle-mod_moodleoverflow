@@ -26,6 +26,13 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->libdir/externallib.php");
 
+/**
+ * Class implementing the external API, esp. for AJAX functions.
+ *
+ * @package    mod_moodleoverflow
+ * @copyright  2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class mod_moodleoverflow_external extends external_api {
 
     /**
@@ -61,8 +68,10 @@ class mod_moodleoverflow_external extends external_api {
     /**
      * Records upvotes and downvotes.
      *
-     * @param array $vote
-     *
+     * @param int $discussionid ID of discussion
+     * @param int $postid ID of post
+     * @param int $ratingid Rating value
+     * @param int $sesskey Session key
      * @return array with updated information about rating /reputation
      */
     public static function record_vote($discussionid, $postid, $ratingid, $sesskey) {
