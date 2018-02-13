@@ -2,6 +2,14 @@ language: php
 
 sudo: false
 
+addons:
+  firefox: "47.0.1"
+  postgresql: "9.3"
+  apt:
+    packages:
+      - oracle-java8-installer
+      - oracle-java8-set-default
+
 cache:
   directories:
     - $HOME/.composer/cache
@@ -11,13 +19,6 @@ php:
  - 5.6
  - 7.0
  - 7.1
-
-addons:
-  postgresql: "9.3"
-  apt:
-    packages:
-      - oracle-java9-installer
-      - oracle-java9-set-default
 
 matrix:
   allow_failures:
@@ -49,31 +50,29 @@ env:
 
 before_install:
   - phpenv config-rm xdebug.ini
-  - nvm install 8.9
-  - nvm use 8.9
+  - nvm install --lts
   - cd ../..
   - composer selfupdate
   - composer create-project -n --no-dev --prefer-dist moodlerooms/moodle-plugin-ci ci ^2
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
-
-install:
-  - moodle-plugin-ci install
 
 jobs:
   include:
     # Prechecks against latest Moodle stable only.
     - stage: static
       php: 7.1
-      env: DB=mysqli MOODLE_BRANCH=MOODLE_33_STABLE
+      env: DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE
+      install:
+      - moodle-plugin-ci install --no-init
       script:
       - moodle-plugin-ci phplint
       - moodle-plugin-ci phpcpd
       - moodle-plugin-ci phpmd
       - moodle-plugin-ci codechecker
+      - moodle-plugin-ci validate
       - moodle-plugin-ci savepoints
       - moodle-plugin-ci mustache
       - moodle-plugin-ci grunt
-      - moodle-plugin-ci validate
 
     # Smaller build matrix for development builds
     - stage: develop
@@ -84,6 +83,9 @@ jobs:
       - moodle-plugin-ci behat
 
 # Default 'test' stage: Unit tests and behat tests against full matrix.
+install:
+  - moodle-plugin-ci install
+
 script:
   - moodle-plugin-ci phpunit --coverage-clover
   - moodle-plugin-ci behat
