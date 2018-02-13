@@ -168,12 +168,12 @@ $string['postnotexist']             = 'Requested post does not exist';
 $string['noratemoodleoverflow']     = 'Sorry, you are not allowed to vote in this forum.';
 $string['configallowratingchange']  = 'Can a user change its ratings?';
 $string['allowratingchange']        = 'Allow rating changes';
-$string['configpreferteachersmark'] = 'The answer marked as solved by a teacher are prioritized over the answer marked as helpful by the starter of the discussion.';
-$string['preferteachersmark']       = 'Prefer teachers marks?';
+$string['configpreferteachersmark'] = 'The answer marked as solved by a course owner are prioritized over the answer marked as helpful by the starter of the discussion.';
+$string['preferteachersmark']       = 'Prefer course owners\' marks?';
 $string['noratingchangeallowed']    = 'You are not allowed to change your ratings.';
 $string['invalidratingid']          = 'The submitted rating is neither an upvote nor a downvote.';
 $string['notstartuser']             = 'Only the user who started the discussion can mark an answer as helpful.';
-$string['notteacher']               = 'Only users with the status teacher can do this.';
+$string['notteacher']               = 'Only course owners can do this.';
 $string['ratingtoold']              = 'Ratings can only be changed within 30 minutes after the first vote. ';
 
 // Strings for the discussion.php.
@@ -303,8 +303,8 @@ $string['teacherrating']                = 'Solved';
 $string['ratingpreference']             = 'Display first';
 $string['ratingpreference_help']        = 'Answers can be marked as solved and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
 
-* Heplful - A topic starters mark as helpful will be pinned at the top of the discussion
-* Solved - A teachers mark as solved will be pinned at the top of the discussion';
+* Heplful - A topic starter\'s helpful mark will be pinned at the top of the discussion
+* Solved - A teacher\'s solved mark will be pinned at the top of the discussion';
 $string['allownegativereputation']      = 'Allow negative reputation?';
 $string['allownegativereputation_help'] = 'If set to yes, the users reputation within a course or within a module can be negative. If set to no, the reputation will stop to decrease at zero.';
 $string['coursewidereputation']         = 'Cross module reputation?';
@@ -318,7 +318,7 @@ $string['attachment_help']              = 'You can optionally attach one or more
 // Templates.
 $string['helpfulanswer'] = 'The question owner accepted this as the best answer.';
 $string['solvedanswer']  = 'This post is marked as solved.';
-$string['bestanswer']    = 'The question owner and a teacher accepted this as the best answer.';
+$string['bestanswer']    = 'The question owner and a course owner accepted this as the best answer.';
 $string['reputation'] = 'Reputation';
 $string['upvote'] = 'Upvote';
 $string['upvotenotchangeable'] = 'Upvote (not changeable)';
