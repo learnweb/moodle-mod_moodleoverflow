@@ -21,7 +21,8 @@
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function ($, ajax, templates, notification) {
+define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/config', 'core/url'],
+    function ($, ajax, templates, notification, Cfg, Url) {
 
     var t = {
         /**
@@ -45,7 +46,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                     discussionid: discussionid,
                     postid: postid,
                     ratingid: ratingid,
-                    sesskey: M.cfg.sesskey
+                    sesskey: Cfg.sesskey
                 }
             }
             ]);
@@ -56,21 +57,21 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                 // Update Votes.
                 if (ratingid == 2) {
                     parentdiv.children('a:first-of-type').children().attr(
-                        'src', M.util.image_url('vote/upvoted', 'moodleoverflow'));
+                        'src', Url.imageUrl('vote/upvoted', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(
-                        'src', M.util.image_url('vote/downvote', 'moodleoverflow'));
+                        'src', Url.imageUrl('vote/downvote', 'moodleoverflow'));
                 }
                 else if (ratingid == 1) {
                     parentdiv.children('a:first-of-type').children().attr(
-                        'src', M.util.image_url('vote/upvote', 'moodleoverflow'));
+                        'src', Url.imageUrl('vote/upvote', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(
-                        'src', M.util.image_url('vote/downvoted', 'moodleoverflow'));
+                        'src', Url.imageUrl('vote/downvoted', 'moodleoverflow'));
                 }
                 else {
                     parentdiv.children('a:first-of-type').children().attr(
-                        'src', M.util.image_url('vote/upvote', 'moodleoverflow'));
+                        'src', Url.imageUrl('vote/upvote', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(
-                        'src', M.util.image_url('vote/downvote', 'moodleoverflow'));
+                        'src', Url.imageUrl('vote/downvote', 'moodleoverflow'));
                 }
 
                 parentdiv.children('p').text(response.postrating);
