@@ -21,23 +21,21 @@
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function ($, ajax, templates, notification) {
+define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function($, ajax, templates, notification) {
 
     var t = {
         /**
-         * Records a upvote / downvote.
-         * @param int discussionid
-         * @param int postid
-         * @param int ratingid
-         * @param int userid
-         * @param string link
-         * @param string sesskey
+         * Reoords a upvote / downvote.
+         * @param {int} discussionid
+         * @param {int} ratingid
+         * @param {int} userid
+         * @param {event} event
          * @returns {string}
          */
-        recordvote: function (discussionid, ratingid, userid, event) {
+        recordvote: function(discussionid, ratingid, userid, event) {
             var target = $(event.target).closest('.moodleoverflowpost').prev();
             var postid = target.attr('id');
-            var postid = postid.substring(1);
+            postid = postid.substring(1);
 
             var vote = ajax.call([{
                 methodname: 'mod_moodleoverflow_record_vote',
@@ -50,7 +48,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
             }
             ]);
 
-            vote[0].done(function (response) {
+            vote[0].done(function(response) {
 
                 var parentdiv = $(event.target).parent().parent();
                 // Update Votes.
@@ -59,14 +57,12 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                         'src', M.util.image_url('vote/upvoted', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(
                         'src', M.util.image_url('vote/downvote', 'moodleoverflow'));
-                }
-                else if (ratingid == 1) {
+                } else if (ratingid == 1) {
                     parentdiv.children('a:first-of-type').children().attr(
                         'src', M.util.image_url('vote/upvote', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(
                         'src', M.util.image_url('vote/downvoted', 'moodleoverflow'));
-                }
-                else {
+                } else {
                     parentdiv.children('a:first-of-type').children().attr(
                         'src', M.util.image_url('vote/upvote', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(
@@ -95,17 +91,14 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
 
                     // Post is not the question, not a comment and not marked as helpful/solved.
                     // Update order of posts.
-
-                    // Get creation date of post.
-                    var d = new Date(node.find('.user-action-time').text());
+                    var success = false;
+                    var votes;
 
                     if (ratingid === 1 || ratingid === 20) {
                         // Post rating has been reduced.
                         var nextsibling;
-                        var success = false;
-                        var votes;
 
-                        node.nextAll().each(function () {
+                        node.nextAll().each(function() {
                             nextsibling = $(this);
                             votes = parseInt($('.votes p', this).text());
                             if (votes < response.postrating ||
@@ -114,28 +107,23 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                                 success = true;
                                 return false;
                             }
+                            return true;
                         });
 
                         // Insert before Sibling.
                         if (success) {
                             node.detach();
                             node.insertBefore(nextsibling);
+                        } else if (nextsibling) {
+                            // Insert as last Element.
+                            node.detach();
+                            node.insertAfter(nextsibling);
                         }
-                        else {
-                            if (nextsibling) {
-                                // Insert as last Element.
-                                node.detach();
-                                node.insertAfter(nextsibling);
-                            }
-                        }
-                    }
-                    else {
+                    } else {
                         // Post reating has been increased.
                         var prevsibling;
-                        var success = false;
-                        var votes;
 
-                        node.prevUntil(':not(.tmargin)').each(function () {
+                        node.prevUntil(':not(.tmargin)').each(function() {
                             prevsibling = $(this);
                             votes = parseInt($('.votes p', this).text());
                             if (votes > response.postrating ||
@@ -144,14 +132,14 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
                                 success = true;
                                 return false;
                             }
+                            return true;
                         });
 
                         // Insert after Sibling.
                         if (success) {
                             node.detach();
                             node.insertAfter(prevsibling);
-                        }
-                        else {
+                        } else {
                             if (prevsibling) {
                                 // Insert as first Element.
                                 node.detach();
@@ -168,31 +156,34 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification'], function 
             return vote;
         },
 
-        clickevent: function (discussionid, userid) {
-            $(".upvote").on("click", function (event) {
+        /**
+         * Initializes the clickevent on upvotes / downvotes.
+         * @param {int} discussionid
+         * @param {int} userid
+         */
+        clickevent: function(discussionid, userid) {
+            $(".upvote").on("click", function(event) {
                 if ($(event.target).is('a')) {
                     event.target = $(event.target).children();
                 }
 
                 if ($(event.target).parent().attr('class').indexOf('active') >= 0) {
                     t.recordvote(discussionid, 20, userid, event);
-                }
-                else {
+                } else {
                     t.recordvote(discussionid, 2, userid, event);
                 }
                 $(event.target).parent().toggleClass('active');
                 $(event.target).parent().nextAll('a').removeClass('active');
             });
 
-            $(".downvote").on("click", function (event) {
+            $(".downvote").on("click", function(event) {
                 if ($(event.target).is('a')) {
                     event.target = $(event.target).children();
                 }
 
                 if ($(event.target).parent().attr('class').indexOf('active') >= 0) {
                     t.recordvote(discussionid, 10, userid, event);
-                }
-                else {
+                } else {
                     t.recordvote(discussionid, 1, userid, event);
                 }
                 $(event.target).parent().toggleClass('active');
