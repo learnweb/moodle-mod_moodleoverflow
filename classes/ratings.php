@@ -81,11 +81,6 @@ class ratings {
         $modulecontext = \context_module::instance($cm->id);
         $coursecontext = \context_course::instance($course->id);
 
-        // Make sure post author != current user.
-        if ($post->userid == $userid) {
-            print_error('rateownpost', 'moodleoverflow');
-        }
-
         // Redirect the user if capabilities are missing.
         $canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext);
         if (!$canrate) {
@@ -102,6 +97,11 @@ class ratings {
 
             // Notify the user, that he can not post a new discussion.
             print_error('noratemoodleoverflow', 'moodleoverflow');
+        }
+
+        // Make sure post author != current user, unless they have permission
+        if (($post->userid == $userid) && !($rating == RATING_SOLVED && has_capability('mod/moodleoverflow:marksolved', $modulecontext))) {
+            print_error('rateownpost', 'moodleoverflow');
         }
 
         // Check if we are removing a mark.
