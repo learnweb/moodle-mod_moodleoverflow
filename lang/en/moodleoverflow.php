@@ -93,7 +93,7 @@ $string['maxattachments']            = 'Maximum number of attachments';
 $string['maxattachments_help']       = 'This setting specifies the maximum number of files that can be attached to a forum post.';
 $string['configmaxattachments']      = 'Default maximum number of attachments allowed per post.';
 $string['maxeditingtime']            = 'Maximum amount of time during which a post can be edited by its owner (sec)';
-$string['configmaxeditingtime']      = 'Default maximum seconds are 3600 (= 30 minutes).';
+$string['configmaxeditingtime']      = 'Default maximum seconds are 3600 (= one hour).';
 $string['configoldpostdays']         = 'Number of days old any post is considered read.';
 $string['oldpostdays']               = 'Read after days';
 $string['trackingoff']               = 'Off';
