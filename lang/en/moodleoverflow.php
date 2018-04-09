@@ -39,7 +39,6 @@ $string['pluginname']             = 'Moodleoverflow';
 
 // Capabilities.
 $string['moodleoverflow:addinstance']         = 'Add a new Moodleoverflow instance';
-$string['moodleoverflow:submit']              = 'Submit moodleoverflow';
 $string['moodleoverflow:allowforcesubscribe'] = 'Allow forced subscription';
 $string['moodleoverflow:createattachment']    = 'Create attachments';
 $string['moodleoverflow:managesubscriptions'] = 'Manage subscriptions';

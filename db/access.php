@@ -68,15 +68,6 @@ $capabilities = array(
         )
     ),
 
-    'mod/moodleoverflow:submit' => array(
-        'riskbitmask'  => RISK_SPAM,
-        'captype'      => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes'   => array(
-            'student' => CAP_ALLOW
-        )
-    ),
-
     'mod/moodleoverflow:viewdiscussion' => array(
         'captype'              => 'read',
         'contextlevel'         => CONTEXT_MODULE,
