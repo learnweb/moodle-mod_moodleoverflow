@@ -158,6 +158,7 @@ $string['message']                     = 'Message';
 $string['discussionsubscription']      = 'Discussion subscription';
 $string['discussionsubscription_help'] = 'Subscribing to a discussion means you will receive notifications of new posts to that discussion.';
 $string['posttomoodleoverflow']        = 'Post to forum';
+$string['posts'] = 'Posts';
 $string['erroremptysubject']           = 'Post subject cannot be empty.';
 $string['erroremptymessage']           = 'Post message cannot be empty';
 $string['yournewtopic']                = 'Your new discussion topic';
@@ -227,6 +228,7 @@ $string['moodleoverflows']              = 'Moodleoverflows';
 $string['postmailinfolink']             = 'This is a copy of a message posted in {$a->coursename}.
 
 To reply click on this link: {$a->replylink}';
+$string['unsubscribe'] = 'Unsubscribe from this forum';
 $string['unsubscribelink']              = 'Unsubscribe from this forum: {$a}';
 $string['unsubscribediscussionlink']    = 'Unsubscribe from this discussion: {$a}';
 $string['postincontext']                = 'See this post in context';
@@ -329,13 +331,9 @@ $string['nodownvote'] = 'No downvote';
 // Privacy.
 $string['privacy:metadata:core_files'] = 'Moodleoverflow stores files which have been uploaded by the user to form part of a forum post.';
 $string['privacy:metadata:moodleoverflow_discussions'] = 'Information about forum discussions. This includes which discussions a user has started.';
-$string['privacy:metadata:moodleoverflow_discussions:course'] = 'The course discussion belongs to.';
-$string['privacy:metadata:moodleoverflow_discussions:moodleoverflow'] = 'The ID of the Moodleoverflow forum the discussion belongs to.';
 $string['privacy:metadata:moodleoverflow_discussions:name'] = 'The name of the discussion.';
-$string['privacy:metadata:moodleoverflow_discussions:firstpost'] = 'The ID of the first post of the discussion.';
 $string['privacy:metadata:moodleoverflow_discussions:userid'] = 'The ID of the user who started the discussion.';
 $string['privacy:metadata:moodleoverflow_discussions:timemodified'] = 'The time when the discussion (e.g. a post) was last modified.';
-$string['privacy:metadata:moodleoverflow_discussions:timestart'] = 'The time when the discussion was created.';
 $string['privacy:metadata:moodleoverflow_discussions:usermodified'] = 'The ID of the last user who modified the discussion';
 
 $string['privacy:metadata:moodleoverflow_posts'] = 'Information about forum posts. This includes data of posts a user has written.';
@@ -345,13 +343,9 @@ $string['privacy:metadata:moodleoverflow_posts:userid'] = 'The ID of the user wh
 $string['privacy:metadata:moodleoverflow_posts:created'] = 'The date this post was created.';
 $string['privacy:metadata:moodleoverflow_posts:modified'] = 'The last date this post was modified.';
 $string['privacy:metadata:moodleoverflow_posts:message'] = 'The text of this post.';
-$string['privacy:metadata:moodleoverflow_posts:messageformat'] = 'The editor format of the post.';
-$string['privacy:metadata:moodleoverflow_posts:attachment'] = 'The IDs of attachments of the post.';
-$string['privacy:metadata:moodleoverflow_posts:mailed'] = '0 if post was not mailed, 1 if post was mailed, 2 if an error occured during mailing';
 
 $string['privacy:metadata:moodleoverflow_read'] = 'Information about read tracking of posts. This includes when posts were read by a user.';
 $string['privacy:metadata:moodleoverflow_read:userid'] = 'The ID of the user who read the post.';
-$string['privacy:metadata:moodleoverflow_read:moodleoverflowid'] = 'The ID of the Moodleoverflow forum the read post belongs to.';
 $string['privacy:metadata:moodleoverflow_read:discussionid'] = 'The ID of the discussion the read post belongs to,';
 $string['privacy:metadata:moodleoverflow_read:postid'] = 'The ID of the post that has been read.';
 $string['privacy:metadata:moodleoverflow_read:firstread'] = 'The date the post was read the first time.';
@@ -362,7 +356,6 @@ $string['privacy:metadata:moodleoverflow_subscriptions:userid'] = 'The ID of the
 $string['privacy:metadata:moodleoverflow_subscriptions:moodleoverflow'] = 'The ID of the Moodleoverflow forum the user has subscribed.';
 
 $string['privacy:metadata:moodleoverflow_discuss_subs'] = 'Information about the subscriptions to individual forum discussions. This includes when a user has chosen to subscribe to a discussion or to unsubscribe from one where they would otherwise be subscribed.';
-$string['privacy:metadata:moodleoverflow_discuss_subs:moodleoverflow'] = 'The ID of the Moodleoverflow forum that contains the discussion that is subscribed or unsubscribed by the user.';
 $string['privacy:metadata:moodleoverflow_discuss_subs:userid'] = 'The ID of the user who changed the subscription settings.';
 $string['privacy:metadata:moodleoverflow_discuss_subs:discussion'] = 'The ID of the discussion that was subscribed / unsubscribed.';
 $string['privacy:metadata:moodleoverflow_discuss_subs:preference'] = 'The start time of the subscription.';
@@ -381,7 +374,12 @@ $string['privacy:metadata:moodleoverflow_tracking:userid'] = 'The ID of the user
 $string['privacy:metadata:moodleoverflow_tracking:moodleoverflowid'] = 'The ID of the moodleoverflow forum that is not tracked by the user.';
 
 $string['privacy:anonym_discussion_name'] = 'Standard name';
-$string['privacy:anonym_post_name'] = 'This post was anonymized.';
+$string['privacy:anonym_post_name'] = 'This content has been deleted.';
+
+$string['privacy:subscribedtoforum'] = 'You are subscribed to this forum.';
+$string['privacy:discussionsubscriptionpreference'] = 'You have chosen the following discussion subscription preference for this forum: "{$a->preference}"';
+$string['privacy:readtrackingdisabled'] = 'You have chosen to not track which posts that you have read within this forum.';
+$string['privacy:postwasread'] = 'This post was first read on {$a->firstread} and most recently read on {$a->lastread}';
 
 
 

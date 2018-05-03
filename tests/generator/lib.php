@@ -176,5 +176,93 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         return $record->id;
     }
 
+    /**
+     * Function to create a dummy post.
+     *
+     * @param array|stdClass $record
+     * @return stdClass the post object
+     */
+    public function create_post($record = null) {
+        global $DB;
+        // Increment the forum post count.
+        $this->postcount++;
+        // Variable to store time.
+        $time = time() + $this->postcount;
+        $record = (array) $record;
+        if (!isset($record['discussion'])) {
+            throw new coding_exception('discussion must be present in phpunit_util::create_post() $record');
+        }
+        if (!isset($record['userid'])) {
+            throw new coding_exception('userid must be present in phpunit_util::create_post() $record');
+        }
+        if (!isset($record['parent'])) {
+            $record['parent'] = 0;
+        }
+        if (!isset($record['message'])) {
+            $record['message'] = html_writer::tag('p', 'Forum message post ' . $this->forumpostcount);
+        }
+        if (!isset($record['created'])) {
+            $record['created'] = $time;
+        }
+        if (!isset($record['modified'])) {
+            $record['modified'] = $time;
+        }
+        if (!isset($record['mailed'])) {
+            $record['mailed'] = 0;
+        }
+        if (!isset($record['messageformat'])) {
+            $record['messageformat'] = 0;
+        }
+        if (!isset($record['attachment'])) {
+            $record['attachment'] = "";
+        }
 
+        $record = (object) $record;
+        // Add the post.
+        $record->id = $DB->insert_record('moodleoverflow_posts', $record);
+
+        // Update the last post.
+        moodleoverflow_discussion_update_last_post($record->discussion);
+        return $record;
+    }
+
+    /**
+     * Function to create a dummy rating.
+     *
+     * @param array|stdClass $record
+     * @return stdClass the post object
+     */
+    public function create_rating($record = null) {
+        global $DB;
+
+        $time = time();
+        $record = (array) $record;
+        if (!isset($record['moodleoverflowid'])) {
+            throw new coding_exception('moodleoverflowid must be present in phpunit_util::create_rating() $record');
+        }
+        if (!isset($record['discussionid'])) {
+            throw new coding_exception('discussionid must be present in phpunit_util::create_rating() $record');
+        }
+        if (!isset($record['userid'])) {
+            throw new coding_exception('userid must be present in phpunit_util::create_rating() $record');
+        }
+        if (!isset($record['postid'])) {
+            throw new coding_exception('postid must be present in phpunit_util::create_rating() $record');
+        }
+        if (!isset($record['rating'])) {
+            $record['rating'] = 1;
+        }
+        if (!isset($record['firstrated'])) {
+            $record['firstrated'] = $time;
+        }
+        if (!isset($record['lastchanged'])) {
+            $record['lastchanged'] = $time;
+        }
+
+        $record = (object) $record;
+        // Add the post.
+        $record->id = $DB->insert_record('moodleoverflow_ratings', $record);
+
+        return $record;
+    }
 }
