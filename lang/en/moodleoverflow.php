@@ -375,6 +375,7 @@ $string['privacy:metadata:moodleoverflow_tracking:moodleoverflowid'] = 'The ID o
 
 $string['privacy:anonym_discussion_name'] = 'Standard name';
 $string['privacy:anonym_post_name'] = 'This content has been deleted.';
+$string['privacy:anonym_user_name'] = 'Anonym';
 
 $string['privacy:subscribedtoforum'] = 'You are subscribed to this forum.';
 $string['privacy:discussionsubscriptionpreference'] = 'You have chosen the following discussion subscription preference for this forum: "{$a->preference}"';

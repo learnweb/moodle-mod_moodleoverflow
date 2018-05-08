@@ -150,6 +150,8 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
                 LEFT JOIN {moodleoverflow_tracking} track ON track.moodleoverflowid = mof.id
                 WHERE (
                     d.userid = :duserid OR 
+                    d.usermodified = :dmuserid OR
+                    p.userid = :puserid OR
                     r.userid = :ruserid OR 
                     s.userid = :suserid OR 
                     ds.userid = :dsuserid OR 
@@ -162,6 +164,8 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             'modname'      => 'moodleoverflow',
             'contextlevel' => CONTEXT_MODULE,
             'duserid'      => $userid,
+            'dmuserid'      => $userid,
+            'puserid'      => $userid,
             'ruserid'      => $userid,
             'suserid'      => $userid,
             'dsuserid'     => $userid,
@@ -269,11 +273,13 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
                  WHERE mof.id ${foruminsql}
                    AND (
                         d.userid    = :discussionuserid OR
+                        d.usermodified = :dmuserid OR
                         dsub.userid = :dsubuserid
                    )
         ";
         $params = [
             'discussionuserid' => $userid,
+            'dmuserid' => $userid,
             'dsubuserid'       => $userid,
         ];
         $params += $forumparams;
@@ -290,8 +296,8 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $discussiondata = (object) [
                 'name'            => format_string($discussion->name, true),
                 'timemodified'    => transform::datetime($discussion->timemodified),
-                'usermodified'    => transform::datetime($discussion->usermodified),
-                'creator_was_you' => transform::yesno($discussion->userid == $userid)
+                'creator_was_you' => transform::yesno($discussion->userid == $userid),
+                'last_modifier_was_you' => transform::yesno($discussion->usermodified == $userid)
             ];
             // Store the discussion content.
             writer::with_context($context)
@@ -692,7 +698,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
                 'userid'           => $userid]);
 
             // Do not delete ratings but reset userid.
-            $ratingsql = "userid = :userid AND discussionid IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum";
+            $ratingsql = "userid = :userid AND discussionid IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum)";
             $ratingparams = [
                 'forum'  => $forum->id,
                 'userid' => $userid
@@ -701,21 +707,24 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
 
             // Do not delete forum posts.
             // Update the user id to reflect that the content has been deleted.
-            $postsql = "userid = :userid AND discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum";
+            $postsql = "userid = :userid AND discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum)";
             $postparams = [
                 'forum'  => $forum->id,
                 'userid' => $userid
             ];
 
-            $DB->set_field_select('moodleoverflow_posts', 'message', get_string('privacy:anonym_post_name', 'mod_moodleoverflow'), $postsql, $postparams);
+            $DB->set_field_select('moodleoverflow_posts', 'message', '', $postsql, $postparams);
             $DB->set_field_select('moodleoverflow_posts', 'messageformat', FORMAT_PLAIN, $postsql, $postparams);
             $DB->set_field_select('moodleoverflow_posts', 'userid', 0, $postsql, $postparams);
 
             // Do not delete discussions but reset userid.
             $discussionselect = "moodleoverflow = :forum AND userid = :userid";
             $disuccsionsparams = ['forum' => $forum->id, 'userid' => $userid];
-            $DB->set_field_select('moodleoverflow_discussions', 'name', get_string('privacy:anonym_discussion_name', 'mod_moodleoverflow'), $discussionselect, $disuccsionsparams);
+            $DB->set_field_select('moodleoverflow_discussions', 'name', '', $discussionselect, $disuccsionsparams);
             $DB->set_field_select('moodleoverflow_discussions', 'userid', 0, $discussionselect, $disuccsionsparams);
+            $discussionselect = "moodleoverflow = :forum AND usermodified = :userid";
+            $disuccsionsparams = ['forum' => $forum->id, 'userid' => $userid];
+            $DB->set_field_select('moodleoverflow_discussions', 'usermodified', 0, $discussionselect, $disuccsionsparams);
 
             // Delete attachments
             $fs = get_file_storage();
