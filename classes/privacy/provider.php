@@ -30,6 +30,7 @@ use core_privacy\local\request\contextlist;
 use core_privacy\local\request\writer;
 use \core_privacy\local\request\helper as request_helper;
 use \core_privacy\local\request\transform;
+use mod_moodleoverflow\ratings;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -160,11 +161,11 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
         $params = [
             'modname'      => 'moodleoverflow',
             'contextlevel' => CONTEXT_MODULE,
-            'duserid'       => $userid,
-            'ruserid'       => $userid,
-            'suserid'       => $userid,
-            'dsuserid'       => $userid,
-            'rauserid'       => $userid,
+            'duserid'      => $userid,
+            'ruserid'      => $userid,
+            'suserid'      => $userid,
+            'dsuserid'     => $userid,
+            'rauserid'     => $userid,
             'userid'       => $userid
         ];
 
@@ -210,9 +211,9 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
                 ";
 
         $params = [
-            'suserid' => $userid,
+            'suserid'  => $userid,
             'rauserid' => $userid,
-            'userid' => $userid
+            'userid'   => $userid
         ];
         $params += $contextparams;
 
@@ -287,9 +288,10 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             // Store related metadata for this discussion.
             static::export_discussion_subscription_data($userid, $context, $discussion);
             $discussiondata = (object) [
-                'name'         => format_string($discussion->name, true),
-                'timemodified' => transform::datetime($discussion->timemodified),
-                'usermodified' => transform::datetime($discussion->usermodified),
+                'name'            => format_string($discussion->name, true),
+                'timemodified'    => transform::datetime($discussion->timemodified),
+                'usermodified'    => transform::datetime($discussion->usermodified),
+                'creator_was_you' => transform::yesno($discussion->userid == $userid)
             ];
             // Store the discussion content.
             writer::with_context($context)
@@ -363,11 +365,15 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
                     fr.firstread,
                     fr.lastread,
                     fr.id AS readflag,
-                    rat.id AS hasratings
+                    rat.userid AS hasratings
                     FROM {moodleoverflow_discussions} d
               INNER JOIN {moodleoverflow_posts} p ON p.discussion = d.id
               LEFT JOIN {moodleoverflow_read} fr ON fr.postid = p.id AND fr.userid = :readuserid
-              LEFT JOIN {moodleoverflow_ratings} rat ON  rat.postid = p.id AND rat.userid = :ratinguserid
+              LEFT JOIN {moodleoverflow_ratings} rat ON rat.id = (
+                SELECT id FROM {moodleoverflow_ratings} ra
+                WHERE ra.postid = p.id OR ra.userid = :ratinguserid
+                LIMIT 1
+              ) 
                    WHERE d.id = :discussionid
         ";
         $params = [
@@ -445,9 +451,9 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
         // Store related metadata.
         static::export_read_data($userid, $context, $postarea, $post);
         $postdata = (object) [
-            'created'  => transform::datetime($post->created),
-            'modified' => transform::datetime($post->modified),
-            'author'   => transform::user($post->userid),
+            'created'        => transform::datetime($post->created),
+            'modified'       => transform::datetime($post->modified),
+            'author_was_you' => transform::yesno($post->userid == $userid)
         ];
         $postdata->message = writer::with_context($context)
             ->rewrite_pluginfile_urls($postarea, 'mod_moodleoverflow', 'attachment', $post->id, $post->message);
@@ -468,40 +474,47 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $toexport = self::export_rating_data($post->id, false, $userid);
             writer::with_context($context)->export_related_data($postarea, 'rating', $toexport);
         }
-        // Check for any ratings that the user has made on this post.
-        $toexport = self::export_rating_data($post->id, true, $userid);
-        writer::with_context($context)->export_related_data($postarea, 'rating', $toexport);
+        else {
+            // Check for any ratings that the user has made on this post.
+            $toexport = self::export_rating_data($post->id, true, $userid);
+            writer::with_context($context)->export_related_data($postarea, 'rating', $toexport);
+        }
     }
 
     protected static function export_rating_data($postid, $onlyuser, $userid) {
         global $DB;
-        $sql = "SELECT *
-                  FROM {moodleoverflow_ratings} r
-                 WHERE r.postid = :postid";
-        $params = array(
-            'postid' => $postid,
-        );
+        $rating = new ratings();
 
-        $ratings = $DB->get_records_sql($sql, $params);
+        $ratingpost = $rating->moodleoverflow_get_rating($postid);
 
-        if($onlyuser) {
-            $ratings = array_filter($ratings, function($rating) use ($userid) {
-                return ($rating->userid === $userid);
-            });
+        // Get the user rating.
+        $sql = "SELECT id, firstrated, rating
+                  FROM {moodleoverflow_ratings}
+                 WHERE userid = $userid AND postid = $postid";
+        $ownratings = $DB->get_records_sql($sql);
+        $userratings = array();
+        foreach($ownratings as $rating) {
+            $userratings[] = (object) [
+                'firstrated' => $rating->firstrated,
+                'rating' => $rating->rating
+            ];
         }
 
-        if(empty($ratings)) {
+        if (!$onlyuser) {
+            $ratingdata = [
+                'downvotes'            => $ratingpost->downvotes,
+                'upvotes'              => $ratingpost->upvotes,
+                'was_rated_as_helpful' => $ratingpost->ishelpful,
+                'was_rated_as_solved'  => $ratingpost->issolved
+            ];
+        }
+        $ratingdata['your_rating'] = (object) $userratings;
+
+        if (empty($ratingdata)) {
             return;
         }
 
-        $toexport = array_map(function($rating) {
-            return (object) [
-                'rating' => $rating->rating,
-                'author' => $rating->userid
-            ];
-        }, $ratings);
-
-        return $toexport;
+        return (object) $ratingdata;
     }
 
     /**
