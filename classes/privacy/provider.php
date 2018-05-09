@@ -166,7 +166,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             'modname'      => 'moodleoverflow',
             'contextlevel' => CONTEXT_MODULE,
             'duserid'      => $userid,
-            'dmuserid'      => $userid,
+            'dmuserid'     => $userid,
             'puserid'      => $userid,
             'ruserid'      => $userid,
             'suserid'      => $userid,
@@ -281,7 +281,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
         ";
         $params = [
             'discussionuserid' => $userid,
-            'dmuserid' => $userid,
+            'dmuserid'         => $userid,
             'dsubuserid'       => $userid,
         ];
         $params += $forumparams;
@@ -296,9 +296,9 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             // Store related metadata for this discussion.
             static::export_discussion_subscription_data($userid, $context, $discussion);
             $discussiondata = (object) [
-                'name'            => format_string($discussion->name, true),
-                'timemodified'    => transform::datetime($discussion->timemodified),
-                'creator_was_you' => transform::yesno($discussion->userid == $userid),
+                'name'                  => format_string($discussion->name, true),
+                'timemodified'          => transform::datetime($discussion->timemodified),
+                'creator_was_you'       => transform::yesno($discussion->userid == $userid),
                 'last_modifier_was_you' => transform::yesno($discussion->usermodified == $userid)
             ];
             // Store the discussion content.
@@ -481,8 +481,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             // Store all ratings against this post as the post belongs to the user. All ratings on it are ratings of their content.
             $toexport = self::export_rating_data($post->id, false, $userid);
             writer::with_context($context)->export_related_data($postarea, 'rating', $toexport);
-        }
-        else {
+        } else {
             // Check for any ratings that the user has made on this post.
             $toexport = self::export_rating_data($post->id, true, $userid);
             writer::with_context($context)->export_related_data($postarea, 'rating', $toexport);
@@ -501,10 +500,10 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
                  WHERE userid = $userid AND postid = $postid";
         $ownratings = $DB->get_records_sql($sql);
         $userratings = array();
-        foreach($ownratings as $rating) {
+        foreach ($ownratings as $rating) {
             $userratings[] = (object) [
                 'firstrated' => $rating->firstrated,
-                'rating' => $rating->rating
+                'rating'     => $rating->rating
             ];
         }
 
@@ -679,7 +678,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
         global $DB;
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist as $context) {
-            // Get the course module
+            // Get the course module.
             $cm = $DB->get_record('course_modules', ['id' => $context->instanceid]);
             $forum = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
 
@@ -728,7 +727,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $disuccsionsparams = ['forum' => $forum->id, 'userid' => $userid];
             $DB->set_field_select('moodleoverflow_discussions', 'usermodified', 0, $discussionselect, $disuccsionsparams);
 
-            // Delete attachments
+            // Delete attachments.
             $fs = get_file_storage();
             $fs->delete_area_files($context->id, 'mod_moodleoverflow', 'attachment');
 

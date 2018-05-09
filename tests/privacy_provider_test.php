@@ -24,6 +24,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once(__DIR__ . '/helper.php');
 use \mod_moodleoverflow\privacy\provider;
+
 /**
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
  *
@@ -34,6 +35,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     // Include the privacy helper trait.
     // This includes the subcontext builders.
     use \mod_moodleoverflow\privacy\helper;
+
     // Include the mod_forum test helpers.
     // This includes functions to create forums, users, discussions, and posts.
     use helper;
@@ -44,21 +46,23 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     public function setUp() {
         $this->resetAfterTest(true);
     }
+
     /**
      * Helper to assert that the forum data is correct.
      *
-     * @param   object  $expected The expected data in the forum.
-     * @param   object  $actual The actual data in the forum.
+     * @param   object $expected The expected data in the forum.
+     * @param   object $actual   The actual data in the forum.
      */
     protected function assert_forum_data($expected, $actual) {
         // Exact matches.
         $this->assertEquals(format_string($expected->name, true), $actual->name);
     }
+
     /**
      * Helper to assert that the discussion data is correct.
      *
-     * @param   object  $expected The expected data in the discussion.
-     * @param   object  $actual The actual data in the discussion.
+     * @param   object $expected The expected data in the discussion.
+     * @param   object $actual   The actual data in the discussion.
      */
     protected function assert_discussion_data($expected, $actual, $userid) {
         // Exact matches.
@@ -72,12 +76,13 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
             $actual->last_modifier_was_you
         );
     }
+
     /**
      * Helper to assert that the post data is correct.
      *
-     * @param   object  $expected The expected data in the post.
-     * @param   object  $actual The actual data in the post.
-     * @param   \core_privacy\local\request\writer  $writer The writer used
+     * @param   object                             $expected The expected data in the post.
+     * @param   object                             $actual   The actual data in the post.
+     * @param   \core_privacy\local\request\writer $writer   The writer used
      */
     protected function assert_post_data($expected, $actual, $writer) {
         // The message should have been passed through the rewriter.
@@ -159,6 +164,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         // There should be data about the forum itself.
         $this->assertNotEmpty($writer->get_data($subcontext));
     }
+
     /**
      * Test that a user who is enrolled in a course, and who has never
      * posted and has subscribed to the discussion will have relevant
@@ -204,6 +210,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $postsubcontext = $this->get_subcontext($forum, $discussion, $post);
         $this->assertCount(0, $writer->get_data($postsubcontext));
     }
+
     /**
      * Test that a user who has posted their own discussion will have all
      * content returned.
@@ -230,6 +237,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assert_discussion_data($discussion, $writer->get_data($this->get_subcontext($forum, $discussion)), $user->id);
         $this->assert_post_data($post, $writer->get_data($this->get_subcontext($forum, $discussion, $post)), $writer);
     }
+
     /**
      * Test that a user who has posted a reply to another users discussion
      * will have all content returned.
@@ -268,6 +276,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         // The reply will be included.
         $this->assert_post_data($reply, $writer->get_data($this->get_subcontext($forum, $discussion, $reply)), $writer);
     }
+
     /**
      * Test that the rating of another users content will have only the
      * rater's information returned.
@@ -276,7 +285,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $course = $this->getDataGenerator()->create_course();
         $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
             'course' => $course->id,
-            'scale' => 100,
+            'scale'  => 100,
         ]);
         list($user, $otheruser) = $this->helper_create_users($course, 2);
         list($discussion, $post) = $this->helper_post_to_forum($forum, $otheruser);
@@ -306,11 +315,12 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $ratingdata = $writer->get_related_data($this->get_subcontext($forum, $discussion, $post), 'rating');
 
         $this->assertNotEmpty($ratingdata->your_rating);
-        $this->assertEquals(1, sizeof((array)$ratingdata));
+        $this->assertCount(1, (array) $ratingdata);
 
         // The original post will not be included.
         $this->assert_post_data($post, $writer->get_data($this->get_subcontext($forum, $discussion, $post)), $writer);
     }
+
     /**
      * Test that ratings of a users own content will all be returned.
      */
@@ -318,7 +328,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $course = $this->getDataGenerator()->create_course();
         $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
             'course' => $course->id,
-            'scale' => 100,
+            'scale'  => 100,
         ]);
         list($user, $otheruser, $anotheruser) = $this->helper_create_users($course, 3);
         list($discussion, $post) = $this->helper_post_to_forum($forum, $user);
@@ -345,7 +355,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertTrue($writer->has_any_data());
         $ratingdata = $writer->get_related_data($this->get_subcontext($forum, $discussion, $post), 'rating');
 
-        $this->assertEmpty((array)$ratingdata->your_rating);
+        $this->assertEmpty((array) $ratingdata->your_rating);
         $this->assertNotNull($ratingdata->downvotes);
     }
 
@@ -375,6 +385,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertEquals(0,
             \core_privacy\local\request\writer::with_context($contextoff)->get_metadata([], 'trackreadpreference'));
     }
+
     /**
      * Test that the posts which a user has read are returned correctly.
      */
@@ -505,6 +516,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertTrue(isset($readdata->firstread));
         $this->assertTrue(isset($readdata->lastread));
     }
+
     /**
      * Test that posts with attachments have their attachments correctly exported.
      */
@@ -515,7 +527,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         list($author, $otheruser) = $this->helper_create_users($course, 2);
         $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
             'course' => $course->id,
-            'scale' => 100,
+            'scale'  => 100,
         ]);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
@@ -571,7 +583,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         for ($i = 0; $i < 2; $i++) {
             $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
                 'course' => $course->id,
-                'scale' => 100,
+                'scale'  => 100,
             ]);
             $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
             $context = \context_module::instance($cm->id);
@@ -633,7 +645,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $contextlist = $this->get_contexts_for_userid($user->id, 'mod_moodleoverflow');
         $this->assertCount(2, $contextlist);
         // These are the contexts we expect.
-        $contextids = array_map(function($context) {
+        $contextids = array_map(function ($context) {
             return $context->id;
         }, $contexts);
         sort($contextids);
@@ -645,10 +657,10 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $context = $contexts[$forum->id];
         provider::delete_data_for_all_users_in_context($context);
         // Determine what should have been deleted.
-        $discussionsinforum = array_filter($discussions, function($discussion) use ($forum) {
+        $discussionsinforum = array_filter($discussions, function ($discussion) use ($forum) {
             return $discussion->moodleoverflow == $forum->id;
         });
-        $postsinforum = array_filter($posts, function($post) use ($discussionsinforum) {
+        $postsinforum = array_filter($posts, function ($post) use ($discussionsinforum) {
             return isset($discussionsinforum[$post->discussion]);
         });
         // All forum discussions and posts should have been deleted in this forum.
@@ -669,10 +681,10 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $forum = next($forums);
         $context = $contexts[$forum->id];
         // Grab the list of discussions and posts in the forum.
-        $discussionsinforum = array_filter($discussions, function($discussion) use ($forum) {
+        $discussionsinforum = array_filter($discussions, function ($discussion) use ($forum) {
             return $discussion->moodleoverflow == $forum->id;
         });
-        $postsinforum = array_filter($posts, function($post) use ($discussionsinforum) {
+        $postsinforum = array_filter($posts, function ($post) use ($discussionsinforum) {
             return isset($discussionsinforum[$post->discussion]);
         });
         // Forum discussions and posts should not have been deleted in this forum.
@@ -694,6 +706,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
             $this->assertNotEmpty($ratings);
         }
     }
+
     /**
      * Ensure that all user data is deleted for a specific context.
      */
@@ -707,7 +720,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         for ($i = 0; $i < 2; $i++) {
             $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
                 'course' => $course->id,
-                'scale' => 100,
+                'scale'  => 100,
             ]);
             $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
             $context = \context_module::instance($cm->id);
@@ -766,7 +779,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
                 $discussion = $discussions[$post->discussion];
                 $forum = $forums[$discussion->moodleoverflow];
                 $context = $contexts[$forum->id];
-               // Rate the other users content.
+                // Rate the other users content.
                 if ($post->userid != $user->id) {
                     $ratedposts[$post->id] = $post;
 
@@ -804,7 +817,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertCount(4, $DB->get_records_select('moodleoverflow_posts', "userid = :userid"
             . " AND " . $DB->sql_compare_text('message') . " = " . $DB->sql_compare_text(':message')
             , [
-                'userid' => 0,
+                'userid'  => 0,
                 'message' => '',
             ]));
 
