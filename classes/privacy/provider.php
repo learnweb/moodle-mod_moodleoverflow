@@ -43,6 +43,8 @@ defined('MOODLE_INTERNAL') || die();
 class provider implements \core_privacy\local\metadata\provider, \core_privacy\local\request\plugin\provider {
 
     use helper;
+    // This trait must be included.
+    use \core_privacy\local\legacy_polyfill;
 
     /** Return the fields which contain personal data.
      *
@@ -50,7 +52,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return collection the updated collection of metadata items.
      */
-    public static function get_metadata(collection $collection): collection {
+    public static function _get_metadata(collection $collection): collection {
         $collection->add_database_table(
             'moodleoverflow_discussions',
             [
@@ -134,7 +136,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return contextlist $contextlist The list of contexts used in this plugin.
      */
-    public static function get_contexts_for_userid(int $userid): contextlist {
+    public static function _get_contexts_for_userid(int $userid): contextlist {
         // Fetch all forum discussions, forum posts, ratings, tracking settings and subscriptions.
         $sql = "SELECT c.id
                 FROM {context} c 
@@ -184,7 +186,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @param approved_contextlist $contextlist The approved contexts to export information for.
      */
-    public static function export_user_data(approved_contextlist $contextlist) {
+    public static function _export_user_data(approved_contextlist $contextlist) {
         global $DB;
 
         if (empty($contextlist)) {
@@ -638,7 +640,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @param   context $context The specific context to delete data for.
      */
-    public static function delete_data_for_all_users_in_context(\context $context) {
+    public static function _delete_data_for_all_users_in_context(\context $context) {
         global $DB;
         // Check that this is a context_module.
         if (!$context instanceof \context_module) {
@@ -673,7 +675,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @param   approved_contextlist $contextlist The approved contexts and user information to delete information for.
      */
-    public static function delete_data_for_user(approved_contextlist $contextlist) {
+    public static function _delete_data_for_user(approved_contextlist $contextlist) {
         global $DB;
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist as $context) {
