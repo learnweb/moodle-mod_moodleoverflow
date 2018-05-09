@@ -52,7 +52,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return collection the updated collection of metadata items.
      */
-    public static function _get_metadata(collection $collection): collection {
+    public static function _get_metadata(collection $collection) {
         $collection->add_database_table(
             'moodleoverflow_discussions',
             [
@@ -136,7 +136,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return contextlist $contextlist The list of contexts used in this plugin.
      */
-    public static function _get_contexts_for_userid(int $userid): contextlist {
+    public static function _get_contexts_for_userid(int $userid) {
         // Fetch all forum discussions, forum posts, ratings, tracking settings and subscriptions.
         $sql = "SELECT c.id
                 FROM {context} c 
