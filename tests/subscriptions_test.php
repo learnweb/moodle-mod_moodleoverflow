@@ -97,7 +97,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $discussion = $generator->create_discussion($record);
 
         // Retrieve the post which was created.
-        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion));
+        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
 
         // Return the discussion and the post.
         return array($discussion, $post);

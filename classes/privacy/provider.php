@@ -510,8 +510,8 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $ratingdata = [
                 'downvotes'            => $ratingpost->downvotes,
                 'upvotes'              => $ratingpost->upvotes,
-                'was_rated_as_helpful' => $ratingpost->ishelpful,
-                'was_rated_as_solved'  => $ratingpost->issolved
+                'was_rated_as_helpful' => transform::yesno($ratingpost->ishelpful),
+                'was_rated_as_solved'  => transform::yesno($ratingpost->issolved)
             ];
         }
         $ratingdata['your_rating'] = (object) $userratings;
@@ -650,7 +650,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
         $forum = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
 
         $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $forum->id]);
-        $DB->delete_records('moodloeverflow_read', ['moodleoverflowid' => $forum->id]);
+        $DB->delete_records('moodleoverflow_read', ['moodleoverflowid' => $forum->id]);
         $DB->delete_records('moodleoverflow_tracking', ['moodleoverflowid' => $forum->id]);
         $DB->delete_records('moodleoverflow_ratings', ['moodleoverflowid' => $forum->id]);
         $DB->delete_records('moodleoverflow_discuss_subs', ['moodleoverflow' => $forum->id]);

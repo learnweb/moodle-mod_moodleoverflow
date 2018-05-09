@@ -23,7 +23,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
+require_once(__DIR__ . '/../../locallib.php');
 
 /**
  * Moodleoverflow module data generator class
@@ -99,7 +99,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * @return bool|int
      * @throws coding_exception
      */
-    public function create_discussion($record = null) {
+    public function create_discussion($record = null, $forum = null) {
         global $DB;
 
         // Increment the discussion count.
@@ -122,9 +122,6 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         // Set default values.
         if (!isset($record['name'])) {
             $record['name'] = 'Discussion ' . $this->discussioncount;
-        }
-        if (!isset($record['subject'])) {
-            $record['subject'] = 'Subject for discussion ' . $this->discussioncount;
         }
         if (!isset($record['message'])) {
             $record['message'] = html_writer::tag('p', 'Message for discussion ' . $this->discussioncount);
@@ -150,7 +147,13 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $record = (object) $record;
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        if(is_null($forum)) {
+            $cm = $DB->get_record('course_modules', array('module' => 15));
+        }
+        else {
+            $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
+        }
+
         $modulecontext = \context_module::instance($cm->id);
 
         // Add the discussion.
@@ -172,8 +175,9 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $DB->update_record('moodleoverflow_discussions', $record);
         }
 
-        // Return the id of the discussion.
-        return $record->id;
+        $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $record->id));
+        // Return the discussion object.
+        return $discussion;
     }
 
     /**
@@ -199,7 +203,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $record['parent'] = 0;
         }
         if (!isset($record['message'])) {
-            $record['message'] = html_writer::tag('p', 'Forum message post ' . $this->forumpostcount);
+            $record['message'] = html_writer::tag('p', 'Forum message post ' . $this->postcount);
         }
         if (!isset($record['created'])) {
             $record['created'] = $time;

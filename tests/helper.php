@@ -64,7 +64,7 @@ trait helper {
         $record->course = $forum->course;
         $record->userid = $author->id;
         $record->moodleoverflow = $forum->id;
-        $discussion = $generator->create_discussion($record);
+        $discussion = $generator->create_discussion($record, $forum);
         // Retrieve the post which was created by create_discussion.
         $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
         return array($discussion, $post);
@@ -131,5 +131,24 @@ trait helper {
         ];
         $post = $generator->create_post($record);
         return $post;
+    }
+
+    protected function helper_create_courses_and_modules($count) {
+        $course = null;
+        $forum = null;
+        for($i = 0; $i < $count; $i++) {
+            $course = $this->getDataGenerator()->create_course();
+            $forum = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        }
+        return array($course, $forum);
+    }
+
+    public function helper_create_and_enrol_users($course, $count) {
+        $users = array();
+        for($i = 0; $i < $count; $i++) {
+            $users[$i] = $this->getDataGenerator()->create_user();
+            $this->getDataGenerator()->enrol_user($users[$i]->id, $course->id);
+        }
+        return $users;
     }
 }
