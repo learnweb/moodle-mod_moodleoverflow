@@ -199,6 +199,7 @@ $string['markmoodleoverflowreadsuccessful'] = 'All posts have been marked as rea
 $string['noguesttracking']                  = 'Sorry, guests are not allowed to set tracking options.';
 
 // OTHER.
+$string['messageprovider:posts']        = 'Notification of new posts';
 $string['unknownerror']                 = 'This is not expected to happen.';
 $string['crontask']                     = 'Moodleoverflow maintenance jobs';
 $string['taskcleanreadrecords']         = 'Moodleoverflow maintenance job to clean old read records';
