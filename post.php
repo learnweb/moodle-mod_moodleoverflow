@@ -754,11 +754,6 @@ $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
 
-// Check the capabilities of the user again, just to be sure.
-if (!moodleoverflow_user_can_post_discussion($moodleoverflow)) {
-    print_error('cannotcreatediscussion', 'moodleoverflow');
-}
-
 // Show the description of the instance.
 if (!empty($moodleoverflow->intro)) {
     echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
