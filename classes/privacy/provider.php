@@ -136,7 +136,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return contextlist $contextlist The list of contexts used in this plugin.
      */
-    public static function _get_contexts_for_userid(int $userid) {
+    public static function _get_contexts_for_userid($userid) {
         // Fetch all forum discussions, forum posts, ratings, tracking settings and subscriptions.
         $sql = "SELECT c.id
                 FROM {context} c 
@@ -239,8 +239,8 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             request_helper::export_context_files($context, $user);
 
             // Store relevant metadata about this forum instance.
-            static::export_subscription_data($userid, $forum);
-            static::export_tracking_data($userid, $forum);
+            static::export_subscription_data($forum);
+            static::export_tracking_data($forum);
         }
 
         $forums->close();
@@ -261,7 +261,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return  array       Which forums had data written for them.
      */
-    protected static function export_discussion_data(int $userid, array $mappings) {
+    protected static function export_discussion_data($userid, array $mappings) {
         global $DB;
         // Find all of the discussions, and discussion subscriptions for this forum.
         list($foruminsql, $forumparams) = $DB->get_in_or_equal(array_keys($mappings), SQL_PARAMS_NAMED);
@@ -294,7 +294,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $context = \context::instance_by_id($mappings[$discussion->moodleoverflow]);
 
             // Store related metadata for this discussion.
-            static::export_discussion_subscription_data($userid, $context, $discussion);
+            static::export_discussion_subscription_data($context, $discussion);
             $discussiondata = (object) [
                 'name'                  => format_string($discussion->name, true),
                 'timemodified'          => transform::datetime($discussion->timemodified),
@@ -319,7 +319,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return  array       Which forums had data written for them.
      */
-    protected static function export_all_posts(int $userid, array $mappings) {
+    protected static function export_all_posts($userid, array $mappings) {
         global $DB;
 
         // Find all of the posts, and post subscriptions for this forum.
@@ -363,7 +363,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      * @param   \context_module The         instance of the forum context.
      * @param   \stdClass       $discussion The discussion whose data is being exported.
      */
-    protected static function export_all_posts_in_discussion(int $userid, \context $context, \stdClass $discussion) {
+    protected static function export_all_posts_in_discussion($userid, \context $context, \stdClass $discussion) {
         global $DB, $USER;
         $discussionid = $discussion->id;
         // Find all of the posts, and post subscriptions for this forum.
@@ -431,7 +431,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      * @param   array           $parentarea The subcontext fo the parent post.
      * @param   \stdClass       $structure  The post structure and all of its children
      */
-    protected static function export_posts_in_structure(int $userid, \context $context, $parentarea, \stdClass $structure) {
+    protected static function export_posts_in_structure($userid, \context $context, $parentarea, \stdClass $structure) {
         foreach ($structure->children as $post) {
             if (!$post->hasdata) {
                 // This tree has no content belonging to the user. Skip it and all children.
@@ -455,9 +455,9 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      * @param   array           $parentarea The subcontext fo the parent post.
      * @param   \stdClass       $structure  The post structure and all of its children
      */
-    protected static function export_post_data(int $userid, \context $context, $postarea, $post) {
+    protected static function export_post_data($userid, \context $context, $postarea, $post) {
         // Store related metadata.
-        static::export_read_data($userid, $context, $postarea, $post);
+        static::export_read_data($context, $postarea, $post);
         $postdata = (object) [
             'created'        => transform::datetime($post->created),
             'modified'       => transform::datetime($post->modified),
@@ -532,7 +532,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return  bool        Whether any data was stored.
      */
-    protected static function export_subscription_data(int $userid, \stdClass $forum) {
+    protected static function export_subscription_data(\stdClass $forum) {
         if (null !== $forum->subscribed) {
             // The user is subscribed to this forum.
             writer::with_context(\context_module::instance($forum->cmid))
@@ -553,7 +553,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return  bool        Whether any data was stored.
      */
-    protected static function export_discussion_subscription_data(int $userid, \context_module $context, \stdClass $discussion) {
+    protected static function export_discussion_subscription_data(\context_module $context, \stdClass $discussion) {
         $area = static::get_discussion_area($discussion);
         if (null !== $discussion->preference) {
             // The user hass a specific subscription preference for this discussion.
@@ -590,7 +590,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return  bool        Whether any data was stored.
      */
-    protected static function export_tracking_data(int $userid, \stdClass $forum) {
+    protected static function export_tracking_data(\stdClass $forum) {
         if (null !== $forum->tracked) {
             // The user has a main preference to track all forums, but has opted out of this one.
             writer::with_context(\context_module::instance($forum->cmid))
@@ -611,7 +611,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      *
      * @return  bool        Whether any data was stored.
      */
-    protected static function export_read_data(int $userid, \context_module $context, array $postarea, \stdClass $post) {
+    protected static function export_read_data(\context_module $context, array $postarea, \stdClass $post) {
         if (null !== $post->firstread) {
             $a = (object) [
                 'firstread' => $post->firstread,

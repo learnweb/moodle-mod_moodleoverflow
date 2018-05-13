@@ -476,7 +476,7 @@ function moodleoverflow_get_post_full($postid) {
 
     $post =  $DB->get_record_sql($sql, $params);
     if($post->userid === 0) {
-        $post->message = get_string('privacy:anonym_post_name','mod_moodleoverflow');
+        $post->message = get_string('privacy:anonym_post_message','mod_moodleoverflow');
     }
     return $post;
 }
@@ -982,7 +982,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Post was anonymized
     if($post->userid == 0) {
-        $post->message = get_string('privacy:anonym_post_name', 'mod_moodleoverflow');
+        $post->message = get_string('privacy:anonym_post_message', 'mod_moodleoverflow');
     }
 
     // Add some informationto the post.

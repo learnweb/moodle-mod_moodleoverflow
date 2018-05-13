@@ -38,7 +38,7 @@ trait helper {
      * @param   \stdClass   $discussion
      * @return  array
      */
-    protected static function get_discussion_area(\stdClass $discussion) : Array {
+    protected static function get_discussion_area(\stdClass $discussion) {
         $pathparts = [];
         $parts = [
             $discussion->id,
@@ -55,7 +55,7 @@ trait helper {
      * @param   \stdClass   $post
      * @return  array
      */
-    protected static function get_post_area(\stdClass $post) : Array {
+    protected static function get_post_area(\stdClass $post) {
         $parts = [
             $post->created,
             $post->id,

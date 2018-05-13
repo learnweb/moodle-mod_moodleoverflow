@@ -22,7 +22,7 @@
  */
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once(__DIR__ . '/helper.php');
+require_once($CFG->dirroot . '/mod/moodleoverflow/tests/helper.php');
 use \mod_moodleoverflow\privacy\provider;
 
 /**
@@ -36,7 +36,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     // This includes the subcontext builders.
     use \mod_moodleoverflow\privacy\helper;
 
-    // Include the mod_forum test helpers.
+    // Include the mod_moodleoverflow test helpers.
     // This includes functions to create forums, users, discussions, and posts.
     use helper;
 

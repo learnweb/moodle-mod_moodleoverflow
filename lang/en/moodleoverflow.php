@@ -228,7 +228,6 @@ $string['moodleoverflows']              = 'Moodleoverflows';
 $string['postmailinfolink']             = 'This is a copy of a message posted in {$a->coursename}.
 
 To reply click on this link: {$a->replylink}';
-$string['unsubscribe'] = 'Unsubscribe from this forum';
 $string['unsubscribelink']              = 'Unsubscribe from this forum: {$a}';
 $string['unsubscribediscussionlink']    = 'Unsubscribe from this discussion: {$a}';
 $string['postincontext']                = 'See this post in context';
@@ -373,8 +372,8 @@ $string['privacy:metadata:moodleoverflow_tracking'] = 'Information about the tra
 $string['privacy:metadata:moodleoverflow_tracking:userid'] = 'The ID of the user who does not track the forum.';
 $string['privacy:metadata:moodleoverflow_tracking:moodleoverflowid'] = 'The ID of the moodleoverflow forum that is not tracked by the user.';
 
-$string['privacy:anonym_discussion_name'] = 'Standard name';
-$string['privacy:anonym_post_name'] = 'This content has been deleted.';
+$string['privacy:anonym_discussion_name'] = 'Anonymized discussion name';
+$string['privacy:anonym_post_message'] = 'This content has been deleted.';
 $string['privacy:anonym_user_name'] = 'Anonym';
 
 $string['privacy:subscribedtoforum'] = 'You are subscribed to this forum.';
