@@ -224,8 +224,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
 
             // Store the main moodleoverflow data.
             $data = request_helper::get_context_data($context, $user);
-            writer::with_context($context)
-                ->export_data([], $data);
+            writer::with_context($context)->export_data([], $data);
             request_helper::export_context_files($context, $user);
 
             // Store relevant metadata about this forum instance.
