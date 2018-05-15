@@ -147,11 +147,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $record = (object) $record;
 
         // Get the module context.
-        if (is_null($forum)) {
-            $cm = $DB->get_record('course_modules', array('module' => 15));
-        } else {
-            $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
-        }
+        $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
 
         $modulecontext = \context_module::instance($cm->id);
 
