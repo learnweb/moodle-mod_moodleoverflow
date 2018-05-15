@@ -23,6 +23,7 @@
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 use \mod_moodleoverflow\privacy\provider;
+use mod_moodleoverflow\privacy\data_export_helper;
 
 /**
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
@@ -150,7 +151,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
         $writer = \core_privacy\local\request\writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
-        $subcontext = \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum);
+        $subcontext = data_export_helper::get_subcontext($forum);
         // There should be one item of metadata.
         $this->assertCount(1, $writer->get_all_metadata($subcontext));
         // It should be the subscriptionpreference whose value is 1.
@@ -186,11 +187,11 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $writer = \core_privacy\local\request\writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         // There should be nothing in the forum. The user is not subscribed there.
-        $forumsubcontext = \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum);
+        $forumsubcontext = data_export_helper::get_subcontext($forum);
         $this->assertCount(0, $writer->get_all_metadata($forumsubcontext));
         $this->assert_forum_data($forum, $writer->get_data($forumsubcontext));
         // There should be metadata in the discussion.
-        $discsubcontext = \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion);
+        $discsubcontext = data_export_helper::get_subcontext($forum, $discussion);
         $this->assertCount(1, $writer->get_all_metadata($discsubcontext));
         // It should be the subscriptionpreference whose value is an Integer.
         // (It's a timestamp, but it doesn't matter).
@@ -201,7 +202,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertInstanceOf('stdClass', $data);
         $this->assert_discussion_data($discussion, $data, $user->id);
         // Post content is not exported unless the user participated.
-        $postsubcontext = \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion, $post);
+        $postsubcontext = data_export_helper::get_subcontext($forum, $discussion, $post);
         $this->assertCount(0, $writer->get_data($postsubcontext));
     }
 
@@ -227,9 +228,10 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $writer = \core_privacy\local\request\writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         // The other discussion should not have been returned as we did not post in it.
-        $this->assertEmpty($writer->get_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $otherdiscussion)));
-        $this->assert_discussion_data($discussion, $writer->get_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion)), $user->id);
-        $this->assert_post_data($post, $writer->get_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion, $post)), $writer);
+        $this->assertEmpty($writer->get_data(data_export_helper::get_subcontext($forum, $otherdiscussion)));
+        $this->assert_discussion_data($discussion,
+            $writer->get_data(data_export_helper::get_subcontext($forum, $discussion)), $user->id);
+        $this->assert_post_data($post, $writer->get_data(data_export_helper::get_subcontext($forum, $discussion, $post)), $writer);
     }
 
     /**
@@ -262,13 +264,14 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->id]);
         $otherdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $otherdiscussion->id]);
         // The other discussion should not have been returned as we did not post in it.
-        $this->assertEmpty($writer->get_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $otherdiscussion)));
+        $this->assertEmpty($writer->get_data(data_export_helper::get_subcontext($forum, $otherdiscussion)));
         // Our discussion should have been returned as we did post in it.
-        $data = $writer->get_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion));
+        $data = $writer->get_data(data_export_helper::get_subcontext($forum, $discussion));
         $this->assertNotEmpty($data);
         $this->assert_discussion_data($discussion, $data, $user->id);
         // The reply will be included.
-        $this->assert_post_data($reply, $writer->get_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion, $reply)), $writer);
+        $this->assert_post_data($reply,
+            $writer->get_data(data_export_helper::get_subcontext($forum, $discussion, $reply)), $writer);
     }
 
     /**
@@ -305,14 +308,14 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $writer = \core_privacy\local\request\writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         // The discussion should not have been returned as we did not post in it.
-        $this->assertEmpty($writer->get_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion)));
-        $ratingdata = $writer->get_related_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion, $post), 'rating');
+        $this->assertEmpty($writer->get_data(data_export_helper::get_subcontext($forum, $discussion)));
+        $ratingdata = $writer->get_related_data(data_export_helper::get_subcontext($forum, $discussion, $post), 'rating');
 
         $this->assertNotEmpty($ratingdata->your_rating);
         $this->assertCount(1, (array) $ratingdata);
 
         // The original post will not be included.
-        $this->assert_post_data($post, $writer->get_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion, $post)), $writer);
+        $this->assert_post_data($post, $writer->get_data(data_export_helper::get_subcontext($forum, $discussion, $post)), $writer);
     }
 
     /**
@@ -347,7 +350,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
         $writer = \core_privacy\local\request\writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
-        $ratingdata = $writer->get_related_data(\mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion, $post), 'rating');
+        $ratingdata = $writer->get_related_data(data_export_helper::get_subcontext($forum, $discussion, $post), 'rating');
 
         $this->assertEmpty((array) $ratingdata->your_rating);
         $this->assertNotNull($ratingdata->downvotes);
@@ -443,7 +446,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $writer = \core_privacy\local\request\writer::with_context($context1);
         // User has read f1p1.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum1, $f1d1, $f1p1),
+            data_export_helper::get_subcontext($forum1, $f1d1, $f1p1),
             'postread'
         );
         $this->assertNotEmpty($readdata);
@@ -451,13 +454,13 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertTrue(isset($readdata->lastread));
         // User has not f1p1reply.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum1, $f1d1, $f1p1reply),
+            data_export_helper::get_subcontext($forum1, $f1d1, $f1p1reply),
             'postread'
         );
         $this->assertEmpty($readdata);
         // User has not f1p2.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum1, $f1d2, $f1p2),
+            data_export_helper::get_subcontext($forum1, $f1d2, $f1p2),
             'postread'
         );
         $this->assertEmpty($readdata);
@@ -466,7 +469,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $writer = \core_privacy\local\request\writer::with_context($context2);
         // User has read f2p1.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum2, $f2d1, $f2p1),
+            data_export_helper::get_subcontext($forum2, $f2d1, $f2p1),
             'postread'
         );
         $this->assertNotEmpty($readdata);
@@ -474,7 +477,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertTrue(isset($readdata->lastread));
         // User has read f2p1reply.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum2, $f2d1, $f2p1reply),
+            data_export_helper::get_subcontext($forum2, $f2d1, $f2p1reply),
             'postread'
         );
         $this->assertNotEmpty($readdata);
@@ -482,7 +485,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertTrue(isset($readdata->lastread));
         // User has not read f2p2.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum2, $f2d2, $f2p2),
+            data_export_helper::get_subcontext($forum2, $f2d2, $f2p2),
             'postread'
         );
         $this->assertEmpty($readdata);
@@ -491,19 +494,19 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $writer = \core_privacy\local\request\writer::with_context($context3);
         // User has not read f3p1.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum3, $f3d1, $f3p1),
+            data_export_helper::get_subcontext($forum3, $f3d1, $f3p1),
             'postread'
         );
         $this->assertEmpty($readdata);
         // User has not read f3p1reply.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum3, $f3d1, $f3p1reply),
+            data_export_helper::get_subcontext($forum3, $f3d1, $f3p1reply),
             'postread'
         );
         $this->assertEmpty($readdata);
         // User has read f3p2.
         $readdata = $writer->get_metadata(
-            \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum3, $f3d2, $f3p2),
+            data_export_helper::get_subcontext($forum3, $f3d2, $f3p2),
             'postread'
         );
         $this->assertNotEmpty($readdata);
@@ -558,7 +561,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->export_context_data_for_user($author->id, $context, 'mod_moodleoverflow');
         $writer = \core_privacy\local\request\writer::with_context($context);
         // The inline file should be on the first forum post.
-        $subcontext = \mod_moodleoverflow\privacy\data_export_helper::get_subcontext($forum, $discussion, $post);
+        $subcontext = data_export_helper::get_subcontext($forum, $discussion, $post);
         $foundfiles = $writer->get_files($subcontext);
         $this->assertCount(1, $foundfiles);
         $this->assertEquals($createdfile, reset($foundfiles));
