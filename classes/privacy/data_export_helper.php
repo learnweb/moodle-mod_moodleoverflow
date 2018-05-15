@@ -82,8 +82,8 @@ class data_export_helper {
                 'last_modifier_was_you' => transform::yesno($discussion->usermodified == $userid)
             ];
             // Store the discussion content.
-            writer::with_context($context)
-                ->export_data(static::get_discussion_area($discussion), $discussiondata);
+            writer::with_context($context)->export_data(
+                static::get_discussion_area($discussion), $discussiondata);
             // Forum discussions do not have any files associately directly with them.
         }
         $discussions->close();
@@ -243,19 +243,17 @@ class data_export_helper {
             'modified'       => transform::datetime($post->modified),
             'author_was_you' => transform::yesno($post->userid == $userid)
         ];
-        $postdata->message = writer::with_context($context)
-            ->rewrite_pluginfile_urls($postarea, 'mod_moodleoverflow', 'attachment', $post->id, $post->message);
+        $postdata->message = writer::with_context($context)->rewrite_pluginfile_urls(
+            $postarea, 'mod_moodleoverflow', 'attachment', $post->id, $post->message);
 
         $postdata->message = format_text($postdata->message, $post->messageformat, (object) [
             'para'    => false,
             'context' => $context,
         ]);
 
-        writer::with_context($context)
-            // Store the post.
-            ->export_data($postarea, $postdata)
-            // Store the associated files.
-            ->export_area_files($postarea, 'mod_moodleoverflow', 'attachment', $post->id);
+        // Store the post and the associated files.
+        writer::with_context($context)->export_data($postarea, $postdata)->export_area_files(
+            $postarea, 'mod_moodleoverflow', 'attachment', $post->id);
 
         if ($post->userid == $userid) {
             // Store all ratings against this post as the post belongs to the user. All ratings on it are ratings of their content.
@@ -315,8 +313,8 @@ class data_export_helper {
     public static function export_subscription_data(\stdClass $forum) {
         if (null !== $forum->subscribed) {
             // The user is subscribed to this forum.
-            writer::with_context(\context_module::instance($forum->cmid))
-                ->export_metadata([], 'subscriptionpreference', 1, get_string('privacy:subscribedtoforum', 'mod_moodleoverflow'));
+            writer::with_context(\context_module::instance($forum->cmid))->export_metadata(
+                [], 'subscriptionpreference', 1, get_string('privacy:subscribedtoforum', 'mod_moodleoverflow'));
 
             return true;
         }
@@ -346,8 +344,7 @@ class data_export_helper {
                     $a->preference = get_string('subscribed', 'mod_moodleoverflow');
                     break;
             }
-            writer::with_context($context)
-                ->export_metadata(
+            writer::with_context($context)->export_metadata(
                     $area,
                     'subscriptionpreference',
                     $discussion->preference,
@@ -373,8 +370,8 @@ class data_export_helper {
     public static function export_tracking_data(\stdClass $forum) {
         if (null !== $forum->tracked) {
             // The user has a main preference to track all forums, but has opted out of this one.
-            writer::with_context(\context_module::instance($forum->cmid))
-                ->export_metadata([], 'trackreadpreference', 0, get_string('privacy:readtrackingdisabled', 'mod_moodleoverflow'));
+            writer::with_context(\context_module::instance($forum->cmid))->export_metadata(
+                [], 'trackreadpreference', 0, get_string('privacy:readtrackingdisabled', 'mod_moodleoverflow'));
 
             return true;
         }
@@ -397,8 +394,7 @@ class data_export_helper {
                 'firstread' => $post->firstread,
                 'lastread'  => $post->lastread,
             ];
-            writer::with_context($context)
-                ->export_metadata(
+            writer::with_context($context)->export_metadata(
                     $postarea,
                     'postread',
                     (object) [

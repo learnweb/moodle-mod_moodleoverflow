@@ -118,7 +118,7 @@ if (empty($forumnode)) {
 }
 
 if ($discussion->userid === '0') {
-    $discussion->name = get_string('privacy:anonym_discussion_name','mod_moodleoverflow');
+    $discussion->name = get_string('privacy:anonym_discussion_name', 'mod_moodleoverflow');
 }
 
 $node          = $forumnode->add(format_string($discussion->name),
