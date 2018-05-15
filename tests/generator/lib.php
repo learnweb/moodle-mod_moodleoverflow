@@ -147,10 +147,9 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $record = (object) $record;
 
         // Get the module context.
-        if(is_null($forum)) {
+        if (is_null($forum)) {
             $cm = $DB->get_record('course_modules', array('module' => 15));
-        }
-        else {
+        } else {
             $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         }
 
@@ -176,6 +175,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         }
 
         $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $record->id));
+
         // Return the discussion object.
         return $discussion;
     }
@@ -184,6 +184,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * Function to create a dummy post.
      *
      * @param array|stdClass $record
+     *
      * @return stdClass the post object
      */
     public function create_post($record = null) {
@@ -227,6 +228,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
 
         // Update the last post.
         moodleoverflow_discussion_update_last_post($record->discussion);
+
         return $record;
     }
 
@@ -234,6 +236,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * Function to create a dummy rating.
      *
      * @param array|stdClass $record
+     *
      * @return stdClass the post object
      */
     public function create_rating($record = null) {
@@ -268,5 +271,96 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $record->id = $DB->insert_record('moodleoverflow_ratings', $record);
 
         return $record;
+    }
+
+
+    /**
+     * Create a new discussion and post within the specified forum, as the
+     * specified author.
+     *
+     * @param stdClass $forum  The forum to post in
+     * @param stdClass $author The author to post as
+     * @param          array   An array containing the discussion object, and the post object
+     */
+    public function post_to_forum($forum, $author) {
+        global $DB;
+        // Create a discussion in the forum, and then add a post to that discussion.
+        $record = new stdClass();
+        $record->course = $forum->course;
+        $record->userid = $author->id;
+        $record->moodleoverflow = $forum->id;
+        $discussion = $this->create_discussion($record, $forum);
+        // Retrieve the post which was created by create_discussion.
+        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
+
+        return array($discussion, $post);
+    }
+
+    /**
+     * Update the post time for the specified post by $factor.
+     *
+     * @param stdClass $post   The post to update
+     * @param int      $factor The amount to update by
+     */
+    public function update_post_time($post, $factor) {
+        global $DB;
+        // Update the post to have a created in the past.
+        $DB->set_field('moodleoverflow_posts', 'created', $post->created + $factor, array('id' => $post->id));
+    }
+
+    /**
+     * Update the subscription time for the specified user/discussion by $factor.
+     *
+     * @param stdClass $user       The user to update
+     * @param stdClass $discussion The discussion to update for this user
+     * @param int      $factor     The amount to update by
+     */
+    public function update_subscription_time($user, $discussion, $factor) {
+        global $DB;
+        $sub = $DB->get_record('moodleoverflow_discuss_subs', array('userid' => $user->id, 'discussion' => $discussion->id));
+        // Update the subscription to have a preference in the past.
+        $DB->set_field('moodleoverflow_discuss_subs', 'preference', $sub->preference + $factor, array('id' => $sub->id));
+    }
+
+    /**
+     * Create a new post within an existing discussion, as the specified author.
+     *
+     * @param stdClass $forum      The forum to post in
+     * @param stdClass $discussion The discussion to post in
+     * @param stdClass $author     The author to post as
+     *
+     * @return stdClass The forum post
+     */
+    public function post_to_discussion($forum, $discussion, $author) {
+        // Add a post to the discussion.
+        $record = new stdClass();
+        $record->course = $forum->course;
+        $record->userid = $author->id;
+        $record->moodleoverflow = $forum->id;
+        $record->discussion = $discussion->id;
+        $post = $this->create_post($record);
+
+        return $post;
+    }
+
+    /**
+     * Create a new post within an existing discussion, as the specified author.
+     *
+     * @param stdClass $forum      The forum to post in
+     * @param stdClass $discussion The discussion to post in
+     * @param stdClass $author     The author to post as
+     *
+     * @return stdClass The forum post
+     */
+    public function reply_to_post($parent, $author) {
+        // Add a post to the discussion.
+        $record = (object) [
+            'discussion' => $parent->discussion,
+            'parent'     => $parent->id,
+            'userid'     => $author->id
+        ];
+        $post = $this->create_post($record);
+
+        return $post;
     }
 }

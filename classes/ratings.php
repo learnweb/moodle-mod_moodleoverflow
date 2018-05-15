@@ -87,7 +87,7 @@ class ratings {
 
             // Catch unenrolled users.
             if (!isguestuser() AND !is_enrolled($coursecontext)) {
-                $SESSION->wantsurl    = qualified_me();
+                $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
                 redirect(new \moodle_url('/enrol/index.php', array(
                     'id'        => $course->id,
@@ -99,8 +99,10 @@ class ratings {
             print_error('noratemoodleoverflow', 'moodleoverflow');
         }
 
-        // Make sure post author != current user, unless they have permission
-        if (($post->userid == $userid) && !($rating == RATING_SOLVED && has_capability('mod/moodleoverflow:marksolved', $modulecontext))) {
+        // Make sure post author != current user, unless they have permission.
+        if (($post->userid == $userid) && !
+            ($rating == RATING_SOLVED && has_capability('mod/moodleoverflow:marksolved', $modulecontext))
+        ) {
             print_error('rateownpost', 'moodleoverflow');
         }
 
@@ -136,7 +138,7 @@ class ratings {
             }
 
             // Get other ratings in the discussion.
-            $sql         = "SELECT *
+            $sql = "SELECT *
                     FROM {moodleoverflow_ratings}
                     WHERE discussionid = $discussion->id AND rating = $rating
                     LIMIT 1";
@@ -217,8 +219,8 @@ class ratings {
      */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
         // Create copies to manipulate.
-        $parentcopy  = $posts;
-        $postscopy   = $posts;
+        $parentcopy = $posts;
+        $postscopy = $posts;
         $anothercopy = $posts;
 
         // Check if teacher ratings are prefered.
@@ -237,7 +239,7 @@ class ratings {
         $parent = array_shift($parentcopy);
         unset($postscopy[$parent->id]);
         $discussionid = $parent->discussion;
-        $neworder[]   = (int) $parent->id;
+        $neworder[] = (int) $parent->id;
 
         // Check if answers has been marked.
         $statusstarter = self::moodleoverflow_discussion_is_solved($discussionid, false);
@@ -380,7 +382,7 @@ class ratings {
         global $DB;
 
         // Get the amount of votes.
-        $sql   = "SELECT id as postid,
+        $sql = "SELECT id as postid,
                        (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 1) AS downvotes,
 	                   (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 2) AS upvotes,
                        (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 3) AS issolved,
@@ -465,12 +467,12 @@ class ratings {
 
         // Get all posts of this user in this module.
         // Do not count votes for own posts.
-        $sql     = "SELECT r.id, r.postid as post, r.rating
+        $sql = "SELECT r.id, r.postid as post, r.rating
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_ratings} r ON p.id = r.postid
                  WHERE p.userid = ? AND NOT r.userid = ?
               ORDER BY r.postid ASC";
-        $params  = array($userid, $userid);
+        $params = array($userid, $userid);
         $records = $DB->get_records_sql($sql, $params);
 
         // Check if there are results.
@@ -512,11 +514,11 @@ class ratings {
 
         // Get votes this user made.
         // Votes for own posts are not counting.
-        $sql    = "SELECT COUNT(id) as amount
+        $sql = "SELECT COUNT(id) as amount
                 FROM {moodleoverflow_ratings}
                 WHERE userid = ? AND moodleoverflowid = ? AND (rating = 1 OR rating = 2)";
         $params = array($userid, $moodleoverflowid);
-        $votes  = $DB->get_record_sql($sql, $params);
+        $votes = $DB->get_record_sql($sql, $params);
 
         // Add reputation for the votes.
         $reputation += get_config('moodleoverflow', 'votescalevote') * $votes->amount;
@@ -555,10 +557,10 @@ class ratings {
         }
 
         // Get all moodleoverflow instances in this course.
-        $sql       = "SELECT id
+        $sql = "SELECT id
                   FROM {moodleoverflow}
                  WHERE course = ?";
-        $params    = array($course->id);
+        $params = array($course->id);
         $instances = $DB->get_records_sql($sql, $params);
 
         // Check if there are instances in this course.
@@ -589,7 +591,7 @@ class ratings {
         $rating = array();
 
         // Get the normal rating.
-        $sql              = "SELECT *
+        $sql = "SELECT *
                 FROM {moodleoverflow_ratings}
                 WHERE userid = $userid AND postid = $postid AND (rating = 1 OR rating = 2)
                 LIMIT 1";
@@ -601,7 +603,7 @@ class ratings {
         }
 
         // Get the solved rating.
-        $sql              = "SELECT *
+        $sql = "SELECT *
                 FROM {moodleoverflow_ratings}
                 WHERE userid = $userid AND postid = $postid AND rating = 3
                 LIMIT 1";
@@ -613,7 +615,7 @@ class ratings {
         }
 
         // Get the helpful rating.
-        $sql               = "SELECT *
+        $sql = "SELECT *
                 FROM {moodleoverflow_ratings}
                 WHERE userid = $userid AND postid = $postid AND rating = 4
                 LIMIT 1";
@@ -669,9 +671,9 @@ class ratings {
     /**
      * Removes a rating record.
      *
-     * @param int $postid
-     * @param int $rating
-     * @param int $userid
+     * @param int             $postid
+     * @param int             $rating
+     * @param int             $userid
      * @param \context_module $modulecontext
      *
      * @return bool
@@ -692,7 +694,7 @@ class ratings {
             'objectid' => $oldrecord->id,
             'context'  => $modulecontext,
         );
-        $event  = \mod_moodleoverflow\event\rating_deleted::create($params);
+        $event = \mod_moodleoverflow\event\rating_deleted::create($params);
         $event->add_record_snapshot('moodleoverflow_ratings', $oldrecord);
         $event->trigger();
 
@@ -703,11 +705,11 @@ class ratings {
     /**
      * Add a new rating record.
      *
-     * @param int $moodleoverflowid
-     * @param int $discussionid
-     * @param int $postid
-     * @param int $rating
-     * @param int $userid
+     * @param int             $moodleoverflowid
+     * @param int             $discussionid
+     * @param int             $postid
+     * @param int             $rating
+     * @param int             $userid
      * @param \context_module $mod
      *
      * @return bool|int
@@ -716,14 +718,14 @@ class ratings {
         global $DB;
 
         // Create the rating record.
-        $record                   = new \stdClass();
-        $record->userid           = $userid;
-        $record->postid           = $postid;
-        $record->discussionid     = $discussionid;
+        $record = new \stdClass();
+        $record->userid = $userid;
+        $record->postid = $postid;
+        $record->discussionid = $discussionid;
         $record->moodleoverflowid = $moodleoverflowid;
-        $record->rating           = $rating;
-        $record->firstrated       = time();
-        $record->lastchanged      = time();
+        $record->rating = $rating;
+        $record->firstrated = time();
+        $record->lastchanged = time();
 
         // Add the record to the database.
         $recordid = $DB->insert_record('moodleoverflow_ratings', $record);
@@ -733,7 +735,7 @@ class ratings {
             'objectid' => $recordid,
             'context'  => $mod,
         );
-        $event  = \mod_moodleoverflow\event\rating_created::create($params);
+        $event = \mod_moodleoverflow\event\rating_created::create($params);
         $event->trigger();
 
         // Add the record to the database.
@@ -743,10 +745,10 @@ class ratings {
     /**
      * Update an existing rating record.
      *
-     * @param int $postid
-     * @param int $rating
-     * @param int $userid
-     * @param int $ratingid
+     * @param int             $postid
+     * @param int             $rating
+     * @param int             $userid
+     * @param int             $ratingid
      * @param \context_module $modulecontext
      *
      * @return bool
@@ -764,7 +766,7 @@ class ratings {
             'objectid' => $ratingid,
             'context'  => $modulecontext,
         );
-        $event  = \mod_moodleoverflow\event\rating_updated::create($params);
+        $event = \mod_moodleoverflow\event\rating_updated::create($params);
         $event->trigger();
 
         return $DB->execute($sql, array($postid, $userid, $rating, time(), $ratingid));

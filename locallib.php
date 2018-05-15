@@ -170,8 +170,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     foreach ($discussions as $discussion) {
         $preparedarray[$i] = array();
 
-        // Handle anonymized discussions
-        if($discussion->userid == 0) {
+        // Handle anonymized discussions.
+        if ($discussion->userid == 0) {
             $discussion->name = get_string('privacy:anonym_discussion_name', 'mod_moodleoverflow');
         }
 
@@ -246,13 +246,12 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $startuser = username_load_fields_from_object($startuser, $discussion, null, $startuserfields);
         $startuser->id = $discussion->userid;
 
-        // Discussion was anonymized
-        if($startuser->id == 0) {
+        // Discussion was anonymized.
+        if ($startuser->id == 0) {
             // Get his picture, his name and the link to his profile.
             $preparedarray[$i]['username'] = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
             $preparedarray[$i]['userlink'] = '#';
-        }
-        else {
+        } else {
             // Get his picture, his name and the link to his profile.
             $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course));
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
@@ -278,11 +277,10 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $usermodified = new stdClass();
         $usermodified->id = $discussion->usermodified;
 
-        if($startuser->id == 0) {
+        if ($startuser->id == 0) {
             $preparedarray[$i]['lastpostusername'] = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
             $preparedarray[$i]['lastpostuserlink'] = '#';
-        }
-        else {
+        } else {
             $usermodified = username_load_fields_from_object($usermodified, $discussion, 'um');
             $preparedarray[$i]['lastpostusername'] = fullname($usermodified);
             $preparedarray[$i]['lastpostuserlink'] = $CFG->wwwroot . '/user/view.php?id=' .
@@ -474,10 +472,11 @@ function moodleoverflow_get_post_full($postid) {
     $params = array();
     $params['postid'] = $postid;
 
-    $post =  $DB->get_record_sql($sql, $params);
-    if($post->userid === 0) {
-        $post->message = get_string('privacy:anonym_post_message','mod_moodleoverflow');
+    $post = $DB->get_record_sql($sql, $params);
+    if ($post->userid === 0) {
+        $post->message = get_string('privacy:anonym_post_message', 'mod_moodleoverflow');
     }
+
     return $post;
 }
 
@@ -980,8 +979,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Declare the modulecontext.
     $modulecontext = context_module::instance($cm->id);
 
-    // Post was anonymized
-    if($post->userid == 0) {
+    // Post was anonymized.
+    if ($post->userid == 0) {
         $post->message = get_string('privacy:anonym_post_message', 'mod_moodleoverflow');
     }
 
@@ -1053,12 +1052,11 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
     $postinguser->id = $post->userid;
 
-    // Post was anonymized
-    if($post->userid == 0) {
+    // Post was anonymized.
+    if ($post->userid == 0) {
         $postinguser->fullname = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
         $postinguser->profilelink = '#';
-    }
-    else {
+    } else {
         $postinguser->fullname = fullname($postinguser, $cm->cache->caps['moodle/site:viewfullnames']);
         $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
 
@@ -1108,7 +1106,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Make a link to edit your own post within the given time.
     if (($ownpost AND ($age < get_config('moodleoverflow', 'maxeditingtime')))
-            OR $cm->cache->caps['mod/moodleoverflow:editanypost']) {
+        OR $cm->cache->caps['mod/moodleoverflow:editanypost']
+    ) {
         $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
         $commands[] = array('url' => $editurl, 'text' => $str->edit);
     }
@@ -1228,11 +1227,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $postbyuser = new stdClass();
     $postbyuser->post = $post->subject;
 
-    // Post was anonymized
-    if($post->userid == 0) {
+    // Post was anonymized.
+    if ($post->userid == 0) {
         $postbyuser->user = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
-    }
-    else {
+    } else {
         $postbyuser->user = $postinguser->fullname;
     }
 
@@ -1242,8 +1240,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->postid = $post->id;
     $mustachedata->subject = format_string($post->subject);
 
-    // Post was anonymized
-    if($post->userid != 0) {
+    // Post was anonymized.
+    if ($post->userid != 0) {
         // User picture.
         $mustachedata->picture = $OUTPUT->user_picture($postinguser, ['courseid' => $course->id]);
     }
