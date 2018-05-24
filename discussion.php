@@ -117,6 +117,10 @@ if (empty($forumnode)) {
     $forumnode->make_active();
 }
 
+if ($discussion->userid === '0') {
+    $discussion->name = get_string('privacy:anonym_discussion_name', 'mod_moodleoverflow');
+}
+
 $node          = $forumnode->add(format_string($discussion->name),
     new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
 $node->display = false;

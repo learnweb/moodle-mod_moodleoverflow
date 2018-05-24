@@ -33,6 +33,10 @@ matrix:
     env: DB=pgsql MOODLE_BRANCH=MOODLE_34_STABLE
   - php: 5.6
     env: DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE
+  - php: 5.6
+    env: DB=pgsql MOODLE_BRANCH=MOODLE_35_STABLE
+  - php: 5.6
+    env: DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
 
   fast_finish: true
 
@@ -43,14 +47,16 @@ env:
  matrix:
   - DB=pgsql MOODLE_BRANCH=MOODLE_33_STABLE
   - DB=pgsql MOODLE_BRANCH=MOODLE_34_STABLE
+  - DB=pgsql MOODLE_BRANCH=MOODLE_35_STABLE
   - DB=pgsql MOODLE_BRANCH=master
   - DB=mysqli MOODLE_BRANCH=MOODLE_33_STABLE
   - DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE
+  - DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
   - DB=mysqli MOODLE_BRANCH=master
 
 before_install:
   - phpenv config-rm xdebug.ini
-  - nvm install 8.9
+  - nvm install v8.9.4
   - cd ../..
   - composer selfupdate
   - composer create-project -n --no-dev --prefer-dist moodlerooms/moodle-plugin-ci ci ^2
@@ -61,7 +67,7 @@ jobs:
     # Prechecks against latest Moodle stable only.
     - stage: static
       php: 7.1
-      env: DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE
+      env: DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
       install:
       - moodle-plugin-ci install --no-init
       script:
@@ -77,7 +83,7 @@ jobs:
     # Smaller build matrix for development builds
     - stage: develop
       php: 7.1
-      env: DB=mysqli MOODLE_BRANCH=MOODLE_34_STABLE
+      env: DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
       install:
       - moodle-plugin-ci install
       script:

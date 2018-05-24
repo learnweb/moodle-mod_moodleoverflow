@@ -158,6 +158,7 @@ $string['message']                     = 'Message';
 $string['discussionsubscription']      = 'Discussion subscription';
 $string['discussionsubscription_help'] = 'Subscribing to a discussion means you will receive notifications of new posts to that discussion.';
 $string['posttomoodleoverflow']        = 'Post to forum';
+$string['posts'] = 'Posts';
 $string['erroremptysubject']           = 'Post subject cannot be empty.';
 $string['erroremptymessage']           = 'Post message cannot be empty';
 $string['yournewtopic']                = 'Your new discussion topic';
@@ -326,3 +327,65 @@ $string['noupvote'] = 'No upvote';
 $string['downvote'] = 'Downvote';
 $string['downvotenotchangeable'] = 'Downvote (not changeable)';
 $string['nodownvote'] = 'No downvote';
+
+// Privacy.
+$string['privacy:metadata:core_files'] = 'Moodleoverflow stores files which have been uploaded by the user to form part of a forum post.';
+$string['privacy:metadata:moodleoverflow_discussions'] = 'Information about forum discussions. This includes which discussions a user has started.';
+$string['privacy:metadata:moodleoverflow_discussions:name'] = 'The name of the discussion.';
+$string['privacy:metadata:moodleoverflow_discussions:userid'] = 'The ID of the user who started the discussion.';
+$string['privacy:metadata:moodleoverflow_discussions:timemodified'] = 'The time when the discussion (e.g. a post) was last modified.';
+$string['privacy:metadata:moodleoverflow_discussions:usermodified'] = 'The ID of the last user who modified the discussion';
+
+$string['privacy:metadata:moodleoverflow_posts'] = 'Information about forum posts. This includes data of posts a user has written.';
+$string['privacy:metadata:moodleoverflow_posts:discussion'] = 'The ID of the discussion this post is contributing to.';
+$string['privacy:metadata:moodleoverflow_posts:parent'] = 'The ID of the post this post is referring to.';
+$string['privacy:metadata:moodleoverflow_posts:userid'] = 'The ID of the user who submitted this post.';
+$string['privacy:metadata:moodleoverflow_posts:created'] = 'The date this post was created.';
+$string['privacy:metadata:moodleoverflow_posts:modified'] = 'The last date this post was modified.';
+$string['privacy:metadata:moodleoverflow_posts:message'] = 'The text of this post.';
+
+$string['privacy:metadata:moodleoverflow_read'] = 'Information about read tracking of posts. This includes when posts were read by a user.';
+$string['privacy:metadata:moodleoverflow_read:userid'] = 'The ID of the user who read the post.';
+$string['privacy:metadata:moodleoverflow_read:discussionid'] = 'The ID of the discussion the read post belongs to,';
+$string['privacy:metadata:moodleoverflow_read:postid'] = 'The ID of the post that has been read.';
+$string['privacy:metadata:moodleoverflow_read:firstread'] = 'The date the post was read the first time.';
+$string['privacy:metadata:moodleoverflow_read:lastread'] = 'The date the post was read the last time by the user.';
+
+$string['privacy:metadata:moodleoverflow_subscriptions'] = 'Information about subscriptions to forums. This includes which forums a user has subscribed.';
+$string['privacy:metadata:moodleoverflow_subscriptions:userid'] = 'The ID of the user who has subscribed a forum.';
+$string['privacy:metadata:moodleoverflow_subscriptions:moodleoverflow'] = 'The ID of the Moodleoverflow forum the user has subscribed.';
+
+$string['privacy:metadata:moodleoverflow_discuss_subs'] = 'Information about the subscriptions to individual forum discussions. This includes when a user has chosen to subscribe to a discussion or to unsubscribe from one where they would otherwise be subscribed.';
+$string['privacy:metadata:moodleoverflow_discuss_subs:userid'] = 'The ID of the user who changed the subscription settings.';
+$string['privacy:metadata:moodleoverflow_discuss_subs:discussion'] = 'The ID of the discussion that was subscribed / unsubscribed.';
+$string['privacy:metadata:moodleoverflow_discuss_subs:preference'] = 'The start time of the subscription.';
+
+$string['privacy:metadata:moodleoverflow_ratings'] = 'Information about ratings of posts. This includes when a user has rated a post and its specific rating.';
+$string['privacy:metadata:moodleoverflow_ratings:userid'] = 'The ID of the user who submitted the rating.';
+$string['privacy:metadata:moodleoverflow_ratings:postid'] = 'The ID of the post that was rated.';
+$string['privacy:metadata:moodleoverflow_ratings:discussionid'] = 'The ID of the discussion the rated post is part of.';
+$string['privacy:metadata:moodleoverflow_ratings:moodleoverflowid'] = 'The ID of the Moodleoverflow forum that contains the rated post.';
+$string['privacy:metadata:moodleoverflow_ratings:rating'] = 'The submitted rating. 0 = neutral, 1 = negative, 2 = positive, 3 = helpful, 4 = solved';
+$string['privacy:metadata:moodleoverflow_ratings:firstrated'] = 'The date the rating was submitted.';
+$string['privacy:metadata:moodleoverflow_ratings:lastchanged'] = 'The date the rating was changed the last time.';
+
+$string['privacy:metadata:moodleoverflow_tracking'] = 'Information about the tracking of forums. This includes which forums a user does not track.';
+$string['privacy:metadata:moodleoverflow_tracking:userid'] = 'The ID of the user who does not track the forum.';
+$string['privacy:metadata:moodleoverflow_tracking:moodleoverflowid'] = 'The ID of the moodleoverflow forum that is not tracked by the user.';
+
+$string['privacy:anonym_discussion_name'] = 'Anonymized discussion name';
+$string['privacy:anonym_post_message'] = 'This content has been deleted.';
+$string['privacy:anonym_user_name'] = 'Anonym';
+
+$string['privacy:subscribedtoforum'] = 'You are subscribed to this forum.';
+$string['privacy:discussionsubscriptionpreference'] = 'You have chosen the following discussion subscription preference for this forum: "{$a->preference}"';
+$string['privacy:readtrackingdisabled'] = 'You have chosen to not track which posts that you have read within this forum.';
+$string['privacy:postwasread'] = 'This post was first read on {$a->firstread} and most recently read on {$a->lastread}';
+
+
+
+
+
+
+
+

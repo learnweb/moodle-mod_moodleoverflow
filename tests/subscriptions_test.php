@@ -94,13 +94,13 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $record->course = $moodleoverflow->course;
         $record->userid = $author->id;
         $record->moodleoverflow = $moodleoverflow->id;
-        $discussion = $generator->create_discussion($record);
+        $discussion = $generator->create_discussion($record, $moodleoverflow);
 
         // Retrieve the post which was created.
-        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion));
+        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
 
         // Return the discussion and the post.
-        return array($discussion, $post);
+        return array($discussion->id, $post);
     }
 
     /**
@@ -166,10 +166,10 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = array('course' => $course->id);
-        $this->getDataGenerator()->create_module('moodleoverflow', $options);
+        $mof = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $mof->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create a user enrolled in the course as a student.
@@ -220,7 +220,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create a user enrolled in the course as a student.
@@ -417,7 +417,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create users enrolled in the course as students.
@@ -457,7 +457,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create a user enrolled in the course as a student.
@@ -502,7 +502,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create two users enrolled in the course as students.
@@ -544,7 +544,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create two users enrolled in the course as students.
@@ -717,7 +717,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create two users enrolled in the course as students.
@@ -813,7 +813,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create some user enrolled in the course as a student.
@@ -856,7 +856,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create some user enrolled in the course as a student.
@@ -883,7 +883,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create some user enrolled in the course as a student.
@@ -1119,7 +1119,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create some users.
@@ -1202,7 +1202,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         }
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Unsubscribe half the users from the half the discussions.
@@ -1262,7 +1262,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
 
         // Create a user enrolled in the course as a student.
