@@ -249,13 +249,17 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      */
     public static function _delete_data_for_all_users_in_context(\context $context) {
         global $DB;
+        // Additional checks that are necessary because $context can be ANY kind of context, regardless of its type.
         // Check that this is a context_module.
         if (!$context instanceof \context_module) {
-            throw new \coding_exception('Unable to perform this deletion.');
+            return;
         }
 
-        // Get the course module.
-        $cm = $DB->get_record('course_modules', ['id' => $context->instanceid]);
+        // Get the course module (and verify that it is actually a Moodleoverflow module).
+        $cm = get_coursemodule_from_id('moodleoverflow', $context->instanceid);
+        if (!$cm) {
+            return;
+        }
         $forum = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
 
         $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $forum->id]);
@@ -286,8 +290,18 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
         global $DB;
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist as $context) {
-            // Get the course module.
-            $cm = $DB->get_record('course_modules', ['id' => $context->instanceid]);
+            // Additional checks, probably unnecessary as contexts stem from get_contexts_for_userid.
+            // Check that this is a context_module.
+            if (!$context instanceof \context_module) {
+                continue;
+            }
+
+            // Get the course module (and verify that it is actually a Moodleoverflow module).
+            $cm = get_coursemodule_from_id('moodleoverflow', $context->instanceid);
+            if (!$cm) {
+                continue;
+            }
+            // Get the module instance.
             $forum = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
 
             $DB->delete_records('moodleoverflow_read', [
