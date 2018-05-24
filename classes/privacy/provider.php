@@ -330,7 +330,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $DB->set_field_select('moodleoverflow_ratings', 'userid', 0, $ratingsql, $ratingparams);
 
             // Do not delete forum posts.
-            // Update the user id to reflect that the content has been deleted.
+            // Update the user id to reflect that the content has been deleted, and delete post contents.
             $postsql = "userid = :userid AND discussion IN
             (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum)";
             $postparams = [
