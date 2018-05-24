@@ -275,8 +275,11 @@ class data_export_helper {
         // Get the user rating.
         $sql = "SELECT id, firstrated, rating
                   FROM {moodleoverflow_ratings}
-                 WHERE userid = $userid AND postid = $postid";
-        $ownratings = $DB->get_records_sql($sql);
+                 WHERE userid = :userid AND postid = :postid";
+        $ownratings = $DB->get_records_sql($sql, [
+            'userid' => $userid,
+            'postid' => $postid,
+        ]);
         $userratings = array();
         foreach ($ownratings as $rating) {
             $userratings[] = (object) [
