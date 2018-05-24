@@ -299,7 +299,8 @@ class data_export_helper {
         $ratingdata['your_rating'] = (object) $userratings;
 
         if (empty($ratingdata)) {
-            return;
+            // Return empty.
+            return new \stdClass();
         }
 
         return (object) $ratingdata;
