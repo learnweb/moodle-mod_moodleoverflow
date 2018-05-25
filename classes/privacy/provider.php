@@ -333,6 +333,7 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             // Update the user id to reflect that the content has been deleted, and delete post contents.
             $postsql = "userid = :userid AND discussion IN
             (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum)";
+            $postidsql = "SELECT p.id FROM {moodleoverflow_posts} p WHERE {$postsql}";
             $postparams = [
                 'forum'  => $forum->id,
                 'userid' => $userid
@@ -351,9 +352,10 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $disuccsionsparams = ['forum' => $forum->id, 'userid' => $userid];
             $DB->set_field_select('moodleoverflow_discussions', 'usermodified', 0, $discussionselect, $disuccsionsparams);
 
-            // Delete attachments.
+            // Delete all files from the posts.
             $fs = get_file_storage();
-            $fs->delete_area_files($context->id, 'mod_moodleoverflow', 'attachment');
+            $fs->delete_area_files_select($context->id, 'mod_moodleoverflow', 'attachment', "IN ($postidsql)", $postparams);
+
         }
     }
 }
