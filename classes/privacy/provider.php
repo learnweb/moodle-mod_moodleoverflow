@@ -329,15 +329,21 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             ];
             $DB->set_field_select('moodleoverflow_ratings', 'userid', 0, $ratingsql, $ratingparams);
 
-            // Do not delete forum posts.
-            // Update the user id to reflect that the content has been deleted, and delete post contents.
             $postsql = "userid = :userid AND discussion IN
             (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum)";
+            $postidsql = "SELECT p.id FROM {moodleoverflow_posts} p WHERE {$postsql}";
             $postparams = [
                 'forum'  => $forum->id,
                 'userid' => $userid
             ];
 
+            // Delete all files from the posts.
+            // Has to be done BEFORE anonymising post author user IDs, because otherwise the user's posts "disappear".
+            $fs = get_file_storage();
+            $fs->delete_area_files_select($context->id, 'mod_moodleoverflow', 'attachment', "IN ($postidsql)", $postparams);
+
+            // Do not delete forum posts.
+            // Update the user id to reflect that the content has been deleted, and delete post contents.
             $DB->set_field_select('moodleoverflow_posts', 'message', '', $postsql, $postparams);
             $DB->set_field_select('moodleoverflow_posts', 'messageformat', FORMAT_PLAIN, $postsql, $postparams);
             $DB->set_field_select('moodleoverflow_posts', 'userid', 0, $postsql, $postparams);
@@ -350,10 +356,6 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $discussionselect = "moodleoverflow = :forum AND usermodified = :userid";
             $disuccsionsparams = ['forum' => $forum->id, 'userid' => $userid];
             $DB->set_field_select('moodleoverflow_discussions', 'usermodified', 0, $discussionselect, $disuccsionsparams);
-
-            // Delete attachments.
-            $fs = get_file_storage();
-            $fs->delete_area_files($context->id, 'mod_moodleoverflow', 'attachment');
         }
     }
 }
