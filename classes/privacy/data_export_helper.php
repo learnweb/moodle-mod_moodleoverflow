@@ -468,12 +468,11 @@ class data_export_helper {
     /**
      * Get the subcontext for the supplied moodleoverflow, discussion, and post combination.
      *
-     * @param   \stdClass   $forum The moodleoverflow.
      * @param   \stdClass   $discussion The discussion
      * @param   \stdClass   $post The post.
      * @return  array
      */
-    public static function get_subcontext($forum, $discussion = null, $post = null) {
+    public static function get_subcontext($discussion = null, $post = null) {
         $subcontext = [];
         if (null !== $discussion) {
             $subcontext += self::get_discussion_area($discussion);
