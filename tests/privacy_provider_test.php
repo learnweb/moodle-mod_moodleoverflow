@@ -32,6 +32,9 @@ use mod_moodleoverflow\privacy\data_export_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
+    /**
+     * @var \mod_moodleoverflow_generator Plugin generator
+     */
     private $generator;
 
     /**
@@ -56,8 +59,9 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     /**
      * Helper to assert that the discussion data is correct.
      *
-     * @param   object $expected The expected data in the discussion.
-     * @param   object $actual   The actual data in the discussion.
+     * @param object $expected  The expected data in the discussion.
+     * @param object $actual    The actual data in the discussion.
+     * @param int $userid       The user whose data is exported.
      */
     protected function assert_discussion_data($expected, $actual, $userid) {
         // Exact matches.
@@ -860,6 +864,13 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertCount(9, $DB->get_records_select('files', "filename <> '.' AND itemid {$otherpostinsql}", $otherpostinparams));
     }
 
+    /**
+     * Create courses and a moodleoverflow module for each course.
+     *
+     * @param int $count The number how many courses/modules should be created.
+     *
+     * @return array The last course and module which were created.
+     */
     protected function create_courses_and_modules($count) {
         $course = null;
         $forum = null;
@@ -892,6 +903,14 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         return $users;
     }
 
+    /**
+     * Creates and enrols users.
+     *
+     * @param stdClass $course The course to enrol users.
+     * @param int $count The number of users to create.
+     *
+     * @return array The users created
+     */
     protected function create_and_enrol_users($course, $count) {
         $users = array();
         for ($i = 0; $i < $count; $i++) {
