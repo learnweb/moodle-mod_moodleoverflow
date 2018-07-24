@@ -382,10 +382,8 @@ $string['privacy:discussionsubscriptionpreference'] = 'You have chosen the follo
 $string['privacy:readtrackingdisabled'] = 'You have chosen to not track which posts that you have read within this forum.';
 $string['privacy:postwasread'] = 'This post was first read on {$a->firstread} and most recently read on {$a->lastread}';
 
-
-
-
-
-
-
-
+// @mfernandriu modifications
+$string['scalefactor'] = 'Scale factor';
+$string['updategrades'] = 'Update grades';
+$string['gradesreport'] = 'Grades report';
+$string['gradesupdated'] = 'Grades updated';

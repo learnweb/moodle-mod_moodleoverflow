@@ -186,6 +186,12 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
     // Update the moodleoverflow instance in the database.
     $result = $DB->update_record('moodleoverflow', $moodleoverflow);
 
+    // @mfernandriu modifications
+    // Update all grades
+    $cm = get_coursemodule_from_id('moodleoverflow', $moodleoverflow->coursemodule, 0, false, MUST_EXIST);
+    moodleoverflow_update_all_grades($cm);
+
+
     return $result;
 }
 
@@ -471,6 +477,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $subscdisabled   = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
     $cansubscribe    = ($activeenrolled AND !$forcesubscribed AND (!$subscdisabled OR $canmanage));
     $cantrack        = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $canviewreports  = has_capability('mod/moodleoverflow:viewreports', $PAGE->cm->context);
 
     // Display a link to the index.
     if ($enrolled AND $activeenrolled) {
@@ -530,6 +537,14 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
             // Add the link to the menu.
             $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
         }
+    }
+
+    // Display a link to update grades
+    if ($canviewreports) {
+
+        // Add the link to the menu.
+        $url = new moodle_url('/mod/moodleoverflow/report.php', array('id' => $PAGE->cm->id));
+        $moodleoverflownode->add(get_string('updategrades', 'moodleoverflow'), $url, navigation_node::TYPE_SETTING);
     }
 }
 

@@ -1827,3 +1827,55 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
     // Return the amount.
     return $amount;
 }
+
+
+
+// @mfernandriu modifications
+function moodleoverflow_update_all_grades($cm){
+    global $DB;
+
+    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $cm->instance));
+
+    // check wheter moodleoverlfow object has the added params
+    if(!is_null($moodleoverflow->grademaxgrade) and !is_null($moodleoverflow->gradescalefactor)){
+
+        // get all users id
+        $sql = 'SELECT DISTINCT userid FROM mdl_moodleoverflow_posts';
+        $userids = $DB->get_fieldset_sql($sql);
+
+        // iterate all users
+        foreach ($userids as $userid) {
+            
+            // get user reputation
+            $userrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid);
+
+            // calculate the posting user's updated grade
+            $grade = $userrating / $moodleoverflow->gradescalefactor;;
+
+            if($grade > $moodleoverflow->grademaxgrade){
+
+                $grade = $moodleoverflow->grademaxgrade;
+            }
+
+
+            // save updated grade on local table
+            if( $DB->record_exists('moodleoverflow_grades', array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id) ) ){
+
+                $DB->set_field('moodleoverflow_grades', 'grade', $grade, array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id ));
+
+            } else {
+
+                $grade_dataobject = new stdClass();
+                $grade_dataobject->moodleoverflowid = $moodleoverflow->id;
+                $grade_dataobject->userid = $userid;
+                $grade_dataobject->grade = $grade;
+                $grade_dataobject->late = 0;
+                $grade_dataobject->completed = 0;
+                $DB->insert_record('moodleoverflow_grades', $grade_dataobject, false);
+            }
+
+            // update gradebook
+            moodleoverflow_update_grades($moodleoverflow, $userid);   
+        }
+    }
+}
