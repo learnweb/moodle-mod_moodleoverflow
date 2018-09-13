@@ -1104,3 +1104,95 @@ function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
 
     return true;
 }
+
+/**
+ * mfernandriu modifications
+ * Obtain grades from plugin's database tab
+ *
+ * @param stdClass $moodleoverlfow moodleoverflow object
+ * @param int $userid userid
+ *
+ * @return array array of grades
+ */
+function moodleoverflow_get_user_grades($moodleoverflow, $userid=0){
+    global $CFG, $DB;
+
+    $params = array("moodleoverflowid" => $moodleoverflow->id, "userid" => $userid);
+
+    if ($userid) {
+        $and = ' AND u.id = :userid ';
+    } else {
+        $and = ' AND u.id != :userid ';
+    }
+
+    $sql = "SELECT u.id AS userid, g.grade AS rawgrade
+              FROM {user} u, {moodleoverflow_grades} g
+             WHERE u.id = g.userid AND g.moodleoverflowid = :moodleoverflowid
+                   $and";
+
+    return $DB->get_records_sql($sql, $params);
+}
+
+/**
+ * Update grades
+ *
+ * @param stdClass $moodleoverlfow moodleoverflow object
+ * @param int $userid userid
+ * @param bool $nullifnone
+ *
+ */
+function moodleoverflow_update_grades($moodleoverflow, $userid, $nullifnone = null){
+    global $CFG;
+    require_once($CFG->libdir.'/gradelib.php');
+
+    // try to get the grades to update
+    if ($grades = moodleoverflow_get_user_grades($moodleoverflow, $userid)) {
+
+        moodleoverflow_grade_item_update($moodleoverflow, $grades);
+
+    } else if ($userid and $nullifnone){
+
+        // insert a grade with rawgrade = null. As described in Gradebook API
+        $grade = new stdClass();
+        $grade->userid = $userid;
+        $grade->rawgrade = null;
+        moodleoverflow_grade_item_update($moodleoverflow, $grade);
+
+    } else {
+
+        moodleoverflow_grade_item_update($moodleoverflow);
+    }
+
+}
+
+/**
+ * Update plugin's grade item
+ *
+ * @param stdClass $moodleoverlfow moodleoverflow object
+ * @param array $grades array of grades
+ *
+ * @return int grade_update function success code
+ */
+function moodleoverflow_grade_item_update($moodleoverflow, $grades=null){
+    global $CFG;
+    if (!function_exists('grade_update')) { //workaround for buggy PHP versions
+        require_once($CFG->libdir.'/gradelib.php');
+    }
+
+    if ($moodleoverflow->grademaxgrade <= 0) {
+        $params['gradetype'] = GRADE_TYPE_NONE;
+
+    } else if ($moodleoverflow->grademaxgrade > 0) {
+        $params['gradetype'] = GRADE_TYPE_VALUE;
+        $params['grademax']  = $moodleoverflow->grademaxgrade;
+        $params['grademin']  = 0;
+
+    }
+
+    if ($grades  === 'reset') {
+        $params['reset'] = true;
+        $grades = NULL;
+    }
+
+    return grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow', $moodleoverflow->id, 0, $grades, $params);
+}
