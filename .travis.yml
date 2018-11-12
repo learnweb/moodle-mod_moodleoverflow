@@ -1,10 +1,11 @@
 language: php
 
 sudo: false
+dist: trusty
 
 addons:
   firefox: "47.0.1"
-  postgresql: "9.3"
+  postgresql: "9.4"
   apt:
     packages:
       - oracle-java8-installer
@@ -81,14 +82,14 @@ jobs:
       - moodle-plugin-ci grunt
 
     # Smaller build matrix for development builds
-    - stage: develop
-      php: 7.1
-      env: DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
-      install:
-      - moodle-plugin-ci install
-      script:
-      - moodle-plugin-ci phpunit --coverage-clover
-      - moodle-plugin-ci behat
+    #- stage: develop
+      #php: 7.1
+      #env: DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
+      #install:
+      #- moodle-plugin-ci install
+      #script:
+     # - moodle-plugin-ci phpunit --coverage-clover
+    #  - moodle-plugin-ci behat
 
 # Default 'test' stage: Unit tests and behat tests against full matrix.
 install:
@@ -103,7 +104,8 @@ after_success:
 
 stages:
   - static
-  - name: develop
-    if: branch != master AND (type != pull_request OR head_branch != master) AND (tag IS blank)
-  - name: test
-    if: branch = master OR (type = pull_request AND head_branch = master) OR (tag IS present)
+  - test
+  #- name: develop
+   # if: branch != master AND (type != pull_request OR head_branch != master) AND (tag IS blank)
+  #- name: test
+   # if: branch = master OR (type = pull_request AND head_branch = master) OR (tag IS present)
