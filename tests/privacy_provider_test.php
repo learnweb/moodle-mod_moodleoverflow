@@ -22,6 +22,8 @@
  */
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
+
+use \core_privacy\local\request\userlist;
 use \mod_moodleoverflow\privacy\provider;
 use mod_moodleoverflow\privacy\data_export_helper;
 
@@ -29,6 +31,8 @@ use mod_moodleoverflow\privacy\data_export_helper;
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
  *
  * @copyright  2018 Tamara Gunkel
+ * @group mod_moodleoverflow
+ * @group mod_moodleoverflow_privacy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
@@ -900,5 +904,198 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         }
 
         return $users;
+    }
+    /**
+     * Create a new discussion and post within the specified moodleoverflow, as the
+     * specified author.
+     *
+     * @param stdClass $forum The forum to post in
+     * @param stdClass $author The author to post as
+     * @return array An array containing the discussion object, and the post object
+     */
+    protected function helper_post_to_moodleoverflow($moodleoverflow, $author) {
+        global $DB;
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
+
+        // Create a discussion in the forum, and then add a post to that discussion.
+        $record = new stdClass();
+        $record->course = $moodleoverflow->course;
+        $record->userid = $author->id;
+        $record->moodleoverflow = $moodleoverflow->id;
+        $discussion = $generator->create_discussion($record, $moodleoverflow);
+
+        // Retrieve the post which was created by create_discussion.
+        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
+
+        return array($discussion, $post);
+    }
+
+    // HERE Starts the WIP Testing of the new function of the privacy API get_users_in_context function missing is still :
+    // Testing the _delete_data_for_user() function
+    // In the get_users_in_context the testing of the following tables is missing:
+    // rating --> test_get_users_in_context_post_ratings()
+    // tracking --> test_get_users_in_context_with_read_post_tracking / test_get_users_in_context_with_tracking_preferences
+    // preferences --> not yet implemented
+    //
+
+    /**
+     * Ensure that the discussion author is listed as a user in the context.
+     */
+    public function test_get_users_in_context_post_author() {
+        global $DB;
+        $component = 'mod_moodleoverflow';
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = \context_module::instance($cm->id);
+
+        list($author, $user) = $this->create_users($course, 2);
+
+        list($fd1, $fp1) = $this->generator->post_to_forum($moodleoverflow, $author);
+
+        $userlist = new \core_privacy\local\request\userlist($context, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // There should only be one user in the list.
+        $this->assertCount(1, $userlist);
+        $this->assertEquals([$author->id], $userlist->get_userids());
+    }
+
+    /**
+     * Ensure that all post authors are included as a user in the context.
+     */
+    public function test_get_users_in_context_post_authors() {
+        global $DB;
+        $component = 'mod_moodleoverflow';
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = \context_module::instance($cm->id);
+
+        list($author, $user, $other) = $this->create_users($course, 3);
+
+        list($fd1, $fp1) = $this->generator->post_to_forum($moodleoverflow, $author);
+        $fp1reply = $this->generator->post_to_discussion($moodleoverflow, $fd1, $user);
+        $fd1 = $DB->get_record('moodleoverflow_discussions', ['id' => $fd1->id]);
+
+        $userlist = new \core_privacy\local\request\userlist($context, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // Two users - author and replier.
+        $this->assertCount(2, $userlist);
+
+        $expected = [$author->id, $user->id];
+        sort($expected);
+
+        $actual = $userlist->get_userids();
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * Ensure that all post raters are included as a user in the context.
+     * TODO: test table moodleoverflow_ratings
+     */
+    public function test_get_users_in_context_post_ratings() {
+
+    }
+
+    /**
+     * Ensure that all users with a moodleoverflow subscription preference included as a user in the context.
+     */
+    public function test_get_users_in_context_with_subscription() {
+        global $DB;
+        $component = 'mod_moodleoverflow';
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = \context_module::instance($cm->id);
+
+        $othermoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $othercm = get_coursemodule_from_instance('moodleoverflow', $othermoodleoverflow->id);
+        $othercontext = \context_module::instance($othercm->id);
+
+        list($user, $otheruser) = $this->create_users($course, 2);
+
+        // Subscribe the user to the moodleoverflow.
+        \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $context);
+
+        $userlist = new \core_privacy\local\request\userlist($context, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // One user - the one with a digest preference.
+        $this->assertCount(1, $userlist);
+
+        $expected = [$user->id];
+        sort($expected);
+
+        $actual = $userlist->get_userids();
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * Ensure that all users with a per-discussion subscription preference included as a user in the context.
+     */
+    public function test_get_users_in_context_with_discussion_subscription() {
+        global $DB;
+        $component = 'mod_moodleoverflow';
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = \context_module::instance($cm->id);
+
+        $othermoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $othercm = get_coursemodule_from_instance('moodleoverflow', $othermoodleoverflow->id);
+        $othercontext = \context_module::instance($othercm->id);
+
+        list($author, $user, $otheruser) = $this->create_users($course, 3);
+
+        // Post in both of the moodleoverflows.
+        list($fd1, $fp1) = $this->generator->post_to_forum($moodleoverflow, $author);
+        list($ofd1, $ofp1) = $this->generator->post_to_forum($othermoodleoverflow, $author);
+
+        // Subscribe the user to the discussions.
+        \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($user->id, $fd1, $context);
+        \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($otheruser->id, $ofd1, $context);
+
+        $userlist = new \core_privacy\local\request\userlist($context, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // Two users - the author, and the one who subscribed.
+        $this->assertCount(2, $userlist);
+
+        $expected = [$author->id, $user->id];
+        sort($expected);
+
+        $actual = $userlist->get_userids();
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * Ensure that all users with read tracking are included as a user in the context.
+     * TODO: add testcase for read table
+     */
+    public function test_get_users_in_context_with_read_post_tracking() {
+
+    }
+
+    /**
+     * Ensure that all users with tracking preferences are included as a user in the context.
+     */
+    public function test_get_users_in_context_with_tracking_preferences() {
+        // TODO
     }
 }
