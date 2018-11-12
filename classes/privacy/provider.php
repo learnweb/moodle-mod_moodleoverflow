@@ -24,6 +24,7 @@
 
 namespace mod_moodleoverflow\privacy;
 
+use core_privacy\local\request\approved_userlist;
 use \core_privacy\local\request\userlist;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
@@ -40,7 +41,7 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements \core_privacy\local\metadata\provider, \core_privacy\local\request\plugin\provider,
-core_userlist_provider {
+    \core_privacy\local\request\core_userlist_provider {
 
     // This trait must be included.
     use \core_privacy\local\legacy_polyfill;
@@ -366,7 +367,7 @@ core_userlist_provider {
      * @see mod_forum\privacy\provider.php
      * @param   userlist    $userlist   The userlist containing the list of users who have data in this context/plugin combination.
      */
-    public static function _get_users_in_context(userlist $userlist) {
+    public static function get_users_in_context(userlist $userlist) {
         $context = $userlist->get_context();
         if (!is_a($context, \context_module::class)) {
             return;
@@ -391,7 +392,7 @@ core_userlist_provider {
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
                   JOIN {moodleoverflow} f ON f.id = cm.instance
                   JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = f.id
-                  JOIN {moodleoverflow_post} p ON d.id = p.discussion
+                  JOIN {moodleoverflow_posts} p ON d.id = p.discussion
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
 
@@ -456,7 +457,7 @@ core_userlist_provider {
      * @see mod_forum\privacy\provider.php
      * @param   approved_userlist       $userlist The approved context and user information to delete information for.
      */
-    public static function _delete_data_for_users(approved_userlist $userlist) {
+    public static function delete_data_for_users(approved_userlist $userlist) {
         global $DB;
 
         $context = $userlist->get_context();
