@@ -18,12 +18,13 @@
  * Privacy Subsystem implementation for mod_moodleoverflow.
  *
  * @package    mod_moodleoverflow
- * @copyright  2018 Tamara Gunkel
+ * @copyright  2018 Tamara Gunkel/ Nina Herrmann
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_moodleoverflow\privacy;
 
+use \core_privacy\local\request\userlist;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\contextlist;
@@ -38,7 +39,8 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2018 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements \core_privacy\local\metadata\provider, \core_privacy\local\request\plugin\provider {
+class provider implements \core_privacy\local\metadata\provider, \core_privacy\local\request\plugin\provider,
+core_userlist_provider {
 
     // This trait must be included.
     use \core_privacy\local\legacy_polyfill;
@@ -357,5 +359,151 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
             $disuccsionsparams = ['forum' => $forum->id, 'userid' => $userid];
             $DB->set_field_select('moodleoverflow_discussions', 'usermodified', 0, $discussionselect, $disuccsionsparams);
         }
+    }
+    /**
+     * Get the list of contexts that contain user information for the specified user.
+     * This is largly copied from mod/forum/classes/privacy/provider.php.
+     * @see mod_forum\privacy\provider.php
+     * @param   userlist    $userlist   The userlist containing the list of users who have data in this context/plugin combination.
+     */
+    public static function _get_users_in_context(userlist $userlist) {
+        $context = $userlist->get_context();
+        if (!is_a($context, \context_module::class)) {
+            return;
+        }
+        $params = [
+            'instanceid'    => $context->instanceid,
+            'modulename'    => 'moodleoverflow',
+        ];
+
+        // Discussion authors.
+        $sql = "SELECT d.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = f.id
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        // Forum authors.
+        $sql = "SELECT p.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = f.id
+                  JOIN {moodleoverflow_post} p ON d.id = p.discussion
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        // Forum post ratings.
+        $sql = "SELECT p.id
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = f.id
+                  JOIN {moodleoverflow_posts} p ON d.id = p.discussion
+                 WHERE cm.id = :instanceid";
+        \core_rating\privacy\provider::get_users_in_context_from_sql($userlist, 'rat', 'mod_forum', 'post', $sql, $params);
+
+        // Forum Subscriptions.
+        $sql = "SELECT sub.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_subscriptions} sub ON sub.moodleoverflow = f.id
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        // Discussion subscriptions.
+        $sql = "SELECT dsub.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_discuss_subs} dsub ON dsub.moodleoverflow = f.id
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        // Read Posts.
+        $sql = "SELECT hasread.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_read} hasread ON hasread.moodleoverflowid = f.id
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        // Tracking Preferences.
+        $sql = "SELECT pref.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_tracking} pref ON pref.moodleoverflowid = f.id
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        // Seperate rating table.
+        $sql = "SELECT p.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_ratings} p ON f.id = p.moodleoverflowid
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+    }
+    /**
+     * Delete multiple users within a single context.
+     * This is largly copied from mod/forum/classes/privacy/provider.php.
+     * @see mod_forum\privacy\provider.php
+     * @param   approved_userlist       $userlist The approved context and user information to delete information for.
+     */
+    public static function _delete_data_for_users(approved_userlist $userlist) {
+        global $DB;
+
+        $context = $userlist->get_context();
+        $cm = $DB->get_record('course_modules', ['id' => $context->instanceid]);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
+
+        list($userinsql, $userinparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+        $params = array_merge(['moodleoverflowid' => $moodleoverflow->id], $userinparams);
+
+        // Don't be confused some tables named the id of the moodleoverflow table moodleoverflow some moodleoverflowid.
+        $DB->delete_records_select('moodleoverflow_tracking',
+            "moodleoverflowid = :moodleoverflowid AND userid {$userinsql}", $params);
+        $DB->delete_records_select('moodleoverflow_subscriptions',
+            "moodleoverflow = :moodleoverflowid AND userid {$userinsql}", $params);
+        $DB->delete_records_select('moodleoverflow_read',
+            "moodleoverflowid = :moodleoverflowid AND userid {$userinsql}", $params);
+        $DB->delete_records_select('moodleoverflow_discuss_subs',
+            "moodleoverflow = :moodleoverflowid AND userid {$userinsql}", $params);
+
+        // Do not delete discussion or forum posts.
+        // Instead update them to reflect that the content has been deleted.
+        $postsql = "userid {$userinsql} AND discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :moodleoverflowid)";
+        $postidsql = "SELECT fp.id FROM {moodleoverflow_posts} fp WHERE {$postsql}";
+
+        // Update the subject.
+        $DB->set_field_select('moodleoverflow_posts', 'subject', '', $postsql, $params);
+
+        // Update the subject and its format.
+        $DB->set_field_select('moodleoverflow_posts', 'message', '', $postsql, $params);
+        $DB->set_field_select('moodleoverflow_posts', 'messageformat', FORMAT_PLAIN, $postsql, $params);
+
+        // Mark the post as deleted.
+        $DB->set_field_select('moodleoverflow_posts', 'deleted', 1, $postsql, $params);
+
+        // Note: Do _not_ delete ratings of other users. Only delete ratings on the users own posts.
+        // Ratings are aggregate fields and deleting the rating of this post will have an effect on the rating
+        // of any post.
+        \core_rating\privacy\provider::delete_ratings_select($context, 'mod_moodleoverflow', 'post', "IN ($postidsql)", $params);
+
+        // Delete all Tags.
+        \core_tag\privacy\provider::delete_item_tags_select($context, 'mod_moodleoverflow', 'forum_posts',
+            "IN ($postidsql)", $params);
+
+        // Delete all files from the posts.
+        $fs = get_file_storage();
+        $fs->delete_area_files_select($context->id, 'mod_moodleoverflow', 'post', "IN ($postidsql)", $params);
+        $fs->delete_area_files_select($context->id, 'mod_moodleoverflow', 'attachment', "IN ($postidsql)", $params);
+
     }
 }
