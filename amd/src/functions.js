@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/config', 'core/url'],
-    function ($, ajax, templates, notification, Cfg, Url) {
+    function($, ajax, templates, notification, Cfg, Url) {
 
     var t = {
         /**
@@ -53,19 +53,17 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
 
                 var parentdiv = $(event.target).parent().parent();
                 // Update Votes.
-                if (ratingid == 2) {
+                if (ratingid === 2) {
                     parentdiv.children('a:first-of-type').children().attr(
                         'src', Url.imageUrl('vote/upvoted', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(
                         'src', Url.imageUrl('vote/downvote', 'moodleoverflow'));
-                }
-                else if (ratingid == 1) {
+                } else if (ratingid === 1) {
                     parentdiv.children('a:first-of-type').children().attr(
                         'src', Url.imageUrl('vote/upvote', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(
                         'src', Url.imageUrl('vote/downvoted', 'moodleoverflow'));
-                }
-                else {
+                } else {
                     parentdiv.children('a:first-of-type').children().attr(
                         'src', Url.imageUrl('vote/upvote', 'moodleoverflow'));
                     parentdiv.children('a:nth-of-type(2)').children().attr(

@@ -46,9 +46,10 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
     // This trait must be included.
     use \core_privacy\local\legacy_polyfill;
 
-    /** Return the fields which contain personal data.
+    /**
+     * Return the fields which contain personal data.
      *
-     * @param collection $items a reference to the collection to use to store the metadata.
+     * @param collection $collection a reference to the collection to use to store the metadata.
      *
      * @return collection the updated collection of metadata items.
      */

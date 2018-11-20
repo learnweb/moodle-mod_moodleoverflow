@@ -300,7 +300,6 @@ function moodleoverflow_delete_instance($id) {
  * @return stdClass|null
  */
 function moodleoverflow_user_outline($course, $user, $mod, $moodleoverflow) {
-
     $return       = new stdClass();
     $return->time = 0;
     $return->info = '';

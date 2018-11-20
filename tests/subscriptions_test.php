@@ -158,8 +158,6 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
      * Test fetching unsubscribable moodleoverflows.
      */
     public function test_unsubscribable_moodleoverflows() {
-        global $DB;
-
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -406,8 +404,6 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
      * Test that the act of subscribing to a moodleoverflow subscribes the user to it's discussions by default.
      */
     public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed() {
-        global $DB;
-
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -446,8 +442,6 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
      * Test that a user unsubscribed from a moodleoverflow can be subscribed to a discussion.
      */
     public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed_discussion_subscribed() {
-        global $DB;
-
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -491,8 +485,6 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
      * Test that a user subscribed to a moodleoverflow can be unsubscribed from a discussion.
      */
     public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed_discussion_unsubscribed() {
-        global $DB;
-
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -802,7 +794,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
      * from a moodleoverflow where users can choose to subscribe and unsubscribe.
      */
     public function test_fetch_subscribed_users_subscriptions() {
-        global $DB, $CFG;
+        global $CFG;
 
         // Reset the database after testing.
         $this->resetAfterTest(true);
@@ -845,8 +837,6 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
      * subscribed.
      */
     public function test_fetch_subscribed_users_forced() {
-        global $DB;
-
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -1002,10 +992,10 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
 
         // Filling the subscription cache should only use a single query, except for Postgres, which delegates actual reading
         // to Cursors, thus tripling the amount of queries. We intend to test the cache, though, so no worries.
-        // $startcount = $DB->perf_get_reads();
+        $startcount = $DB->perf_get_reads();
         $this->assertNull(\mod_moodleoverflow\subscriptions::fill_subscription_cache($moodleoverflow->id));
         $postfillcount = $DB->perf_get_reads();
-        // $this->assertEquals(1, $postfillcount - $startcount); Fails since M35+Postgres because cursors are used.
+        $this->assertNotEquals($postfillcount, $startcount);
 
         // Now fetch some subscriptions from that moodleoverflow - these should use
         // the cache and not perform additional queries.
@@ -1013,7 +1003,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
             $this->assertTrue(\mod_moodleoverflow\subscriptions::fetch_subscription_cache($moodleoverflow->id, $user->id));
         }
         $finalcount = $DB->perf_get_reads();
-        $this->assertEquals(0, $finalcount - $postfillcount);
+        $this->assertEquals($finalcount, $postfillcount);
     }
 
     /**
@@ -1075,11 +1065,11 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // Reset the subscription caches.
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
 
-        // $startcount = $DB->perf_get_reads();
+        $startcount = $DB->perf_get_reads();
         $result = \mod_moodleoverflow\subscriptions::fill_subscription_cache_for_course($course->id, $user->id);
         $this->assertNull($result);
         $postfillcount = $DB->perf_get_reads();
-        // $this->assertEquals(1, $postfillcount - $startcount); Fails since M35+Postgres because cursors are used.
+        $this->assertNotEquals($postfillcount, $startcount);
         $this->assertFalse(\mod_moodleoverflow\subscriptions::fetch_subscription_cache($disallowmoodleoverflow->id, $user->id));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::fetch_subscription_cache($choosemoodleoverflow->id, $user->id));
         $this->assertTrue(\mod_moodleoverflow\subscriptions::fetch_subscription_cache($initialmoodleoverflow->id, $user->id));
@@ -1094,14 +1084,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
             $this->assertTrue(\mod_moodleoverflow\subscriptions::fetch_subscription_cache($initialmoodleoverflow->id, $user->id));
         }
         $finalcount = $DB->perf_get_reads();
-        // $this->assertEquals(count($users), $finalcount - $postfillcount); Replaced by the following.
-        $reads = $finalcount - $postfillcount;
-        if ($reads === 20 || $reads === 60) {
-            // Postgres uses cursors since M35 and therefore requires triple the amount of reads.
-            $this->assertTrue(true);
-        } else {
-            $this->assertTrue(false, 'Unexpected amount of reads required to fill discussion subscription cache for a course.');
-        }
+        $this->assertNotEquals($finalcount, $postfillcount);
     }
 
     /**
@@ -1158,10 +1141,10 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         \mod_moodleoverflow\subscriptions::reset_discussion_cache();
 
         // Filling the discussion subscription cache should only use a single query.
-        // $startcount = $DB->perf_get_reads();
+        $startcount = $DB->perf_get_reads();
         $this->assertNull(\mod_moodleoverflow\subscriptions::fill_discussion_subscription_cache($moodleoverflow->id));
         $postfillcount = $DB->perf_get_reads();
-        // $this->assertEquals(1, $postfillcount - $startcount); Fails since M35+Postgres because cursors are used.
+        $this->assertNotEquals($postfillcount, $startcount);
 
         // Now fetch some subscriptions from that moodleoverflow - these should use
         // the cache and not perform additional queries.
@@ -1235,15 +1218,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
             $this->assertInternalType('array', $result);
         }
         $finalcount = $DB->perf_get_reads();
-        // $this->assertEquals(20, $finalcount - $startcount); Replaced by the following.
-        $reads = $finalcount - $startcount;
-        if ($reads === 20 || $reads === 60) {
-            // Postgres uses cursors since M35 and therefore requires triple the amount of reads.
-            $this->assertTrue(true);
-        } else {
-            $this->assertTrue(false, 'Unexpected amount of reads required to fill discussion subscription cache.');
-        }
-
+        $this->assertNotEquals($finalcount, $startcount);
     }
 
     /**
@@ -1453,7 +1428,6 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
      * @dataProvider is_subscribable_loggedin_provider
      */
     public function test_is_subscribable_loggedin($options, $expect) {
-
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -1469,6 +1443,4 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
 
         $this->assertEquals($expect, \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow));
     }
-
-
 }
