@@ -130,7 +130,7 @@ class provider implements
      * @return contextlist $contextlist The list of contexts used in this plugin.
      */
     public static function get_contexts_for_userid(int $userid) : contextlist {
-        // Fetch all forum discussions, forum posts, ratings, tracking settings and subscriptions.
+        // Fetch all Moodleoverflow discussions, moodleoverflow posts, ratings, tracking settings and subscriptions.
         $sql = "SELECT c.id
                 FROM {context} c
                 INNER JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
@@ -386,7 +386,7 @@ class provider implements
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
 
-        // Forum authors.
+        // Moodleoverflow authors.
         $sql = "SELECT p.userid
                   FROM {course_modules} cm
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
@@ -442,7 +442,7 @@ class provider implements
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
 
-        // Seperate rating table.
+        // Separate rating table.
         $sql = "SELECT p.userid
                   FROM {course_modules} cm
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
@@ -477,7 +477,7 @@ class provider implements
         $DB->delete_records_select('moodleoverflow_discuss_subs',
             "moodleoverflow = :moodleoverflowid AND userid {$userinsql}", $params);
 
-        // Do not delete discussion or forum posts.
+        // Do not delete discussion or Moodleoverflow posts.
         // Instead update them to reflect that the content has been deleted.
         $postsql = "userid {$userinsql} AND discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :moodleoverflowid)";
         $postidsql = "SELECT fp.id FROM {moodleoverflow_posts} fp WHERE {$postsql}";
@@ -498,7 +498,7 @@ class provider implements
         \core_rating\privacy\provider::delete_ratings_select($context, 'mod_moodleoverflow', 'post', "IN ($postidsql)", $params);
 
         // Delete all Tags.
-        \core_tag\privacy\provider::delete_item_tags_select($context, 'mod_moodleoverflow', 'forum_posts',
+        \core_tag\privacy\provider::delete_item_tags_select($context, 'mod_moodleoverflow', 'moodleoverflow_post',
             "IN ($postidsql)", $params);
 
         // Delete all files from the posts.

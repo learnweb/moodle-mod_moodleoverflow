@@ -1016,11 +1016,56 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     }
 
     /**
-     * Ensure that all post raters are included as a user in the context.
+     * Ensure that all post raters are included as a user in the context --> this is different from the forum ratings,
+     * since ratings in moodle overflow are saved in a separate table
      * TODO: test table moodleoverflow_ratings
      */
     public function test_get_users_in_context_post_ratings() {
+        /*$sql = "SELECT p.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_ratings} p ON f.id = p.moodleoverflowid
+                 WHERE cm.id = :instanceid";
+        */
+        global $DB;
+        $component = 'mod_moodleoverflow';
 
+        $course = $this->getDataGenerator()->create_course();
+
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = \context_module::instance($cm->id);
+
+        list($author, $user, $other) = $this->create_users($course, 3);
+
+        list($fd1, $fp1) = $this->generator->post_to_forum($moodleoverflow, $author);
+        $time = time();
+        $rating = (object) [
+            'userid' => $user->id,
+            'postid' => $fp1->id,
+            'discussionid' => $fd1->id,
+            'moodleoverflowid' => $moodleoverflow->id,
+            'rating' => 1,
+            'firstrated' => $time,
+            'lastchanged' => $time
+        ];
+        // Inserts a rating into the table.
+        $DB->insert_record('moodleoverflow_ratings', $rating);
+        $fp1reply = $this->generator->post_to_discussion($moodleoverflow, $fd1, $user);
+        $userlist = new \core_privacy\local\request\userlist($context, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // Two users - author and rater.
+        $this->assertCount(2, $userlist);
+
+        $expected = [$author->id, $user->id];
+        sort($expected);
+
+        $actual = $userlist->get_userids();
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
     }
 
     /**
