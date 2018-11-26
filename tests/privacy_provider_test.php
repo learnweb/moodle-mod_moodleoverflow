@@ -1196,6 +1196,53 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
      * Ensure that all users with tracking preferences are included as a user in the context.
      */
     public function test_get_users_in_context_with_tracking_preferences() {
-        // TODO
+        global $DB;
+        $component = 'mod_moodleoverflow';
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = \context_module::instance($cm->id);
+
+        $othermoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $othercm = get_coursemodule_from_instance('moodleoverflow', $othermoodleoverflow->id);
+        $othercontext = \context_module::instance($othercm->id);
+
+        list($author, $user, $otheruser) = $this->create_users($course, 3);
+
+        // moodleoverflow tracking is opt-out.
+        // Stop tracking the read posts.
+        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($moodleoverflow->id, $user->id);
+        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($othermoodleoverflow->id, $otheruser->id);
+
+        $userlist = new \core_privacy\local\request\userlist($context, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // One user - the one who is tracking that moodleoverflow.
+        $this->assertCount(1, $userlist);
+
+        $expected = [$user->id];
+        sort($expected);
+
+        $actual = $userlist->get_userids();
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
+
+        // Testing the other context.
+        $userlist = new \core_privacy\local\request\userlist($othercontext, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // One user - the one who is tracking that moodleoverflow.
+        $this->assertCount(1, $userlist);
+
+        $expected = [$otheruser->id];
+        sort($expected);
+
+        $actual = $userlist->get_userids();
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
     }
 }
