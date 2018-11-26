@@ -395,18 +395,8 @@ class provider implements
                   JOIN {moodleoverflow_posts} p ON d.id = p.discussion
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
-
-        // Forum post ratings.
-        $sql = "SELECT p.id
-                  FROM {course_modules} cm
-                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
-                  JOIN {moodleoverflow} f ON f.id = cm.instance
-                  JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = f.id
-                  JOIN {moodleoverflow_posts} p ON d.id = p.discussion
-                 WHERE cm.id = :instanceid";
-        \core_rating\privacy\provider::get_users_in_context_from_sql($userlist, 'rat', 'mod_forum', 'post', $sql, $params);
-
-        // Forum Subscriptions.
+        
+        // Moodleoverflow Subscriptions.
         $sql = "SELECT sub.userid
                   FROM {course_modules} cm
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename

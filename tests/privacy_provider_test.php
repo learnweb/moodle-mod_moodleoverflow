@@ -951,8 +951,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     // HERE Starts the WIP Testing of the new function of the privacy API get_users_in_context function missing is still :
     // Testing the _delete_data_for_user() function
     // In the get_users_in_context the testing of the following tables is missing:
-    // tracking --> test_get_users_in_context_with_tracking_preferences
-    // preferences --> not yet implemented
 
     /**
      * Ensure that the discussion author is listed as a user in the context.
