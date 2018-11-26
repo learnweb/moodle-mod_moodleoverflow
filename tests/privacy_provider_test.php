@@ -948,9 +948,200 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         return array($discussion, $post);
     }
 
-    // HERE Starts the WIP Testing of the new function of the privacy API get_users_in_context function missing is still :
-    // Testing the _delete_data_for_user() function
-    // In the get_users_in_context the testing of the following tables is missing:
+    /**
+     * Ensure that user data for specific users is deleted from a specified context.
+     */
+    public function test_delete_data_for_users() {
+        global $DB;
+
+        $fs = get_file_storage();
+        $course = $this->getDataGenerator()->create_course();
+        // Creates 5 users.
+        $users = $this->create_users($course, 5);
+
+        $moodleoverflows = [];
+        $contexts = [];
+        // Creates two Moodleoverflows.
+        for ($i = 0; $i < 2; $i++) {
+            $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', [
+                'course' => $course->id,
+                'scale' => 100,
+            ]);
+            $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+            $context = \context_module::instance($cm->id);
+            $moodleoverflows[$moodleoverflow->id] = $moodleoverflow;
+            $contexts[$moodleoverflow->id] = $context;
+        }
+
+        $discussions = [];
+        $posts = [];
+        $postsbymoodleoverflow = [];
+        // Foreach of the 5 users and foreach of the two Moodleoverflows a post and discussion is created.
+        // Additionally, 3 replies to each discussion are created.
+        // Last but not least the original post gets a fake image and attachement.
+        $counter = 0;
+        foreach ($users as $user) {
+            $postsbymoodleoverflow[$user->id] = [];
+            foreach ($moodleoverflows as $moodleoverflow) {
+                $context = $contexts[$moodleoverflow->id];
+
+                // Create a new discussion + post in the moodleoverflow.
+                list($discussion, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $user);
+                $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->id]);
+
+                $discussions[$discussion->id] = $discussion;
+                $postsbymoodleoverflow[$user->id][$context->id] = [];
+
+                // Add a number of replies.
+                $posts[$post->id] = $post;
+                $thismoodleoverflowposts[$post->id] = $post;
+                $postsbymoodleoverflow[$user->id][$context->id][$post->id] = $post;
+
+                $reply = $this->generator->reply_to_post($post, $user);
+                $posts[$reply->id] = $reply;
+                $postsbymoodleoverflow[$user->id][$context->id][$reply->id] = $reply;
+
+                $reply = $this->generator->reply_to_post($post, $user);
+                $posts[$reply->id] = $reply;
+                $postsbymoodleoverflow[$user->id][$context->id][$reply->id] = $reply;
+
+                $reply = $this->generator->reply_to_post($reply, $user);
+                $posts[$reply->id] = $reply;
+                $postsbymoodleoverflow[$user->id][$context->id][$reply->id] = $reply;
+
+                // Add a fake inline image to the original post.
+                $fs->create_file_from_string([
+                    'contextid' => $context->id,
+                    'component' => 'mod_moodleoverflow',
+                    'filearea'  => 'post',
+                    'itemid'    => $post->id,
+                    'filepath'  => '/',
+                    'filename'  => 'example.jpg',
+                ], 'image contents (not really)');
+                // And a fake attachment.
+                $fs->create_file_from_string([
+                    'contextid' => $context->id,
+                    'component' => 'mod_moodleoverflow',
+                    'filearea'  => 'attachment',
+                    'itemid'    => $post->id,
+                    'filepath'  => '/',
+                    'filename'  => 'example.jpg',
+                ], 'image contents (not really)');
+            }
+        }
+
+        // Mark all posts as read by user1.
+        $user1 = reset($users);
+        foreach ($posts as $post) {
+            // Mark the post as being read by user1.
+            \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user1->id, $post->id);
+        }
+
+        // Rate all posts (Every user every post).
+
+        foreach ($users as $user) {
+            foreach ($posts as $post) {
+                $discussion = $discussions[$post->discussion];
+                $moodleoverflow = $moodleoverflows[$discussion->moodleoverflow];
+
+                if ($post->userid != $user->id) {
+                    $time = time();
+                    $rating = (object) [
+                        'userid' => $user->id,
+                        'postid' => $post->id,
+                        'discussionid' => $discussion->id,
+                        'moodleoverflowid' => $moodleoverflow->id,
+                        'rating' => 1,
+                        'firstrated' => $time,
+                        'lastchanged' => $time
+                    ];
+                    // Inserts a rating into the table.
+                    $DB->insert_record('moodleoverflow_ratings', $rating);
+                }
+            }
+        }
+
+        // Delete for one of the moodleoverflows all post for the first user.
+        $firstcontext = reset($contexts);
+
+        $approveduserlist = new \core_privacy\local\request\approved_userlist($firstcontext, 'mod_moodleoverflow', [$user1->id]);
+        provider::delete_data_for_users($approveduserlist);
+
+        // All posts should remain (5 user * 2 Moodleoverflows * 4 Post per Moodleoverflow).
+        $this->assertCount(40, $DB->get_records('moodleoverflow_posts'));
+
+        // User 1 posted in every Moodleoverflow 4 post (8).
+        // Post from the first Moodleoverflow are made anonymous.
+        $this->assertCount(4, $DB->get_records('moodleoverflow_posts', [
+            'userid' => $user1->id,
+        ]));
+
+        // All of the post from moodleoverflow 1 should have been filed with empty values.
+        // That means the userid equals 0, message equals empty string, and message format equals FORMAT_PLAIN.
+        $this->assertCount(4, $DB->get_records_select('moodleoverflow_posts', "userid = :userid"
+            . " AND " . $DB->sql_compare_text('message') . " = " . $DB->sql_compare_text(':message')
+            . " AND " . $DB->sql_compare_text('messageformat') . " = " . $DB->sql_compare_text(':messageformat')
+            , [
+                'userid' => 0,
+                'messageformat' => FORMAT_PLAIN,
+                'message' => '',
+            ]));
+
+        // Ratings were made anonymous from the affected posts.
+        // All ratings from user1 in Moodleoverflow1 should have been deleted so 16 entries should be anonymous.
+        // (20 post in Moodleoverflow -4 post belonging to user 1).
+        $this->assertCount(16, $DB->get_records_select('moodleoverflow_ratings', "userid = :userid"
+           , ['userid' => 0 ]));
+        // All ratings should still exist (2 Moodleoverflows * 5 users * 16 post from other people).
+        $this->assertCount(160, $DB->get_records('moodleoverflow_ratings'));
+
+        // All discussions from user1 should be made anonymous (onyl one discussion created).
+        // We stil have an entry for all 10 discussions (2 moodleoverflows * 1 discussion * 5 users).
+        $this->assertCount(10, $DB->get_records('moodleoverflow_discussions'));
+
+        // User 1 posted in every Moodleoverflow 1 discussion.
+        // Discussion from the first Moodleoverflow are made anonymous.
+        $this->assertCount(1, $DB->get_records('moodleoverflow_discussions', [
+            'userid' => $user1->id,
+        ]));
+
+        // All of the discussions from moodleoverflow 1 should have been filed with empty values.
+        // That means the userid equals 0, and name equals empty string.
+        $this->assertCount(1, $DB->get_records_select('moodleoverflow_discussions', "userid = :userid"
+            . " AND " . $DB->sql_compare_text('name') . " = " . $DB->sql_compare_text(':name')
+            , [
+                'userid' => 0,
+                'name' => '',
+            ]));
+
+        // Get all the post ids where files should be deleted.
+        $deletedpostids = [];
+        $otherpostids = [];
+        foreach ($postsbymoodleoverflow as $user => $contexts) {
+            foreach ($contexts as $thiscontextid => $theseposts) {
+                $thesepostids = array_map(function($post) {
+                    return $post->id;
+                }, $theseposts);
+
+                if ($user == $user1->id && $thiscontextid == $firstcontext->id) {
+                    // This post is in the deleted context and by the target user.
+                    $deletedpostids = array_merge($deletedpostids, $thesepostids);
+                } else {
+                    // This post is by another user, or in a non-target context.
+                    $otherpostids = array_merge($otherpostids, $thesepostids);
+                }
+            }
+        }
+        list($postinsql, $postinparams) = $DB->get_in_or_equal($deletedpostids, SQL_PARAMS_NAMED);
+        list($otherpostinsql, $otherpostinparams) = $DB->get_in_or_equal($otherpostids, SQL_PARAMS_NAMED);
+
+        // For each context 20 files are created.
+        // 2 are from the critical user in the critical context, which are deleted.
+        $this->assertCount(0, $DB->get_records_select('files', "itemid {$postinsql}", $postinparams));
+        // All other files still exist.
+        $this->assertCount(18, $DB->get_records_select('files', "filename <> '.' AND itemid {$otherpostinsql}",
+            $otherpostinparams));
+    }
 
     /**
      * Ensure that the discussion author is listed as a user in the context.
@@ -1209,7 +1400,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
 
         list($author, $user, $otheruser) = $this->create_users($course, 3);
 
-        // moodleoverflow tracking is opt-out.
         // Stop tracking the read posts.
         \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($moodleoverflow->id, $user->id);
         \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($othermoodleoverflow->id, $otheruser->id);
