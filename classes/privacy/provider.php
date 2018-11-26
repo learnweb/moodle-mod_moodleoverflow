@@ -455,46 +455,43 @@ class provider implements
         $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
 
         list($userinsql, $userinparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+
         $params = array_merge(['moodleoverflowid' => $moodleoverflow->id], $userinparams);
-
+        // Delete the entries from the table tracking, subscriptions, read and discussion_subs.
         // Don't be confused some tables named the id of the moodleoverflow table moodleoverflow some moodleoverflowid.
-        $DB->delete_records_select('moodleoverflow_tracking',
-            "moodleoverflowid = :moodleoverflowid AND userid {$userinsql}", $params);
-        $DB->delete_records_select('moodleoverflow_subscriptions',
-            "moodleoverflow = :moodleoverflowid AND userid {$userinsql}", $params);
-        $DB->delete_records_select('moodleoverflow_read',
-            "moodleoverflowid = :moodleoverflowid AND userid {$userinsql}", $params);
-        $DB->delete_records_select('moodleoverflow_discuss_subs',
-            "moodleoverflow = :moodleoverflowid AND userid {$userinsql}", $params);
+        $selectmoanduser = "moodleoverflow = :moodleoverflowid AND userid {$userinsql}";
+        $selectmoidanduser = "moodleoverflowid = :moodleoverflowid AND userid {$userinsql}";
+        $DB->delete_records_select('moodleoverflow_tracking', $selectmoidanduser, $params);
+        $DB->delete_records_select('moodleoverflow_subscriptions', $selectmoanduser, $params);
+        $DB->delete_records_select('moodleoverflow_read', $selectmoidanduser, $params);
+        $DB->delete_records_select('moodleoverflow_discuss_subs', $selectmoanduser, $params);
 
-        // Do not delete discussion or Moodleoverflow posts.
-        // Instead update them to reflect that the content has been deleted.
-        $postsql = "userid {$userinsql} AND discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :moodleoverflowid)";
-        $postidsql = "SELECT fp.id FROM {moodleoverflow_posts} fp WHERE {$postsql}";
+        // Anonymize the tables ratings, discussions and posts.
+        $ratingsql = "userid {$userinsql} AND discussionid IN
+            (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :moodleoverflowid)";
+        $DB->set_field_select('moodleoverflow_ratings', 'userid', 0, $ratingsql, $params);
 
-        // Update the subject.
-        $DB->set_field_select('moodleoverflow_posts', 'subject', '', $postsql, $params);
-
-        // Update the subject and its format.
-        $DB->set_field_select('moodleoverflow_posts', 'message', '', $postsql, $params);
-        $DB->set_field_select('moodleoverflow_posts', 'messageformat', FORMAT_PLAIN, $postsql, $params);
-
-        // Mark the post as deleted.
-        $DB->set_field_select('moodleoverflow_posts', 'deleted', 1, $postsql, $params);
-
-        // Note: Do _not_ delete ratings of other users. Only delete ratings on the users own posts.
-        // Ratings are aggregate fields and deleting the rating of this post will have an effect on the rating
-        // of any post.
-        \core_rating\privacy\provider::delete_ratings_select($context, 'mod_moodleoverflow', 'post', "IN ($postidsql)", $params);
-
-        // Delete all Tags.
-        \core_tag\privacy\provider::delete_item_tags_select($context, 'mod_moodleoverflow', 'moodleoverflow_post',
-            "IN ($postidsql)", $params);
+        // Do not delete posts but set userid to 0.
+        $postsql = "userid {$userinsql} AND discussion IN
+            (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :moodleoverflowid)";
+        $postidsql = "SELECT p.id FROM {moodleoverflow_posts} p WHERE {$postsql}";
 
         // Delete all files from the posts.
+        // Has to be done BEFORE making users anonymous, because otherwise the user's posts "disappear".
         $fs = get_file_storage();
-        $fs->delete_area_files_select($context->id, 'mod_moodleoverflow', 'post', "IN ($postidsql)", $params);
         $fs->delete_area_files_select($context->id, 'mod_moodleoverflow', 'attachment', "IN ($postidsql)", $params);
 
+        // Update the user id to reflect that the content has been deleted, and delete post contents.
+        // Entry in database persist
+        $DB->set_field_select('moodleoverflow_posts', 'message', '', $postsql, $params);
+        $DB->set_field_select('moodleoverflow_posts', 'messageformat', FORMAT_PLAIN, $postsql, $params);
+        $DB->set_field_select('moodleoverflow_posts', 'userid', 0, $postsql, $params);
+
+        // TODO other tables are: discussions do it like in other delete methods
+        // Do not delete discussions but reset userid.
+        $DB->set_field_select('moodleoverflow_discussions', 'name', '', $selectmoanduser, $params);
+        $DB->set_field_select('moodleoverflow_discussions', 'userid', 0, $selectmoanduser, $params);
+        $discussionselect = "moodleoverflow = :moodleoverflowid AND usermodified {$userinsql}";
+        $DB->set_field_select('moodleoverflow_discussions', 'usermodified', 0, $discussionselect, $params);
     }
 }
