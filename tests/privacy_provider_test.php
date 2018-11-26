@@ -951,10 +951,8 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     // HERE Starts the WIP Testing of the new function of the privacy API get_users_in_context function missing is still :
     // Testing the _delete_data_for_user() function
     // In the get_users_in_context the testing of the following tables is missing:
-    // rating --> test_get_users_in_context_post_ratings()
-    // tracking --> test_get_users_in_context_with_read_post_tracking / test_get_users_in_context_with_tracking_preferences
+    // tracking --> test_get_users_in_context_with_tracking_preferences
     // preferences --> not yet implemented
-    //
 
     /**
      * Ensure that the discussion author is listed as a user in the context.
@@ -1018,7 +1016,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     /**
      * Ensure that all post raters are included as a user in the context --> this is different from the forum ratings,
      * since ratings in moodle overflow are saved in a separate table
-     * TODO: test table moodleoverflow_ratings
      */
     public function test_get_users_in_context_post_ratings() {
         global $DB;
@@ -1140,10 +1137,59 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
 
     /**
      * Ensure that all users with read tracking are included as a user in the context.
-     * TODO: add testcase for read table
      */
     public function test_get_users_in_context_with_read_post_tracking() {
+        global $DB;
+        $component = 'mod_moodleoverflow';
 
+        $course = $this->getDataGenerator()->create_course();
+
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = \context_module::instance($cm->id);
+
+        $othermoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+        $othercm = get_coursemodule_from_instance('moodleoverflow', $othermoodleoverflow->id);
+        $othercontext = \context_module::instance($othercm->id);
+
+        list($author, $user, $otheruser) = $this->create_users($course, 3);
+
+        // Post in both of the moodleoverflows.
+        list($fd1, $fp1) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+        list($ofd1, $ofp1) = $this->helper_post_to_moodleoverflow($othermoodleoverflow, $author);
+
+        // Add read information for those users.
+        \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user->id, $fp1->id);
+        \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($otheruser->id, $ofp1->id);
+
+        $userlist = new \core_privacy\local\request\userlist($context, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // Two user - the author, and the one who has read the post.
+        $this->assertCount(2, $userlist);
+
+        $expected = [$author->id, $user->id];
+        sort($expected);
+
+        $actual = $userlist->get_userids();
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
+
+        // Testing again for the other context.
+        $userlist = new \core_privacy\local\request\userlist($othercontext, $component);
+        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+
+        // Two user - the author, and the one who has read the post.
+        $this->assertCount(2, $userlist);
+
+        $expected = [$author->id, $otheruser->id];
+        sort($expected);
+
+        $actual = $userlist->get_userids();
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
     }
 
     /**
