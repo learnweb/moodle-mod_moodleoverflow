@@ -1021,13 +1021,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
      * TODO: test table moodleoverflow_ratings
      */
     public function test_get_users_in_context_post_ratings() {
-        /*$sql = "SELECT p.userid
-                  FROM {course_modules} cm
-                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
-                  JOIN {moodleoverflow} f ON f.id = cm.instance
-                  JOIN {moodleoverflow_ratings} p ON f.id = p.moodleoverflowid
-                 WHERE cm.id = :instanceid";
-        */
         global $DB;
         $component = 'mod_moodleoverflow';
 
@@ -1052,7 +1045,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         ];
         // Inserts a rating into the table.
         $DB->insert_record('moodleoverflow_ratings', $rating);
-        $fp1reply = $this->generator->post_to_discussion($moodleoverflow, $fd1, $user);
         $userlist = new \core_privacy\local\request\userlist($context, $component);
         \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
 
@@ -1064,7 +1056,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
 
         $actual = $userlist->get_userids();
         sort($actual);
-
         $this->assertEquals($expected, $actual);
     }
 
