@@ -86,7 +86,6 @@ after_success:
 
 stages:
   - static
-  - test
   - name: develop
     if: branch != master AND (type != pull_request OR head_branch != master) AND (tag IS blank)
   - name: test
