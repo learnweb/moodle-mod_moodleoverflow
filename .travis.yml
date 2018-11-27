@@ -19,6 +19,7 @@ cache:
 php:
  - 7.0
  - 7.1
+ - 7.2
 
 matrix:
   #allow_failures:
@@ -49,7 +50,7 @@ jobs:
   include:
     # Prechecks against latest Moodle stable only.
     - stage: static
-      php: 7.1
+      php: 7.2
       env: DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
       install:
       - moodle-plugin-ci install --no-init
@@ -65,7 +66,7 @@ jobs:
 
     # Smaller build matrix for development builds
     - stage: develop
-      php: 7.1
+      php: 7.2
       env: DB=mysqli MOODLE_BRANCH=MOODLE_35_STABLE
       install:
       - moodle-plugin-ci install
