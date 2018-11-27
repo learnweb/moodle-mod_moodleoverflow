@@ -923,30 +923,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
 
         return $users;
     }
-    /**
-     * Create a new discussion and post within the specified moodleoverflow, as the
-     * specified author.
-     *
-     * @param stdClass $forum The forum to post in
-     * @param stdClass $author The author to post as
-     * @return array An array containing the discussion object, and the post object
-     */
-    protected function helper_post_to_moodleoverflow($moodleoverflow, $author) {
-        global $DB;
-        $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
-
-        // Create a discussion in the forum, and then add a post to that discussion.
-        $record = new stdClass();
-        $record->course = $moodleoverflow->course;
-        $record->userid = $author->id;
-        $record->moodleoverflow = $moodleoverflow->id;
-        $discussion = $generator->create_discussion($record, $moodleoverflow);
-
-        // Retrieve the post which was created by create_discussion.
-        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
-
-        return array($discussion, $post);
-    }
 
     /**
      * Ensure that user data for specific users is deleted from a specified context.
@@ -986,7 +962,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
                 $context = $contexts[$moodleoverflow->id];
 
                 // Create a new discussion + post in the moodleoverflow.
-                list($discussion, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $user);
+                list($discussion, $post) = $this->generator->post_to_forum($moodleoverflow, $user);
                 $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->id]);
 
                 $discussions[$discussion->id] = $discussion;
@@ -1344,8 +1320,8 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         list($author, $user, $otheruser) = $this->create_users($course, 3);
 
         // Post in both of the moodleoverflows.
-        list($fd1, $fp1) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-        list($ofd1, $ofp1) = $this->helper_post_to_moodleoverflow($othermoodleoverflow, $author);
+        list($fd1, $fp1) = $this->generator->post_to_forum($moodleoverflow, $author);
+        list($ofd1, $ofp1) = $this->generator->post_to_forum($othermoodleoverflow, $author);
 
         // Add read information for those users.
         \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user->id, $fp1->id);
