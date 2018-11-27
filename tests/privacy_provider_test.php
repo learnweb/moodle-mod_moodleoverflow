@@ -1262,7 +1262,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
      * Ensure that all users with a per-discussion subscription preference included as a user in the context.
      */
     public function test_get_users_in_context_with_discussion_subscription() {
-        global $DB;
         $component = 'mod_moodleoverflow';
 
         $course = $this->getDataGenerator()->create_course();
@@ -1272,8 +1271,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $context = \context_module::instance($cm->id);
 
         $othermoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
-        $othercm = get_coursemodule_from_instance('moodleoverflow', $othermoodleoverflow->id);
-        $othercontext = \context_module::instance($othercm->id);
 
         list($author, $user, $otheruser) = $this->create_users($course, 3);
 
@@ -1304,7 +1301,6 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
      * Ensure that all users with read tracking are included as a user in the context.
      */
     public function test_get_users_in_context_with_read_post_tracking() {
-        global $DB;
         $component = 'mod_moodleoverflow';
 
         $course = $this->getDataGenerator()->create_course();
