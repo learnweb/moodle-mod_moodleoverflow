@@ -32,7 +32,7 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
       | Message | Test post message two |
     And I log out
     When I log in as "student1"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     And I follow "Test moodleoverflow name"
     Then I should see "Subscribe to this forum"
     And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" "table_row"
@@ -76,7 +76,7 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
       | Message | Test post message two |
     And I log out
     When I log in as "student1"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     And I follow "Test moodleoverflow name"
     Then I should see "Unsubscribe from this forum"
     And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" "table_row"

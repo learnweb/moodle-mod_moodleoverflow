@@ -29,7 +29,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
       | Message | Test post message |
     And I log out
     When I log in as "student1"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     Then I should not see "1 unread post"
     And I follow "Test moodleoverflow name"
     And I should not see "Track unread posts"
@@ -44,7 +44,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
       | Message | Test post message |
     And I log out
     When I log in as "student1"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     Then I should see "1 unread post"
     And I follow "Test moodleoverflow name"
     And I follow "Don't track unread posts"
@@ -72,7 +72,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
       | Message | Test post message |
     And I log out
     When I log in as "student1"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     Then I should see "1 unread post"
     And I follow "1 unread post"
     And I should not see "Don't track unread posts"
@@ -96,7 +96,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
       | allowforcedreadtracking | 0 | moodleoverflow |
     And I log out
     When I log in as "student1"
-    And I follow "Course 1"
+    And I am on "Course 1" course homepage
     Then I should see "1 unread post"
     And I follow "Test moodleoverflow name"
     And I follow "Don't track unread posts"
