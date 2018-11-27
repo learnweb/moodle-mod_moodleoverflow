@@ -333,13 +333,6 @@ function moodleoverflow_get_extra_capabilities() {
     return array();
 }
 
-/**
- * Deprecated.
- */
-function moodleoverflow_cron() {
-
-}
-
 /* File API */
 
 /**
@@ -539,8 +532,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
         }
     }
 }
-
-/* Cronjob functions. */
 
 /**
  * Determine the current context if one wa not already specified.
