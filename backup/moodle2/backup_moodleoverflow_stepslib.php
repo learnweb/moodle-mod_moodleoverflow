@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die;
  *
  * @package   mod_moodleoverflow
  * @category  backup
- * @copyright 2016 Your Name <your@email.address>
+ * @copyright 2018 Tamara Gunkel
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_moodleoverflow_activity_structure_step extends backup_activity_structure_step {

@@ -99,6 +99,16 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * @return bool|int
      * @throws coding_exception
      */
+
+    /**
+     * Creates a moodleoverflow discussion.
+     *
+     * @param null $record The discussion record.
+     * @param null $forum The moodleoverflow to insert the discussion.
+     *
+     * @return mixed The new discussion record.
+     * @throws coding_exception
+     */
     public function create_discussion($record = null, $forum = null) {
         global $DB;
 
@@ -278,6 +288,15 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * @param stdClass $author The author to post as
      * @param          array   An array containing the discussion object, and the post object
      */
+    /**
+     * Create a new discussion and post within the specified forum, as the
+     * specified author.
+     *
+     * @param stdClass $forum   The moodleoverflow to post in
+     * @param stdClass $author  The author to post as
+     *
+     * @return array The discussion and the post record.
+     */
     public function post_to_forum($forum, $author) {
         global $DB;
         // Create a discussion in the forum, and then add a post to that discussion.
@@ -342,11 +361,10 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     /**
      * Create a new post within an existing discussion, as the specified author.
      *
-     * @param stdClass $forum      The forum to post in
-     * @param stdClass $discussion The discussion to post in
-     * @param stdClass $author     The author to post as
+     * @param stdClass $parent  The parent post
+     * @param stdClass $author  The author to post as
      *
-     * @return stdClass The forum post
+     * @return stdClass The new moodleoverflow post
      */
     public function reply_to_post($parent, $author) {
         // Add a post to the discussion.

@@ -138,10 +138,9 @@ class data_export_helper {
 
     /**
      * Store all information about all posts that we have detected this user to have access to.
-     *
-     * @param   int             $userid     The userid of the user whose data is to be exported.
-     * @param   \context_module The         instance of the forum context.
-     * @param   \stdClass       $discussion The discussion whose data is being exported.
+     * @param int       $userid     The userid of the user whose data is to be exported.
+     * @param \context  $context    instance of the moodleoverflow context.
+     * @param \stdClass $discussion The discussion whose data is being exported.
      */
     protected static function export_all_posts_in_discussion($userid, \context $context, \stdClass $discussion) {
         global $DB, $USER;
@@ -205,11 +204,10 @@ class data_export_helper {
 
     /**
      * Export all posts in the provided structure.
-     *
-     * @param   int             $userid     The userid of the user whose data is to be exported.
-     * @param   \context_module The         instance of the forum context.
-     * @param   array           $parentarea The subcontext fo the parent post.
-     * @param   \stdClass       $structure  The post structure and all of its children
+     * @param int       $userid     The userid of the user whose data is to be exported.
+     * @param \context  $context    instance of the moodleoverflow context.
+     * @param array     $parentarea The subcontext fo the parent post.
+     * @param \stdClass $structure  The post structure and all of its children
      */
     protected static function export_posts_in_structure($userid, \context $context, $parentarea, \stdClass $structure) {
         foreach ($structure->children as $post) {
@@ -230,10 +228,10 @@ class data_export_helper {
     /**
      * Export all data in the post.
      *
-     * @param   int             $userid     The userid of the user whose data is to be exported.
-     * @param   \context_module The         instance of the forum context.
-     * @param   array           $parentarea The subcontext fo the parent post.
-     * @param   \stdClass       $structure  The post structure and all of its children
+     * @param int        $userid     The userid of the user whose data is to be exported.
+     * @param \context   $context    instance of the moodleoverflow context.
+     * @param array      $postarea   The subcontext fo the parent post.
+     * @param \stdClass  $post       The post structure and all of its children
      */
     protected static function export_post_data($userid, \context $context, $postarea, $post) {
         // Store related metadata.
@@ -266,6 +264,15 @@ class data_export_helper {
         }
     }
 
+    /**
+     * Export all ratings that belong to a post.
+     * Export the rating of a post from a specific user if "onlyuser" is true.
+     * @param int $postid The postid of the post which rating is requested.
+     * @param boolean $onlyuser True, if only the rating of a specific user should be exported.
+     * @param int $userid The userid of the user whose data is exported.
+     *
+     * @return object|\stdClass The requested rating data.
+     */
     protected static function export_rating_data($postid, $onlyuser, $userid) {
         global $DB;
         $rating = new ratings();
@@ -308,11 +315,9 @@ class data_export_helper {
 
     /**
      * Store data about whether the user subscribes to forum.
+     * @param \stdClass $forum  The forum whose data is being exported.
      *
-     * @param   int       $userid The userid of the user whose data is to be exported.
-     * @param   \stdClass $forum  The forum whose data is being exported.
-     *
-     * @return  bool        Whether any data was stored.
+     * @return bool     Whether any data was stored.
      */
     public static function export_subscription_data(\stdClass $forum) {
         if (null !== $forum->subscribed) {
@@ -329,11 +334,10 @@ class data_export_helper {
     /**
      * Store data about whether the user subscribes to this particular discussion.
      *
-     * @param   int             $userid     The userid of the user whose data is to be exported.
-     * @param   \context_module The         instance of the forum context.
-     * @param   \stdClass       $discussion The discussion whose data is being exported.
+     * @param \context_module $context      instance of the moodleoverflow context.
+     * @param \stdClass       $discussion   The discussion whose data is being exported.
      *
-     * @return  bool        Whether any data was stored.
+     * @return bool         Whether any data was stored.
      */
     protected static function export_discussion_subscription_data(\context_module $context, \stdClass $discussion) {
         $area = static::get_discussion_area($discussion);
@@ -362,14 +366,12 @@ class data_export_helper {
     }
 
     /**
-     * Store forum read-tracking data about a particular forum.
+     * Store moodleoverflow read-tracking data about a particular moodleoverflow.
+     * This is whether a moodleoverflow has read-tracking enabled or not.
      *
-     * This is whether a forum has read-tracking enabled or not.
+     * @param \stdClass $forum  The moodleoverflow whose data is being exported.
      *
-     * @param   int       $userid The userid of the user whose data is to be exported.
-     * @param   \stdClass $forum  The forum whose data is being exported.
-     *
-     * @return  bool        Whether any data was stored.
+     * @return bool      Whether any data was stored.
      */
     public static function export_tracking_data(\stdClass $forum) {
         if (null !== $forum->tracked) {
@@ -386,11 +388,11 @@ class data_export_helper {
     /**
      * Store read-tracking information about a particular forum post.
      *
-     * @param   int             $userid The userid of the user whose data is to be exported.
-     * @param   \context_module The     instance of the forum context.
-     * @param   \stdClass       $post   The post whose data is being exported.
+     * @param \context_module $context  The instance of the forum context.
+     * @param array           $postarea The subcontext for this post.
+     * @param \stdClass       $post     The post whose data is being exported.
      *
-     * @return  bool        Whether any data was stored.
+     * @return bool     Whether any data was stored.
      */
     protected static function export_read_data(\context_module $context, array $postarea, \stdClass $post) {
         if (null !== $post->firstread) {
@@ -431,6 +433,7 @@ class data_export_helper {
         $pathparts[] = $discussionname;
         return $pathparts;
     }
+
     /**
      * Get the post part of the subcontext.
      *
@@ -446,6 +449,12 @@ class data_export_helper {
         return $area;
     }
 
+    /**
+     * Get the parent subcontext for the supplied moodleoverflow, discussion, and post combination.
+     *
+     * @param   \stdClass   $post The post.
+     * @return  array
+     */
     protected static function get_post_area_for_parent(\stdClass $post) {
         global $DB;
         $subcontext = [];
@@ -456,7 +465,14 @@ class data_export_helper {
         return $subcontext;
     }
 
-    public static function get_subcontext($forum, $discussion = null, $post = null) {
+    /**
+     * Get the subcontext for the supplied moodleoverflow, discussion, and post combination.
+     *
+     * @param   \stdClass   $discussion The discussion
+     * @param   \stdClass   $post The post.
+     * @return  array
+     */
+    public static function get_subcontext($discussion = null, $post = null) {
         $subcontext = [];
         if (null !== $discussion) {
             $subcontext += self::get_discussion_area($discussion);

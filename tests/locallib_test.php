@@ -64,7 +64,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $mo = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = $DB->get_record('course_modules', array('id' => $mo->cmid));
         $context = \context_module::instance($cm->id);
 
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
@@ -95,7 +95,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
         $mo = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = $DB->get_record('course_modules', array('id' => $mo->cmid));
         $context = \context_module::instance($cm->id);
 
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
@@ -125,7 +125,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
 
         $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE); // Subscription optional.
         $mo = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = $DB->get_record('course_modules', array('id' => $mo->cmid));
         $context = \context_module::instance($cm->id);
 
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
@@ -155,7 +155,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
 
         $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE); // Subscription prevented.
         $mo = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $cm = $DB->get_record('course_modules', array('module' => 15));
+        $cm = $DB->get_record('course_modules', array('id' => $mo->cmid));
         $context = \context_module::instance($cm->id);
 
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
