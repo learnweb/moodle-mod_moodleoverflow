@@ -1681,7 +1681,7 @@ function moodleoverflow_delete_post($post, $children, $course, $cm, $moodleoverf
             // Get the context module.
             $modulecontext = context_module::instance($cm->id);
             
-            //Let's delete post attachments
+            // Let's delete post attachments.
             $fs = get_file_storage();
             $fs->delete_area_files($modulecontext->id,'mod_moodleoverflow','attachment',$post->id);
 
