@@ -218,6 +218,10 @@
     width: 43px;
 }
 
+.moodleoverflowpost .row .left + .no-overflow {
+    max-width: calc(100% - 43px)
+}
+
 .moodleoverflowpost .row .left .votes {
     display: block;
     margin: 0 8px 0 0;
@@ -295,6 +299,11 @@
     margin-bottom: 5px;
     position: relative;
     padding: 6px;
+}
+
+.moodleoverflowpost > table {
+    table-layout: fixed;
+    width: 100%;
 }
 
 .moodleoverflowpost.statusboth:before {
@@ -420,7 +429,7 @@ span.unread {
  * The Votes.
  */
 .moodleoverflowpost td.votecell {
-    float: left;
+    vertical-align: top;
     overflow: hidden;
     width: 43px;
 }
