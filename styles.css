@@ -219,7 +219,7 @@
 }
 
 .moodleoverflowpost .row .left + .no-overflow {
-    max-width: calc(100% - 43px)
+    max-width: calc(100% - 43px);
 }
 
 .moodleoverflowpost .row .left .votes {
