@@ -33,7 +33,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class renderer_text extends renderer {
+class renderer_textemail extends renderer {
 
     /**
      * The template name for this renderer.
