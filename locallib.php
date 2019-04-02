@@ -1077,11 +1077,11 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         // When the post is already marked, remove the mark instead.
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusstarter) {
-            $editurl = new moodle_url($link, array('d' => $discussion->id, 'sesskey' => sesskey(), 'r' => 40, 'rp' => $post->id));
-            $commands[] = array('url' => $editurl, 'text' => $str->marknothelpful);
+            $commands[] = html_writer::tag('a', $str->marknothelpful,
+                    array('class' => 'marknothelpful', 'role' => 'button', 'tabindex' => '0'));
         } else {
-            $editurl = new moodle_url($link, array('d' => $discussion->id, 'sesskey' => sesskey(), 'r' => 4, 'rp' => $post->id));
-            $commands[] = array('url' => $editurl, 'text' => $str->markhelpful);
+            $commands[] = html_writer::tag('a', $str->markhelpful,
+                    array('class' => 'markhelpful', 'role' => 'button', 'tabindex' => '0'));
         }
     }
 
@@ -1093,11 +1093,11 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         // When the post is already marked, remove the mark instead.
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusteacher) {
-            $editurl = new moodle_url($link, array('d' => $discussion->id, 'sesskey' => sesskey(), 'r' => 30, 'rp' => $post->id));
-            $commands[] = array('url' => $editurl, 'text' => $str->marknotsolved);
+            $commands[] = html_writer::tag('a', $str->marknotsolved,
+                    array('class' => 'marknotsolved', 'role' => 'button', 'tabindex' => '0'));
         } else {
-            $editurl = new moodle_url($link, array('d' => $discussion->id, 'sesskey' => sesskey(), 'r' => 3, 'rp' => $post->id));
-            $commands[] = array('url' => $editurl, 'text' => $str->marksolved);
+            $commands[] = html_writer::tag('a', $str->marksolved,
+                    array('class' => 'marksolved', 'role' => 'button', 'tabindex' => '0'));
         }
     }
 
