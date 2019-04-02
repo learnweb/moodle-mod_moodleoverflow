@@ -1071,7 +1071,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $commands[] = array('url' => $permalink, 'text' => get_string('permalink', 'moodleoverflow'));
 
     // If the user has started the discussion, he can mark the answer as helpful.
-    $canmarkhelpful = (($USER->id == $discussion->userid) AND ($iscomment != $post->parent) AND !empty($post->parent));
+    $canmarkhelpful = (($USER->id == $discussion->userid) && ($USER->id != $post->userid) && ($iscomment != $post->parent) && !empty($post->parent));
     if ($canmarkhelpful) {
 
         // When the post is already marked, remove the mark instead.
