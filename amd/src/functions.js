@@ -156,8 +156,6 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                     }
                 }
 
-                $(window).scrollTop($('#p' + postid).offset().top);
-
             }).fail(notification.exception);
 
             return vote;
