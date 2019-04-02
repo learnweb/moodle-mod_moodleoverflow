@@ -101,7 +101,7 @@ class ratings {
 
         // Make sure post author != current user, unless they have permission.
         if (($post->userid == $userid) && !
-            ($rating == RATING_SOLVED && has_capability('mod/moodleoverflow:marksolved', $modulecontext))
+            (($rating == RATING_SOLVED || $rating == RATING_REMOVE_SOLVED) && has_capability('mod/moodleoverflow:marksolved', $modulecontext))
         ) {
             print_error('rateownpost', 'moodleoverflow');
         }
