@@ -21,8 +21,8 @@
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/config', 'core/url'],
-    function($, ajax, templates, notification, Cfg, Url) {
+define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/config', 'core/url', 'core/str'],
+    function($, ajax, templates, notification, Cfg, Url, str) {
 
     var t = {
         /**
@@ -190,6 +190,165 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 $(event.target).parent().toggleClass('active');
                 $(event.target).parent().prevAll('a').removeClass('active');
             });
+
+            $(".marksolved").on("click", function(event) {
+                var post = $(event.target).parents('.moodleoverflowpost');
+
+                if (post.hasClass('statusteacher') || post.hasClass('statusboth')) {
+                    // Remove solution mark.
+                    if (post.hasClass('statusteacher')) {
+                        post.removeClass('statusteacher');
+                    } else {
+                        post.removeClass('statusboth');
+                        post.addClass('statusstarter');
+                    }
+
+                    var promiseSolved = str.get_string('marksolved', 'mod_moodleoverflow');
+                    $.when(promiseSolved).done(function(string) {
+                        $(event.target).text(string);
+                    });
+                } else {
+                    // Add solution mark.
+                    // Remove other solution mark.
+                    t.removeSolved(post.parent().parent());
+                    if (post.hasClass('statusstarter')) {
+                        post.removeClass('statusstarter');
+                        post.addClass('statusboth');
+                    } else {
+                        post.addClass('statusteacher');
+                    }
+
+                    var promiseNotSolved = str.get_string('marknotsolved', 'mod_moodleoverflow');
+                    $.when(promiseNotSolved).done(function(string) {
+                        $(event.target).text(string);
+                    });
+                }
+
+                t.redoStatus(post);
+            });
+
+            $(".markhelpful").on("click", function(event) {
+                var post = $(event.target).parents('.moodleoverflowpost');
+
+                if (post.hasClass('statusstarter') || post.hasClass('statusboth')) {
+                    // Remove helpful mark.
+                    if (post.hasClass('statusstarter')) {
+                        post.removeClass('statusstarter');
+                    } else {
+                        post.removeClass('statusboth');
+                        post.addClass('statusteacher');
+                    }
+
+                    var promiseHelpful = str.get_string('markhelpful', 'mod_moodleoverflow');
+                    $.when(promiseHelpful).done(function(string) {
+                        $(event.target).text(string);
+                    });
+                } else {
+                    t.removeHelpful(post.parent().parent());
+
+                    if (post.hasClass('statusteacher')) {
+                        post.removeClass('statusteacher');
+                        post.addClass('statusboth');
+                    } else {
+                        post.addClass('statusstarter');
+                    }
+
+                    var promiseNotHelpful = str.get_string('marknothelpful', 'mod_moodleoverflow');
+                    $.when(promiseNotHelpful).done(function(string) {
+                        $(event.target).text(string);
+                    });
+                }
+
+                t.redoStatus(post);
+            });
+        },
+
+        removeHelpful: function(root) {
+            var formerhelpful = root.find('.statusstarter, .statusboth');
+            if (formerhelpful.length > 0) {
+                if (formerhelpful.hasClass('statusstarter')) {
+                    formerhelpful.removeClass('statusstarter');
+                } else {
+                    formerhelpful.removeClass('statusboth');
+                    formerhelpful.addClass('statusteacher');
+                }
+
+                t.redoStatus(formerhelpful);
+
+                var promiseHelpful = str.get_string('markhelpful', 'mod_moodleoverflow');
+                $.when(promiseHelpful).done(function(string) {
+                    formerhelpful.find('.markhelpful').text(string);
+                });
+            }
+
+        },
+
+        removeSolved: function(root) {
+            var formersolution = root.find('.statusteacher, .statusboth');
+            if (formersolution.length > 0) {
+                if (formersolution.hasClass('statusteacher')) {
+                    formersolution.removeClass('statusteacher');
+                } else {
+                    formersolution.removeClass('statusboth');
+                    formersolution.addClass('statusstarter');
+                }
+
+                t.redoStatus(formersolution);
+
+                var promiseHelpful = str.get_string('marksolved', 'mod_moodleoverflow');
+                $.when(promiseHelpful).done(function(string) {
+                    formersolution.find('.marksolved').text(string);
+                });
+            }
+        },
+
+        /**
+         * Redoes the post status
+         * @param {object} post dom with .moodleoverflowpost which status should be redone
+         */
+        redoStatus: function(post) {
+            if ($(post).hasClass('statusboth')) {
+                var statusBothRequest = [
+                    {key: 'teacherrating', component: 'mod_moodleoverflow'},
+                    {key: 'starterrating', component: 'mod_moodleoverflow'},
+                    {key: 'bestanswer', component: 'mod_moodleoverflow'}
+                ];
+                str.get_strings(statusBothRequest).then(function(results) {
+                    var circle = templates.renderPix('status/c_circle', 'mod_moodleoverflow', results[0]);
+                    var box = templates.renderPix('status/b_box', 'mod_moodleoverflow', results[1]);
+                    $.when(box, circle).done(function(boxImg, circleImg) {
+                        post.find('.status').html(boxImg + circleImg + results[2]);
+                    });
+                    return results;
+                });
+            } else if ($(post).hasClass('statusteacher')) {
+                var statusTeacherRequest = [
+                    {key: 'teacherrating', component: 'mod_moodleoverflow'},
+                    {key: 'solvedanswer', component: 'mod_moodleoverflow'}
+                ];
+                str.get_strings(statusTeacherRequest).then(function(results) {
+                    var circle = templates.renderPix('status/c_outline', 'mod_moodleoverflow', results[0]);
+                    $.when(circle).done(function(circleImg) {
+                        post.find('.status').html(circleImg + results[1]);
+                    });
+                    return results;
+                });
+            } else if ($(post).hasClass('statusstarter')) {
+                var statusStarterRequest = [
+                    {key: 'starterrating', component: 'mod_moodleoverflow'},
+                    {key: 'helpfulanswer', component: 'mod_moodleoverflow'}
+                ];
+                str.get_strings(statusStarterRequest).then(function(results) {
+                    var box = templates.renderPix('status/b_outline', 'mod_moodleoverflow', results[0]);
+                    $.when(box).done(function(boxImg) {
+                        post.find('.status').html(boxImg + results[1]);
+                    });
+                    return results;
+                });
+            } else {
+                post.find('.status').html('');
+            }
+
         }
     };
 
