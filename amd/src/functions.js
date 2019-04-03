@@ -201,25 +201,13 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 if (post.hasClass('statusteacher') || post.hasClass('statusboth')) {
                     // Remove solution mark.
                     t.recordvote(discussionid, RATING_REMOVE_SOLVED, userid, event)[0].then(function() {
-                        if (post.hasClass('statusteacher')) {
-                            post.removeClass('statusteacher');
-                        } else {
-                            post.removeClass('statusboth');
-                            post.addClass('statusstarter');
-                        }
-
-                        var promiseSolved = str.get_string('marksolved', 'mod_moodleoverflow');
-                        $.when(promiseSolved).done(function(string) {
-                            $(event.target).text(string);
-                        });
-
-                        t.redoStatus(post);
+                        t.removeSolvedFromPost(post);
                     });
                 } else {
                     // Add solution mark.
                     t.recordvote(discussionid, RATING_SOLVED, userid, event)[0].then(function() {
                         // Remove other solution mark in dom.
-                        t.removeSolved(post.parent().parent());
+                        t.removeOtherSolved(post.parent().parent());
                         if (post.hasClass('statusstarter')) {
                             post.removeClass('statusstarter');
                             post.addClass('statusboth');
@@ -245,24 +233,13 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 if (post.hasClass('statusstarter') || post.hasClass('statusboth')) {
                     // Remove helpful mark.
                     t.recordvote(discussionid, RATING_REMOVE_HELPFUL, userid, event)[0].then(function() {
-                        if (post.hasClass('statusstarter')) {
-                            post.removeClass('statusstarter');
-                        } else {
-                            post.removeClass('statusboth');
-                            post.addClass('statusteacher');
-                        }
-
-                        var promiseHelpful = str.get_string('markhelpful', 'mod_moodleoverflow');
-                        $.when(promiseHelpful).done(function(string) {
-                            $(event.target).text(string);
-                        });
-                        t.redoStatus(post);
+                        t.removeHelpfulFromPost(post);
                     });
                 } else {
                     // Add helpful mark.
                     t.recordvote(discussionid, RATING_HELPFUL, userid, event)[0].then(function() {
                         // Remove other helpful mark in dom.
-                        t.removeHelpful(post.parent().parent());
+                        t.removeOtherHelpful(post.parent().parent());
                         if (post.hasClass('statusteacher')) {
                             post.removeClass('statusteacher');
                             post.addClass('statusboth');
@@ -281,42 +258,49 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
             });
         },
 
-        removeHelpful: function(root) {
-            var formerhelpful = root.find('.statusstarter, .statusboth');
-            if (formerhelpful.length > 0) {
-                if (formerhelpful.hasClass('statusstarter')) {
-                    formerhelpful.removeClass('statusstarter');
-                } else {
-                    formerhelpful.removeClass('statusboth');
-                    formerhelpful.addClass('statusteacher');
-                }
-
-                t.redoStatus(formerhelpful);
-
-                var promiseHelpful = str.get_string('markhelpful', 'mod_moodleoverflow');
-                $.when(promiseHelpful).done(function(string) {
-                    formerhelpful.find('.markhelpful').text(string);
-                });
+        removeHelpfulFromPost: function (post) {
+            if (post.hasClass('statusstarter')) {
+                post.removeClass('statusstarter');
+            } else {
+                post.removeClass('statusboth');
+                post.addClass('statusteacher');
             }
 
+            t.redoStatus(post);
+
+            var promiseHelpful = str.get_string('markhelpful', 'mod_moodleoverflow');
+            $.when(promiseHelpful).done(function (string) {
+                post.find('.markhelpful').text(string);
+            });
         },
 
-        removeSolved: function(root) {
+        removeOtherHelpful: function(root) {
+            var formerhelpful = root.find('.statusstarter, .statusboth');
+            if (formerhelpful.length > 0) {
+                t.removeHelpfulFromPost(formerhelpful);
+            }
+        },
+
+        removeSolvedFromPost: function(post) {
+            if (post.hasClass('statusteacher')) {
+                post.removeClass('statusteacher');
+            } else {
+                post.removeClass('statusboth');
+                post.addClass('statusstarter');
+            }
+
+            t.redoStatus(post);
+
+            var promiseHelpful = str.get_string('marksolved', 'mod_moodleoverflow');
+            $.when(promiseHelpful).done(function(string) {
+                post.find('.marksolved').text(string);
+            });
+        },
+
+        removeOtherSolved: function(root) {
             var formersolution = root.find('.statusteacher, .statusboth');
             if (formersolution.length > 0) {
-                if (formersolution.hasClass('statusteacher')) {
-                    formersolution.removeClass('statusteacher');
-                } else {
-                    formersolution.removeClass('statusboth');
-                    formersolution.addClass('statusstarter');
-                }
-
-                t.redoStatus(formersolution);
-
-                var promiseHelpful = str.get_string('marksolved', 'mod_moodleoverflow');
-                $.when(promiseHelpful).done(function(string) {
-                    formersolution.find('.marksolved').text(string);
-                });
+                t.removeSolvedFromPost(formersolution);
             }
         },
 
