@@ -91,37 +91,36 @@
                         {{{ postcontent }}}
                     </div>
                 </div>
+
+                {{! Row with attachments. }}
+                <div class="attachments">
+
+                    {{! Loop through all attachments. }}
+                    {{#attachments}}
+
+                    {{! Don't display images as links}}
+                        {{#image}}
+                            <img src="{{filepath}}" alt=""/>
+                            <br>
+                        {{/image}}
+                        {{^image}}
+                            <a href="{{filepath}}">
+                                {{{icon}}}
+                            </a>
+                            <a href="{{filepath}}">
+                                {{filename}}
+                            </a>
+
+                        {{/image}}
+
+                        <br>
+                    {{/attachments}}
+
+                </div>
             </div>
 
         </div>
         {{! End of the post content row. }}
-
-        {{! Row with attachments. }}
-        <div class="attachments">
-
-            {{! Loop through all attachments. }}
-            {{#attachments}}
-
-                {{! Don't display images as links}}
-                {{#image}}
-                    <img src="{{filepath}}" alt=""/>
-                    <br>
-                {{/image}}
-                {{^image}}
-                    <a href="{{filepath}}">
-                        {{{icon}}}
-                    </a>
-                    <a href="{{filepath}}">
-                        {{filename}}
-                    </a>
-
-                {{/image}}
-
-                <br>
-            {{/attachments}}
-
-        </div>
-
         <div class="row side">
             <div class="left">
                 &nbsp;
