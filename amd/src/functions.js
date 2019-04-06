@@ -144,8 +144,8 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                             post.addClass('statusteacher');
                         }
 
-                        var promiseNotSolved = str.get_string('marknotsolved', 'mod_moodleoverflow');
-                        $.when(promiseNotSolved).done(function(string) {
+                        var promiseStringNotSolved = str.get_string('marknotsolved', 'mod_moodleoverflow');
+                        $.when(promiseStringNotSolved).done(function(string) {
                             $(event.target).text(string);
                         });
 
@@ -176,8 +176,8 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                             post.addClass('statusstarter');
                         }
 
-                        var promiseNotHelpful = str.get_string('marknothelpful', 'mod_moodleoverflow');
-                        $.when(promiseNotHelpful).done(function(string) {
+                        var promiseStringNotHelpful = str.get_string('marknothelpful', 'mod_moodleoverflow');
+                        $.when(promiseStringNotHelpful).done(function(string) {
                             $(event.target).text(string);
                         });
                         t.redoStatus(post);
