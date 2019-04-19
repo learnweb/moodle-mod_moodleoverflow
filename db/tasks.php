@@ -47,5 +47,16 @@ $tasks = array(
         'month'     => '*',
         'dayofweek' => '*'
     ),
+	
+	// Update grades.
+    array(
+        'classname' => 'mod_moodleoverflow\task\update_grades',
+        'blocking'  => 0,
+        'minute'    => '*',
+        'hour'      => '*',
+        'day'       => '*',
+        'month'     => '*',
+        'dayofweek' => '*'
+    ),
 
 );

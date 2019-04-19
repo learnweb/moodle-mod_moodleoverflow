@@ -44,7 +44,7 @@ $form = new mod_moodleoverflow_report_form(null, array('id' => $cmid));
 // process
 if($form->get_data()->update_grades){
 
-	moodleoverflow_update_all_grades($cm);
+	moodleoverflow_update_all_grades($cm->instance);
 
 	$notify_update = true;
 }

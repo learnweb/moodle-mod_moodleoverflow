@@ -1831,10 +1831,10 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
 
 
 // @mfernandriu modifications
-function moodleoverflow_update_all_grades($cm){
+function moodleoverflow_update_all_grades($moodleoverflow_id){
     global $DB;
 
-    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $cm->instance));
+    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow_id));
 
     // check wheter moodleoverlfow object has the added params
     if(!is_null($moodleoverflow->grademaxgrade) and !is_null($moodleoverflow->gradescalefactor)){

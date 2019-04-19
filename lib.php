@@ -189,7 +189,7 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
     // @mfernandriu modifications
     // Update all grades
     $cm = get_coursemodule_from_id('moodleoverflow', $moodleoverflow->coursemodule, 0, false, MUST_EXIST);
-    moodleoverflow_update_all_grades($cm);
+    moodleoverflow_update_all_grades($cm->instance);
 
 
     return $result;
