@@ -1249,6 +1249,39 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // The rating of the user.
     $postuserrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);
 
+    // @mfernandriu modifications
+    // check wheter moodleoverlfow object has the added params
+    if(!is_null($moodleoverflow->grademaxgrade) and !is_null($moodleoverflow->gradescalefactor)){
+
+        // calculate the posting user's updated grade
+        $grade = $postuserrating / $moodleoverflow->gradescalefactor;
+
+        if($grade > $moodleoverflow->grademaxgrade){
+
+            $grade = $moodleoverflow->grademaxgrade;
+        }
+
+
+        // save updated grade on local table
+        if( $DB->record_exists('moodleoverflow_grades', array('userid' => $postinguser->id, 'moodleoverflowid' => $moodleoverflow->id) ) ){
+
+            $DB->set_field('moodleoverflow_grades', 'grade', $grade, array('userid' => $postinguser->id, 'moodleoverflowid' => $moodleoverflow->id ));
+
+        } else {
+
+            $grade_dataobject = new stdClass();
+            $grade_dataobject->moodleoverflowid = $moodleoverflow->id;
+            $grade_dataobject->userid = $postinguser->id;
+            $grade_dataobject->grade = $grade;
+            $grade_dataobject->late = 0;
+            $grade_dataobject->completed = 0;
+            $DB->insert_record('moodleoverflow_grades', $grade_dataobject, false);
+        }
+
+        // update gradebook
+        moodleoverflow_update_grades($moodleoverflow, $postinguser->id);
+    }
+
     // The name of the user and the date modified.
     $by = new stdClass();
     $by->date = userdate($post->modified);
@@ -1845,7 +1878,7 @@ function moodleoverflow_update_all_grades($moodleoverflow_id){
 
         // iterate all users
         foreach ($userids as $userid) {
-            
+
             // get user reputation
             $userrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid);
 
@@ -1875,7 +1908,7 @@ function moodleoverflow_update_all_grades($moodleoverflow_id){
             }
 
             // update gradebook
-            moodleoverflow_update_grades($moodleoverflow, $userid);   
+            moodleoverflow_update_grades($moodleoverflow, $userid);
         }
     }
 }
