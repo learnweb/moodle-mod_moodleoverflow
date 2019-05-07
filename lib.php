@@ -188,8 +188,7 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
 
     // @mfernandriu modifications
     // Update all grades
-    $cm = get_coursemodule_from_id('moodleoverflow', $moodleoverflow->coursemodule, 0, false, MUST_EXIST);
-    moodleoverflow_update_all_grades($cm->instance);
+    moodleoverflow_update_all_grades($moodleoverflow->id);
 
 
     return $result;
@@ -1178,6 +1177,8 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades=null){
     if (!function_exists('grade_update')) { //workaround for buggy PHP versions
         require_once($CFG->libdir.'/gradelib.php');
     }
+
+    $params = array('itemname'=>$moodleoverflow->name, 'idnumber'=>$moodleoverflow->id);
 
     if ($moodleoverflow->grademaxgrade <= 0) {
         $params['gradetype'] = GRADE_TYPE_NONE;

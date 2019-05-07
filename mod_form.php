@@ -135,15 +135,13 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('header', 'gradeheading', get_string('grade'));
 
         $mform->addElement('text', 'grademaxgrade', get_string('modgrademaxgrade', 'grades'));
-        $mform->setDefault('grademaxgrade', 100);
         $mform->setType('grademaxgrade', PARAM_INT);
         $mform->addRule('grademaxgrade', get_string('grademaxgradeerror', 'moodleoverflow'), 'regex', '/^[0-9]*$/', 'client');
 
         $mform->addElement('text', 'gradescalefactor', get_string('scalefactor', 'moodleoverflow'));
         $mform->addHelpButton('gradescalefactor', 'scalefactor', 'moodleoverflow');
-        $mform->setDefault('gradescalefactor', 1000);
         $mform->setType('gradescalefactor', PARAM_INT);
-        $mform->addRule('gradescalefactor', get_string('scalefactorerror', 'moodleoverflow'), 'regex', '/^[1-9][0-9]*$/', 'client');
+        $mform->addRule('gradescalefactor', get_string('scalefactorerror', 'moodleoverflow'), 'regex', '/^[0-9]*$/', 'client');
 
 
         if ($this->_features->gradecat) {
