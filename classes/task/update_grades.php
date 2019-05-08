@@ -57,7 +57,7 @@ class update_grades extends \core\task\scheduled_task {
 			// Update grades.
 			moodleoverflow_update_all_grades($moodleoverflowid);
 		}
-     
+
         // The cron is finished.
         return true;
     }

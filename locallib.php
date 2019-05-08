@@ -1886,8 +1886,8 @@ function moodleoverflow_update_all_grades($moodleoverflowid){
         // get all users id
         $sql = 'SELECT DISTINCT p.userid
                 FROM mdl_moodleoverflow_discussions AS d, mdl_moodleoverflow_posts AS p
-                WHERE d.id = p.discussion AND d.moodleoverflow = $moodleoverflowid';
-        $userids = $DB->get_fieldset_sql($sql);
+                WHERE d.id = p.discussion AND d.moodleoverflow = :moodleoverflowid';
+        $userids = $DB->get_fieldset_sql($sql,['moodleoverflowid' => $moodleoverflowid]);
 
         // iterate all users
         foreach ($userids as $userid) {
