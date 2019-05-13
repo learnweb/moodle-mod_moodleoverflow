@@ -52,7 +52,7 @@ $string['moodleoverflow:startdiscussion']     = 'Start a discussion';
 $string['moodleoverflow:replypost']           = 'Reply in discussion';
 $string['moodleoverflow:viewdiscussion']      = 'View discussion';
 $string['moodleoverflow:view']                = 'View discussionlist';
-$string['moodleoverflow:marksolved']          = 'Mark a post as solved';
+$string['moodleoverflow:marksolved']          = 'Mark a post as solution';
 $string['nowallsubscribed']                   = 'All forums in {$a} are subscribed.';
 $string['nowallunsubscribed']                 = 'All forums in {$a} are unsubscribed.';
 
@@ -113,8 +113,8 @@ $string['votescaledownvote']           = 'Reputation: Downvote';
 $string['configvotescaledownvote']     = 'The amount of reputation a downvote for your post gives.';
 $string['votescaleupvote']             = 'Reputation: Upvote';
 $string['configvotescaleupvote']       = 'The amount of reputation an upvote for your post gives.';
-$string['votescalesolved']             = 'Reputation: Solved';
-$string['configvotescalesolved']       = 'The amount of reputation a mark as solved on your post gives.';
+$string['votescalesolved']             = 'Reputation: Solution';
+$string['configvotescalesolved']       = 'The amount of reputation a mark as solution on your post gives.';
 $string['votescalehelpful']            = 'Reputation: Helpful';
 $string['configvotescalehelpful']      = 'The amount of reputation a mark as helpful on your post gives.';
 $string['reputationnotnegative']       = 'Reputation just positive?';
@@ -168,7 +168,7 @@ $string['postnotexist']             = 'Requested post does not exist';
 $string['noratemoodleoverflow']     = 'Sorry, you are not allowed to vote in this forum.';
 $string['configallowratingchange']  = 'Can a user change its ratings?';
 $string['allowratingchange']        = 'Allow rating changes';
-$string['configpreferteachersmark'] = 'The answer marked as solved by a course owner are prioritized over the answer marked as helpful by the starter of the discussion.';
+$string['configpreferteachersmark'] = 'The answer marked as solution by a course owner are prioritized over the answer marked as helpful by the starter of the discussion.';
 $string['preferteachersmark']       = 'Prefer course owners\' marks?';
 $string['noratingchangeallowed']    = 'You are not allowed to change your ratings.';
 $string['invalidratingid']          = 'The submitted rating is neither an upvote nor a downvote.';
@@ -188,8 +188,8 @@ $string['moodleoverflowbodyhidden']    = 'This post cannot be viewed by you, pro
 $string['addanewreply']                = 'Add a new answer';
 $string['ratingfailed']                = 'Rating failed. Try again.';
 $string['rateownpost']                 = 'You cannot rate your own post.';
-$string['marksolved']                  = 'Mark as Solved';
-$string['marknotsolved']               = 'Not Solved';
+$string['marksolved']                  = 'Mark as solution';
+$string['marknotsolved']               = 'Remove solution mark';
 $string['markhelpful']                 = 'Mark as Helpful';
 $string['marknothelpful']              = 'Not Helpful';
 
@@ -300,12 +300,12 @@ If set to optional, tracking is turned on by default but participants can turn t
 If \'Allow forced read tracking\' is enabled in the site administration, then a further option is available - forced. This means that tracking is always on.';
 $string['ratingheading']                = 'Rating and reputation';
 $string['starterrating']                = 'Helpful';
-$string['teacherrating']                = 'Solved';
+$string['teacherrating']                = 'Solution';
 $string['ratingpreference']             = 'Display first';
-$string['ratingpreference_help']        = 'Answers can be marked as solved and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
+$string['ratingpreference_help']        = 'Answers can be marked as solution and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
 
 * Heplful - A topic starter\'s helpful mark will be pinned at the top of the discussion
-* Solved - A teacher\'s solved mark will be pinned at the top of the discussion';
+* Solved - A teacher\'s solution mark will be pinned at the top of the discussion';
 $string['allownegativereputation']      = 'Allow negative reputation?';
 $string['allownegativereputation_help'] = 'If set to yes, the users reputation within a course or within a module can be negative. If set to no, the reputation will stop to decrease at zero.';
 $string['coursewidereputation']         = 'Cross module reputation?';
@@ -318,7 +318,7 @@ $string['attachment_help']              = 'You can optionally attach one or more
 
 // Templates.
 $string['helpfulanswer'] = 'The question owner accepted this as the best answer.';
-$string['solvedanswer']  = 'This post is marked as solved.';
+$string['solvedanswer']  = 'This post is marked as solution.';
 $string['bestanswer']    = 'The question owner and a course owner accepted this as the best answer.';
 $string['reputation'] = 'Reputation';
 $string['upvote'] = 'Upvote';
@@ -365,7 +365,7 @@ $string['privacy:metadata:moodleoverflow_ratings:userid'] = 'The ID of the user 
 $string['privacy:metadata:moodleoverflow_ratings:postid'] = 'The ID of the post that was rated.';
 $string['privacy:metadata:moodleoverflow_ratings:discussionid'] = 'The ID of the discussion the rated post is part of.';
 $string['privacy:metadata:moodleoverflow_ratings:moodleoverflowid'] = 'The ID of the Moodleoverflow forum that contains the rated post.';
-$string['privacy:metadata:moodleoverflow_ratings:rating'] = 'The submitted rating. 0 = neutral, 1 = negative, 2 = positive, 3 = helpful, 4 = solved';
+$string['privacy:metadata:moodleoverflow_ratings:rating'] = 'The submitted rating. 0 = neutral, 1 = negative, 2 = positive, 3 = helpful, 4 = solution';
 $string['privacy:metadata:moodleoverflow_ratings:firstrated'] = 'The date the rating was submitted.';
 $string['privacy:metadata:moodleoverflow_ratings:lastchanged'] = 'The date the rating was changed the last time.';
 

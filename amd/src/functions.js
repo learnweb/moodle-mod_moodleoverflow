@@ -21,10 +21,16 @@
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/config', 'core/url'],
-    function($, ajax, templates, notification, Cfg, Url) {
+define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/config', 'core/url', 'core/str'],
+    function($, ajax, templates, notification, Cfg, Url, str) {
+
+    var RATING_SOLVED = 3;
+    var RATING_REMOVE_SOLVED = 30;
+    var RATING_HELPFUL = 4;
+    var RATING_REMOVE_HELPFUL = 40;
 
     var t = {
+
         /**
          * Reoords a upvote / downvote.
          * @param {int} discussionid
@@ -79,79 +85,6 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                     templates.replaceNode($('.user-details,.author').find('a[href*="id=' + response.ownerid + '"]')
                         .siblings('span'), '<span>' + response.ownerreputation + '</span>', "");
                 }
-
-                // Check if post is an answer or a comment.
-                var node = $('#p' + postid).parent();
-                var classattr = node.attr('class');
-
-                var d = new Date(node.find('.user-action-time').text());
-
-                if (node.attr('role') !== 'main' && // Question.
-                    node.children('div').first().attr('class').indexOf('status') < 0 && // Mark.
-                    classattr !== 'intend') { // Comment.
-
-                    // Post is not the question, not a comment and not marked as helpful/solved.
-                    // Update order of posts.
-                    var success = false;
-                    var votes;
-
-                    if (ratingid === 1 || ratingid === 20) {
-                        // Post rating has been reduced.
-                        var nextsibling;
-
-                        node.nextAll().each(function() {
-                            nextsibling = $(this);
-                            votes = parseInt($('.votes p', this).text());
-                            if (votes < response.postrating ||
-                                (votes === response.postrating &&
-                                d < new Date(nextsibling.find('.user-action-time').text()))) {
-                                success = true;
-                                return false;
-                            }
-                            return true;
-                        });
-
-                        // Insert before Sibling.
-                        if (success) {
-                            node.detach();
-                            node.insertBefore(nextsibling);
-                        } else if (nextsibling) {
-                            // Insert as last Element.
-                            node.detach();
-                            node.insertAfter(nextsibling);
-                        }
-                    } else {
-                        // Post reating has been increased.
-                        var prevsibling;
-
-                        node.prevUntil(':not(.tmargin)').each(function() {
-                            prevsibling = $(this);
-                            votes = parseInt($('.votes p', this).text());
-                            if (votes > response.postrating ||
-                                (votes === response.postrating &&
-                                d > new Date(prevsibling.find('.user-action-time').text()))) {
-                                success = true;
-                                return false;
-                            }
-                            return true;
-                        });
-
-                        // Insert after Sibling.
-                        if (success) {
-                            node.detach();
-                            node.insertAfter(prevsibling);
-                        } else {
-                            if (prevsibling) {
-                                // Insert as first Element.
-                                node.detach();
-                                node.insertBefore(prevsibling);
-                            }
-                        }
-                    }
-                }
-
-                $(window).scrollTop($('#p' + postid).offset().top);
-
             }).fail(notification.exception);
 
             return vote;
@@ -190,6 +123,163 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 $(event.target).parent().toggleClass('active');
                 $(event.target).parent().prevAll('a').removeClass('active');
             });
+
+            $(".marksolved").on("click", function(event) {
+                var post = $(event.target).parents('.moodleoverflowpost');
+
+                if (post.hasClass('statusteacher') || post.hasClass('statusboth')) {
+                    // Remove solution mark.
+                    t.recordvote(discussionid, RATING_REMOVE_SOLVED, userid, event)[0].then(function() {
+                        t.removeSolvedFromPost(post);
+                    });
+                } else {
+                    // Add solution mark.
+                    t.recordvote(discussionid, RATING_SOLVED, userid, event)[0].then(function() {
+                        // Remove other solution mark in dom.
+                        t.removeOtherSolved(post.parent().parent());
+                        if (post.hasClass('statusstarter')) {
+                            post.removeClass('statusstarter');
+                            post.addClass('statusboth');
+                        } else {
+                            post.addClass('statusteacher');
+                        }
+
+                        var promiseStringNotSolved = str.get_string('marknotsolved', 'mod_moodleoverflow');
+                        $.when(promiseStringNotSolved).done(function(string) {
+                            $(event.target).text(string);
+                        });
+
+                        t.redoStatus(post);
+                    });
+                }
+
+
+            });
+
+            $(".markhelpful").on("click", function(event) {
+                var post = $(event.target).parents('.moodleoverflowpost');
+
+                if (post.hasClass('statusstarter') || post.hasClass('statusboth')) {
+                    // Remove helpful mark.
+                    t.recordvote(discussionid, RATING_REMOVE_HELPFUL, userid, event)[0].then(function() {
+                        t.removeHelpfulFromPost(post);
+                    });
+                } else {
+                    // Add helpful mark.
+                    t.recordvote(discussionid, RATING_HELPFUL, userid, event)[0].then(function() {
+                        // Remove other helpful mark in dom.
+                        t.removeOtherHelpful(post.parent().parent());
+                        if (post.hasClass('statusteacher')) {
+                            post.removeClass('statusteacher');
+                            post.addClass('statusboth');
+                        } else {
+                            post.addClass('statusstarter');
+                        }
+
+                        var promiseStringNotHelpful = str.get_string('marknothelpful', 'mod_moodleoverflow');
+                        $.when(promiseStringNotHelpful).done(function(string) {
+                            $(event.target).text(string);
+                        });
+                        t.redoStatus(post);
+                    });
+                }
+
+            });
+        },
+
+        removeHelpfulFromPost: function (post) {
+            if (post.hasClass('statusstarter')) {
+                post.removeClass('statusstarter');
+            } else {
+                post.removeClass('statusboth');
+                post.addClass('statusteacher');
+            }
+
+            t.redoStatus(post);
+
+            var promiseHelpful = str.get_string('markhelpful', 'mod_moodleoverflow');
+            $.when(promiseHelpful).done(function (string) {
+                post.find('.markhelpful').text(string);
+            });
+        },
+
+        removeOtherHelpful: function(root) {
+            var formerhelpful = root.find('.statusstarter, .statusboth');
+            if (formerhelpful.length > 0) {
+                t.removeHelpfulFromPost(formerhelpful);
+            }
+        },
+
+        removeSolvedFromPost: function(post) {
+            if (post.hasClass('statusteacher')) {
+                post.removeClass('statusteacher');
+            } else {
+                post.removeClass('statusboth');
+                post.addClass('statusstarter');
+            }
+
+            t.redoStatus(post);
+
+            var promiseHelpful = str.get_string('marksolved', 'mod_moodleoverflow');
+            $.when(promiseHelpful).done(function(string) {
+                post.find('.marksolved').text(string);
+            });
+        },
+
+        removeOtherSolved: function(root) {
+            var formersolution = root.find('.statusteacher, .statusboth');
+            if (formersolution.length > 0) {
+                t.removeSolvedFromPost(formersolution);
+            }
+        },
+
+        /**
+         * Redoes the post status
+         * @param {object} post dom with .moodleoverflowpost which status should be redone
+         */
+        redoStatus: function(post) {
+            if ($(post).hasClass('statusboth')) {
+                var statusBothRequest = [
+                    {key: 'teacherrating', component: 'mod_moodleoverflow'},
+                    {key: 'starterrating', component: 'mod_moodleoverflow'},
+                    {key: 'bestanswer', component: 'mod_moodleoverflow'}
+                ];
+                str.get_strings(statusBothRequest).then(function(results) {
+                    var circle = templates.renderPix('status/c_circle', 'mod_moodleoverflow', results[0]);
+                    var box = templates.renderPix('status/b_box', 'mod_moodleoverflow', results[1]);
+                    $.when(box, circle).done(function(boxImg, circleImg) {
+                        post.find('.status').html(boxImg + circleImg + results[2]);
+                    });
+                    return results;
+                });
+            } else if ($(post).hasClass('statusteacher')) {
+                var statusTeacherRequest = [
+                    {key: 'teacherrating', component: 'mod_moodleoverflow'},
+                    {key: 'solvedanswer', component: 'mod_moodleoverflow'}
+                ];
+                str.get_strings(statusTeacherRequest).then(function(results) {
+                    var circle = templates.renderPix('status/c_outline', 'mod_moodleoverflow', results[0]);
+                    $.when(circle).done(function(circleImg) {
+                        post.find('.status').html(circleImg + results[1]);
+                    });
+                    return results;
+                });
+            } else if ($(post).hasClass('statusstarter')) {
+                var statusStarterRequest = [
+                    {key: 'starterrating', component: 'mod_moodleoverflow'},
+                    {key: 'helpfulanswer', component: 'mod_moodleoverflow'}
+                ];
+                str.get_strings(statusStarterRequest).then(function(results) {
+                    var box = templates.renderPix('status/b_outline', 'mod_moodleoverflow', results[0]);
+                    $.when(box).done(function(boxImg) {
+                        post.find('.status').html(boxImg + results[1]);
+                    });
+                    return results;
+                });
+            } else {
+                post.find('.status').html('');
+            }
+
         }
     };
 

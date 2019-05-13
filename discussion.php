@@ -81,7 +81,7 @@ if ($ratingid) {
         }
 
         // Return to the discussion.
-        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id . '#p' . $ratedpost);
+        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id);
         redirect($returnto);
     }
 }

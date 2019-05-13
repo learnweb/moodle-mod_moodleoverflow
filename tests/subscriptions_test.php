@@ -428,7 +428,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertTrue(\mod_moodleoverflow\subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext));
 
         // Check that the user is currently subscribed to the moodleoverflow.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow), $modulecontext);
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow));
 
         // Post a discussion to the moodleoverflow.
         list($discussion, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);

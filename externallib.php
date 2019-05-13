@@ -114,16 +114,14 @@ class mod_moodleoverflow_external extends external_api {
         if (!confirm_sesskey($sesskey)) {
             print_error('invalidsesskey');
         }
-        $postownerid = moodleoverflow_get_post_full($params['postid'])->userid;
-        if ($postownerid == $USER->id) {
-            print_error('rateownpost', 'moodleoverflow');
-        }
 
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,
             $params['postid'], $params['ratingid'], $cm)) {
             print_error('ratingfailed', 'moodleoverflow');
         }
+
+        $postownerid = moodleoverflow_get_post_full($params['postid'])->userid;
         $rating      = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id,
             $params['postid']);
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
