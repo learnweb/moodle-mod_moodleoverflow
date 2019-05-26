@@ -40,6 +40,8 @@ defined('MOODLE_INTERNAL') || die();
  */
 function xmldb_moodleoverflow_upgrade($oldversion) {
     global $CFG;
+    global $DB; // @mfernandriu modifications
+    $dbman = $DB->get_manager();
 
     if ($oldversion < 2017110713) {
         // Migrate config.
@@ -82,8 +84,8 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017110713, 'moodleoverflow');
     }
 
-    // @mfernandru modifications
-    if ($oldversion < 2019052300) {
+    // @mfernandriu modifications
+    if ($oldversion < 2019052600) {
 
         // Define table moodleoverflow_grades to be created.
         $table = new xmldb_table('moodleoverflow_grades');
@@ -133,7 +135,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         }
 
         // Moodleoverflow savepoint reached.
-        upgrade_mod_savepoint(true, 2019052300, 'moodleoverflow');
+        upgrade_mod_savepoint(true, 2019052600, 'moodleoverflow');
     }
 
     return true;

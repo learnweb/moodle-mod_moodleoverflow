@@ -134,6 +134,10 @@ class mod_moodleoverflow_external extends external_api {
 
         $transaction->allow_commit();
 
+        // @mfernandriu modifications
+        moodleoverflow_update_user_grade($moodleoverflow,$ownerrating,$postownerid);
+        moodleoverflow_update_user_grade($moodleoverflow,$raterrating,$USER->id);
+
         return $params;
     }
 }

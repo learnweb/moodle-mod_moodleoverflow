@@ -470,9 +470,9 @@ class ratings {
         $sql = "SELECT r.id, r.postid as post, r.rating
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_ratings} r ON p.id = r.postid
-                 WHERE p.userid = ? AND NOT r.userid = ?
+                 WHERE p.userid = ? AND NOT r.userid = ? AND r.moodleoverflowid = ?
               ORDER BY r.postid ASC";
-        $params = array($userid, $userid);
+        $params = array($userid, $userid, $moodleoverflowid);
         $records = $DB->get_records_sql($sql, $params);
 
         // Check if there are results.

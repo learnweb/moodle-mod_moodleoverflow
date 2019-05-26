@@ -1249,10 +1249,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // The rating of the user.
     $postuserrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);
 
-    // @mfernandriu modifications
-    moodleoverflow_update_user_grade($moodleoverflow,$postuserrating,$postinguser);
-
-
     // The name of the user and the date modified.
     $by = new stdClass();
     $by->date = userdate($post->modified);
@@ -1840,7 +1836,7 @@ function moodleoverflow_update_user_grade($moodleoverflow,$postuserrating,$posti
     // check wheter moodleoverlfow object has the added params
     if($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0){
 
-        moodleoverflow_update_user_grade_on_db($moodleoverflow,$postuserrating,$postinguser->id);
+        moodleoverflow_update_user_grade_on_db($moodleoverflow,$postuserrating,$postinguser);
     }
 }
 
