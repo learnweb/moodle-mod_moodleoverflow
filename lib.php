@@ -1126,8 +1126,7 @@ function moodleoverflow_get_user_grades($moodleoverflow, $userid=0){
 
     $sql = "SELECT u.id AS userid, g.grade AS rawgrade
               FROM {user} u, {moodleoverflow_grades} g
-             WHERE u.id = g.userid AND g.moodleoverflowid = :moodleoverflowid
-                   $and";
+             WHERE u.id = g.userid AND g.moodleoverflowid = :moodleoverflowid". $and;
 
     return $DB->get_records_sql($sql, $params);
 }
@@ -1174,6 +1173,8 @@ function moodleoverflow_update_grades($moodleoverflow, $userid, $nullifnone = nu
  */
 function moodleoverflow_grade_item_update($moodleoverflow, $grades=null){
     global $CFG;
+    global $DB;
+
     if (!function_exists('grade_update')) { //workaround for buggy PHP versions
         require_once($CFG->libdir.'/gradelib.php');
     }
@@ -1195,5 +1196,11 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades=null){
         $grades = NULL;
     }
 
-    return grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow', $moodleoverflow->id, 0, $grades, $params);
+    $grade_update = grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow', $moodleoverflow->id, 0, $grades, $params);
+
+    //modify grade item category id
+    $params = ['itemname'=>$moodleoverflow->name, 'idnumber'=>$moodleoverflow->id];
+    $DB->set_field('grade_items', 'categoryid', $moodleoverflow->gradecat, $params);
+
+    return $grade_update;
 }
