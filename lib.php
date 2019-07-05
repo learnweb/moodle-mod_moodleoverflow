@@ -92,6 +92,11 @@ function moodleoverflow_supports($feature) {
             return true;
         case FEATURE_BACKUP_MOODLE2:
             return true;
+
+        // @mfernandriu modifications
+        case FEATURE_GRADE_HAS_GRADE:
+            return true;
+
         default:
             return null;
     }
@@ -536,14 +541,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
             // Add the link to the menu.
             $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
         }
-    }
-
-    // Display a link to update grades
-    if ($canviewreports) {
-
-        // Add the link to the menu.
-        $url = new moodle_url('/mod/moodleoverflow/report.php', array('id' => $PAGE->cm->id));
-        $moodleoverflownode->add(get_string('updategrades', 'moodleoverflow'), $url, navigation_node::TYPE_SETTING);
     }
 }
 
@@ -1199,8 +1196,10 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades=null){
     $grade_update = grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow', $moodleoverflow->id, 0, $grades, $params);
 
     //modify grade item category id
-    $params = ['itemname'=>$moodleoverflow->name, 'idnumber'=>$moodleoverflow->id];
-    $DB->set_field('grade_items', 'categoryid', $moodleoverflow->gradecat, $params);
+    if( !is_null($moodleoverflow->gradecat) && $moodleoverflow->gradecat > 0){
+        $params = ['itemname'=>$moodleoverflow->name, 'idnumber'=>$moodleoverflow->id];
+        $DB->set_field('grade_items', 'categoryid', $moodleoverflow->gradecat, $params);
+    }
 
     return $grade_update;
 }
