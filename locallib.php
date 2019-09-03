@@ -1834,7 +1834,7 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
 function moodleoverflow_update_user_grade($moodleoverflow, $postuserrating, $postinguser) {
 
     // check wheter moodleoverlfow object has the added params
-    if($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0){
+    if ($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0) {
 
         moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating, $postinguser);
     }
@@ -1882,7 +1882,7 @@ function moodleoverflow_update_all_grades($moodleoverflowid) {
         // get all users id
         $params = ['moodleoverflowid' => $moodleoverflowid];
         $sql = 'SELECT DISTINCT p.userid
-                FROM {moodleoverflow_discussions} AS d, {moodleoverflow_posts} AS p
+                FROM {moodleoverflow_discussions} d, {moodleoverflow_posts} p
                 WHERE d.id = p.discussion AND d.moodleoverflow = :moodleoverflowid';
         $userids = $DB->get_fieldset_sql($sql, $params);
 
