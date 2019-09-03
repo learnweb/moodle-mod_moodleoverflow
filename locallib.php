@@ -1871,7 +1871,7 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     moodleoverflow_update_grades($moodleoverflow, $userid);
 }
 
-function moodleoverflow_update_all_grades($moodleoverflowid) {
+function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
     global $DB;
 
     $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid));
@@ -1895,5 +1895,13 @@ function moodleoverflow_update_all_grades($moodleoverflowid) {
             // calculate the posting user's updated grade
             moodleoverflow_update_user_grade_on_db($moodleoverflow, $userrating, $userid);
         }
+    }
+}
+
+function moodleoverflow_update_all_grades() {
+    global $DB;
+    $cmids = $DB->get_records_select('moodleoverflow', null, null, 'id');
+    foreach ($cmids as $cmid) {
+        moodleoverflow_update_all_grades_for_cm($cmid->id);
     }
 }

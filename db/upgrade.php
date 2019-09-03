@@ -132,6 +132,8 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
+        moodleoverflow_update_all_grades();
+
         // Moodleoverflow savepoint reached.
         upgrade_mod_savepoint(true, 2019052600, 'moodleoverflow');
     }

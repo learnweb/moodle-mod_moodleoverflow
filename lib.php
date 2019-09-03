@@ -190,7 +190,7 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
     $result = $DB->update_record('moodleoverflow', $moodleoverflow);
 
     // Update all grades
-    moodleoverflow_update_all_grades($moodleoverflow->id);
+    moodleoverflow_update_all_grades_for_cm($moodleoverflow->id);
 
     return $result;
 }
