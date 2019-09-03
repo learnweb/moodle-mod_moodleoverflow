@@ -84,7 +84,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017110713, 'moodleoverflow');
     }
 
-
     if ($oldversion < 2019052600) {
 
         // Define table moodleoverflow_grades to be created.

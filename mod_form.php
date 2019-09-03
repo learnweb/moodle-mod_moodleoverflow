@@ -129,7 +129,6 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
         $mform->setDefault('trackingtype', $default);
 
-
         // Grade options
         $mform->addElement('header', 'gradeheading', get_string('grade'));
 

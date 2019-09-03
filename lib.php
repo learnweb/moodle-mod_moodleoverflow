@@ -92,8 +92,6 @@ function moodleoverflow_supports($feature) {
             return true;
         case FEATURE_BACKUP_MOODLE2:
             return true;
-
-
         case FEATURE_GRADE_HAS_GRADE:
             return true;
 
@@ -190,7 +188,6 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
 
     // Update the moodleoverflow instance in the database.
     $result = $DB->update_record('moodleoverflow', $moodleoverflow);
-
 
     // Update all grades
     moodleoverflow_update_all_grades($moodleoverflow->id);
