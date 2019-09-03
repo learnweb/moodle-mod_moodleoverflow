@@ -40,7 +40,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 function xmldb_moodleoverflow_upgrade($oldversion) {
     global $CFG;
-    global $DB; // @mfernandriu modifications
+    global $DB;
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2017110713) {
@@ -84,7 +84,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017110713, 'moodleoverflow');
     }
 
-    // @mfernandriu modifications
+
     if ($oldversion < 2019052600) {
 
         // Define table moodleoverflow_grades to be created.

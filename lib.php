@@ -93,7 +93,7 @@ function moodleoverflow_supports($feature) {
         case FEATURE_BACKUP_MOODLE2:
             return true;
 
-        // @mfernandriu modifications
+
         case FEATURE_GRADE_HAS_GRADE:
             return true;
 
@@ -191,7 +191,7 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
     // Update the moodleoverflow instance in the database.
     $result = $DB->update_record('moodleoverflow', $moodleoverflow);
 
-    // @mfernandriu modifications
+
     // Update all grades
     moodleoverflow_update_all_grades($moodleoverflow->id);
 
@@ -1100,28 +1100,26 @@ function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
 }
 
 /**
- * mfernandriu modifications
  * Obtain grades from plugin's database tab
  *
  * @param stdClass $moodleoverlfow moodleoverflow object
- * @param int $userid userid
+ * @param int $userid optional userid, 0 means all users.
  *
  * @return array array of grades
  */
 function moodleoverflow_get_user_grades($moodleoverflow, $userid=0) {
     global $CFG, $DB;
 
-    $params = array("moodleoverflowid" => $moodleoverflow->id, "userid" => $userid);
-
-    if ($userid) {
-        $and = ' AND u.id = :userid ';
-    } else {
-        $and = ' AND u.id != :userid ';
-    }
+    $params = array("moodleoverflowid" => $moodleoverflow->id);
 
     $sql = "SELECT u.id AS userid, g.grade AS rawgrade
               FROM {user} u, {moodleoverflow_grades} g
-             WHERE u.id = g.userid AND g.moodleoverflowid = :moodleoverflowid". $and;
+             WHERE u.id = g.userid AND g.moodleoverflowid = :moodleoverflowid";
+
+    if ($userid) {
+        $sql .= ' AND u.id = :userid ';
+        $params["userid"] = $userid;
+    }
 
     return $DB->get_records_sql($sql, $params);
 }

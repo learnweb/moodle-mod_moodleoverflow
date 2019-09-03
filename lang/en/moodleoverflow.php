@@ -382,7 +382,7 @@ $string['privacy:discussionsubscriptionpreference'] = 'You have chosen the follo
 $string['privacy:readtrackingdisabled'] = 'You have chosen to not track which posts that you have read within this forum.';
 $string['privacy:postwasread'] = 'This post was first read on {$a->firstread} and most recently read on {$a->lastread}';
 
-// @mfernandriu modifications
+
 $string['scalefactor'] = 'Scale factor';
 $string['scalefactor_help'] = 'The user rating is divided by the scale factor to obtain each user\'s grade. If the resulting grade is greater than the maximum grade, the value is limited to the specified maximum grade';
 $string['scalefactorerror'] = 'Scale factor must be a positive integer different than 0';

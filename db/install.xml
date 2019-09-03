@@ -20,9 +20,9 @@
         <FIELD NAME="ratingpreference" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="coursewidereputation" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="allownegativereputation" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="grademaxgrade" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="@mfernadriu modifications"/>
-        <FIELD NAME="gradescalefactor" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="@mfernandriu modifications"/>
-        <FIELD NAME="gradecat" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="@mfernandriu modifications"/>
+        <FIELD NAME="grademaxgrade" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="gradescalefactor" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="gradecat" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -157,7 +157,7 @@
         <INDEX NAME="userid-moodleoverflowid" UNIQUE="false" FIELDS="userid, moodleoverflowid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="moodleoverflow_grades" COMMENT="@mfernandriu modifications">
+    <TABLE NAME="moodleoverflow_grades">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="moodleoverflowid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
