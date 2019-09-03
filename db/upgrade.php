@@ -107,7 +107,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-
         // Define table moodleoverflow to be edited
         $table = new xmldb_table('moodleoverflow');
 

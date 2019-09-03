@@ -129,7 +129,6 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
         $mform->setDefault('trackingtype', $default);
 
-
         // @mfernandriu modifications
         // Grade options
         $mform->addElement('header', 'gradeheading', get_string('grade'));
@@ -143,7 +142,6 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->setType('gradescalefactor', PARAM_INT);
         $mform->addRule('gradescalefactor', get_string('scalefactorerror', 'moodleoverflow'), 'regex', '/^[0-9]*$/', 'client');
 
-
         if ($this->_features->gradecat) {
             $mform->addElement(
                 'select', 'gradecat',
@@ -152,7 +150,6 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             );
             $mform->addHelpButton('gradecat', 'gradecategoryonmodform', 'grades');
         }
-
 
         // Rating options.
         $mform->addElement('header', 'ratingheading', get_string('ratingheading', 'moodleoverflow'));
