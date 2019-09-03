@@ -480,7 +480,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $subscdisabled   = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
     $cansubscribe    = ($activeenrolled AND !$forcesubscribed AND (!$subscdisabled OR $canmanage));
     $cantrack        = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-    $canviewreports  = has_capability('mod/moodleoverflow:viewreports', $PAGE->cm->context);
 
     // Display a link to the index.
     if ($enrolled AND $activeenrolled) {
