@@ -185,10 +185,12 @@ class ratings {
      *
      * @param int  $moodleoverflowid
      * @param null $userid
+     * @param bool $forcesinglerating If true you only get the reputation for the given $moodleoverflowid,
+     * even if coursewidereputation = true
      *
      * @return int
      */
-    public static function moodleoverflow_get_reputation($moodleoverflowid, $userid = null) {
+    public static function moodleoverflow_get_reputation($moodleoverflowid, $userid = null, $forcesinglerating = false) {
         global $DB, $USER;
 
         // Get the user id.
@@ -202,7 +204,7 @@ class ratings {
         }
 
         // Check whether the reputation can be summed over the whole course.
-        if ($moodleoverflow->coursewidereputation) {
+        if ($moodleoverflow->coursewidereputation && !$forcesinglerating) {
             return self::moodleoverflow_get_reputation_course($moodleoverflow->course, $userid);
         }
 
@@ -559,7 +561,8 @@ class ratings {
         // Get all moodleoverflow instances in this course.
         $sql = "SELECT id
                   FROM {moodleoverflow}
-                 WHERE course = ?";
+                 WHERE course = ?
+                   AND coursewidereputation = 1";
         $params = array($course->id);
         $instances = $DB->get_records_sql($sql, $params);
 

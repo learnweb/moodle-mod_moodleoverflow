@@ -1890,7 +1890,7 @@ function moodleoverflow_update_all_grades($moodleoverflowid) {
         foreach ($userids as $userid) {
 
             // get user reputation
-            $userrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid);
+            $userrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid, true);
 
             // calculate the posting user's updated grade
             moodleoverflow_update_user_grade_on_db($moodleoverflow, $userrating, $userid);
