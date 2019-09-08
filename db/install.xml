@@ -157,7 +157,7 @@
         <INDEX NAME="userid-moodleoverflowid" UNIQUE="false" FIELDS="userid, moodleoverflowid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="moodleoverflow_grades">
+    <TABLE NAME="moodleoverflow_grades" COMMENT="Tracks users grade">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="moodleoverflowid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
