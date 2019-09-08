@@ -1880,10 +1880,16 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
     if ($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0) {
 
         // get all users id
-        $params = ['moodleoverflowid' => $moodleoverflowid];
-        $sql = 'SELECT DISTINCT p.userid
-                FROM {moodleoverflow_discussions} d, {moodleoverflow_posts} p
-                WHERE d.id = p.discussion AND d.moodleoverflow = :moodleoverflowid';
+        $params = ['moodleoverflowid' => $moodleoverflowid, 'moodleoverflowid2' => $moodleoverflowid];
+        $sql = 'SELECT DISTINCT u.userid FROM (
+                    SELECT p.userid as userid
+                    FROM {moodleoverflow_discussions} d, {moodleoverflow_posts} p
+                    WHERE d.id = p.discussion AND d.moodleoverflow = :moodleoverflowid
+                    UNION
+                    SELECT r.userid as userid
+                    FROM {moodleoverflow_ratings} r
+                    WHERE r.moodleoverflowid = :moodleoverflowid2
+                ) as u';
         $userids = $DB->get_fieldset_sql($sql, $params);
 
         // iterate all users

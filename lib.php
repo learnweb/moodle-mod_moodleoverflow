@@ -1184,7 +1184,8 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades=null) {
         $grades = null;
     }
 
-    $gradeupdate = grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow', $moodleoverflow->id, 0, $grades, $params);
+    $gradeupdate = grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow',
+            $moodleoverflow->id, 0, $grades, $params);
 
     // Modify grade item category id.
     if (!is_null($moodleoverflow->gradecat) && $moodleoverflow->gradecat > 0) {
