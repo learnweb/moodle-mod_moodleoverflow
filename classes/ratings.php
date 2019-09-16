@@ -524,7 +524,7 @@ class ratings {
         $reputation += get_config('moodleoverflow', 'votescalevote') * $votes->amount;
 
         // Can the reputation of a user be negative?
-        if ($moodleoverflow->allownegativereputation AND $reputation <= 0) {
+        if (!$moodleoverflow->allownegativereputation AND $reputation <= 0) {
             $reputation = 0;
         }
 
