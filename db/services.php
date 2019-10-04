@@ -35,12 +35,3 @@ $functions = array(
         'capabilities' => 'mod/moodleoverflow:ratepost'
     )
 );
-
-$services = array(
-    'mod_moodleoverflow_service' => array(
-        'functions'          => array('mod_moodleoverflow_record_vote'),
-        'requiredcapability' => 'mod/moodleoverflow:ratepost',
-        'restrictedusers'    => 0,
-        'enabled'            => 1,
-    )
-);
