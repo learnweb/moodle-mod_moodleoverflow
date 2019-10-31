@@ -129,6 +129,27 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
         $mform->setDefault('trackingtype', $default);
 
+        // Grade options
+        $mform->addElement('header', 'gradeheading', get_string('grade'));
+
+        $mform->addElement('text', 'grademaxgrade', get_string('modgrademaxgrade', 'grades'));
+        $mform->setType('grademaxgrade', PARAM_INT);
+        $mform->addRule('grademaxgrade', get_string('grademaxgradeerror', 'moodleoverflow'), 'regex', '/^[0-9]*$/', 'client');
+
+        $mform->addElement('text', 'gradescalefactor', get_string('scalefactor', 'moodleoverflow'));
+        $mform->addHelpButton('gradescalefactor', 'scalefactor', 'moodleoverflow');
+        $mform->setType('gradescalefactor', PARAM_INT);
+        $mform->addRule('gradescalefactor', get_string('scalefactorerror', 'moodleoverflow'), 'regex', '/^[0-9]*$/', 'client');
+
+        if ($this->_features->gradecat) {
+            $mform->addElement(
+                'select', 'gradecat',
+                get_string('gradecategoryonmodform', 'grades'),
+                grade_get_categories_menu($COURSE->id, $this->_outcomesused)
+            );
+            $mform->addHelpButton('gradecat', 'gradecategoryonmodform', 'grades');
+        }
+
         // Rating options.
         $mform->addElement('header', 'ratingheading', get_string('ratingheading', 'moodleoverflow'));
 

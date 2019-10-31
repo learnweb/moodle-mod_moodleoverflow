@@ -14,22 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Redirect the user to the appropriate submission related page
- *
- * @package   mod_moodleoverflow
- * @category  grade
- * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+require_once(__DIR__ . "/../../config.php");
 
-require_once(__DIR__ . "../../../config.php");
-require_login();
+$id = required_param('id', PARAM_INT);
 
-$id = required_param('id', PARAM_INT);// Course module ID.
-// Item number may be != 0 for activities that allow more than one grade per user.
-$itemnumber = optional_param('itemnumber', 0, PARAM_INT);
-$userid     = optional_param('userid', 0, PARAM_INT); // Graded user ID (optional).
+$cm = get_coursemodule_from_id('moodleoverflow', $id, 0, false, MUST_EXIST);
 
-// In the simplest case just redirect to the view page.
-redirect('view.php?id=' . $id);
+redirect('view.php?id='.$cm->id);

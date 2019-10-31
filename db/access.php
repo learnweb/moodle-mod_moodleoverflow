@@ -233,4 +233,5 @@ $capabilities = array(
         ),
         'clonepermissionsfrom' => 'mod/forum:createattachment'
     ),
+
 );

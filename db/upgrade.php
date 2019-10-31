@@ -40,6 +40,8 @@ defined('MOODLE_INTERNAL') || die();
  */
 function xmldb_moodleoverflow_upgrade($oldversion) {
     global $CFG;
+    global $DB;
+    $dbman = $DB->get_manager();
 
     if ($oldversion < 2017110713) {
         // Migrate config.
@@ -81,5 +83,60 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         // Opencast savepoint reached.
         upgrade_mod_savepoint(true, 2017110713, 'moodleoverflow');
     }
+
+    if ($oldversion < 2019052600) {
+
+        // Define table moodleoverflow_grades to be created.
+        $table = new xmldb_table('moodleoverflow_grades');
+
+        // Adding fields to table moodleoverflow_grades.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('moodleoverflowid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('grade', XMLDB_TYPE_FLOAT, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('late', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('completed', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table moodleoverflow_grades.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('moodleoverflowid', XMLDB_KEY_FOREIGN, array('moodleoverflowid'), 'moodleoverflow', array('id'));
+
+        // Conditionally launch create table for moodleoverflow_grades.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table moodleoverflow to be edited
+        $table = new xmldb_table('moodleoverflow');
+
+        // Define field grademaxgrade to be added to moodleoverflow.
+        $field = new xmldb_field('grademaxgrade', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'allownegativereputation');
+
+        // Conditionally launch add field grademaxgrade.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field gradescalefactor to be added to moodleoverflow.
+        $field = new xmldb_field('gradescalefactor', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'grademaxgrade');
+
+        // Conditionally launch add field gradescalefactor.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('gradecat', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'gradescalefactor');
+
+        // Conditionally launch add field gradecat.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        moodleoverflow_update_all_grades();
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2019052600, 'moodleoverflow');
+    }
+
     return true;
 }

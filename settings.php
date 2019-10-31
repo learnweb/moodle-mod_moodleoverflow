@@ -82,30 +82,34 @@ if ($ADMIN->fulltree) {
         get_string('allowratingchange', 'moodleoverflow'), get_string('configallowratingchange', 'moodleoverflow'), 1));
 
     // Set scales for the reputation.
+    $votesettings = [];
 
     // Votescale: How much reputation gives a vote for another post?
-    $settings->add(new admin_setting_configtext('moodleoverflow/votescalevote', get_string('votescalevote', 'moodleoverflow'),
+    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescalevote', get_string('votescalevote', 'moodleoverflow'),
         get_string('configvotescalevote', 'moodleoverflow'), 1, PARAM_INT));
 
     // Votescale: How much reputation gives a post that has been downvoted?
-    $settings->add(new admin_setting_configtext('moodleoverflow/votescaledownvote',
+    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescaledownvote',
         get_string('votescaledownvote', 'moodleoverflow'), get_string('configvotescaledownvote', 'moodleoverflow'), -5, PARAM_INT));
 
     // Votescale: How much reputation gives a post that has been upvoted?
-    $settings->add(new admin_setting_configtext('moodleoverflow/votescaleupvote', get_string('votescaleupvote', 'moodleoverflow'),
+    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescaleupvote', get_string('votescaleupvote', 'moodleoverflow'),
         get_string('configvotescaleupvote', 'moodleoverflow'), 5, PARAM_INT));
 
     // Votescale: How much reputation gives a post that is marked as solved.
-    $settings->add(new admin_setting_configtext('moodleoverflow/votescalesolved', get_string('votescalesolved', 'moodleoverflow'),
+    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescalesolved', get_string('votescalesolved', 'moodleoverflow'),
         get_string('configvotescalesolved', 'moodleoverflow'), 30, PARAM_INT));
 
     // Votescale: How much reputation gives a post that is marked as helpful.
-    $settings->add(new admin_setting_configtext('moodleoverflow/votescalehelpful', get_string('votescalehelpful', 'moodleoverflow'),
+    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescalehelpful', get_string('votescalehelpful', 'moodleoverflow'),
         get_string('configvotescalehelpful', 'moodleoverflow'), 15, PARAM_INT));
 
     // Number of discussions per page.
-    $settings->add(new admin_setting_configtext('moodleoverflow/maxmailingtime', get_string('maxmailingtime', 'moodleoverflow'),
+    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/maxmailingtime', get_string('maxmailingtime', 'moodleoverflow'),
         get_string('configmaxmailingtime', 'moodleoverflow'), 48, PARAM_INT));
 
+    foreach ($votesettings as $setting) {
+        $setting->set_updatedcallback('moodleoverflow_update_all_grades');
+    }
 
 }

@@ -383,9 +383,11 @@ $string['privacy:readtrackingdisabled'] = 'You have chosen to not track which po
 $string['privacy:postwasread'] = 'This post was first read on {$a->firstread} and most recently read on {$a->lastread}';
 
 
-
-
-
-
-
-
+$string['scalefactor'] = 'Scale factor';
+$string['scalefactor_help'] = 'The user rating is divided by the scale factor to obtain each user\'s grade. If the resulting grade is greater than the maximum grade, the value is limited to the specified maximum grade';
+$string['scalefactorerror'] = 'Scale factor must be a positive integer different than 0';
+$string['grademaxgradeerror'] = 'Maximum grade must be a positive integer different than 0';
+$string['updategrades'] = 'Update grades';
+$string['gradesreport'] = 'Grades report';
+$string['gradesupdated'] = 'Grades updated';
+$string['taskupdategrades'] = 'Moodleoverflow maintenance job to update grades';

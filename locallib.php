@@ -1820,10 +1820,94 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
 
     // Count the discussions.
     $sql = "SELECT COUNT(d.id)
-              FROM {moodleoverflow_discussions} d
-             WHERE d.moodleoverflow = ?";
+            FROM {moodleoverflow_discussions} d
+            WHERE d.moodleoverflow = ?";
     $amount = $DB->get_field_sql($sql, array($moodleoverflow->id));
 
     // Return the amount.
     return $amount;
+}
+
+
+
+
+function moodleoverflow_update_user_grade($moodleoverflow, $postuserrating, $postinguser) {
+
+    // check wheter moodleoverlfow object has the added params
+    if ($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0) {
+
+        moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating, $postinguser);
+    }
+}
+
+function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating, $userid) {
+    global $DB;
+
+    // calculate the posting user's updated grade
+    $grade = $postuserrating / $moodleoverflow->gradescalefactor;
+
+    if ($grade > $moodleoverflow->grademaxgrade) {
+
+        $grade = $moodleoverflow->grademaxgrade;
+    }
+
+    // save updated grade on local table
+    if ($DB->record_exists('moodleoverflow_grades', array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id))) {
+
+        $DB->set_field('moodleoverflow_grades', 'grade', $grade, array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id ));
+
+    } else {
+
+        $gradedataobject = new stdClass();
+        $gradedataobject->moodleoverflowid = $moodleoverflow->id;
+        $gradedataobject->userid = $userid;
+        $gradedataobject->grade = $grade;
+        $gradedataobject->late = 0;
+        $gradedataobject->completed = 0;
+        $DB->insert_record('moodleoverflow_grades', $gradedataobject, false);
+    }
+
+                // update gradebook
+    moodleoverflow_update_grades($moodleoverflow, $userid);
+}
+
+function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
+    global $DB;
+
+    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid));
+
+    // check wheter moodleoverlfow object has the added params
+    if ($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0) {
+
+        // get all users id
+        $params = ['moodleoverflowid' => $moodleoverflowid, 'moodleoverflowid2' => $moodleoverflowid];
+        $sql = 'SELECT DISTINCT u.userid FROM (
+                    SELECT p.userid as userid
+                    FROM {moodleoverflow_discussions} d, {moodleoverflow_posts} p
+                    WHERE d.id = p.discussion AND d.moodleoverflow = :moodleoverflowid
+                    UNION
+                    SELECT r.userid as userid
+                    FROM {moodleoverflow_ratings} r
+                    WHERE r.moodleoverflowid = :moodleoverflowid2
+                ) as u';
+        $userids = $DB->get_fieldset_sql($sql, $params);
+
+        // iterate all users
+        foreach ($userids as $userid) {
+
+            // get user reputation
+            $userrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid, true);
+
+            // calculate the posting user's updated grade
+            moodleoverflow_update_user_grade_on_db($moodleoverflow, $userrating, $userid);
+        }
+    }
+}
+
+function moodleoverflow_update_all_grades() {
+    global $DB;
+    $cmids = $DB->get_records_select('moodleoverflow', null, null, 'id');
+    foreach ($cmids as $cmid) {
+        moodleoverflow_update_all_grades_for_cm($cmid->id);
+    }
 }
