@@ -495,7 +495,7 @@ if ($USER->id != $post->userid) {
         $post->message .= '<p><span class="edited">(' . get_string('editedby', 'moodleoverflow', $data) . ')</span></p>';
     } else {
         $data->name = fullname($USER);
-        $post->message .= "\n\n(" . get_string('editedby', 'moodleoverflow', $data) - ')';
+        $post->message .= "\n\n(" . get_string('editedby', 'moodleoverflow', $data) . ')';
     }
 
     // Delete the temporary object.
