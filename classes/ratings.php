@@ -140,9 +140,8 @@ class ratings {
             // Get other ratings in the discussion.
             $sql = "SELECT *
                     FROM {moodleoverflow_ratings}
-                    WHERE discussionid = $discussion->id AND rating = $rating
-                    LIMIT 1";
-            $otherrating = $DB->get_record_sql($sql);
+                    WHERE discussionid = ? AND rating = ?";
+            $otherrating = $DB->get_record_sql($sql, [ $discussion->id, $rating ]);
 
             // If there is an old rating, update it. Else create a new rating record.
             if ($otherrating) {
@@ -347,10 +346,9 @@ class ratings {
         // Get the rating.
         $sql = "SELECT firstrated, rating
                   FROM {moodleoverflow_ratings}
-                 WHERE userid = $userid AND postid = $postid AND (rating = 1 OR rating = 2)
-                 LIMIT 1";
+                 WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
 
-        return ($DB->get_record_sql($sql));
+        return ($DB->get_record_sql($sql, [ $userid, $postid ]));
     }
 
     /**
@@ -390,9 +388,9 @@ class ratings {
                        (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 3) AS issolved,
                        (SELECT COUNT(rating) FROM {moodleoverflow_ratings} WHERE postid=p.id AND rating = 4) AS ishelpful
                   FROM {moodleoverflow_posts} p
-                 WHERE p.discussion = $discussionid
+                 WHERE p.discussion = ?
               GROUP BY p.id";
-        $votes = $DB->get_records_sql($sql);
+        $votes = $DB->get_records_sql($sql, [ $discussionid ]);
 
         // A single post is requested.
         if ($postid) {
@@ -596,9 +594,8 @@ class ratings {
         // Get the normal rating.
         $sql = "SELECT *
                 FROM {moodleoverflow_ratings}
-                WHERE userid = $userid AND postid = $postid AND (rating = 1 OR rating = 2)
-                LIMIT 1";
-        $rating['normal'] = $DB->get_record_sql($sql);
+                WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
+        $rating['normal'] = $DB->get_record_sql($sql, [ $userid, $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_DOWNVOTE OR $oldrating == RATING_UPVOTE) {
@@ -608,9 +605,8 @@ class ratings {
         // Get the solved rating.
         $sql = "SELECT *
                 FROM {moodleoverflow_ratings}
-                WHERE userid = $userid AND postid = $postid AND rating = 3
-                LIMIT 1";
-        $rating['solved'] = $DB->get_record_sql($sql);
+                WHERE userid = ? AND postid = ? AND rating = 3";
+        $rating['solved'] = $DB->get_record_sql($sql, [ $userid, $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_SOLVED) {
@@ -620,9 +616,8 @@ class ratings {
         // Get the helpful rating.
         $sql = "SELECT *
                 FROM {moodleoverflow_ratings}
-                WHERE userid = $userid AND postid = $postid AND rating = 4
-                LIMIT 1";
-        $rating['helpful'] = $DB->get_record_sql($sql);
+                WHERE userid = ? AND postid = ? AND rating = 4";
+        $rating['helpful'] = $DB->get_record_sql($sql, [ $userid, $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_HELPFUL) {
