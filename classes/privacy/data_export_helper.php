@@ -157,11 +157,10 @@ class data_export_helper {
               INNER JOIN {moodleoverflow_posts} p ON p.discussion = d.id
               LEFT JOIN {moodleoverflow_read} fr ON fr.postid = p.id AND fr.userid = :readuserid
               LEFT JOIN {moodleoverflow_ratings} rat ON rat.id = (
-                SELECT id FROM {moodleoverflow_ratings} ra
+                SELECT MAX(id) FROM {moodleoverflow_ratings} ra
                 WHERE ra.postid = p.id OR ra.userid = :ratinguserid
-                LIMIT 1
               )
-                   WHERE d.id = :discussionid
+                    WHERE d.id = :discussionid
         ";
         $params = [
             'discussionid' => $discussionid,
