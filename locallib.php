@@ -237,7 +237,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $rowcount = ($rowcount + 1) % 2;
 
         // Format the subjectname and the link to the topic.
-        $preparedarray[$i]['subjecttext'] = format_string($discussion->subject);
+        $preparedarray[$i]['subjecttext'] = format_string($discussion->subject, true, [ 'escape' => false ]);
         $preparedarray[$i]['subjectlink'] = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion;
 
         // Get information about the user who started the discussion.
@@ -823,7 +823,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Format the subject.
     $post->moodleoverflow = $moodleoverflow->id;
-    $post->subject = format_string($post->subject);
+    $post->subject = format_string($post->subject, true, [ 'escape' => false ]);
 
     // Check if the post was read.
     $postread = !empty($post->postread);
@@ -1238,7 +1238,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Set basic variables of the post.
     $mustachedata->postid = $post->id;
-    $mustachedata->subject = format_string($post->subject);
+    $mustachedata->subject = format_string($post->subject, true, [ 'escape' => false ]);
 
     // Post was anonymized.
     if ($post->userid != 0) {
@@ -1355,7 +1355,7 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
             }
 
             // Format the subject.
-            $post->subject = format_string($post->subject);
+            $post->subject = format_string($post->subject, true, [ 'escape' => false ]);
 
             // Determine whether the post has been read by the current user.
             $postread = !empty($post->postread);
