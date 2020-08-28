@@ -1894,6 +1894,9 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
 
         // iterate all users
         foreach ($userids as $userid) {
+            if ($userid == 0) {
+                continue;
+            }
 
             // get user reputation
             $userrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid, true);

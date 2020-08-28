@@ -373,6 +373,11 @@ $string['privacy:metadata:moodleoverflow_tracking'] = 'Information about the tra
 $string['privacy:metadata:moodleoverflow_tracking:userid'] = 'The ID of the user who does not track the forum.';
 $string['privacy:metadata:moodleoverflow_tracking:moodleoverflowid'] = 'The ID of the moodleoverflow forum that is not tracked by the user.';
 
+$string['privacy:metadata:moodleoverflow_grades'] = 'Information about the grade a user got for his contribution in a forum.';
+$string['privacy:metadata:moodleoverflow_grades:userid'] = 'The ID of the user who got the grade.';
+$string['privacy:metadata:moodleoverflow_grades:moodleoverflowid'] = 'The ID of the moodleoverflow forum in which he got the grade.';
+$string['privacy:metadata:moodleoverflow_grades:grade'] = 'The grade the user got.';
+
 $string['privacy:anonym_discussion_name'] = 'Anonymized discussion name';
 $string['privacy:anonym_post_message'] = 'This content has been deleted.';
 $string['privacy:anonym_user_name'] = 'Anonym';
@@ -381,7 +386,7 @@ $string['privacy:subscribedtoforum'] = 'You are subscribed to this forum.';
 $string['privacy:discussionsubscriptionpreference'] = 'You have chosen the following discussion subscription preference for this forum: "{$a->preference}"';
 $string['privacy:readtrackingdisabled'] = 'You have chosen to not track which posts that you have read within this forum.';
 $string['privacy:postwasread'] = 'This post was first read on {$a->firstread} and most recently read on {$a->lastread}';
-
+$string['privacy:grade'] = 'Your grade for this Moodleoverflow forum.';
 
 $string['scalefactor'] = 'Scale factor';
 $string['scalefactor_help'] = 'The user rating is divided by the scale factor to obtain each user\'s grade. If the resulting grade is greater than the maximum grade, the value is limited to the specified maximum grade';
