@@ -189,6 +189,8 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
     // Update the moodleoverflow instance in the database.
     $result = $DB->update_record('moodleoverflow', $moodleoverflow);
 
+    moodleoverflow_grade_item_update($moodleoverflow);
+
     // Update all grades
     moodleoverflow_update_all_grades_for_cm($moodleoverflow->id);
 

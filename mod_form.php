@@ -134,12 +134,12 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         $mform->addElement('text', 'grademaxgrade', get_string('modgrademaxgrade', 'grades'));
         $mform->setType('grademaxgrade', PARAM_INT);
-        $mform->addRule('grademaxgrade', get_string('grademaxgradeerror', 'moodleoverflow'), 'regex', '/^[0-9]*$/', 'client');
+        $mform->addRule('grademaxgrade', get_string('grademaxgradeerror', 'moodleoverflow'), 'regex', '/^[0-9]+$/', 'client');
 
         $mform->addElement('text', 'gradescalefactor', get_string('scalefactor', 'moodleoverflow'));
         $mform->addHelpButton('gradescalefactor', 'scalefactor', 'moodleoverflow');
         $mform->setType('gradescalefactor', PARAM_INT);
-        $mform->addRule('gradescalefactor', get_string('scalefactorerror', 'moodleoverflow'), 'regex', '/^[0-9]*$/', 'client');
+        $mform->addRule('gradescalefactor', get_string('scalefactorerror', 'moodleoverflow'), 'regex', '/^[0-9]+$/', 'client');
 
         if ($this->_features->gradecat) {
             $mform->addElement(
@@ -173,6 +173,9 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();
+
+        $mform->disabledIf('completionusegrade', 'grademaxgrade', 'in', [0, '']);
+        $mform->disabledIf('completionusegrade', 'gradescalefactor', 'in', [0, '']);
 
         // Add standard buttons, common to all modules.
         $this->add_action_buttons();
