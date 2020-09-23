@@ -82,7 +82,7 @@ class ratings {
         $coursecontext = \context_course::instance($course->id);
 
         // Redirect the user if capabilities are missing.
-        $canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext);
+        $canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext, $userid);
         if (!$canrate) {
 
             // Catch unenrolled users.
@@ -776,20 +776,24 @@ class ratings {
      * @param object $moodleoverflow
      * @param null   $cm
      * @param null   $modulecontext
+     * @param null|int $userid
      *
      * @return bool
      */
-    private static function moodleoverflow_user_can_rate($moodleoverflow, $cm = null, $modulecontext = null) {
-
-        // Guests and non-logged-in users can not rate.
-        if (isguestuser() OR !isloggedin()) {
-            return false;
+    private static function moodleoverflow_user_can_rate($moodleoverflow, $cm = null, $modulecontext = null, $userid = null) {
+        global $USER;
+        if (!$userid) {
+            // Guests and non-logged-in users can not rate.
+            if (isguestuser() OR !isloggedin()) {
+                return false;
+            }
+            $userid = $USER->id;
         }
 
         // Retrieve the coursemodule.
         if (!$cm) {
             if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-                pint_error('invalidcoursemodule');
+                print_error('invalidcoursemodule');
             }
         }
 
@@ -799,11 +803,7 @@ class ratings {
         }
 
         // Check the capability.
-        if (has_capability('mod/moodleoverflow:ratepost', $modulecontext)) {
-            return true;
-        } else {
-            return false;
-        }
+        return has_capability('mod/moodleoverflow:ratepost', $modulecontext, $userid);
     }
 
 }

@@ -385,6 +385,22 @@ class data_export_helper {
     }
 
     /**
+     * Exports grade Data
+     * @param \stdClass $forum The
+     * @return bool Whether any data was stored.
+     * @throws \coding_exception
+     */
+    public static function export_grade_data(\stdClass $forum) {
+        if ($forum->grade) {
+            writer::with_context(\context_module::instance($forum->cmid))->export_metadata(
+                    [], 'grade', $forum->grade, get_string('privacy:grade', 'mod_moodleoverflow'));
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Store read-tracking information about a particular forum post.
      *
      * @param \context_module $context  The instance of the forum context.

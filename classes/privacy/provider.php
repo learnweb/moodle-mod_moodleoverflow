@@ -115,6 +115,14 @@ class provider implements
             ],
             'privacy:metadata:moodleoverflow_tracking');
 
+        $collection->add_database_table('moodleoverflow_grades',
+            [
+                'userid' => 'privacy:metadata:moodleoverflow_grades:userid',
+                'moodleoverflowid' => 'privacy:metadata:moodleoverflow_grades:moodleoverflowid',
+                'grade' => 'privacy:metadata:moodleoverflow_grades:grade',
+            ],
+            'privacy:metadata:moodleoverflow_grades');
+
         $collection->link_subsystem('core_files',
             'privacy:metadata:core_files'
         );
@@ -143,6 +151,7 @@ class provider implements
                 LEFT JOIN {moodleoverflow_discuss_subs} ds ON ds.moodleoverflow = mof.id
                 LEFT JOIN {moodleoverflow_ratings} ra ON ra.moodleoverflowid = mof.id
                 LEFT JOIN {moodleoverflow_tracking} track ON track.moodleoverflowid = mof.id
+                LEFT JOIN {moodleoverflow_grades} g ON g.moodleoverflowid = mof.id
                 WHERE (
                     d.userid = :duserid OR
                     d.usermodified = :dmuserid OR
@@ -151,7 +160,8 @@ class provider implements
                     s.userid = :suserid OR
                     ds.userid = :dsuserid OR
                     ra.userid = :rauserid OR
-                    track.userid = :userid
+                    track.userid = :userid OR
+                    g.userid = :guserid
                 )
          ";
 
@@ -165,7 +175,8 @@ class provider implements
             'suserid'      => $userid,
             'dsuserid'     => $userid,
             'rauserid'     => $userid,
-            'userid'       => $userid
+            'userid'       => $userid,
+            'guserid'      => $userid
         ];
 
         $contextlist = new \core_privacy\local\request\contextlist();
@@ -196,14 +207,15 @@ class provider implements
                     mof.*,
                     cm.id AS cmid,
                     s.userid AS subscribed,
-                    track.userid AS tracked
+                    track.userid AS tracked,
+                    g.grade
                 FROM {context} c
                 INNER JOIN {course_modules} cm ON cm.id = c.instanceid
                 INNER JOIN {modules} m ON m.id = cm.module
                 INNER JOIN {moodleoverflow} mof ON mof.id = cm.instance
                 LEFT JOIN {moodleoverflow_subscriptions} s ON s.moodleoverflow = mof.id AND s.userid = :suserid
-                LEFT JOIN {moodleoverflow_ratings} ra ON ra.moodleoverflowid = mof.id AND ra.userid = :rauserid
                 LEFT JOIN {moodleoverflow_tracking} track ON track.moodleoverflowid = mof.id AND track.userid = :userid
+                LEFT JOIN {moodleoverflow_grades} g ON g.moodleoverflowid = mof.id AND g.userid = :guserid
                 WHERE (
                     c.id {$contextsql}
                 )
@@ -211,8 +223,8 @@ class provider implements
 
         $params = [
             'suserid'  => $userid,
-            'rauserid' => $userid,
-            'userid'   => $userid
+            'userid'   => $userid,
+            'guserid'  => $userid
         ];
         $params += $contextparams;
 
@@ -233,6 +245,7 @@ class provider implements
             // Store relevant metadata about this forum instance.
             data_export_helper::export_subscription_data($forum);
             data_export_helper::export_tracking_data($forum);
+            data_export_helper::export_grade_data($forum);
         }
 
         $forums->close();
@@ -278,6 +291,7 @@ class provider implements
             ]
         );
         $DB->delete_records('moodleoverflow_discussions', ['moodleoverflow' => $forum->id]);
+        $DB->delete_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id]);
 
         // Delete all files from the posts.
         $fs = get_file_storage();
@@ -322,6 +336,9 @@ class provider implements
             $DB->delete_records('moodleoverflow_tracking', [
                 'moodleoverflowid' => $forum->id,
                 'userid'           => $userid]);
+            $DB->delete_records('moodleoverflow_grades', [
+                    'moodleoverflowid' => $forum->id,
+                    'userid'           => $userid]);
 
             // Do not delete ratings but reset userid.
             $ratingsql = "userid = :userid AND discussionid IN
@@ -440,6 +457,15 @@ class provider implements
                   JOIN {moodleoverflow_ratings} p ON f.id = p.moodleoverflowid
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
+
+        // Grades table.
+        $sql = "SELECT g.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_grades} g ON f.id = g.moodleoverflowid
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
     }
     /**
      * Delete multiple users within a single context.
@@ -465,6 +491,7 @@ class provider implements
         $DB->delete_records_select('moodleoverflow_subscriptions', $selectmoanduser, $params);
         $DB->delete_records_select('moodleoverflow_read', $selectmoidanduser, $params);
         $DB->delete_records_select('moodleoverflow_discuss_subs', $selectmoanduser, $params);
+        $DB->delete_records_select('moodleoverflow_grades', $selectmoidanduser, $params);
 
         $postsql = "userid {$userinsql} AND discussion IN
             (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :moodleoverflowid)";
@@ -486,7 +513,6 @@ class provider implements
         $DB->set_field_select('moodleoverflow_posts', 'messageformat', FORMAT_PLAIN, $postsql, $params);
         $DB->set_field_select('moodleoverflow_posts', 'userid', 0, $postsql, $params);
 
-        // TODO other tables are: discussions do it like in other delete methods
         // Do not delete discussions but reset userid.
         $DB->set_field_select('moodleoverflow_discussions', 'name', '', $selectmoanduser, $params);
         $DB->set_field_select('moodleoverflow_discussions', 'userid', 0, $selectmoanduser, $params);
