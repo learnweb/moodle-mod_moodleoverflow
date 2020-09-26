@@ -23,6 +23,7 @@ namespace mod_moodleoverflow\search;
 use core_search\document;
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/../../locallib.php');
+
 class moodleoverflowposts extends \core_search\base_mod {
 
     /**
@@ -32,7 +33,7 @@ class moodleoverflowposts extends \core_search\base_mod {
     protected $moodleoverflows = array();
     protected $discussions = array();
 
-    protected static $levels = [CONTEXT_COURSE];
+    protected static $levels = [CONTEXT_MODULE];
 
     public function uses_file_indexing() {
         return false;
