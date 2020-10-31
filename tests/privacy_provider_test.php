@@ -45,7 +45,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     /**
      * Test setUp.
      */
-    public function setUp() {
+    public function setUp(): void {
         $this->resetAfterTest(true);
         $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
     }
