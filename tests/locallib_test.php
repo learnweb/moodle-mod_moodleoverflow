@@ -34,11 +34,11 @@ require_once(__DIR__ . '/../locallib.php');
  */
 class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
 
-    public function setUp() {
+    public function setUp(): void {
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
     }
 
-    public function tearDown() {
+    public function tearDown(): void {
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
     }
 

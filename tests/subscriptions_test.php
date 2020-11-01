@@ -39,7 +39,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
     /**
      * Test setUp.
      */
-    public function setUp() {
+    public function setUp(): void {
         // Clear all caches.
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
         \mod_moodleoverflow\subscriptions::reset_discussion_cache();
@@ -48,7 +48,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
     /**
      * Test tearDown.
      */
-    public function tearDown() {
+    public function tearDown(): void {
         // Clear all caches.
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
         \mod_moodleoverflow\subscriptions::reset_discussion_cache();
