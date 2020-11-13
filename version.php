@@ -28,8 +28,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_moodleoverflow';
-$plugin->version = 2020060500;
-$plugin->release = 'v3.9-r1';
+$plugin->version = 2020111300;
+$plugin->release = 'v3.10-r1';
 $plugin->requires = 2018051703;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->dependencies = array();
