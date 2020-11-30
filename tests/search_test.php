@@ -48,8 +48,7 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
 
         $searchmanager = \core_search\manager::instance();
         $searchmanager->index(true);
-        $search = \core_search\manager::instance();
-        $results = $search->search((object)['q' => $discussion->name]);
+        $results = $searchmanager->search((object)['q' => $discussion->name]);
         $this->assertEquals(2, count($results));
         $this->assertEquals($post1->id, $results[0]->get('itemid'));
         $this->assertEquals($post2->id, $results[1]->get('itemid'));
@@ -71,8 +70,7 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
 
         $searchmanager = \core_search\manager::instance();
         $searchmanager->index(true);
-        $search = \core_search\manager::instance();
-        $results = $search->search((object)['q' => $post->message]);
+        $results = $searchmanager->search((object)['q' => $post->message]);
         $this->assertEquals(1, count($results));
         $this->assertEquals($post->id, $results[0]->get('itemid'));
     }
@@ -96,8 +94,7 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
 
         $searchmanager = \core_search\manager::instance();
         $searchmanager->index(true);
-        $search = \core_search\manager::instance();
-        $results = $search->search((object)['q' => $post->message]);
+        $results = $searchmanager->search((object)['q' => $post->message]);
         $this->assertEquals(0, count($results));
 
         $accessmanager = new \mod_moodleoverflow\search\moodleoverflowposts();
@@ -125,8 +122,7 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
 
         $searchmanager = \core_search\manager::instance();
         $searchmanager->index(true);
-        $search = \core_search\manager::instance();
-        $results = $search->search((object)['q' => $post2->message]);
+        $results = $searchmanager->search((object)['q' => $post2->message]);
         $this->assertEquals(0, count($results));
 
         $accessmanager = new \mod_moodleoverflow\search\moodleoverflowposts();
@@ -151,8 +147,7 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
 
         $searchmanager = \core_search\manager::instance();
         $searchmanager->index(true);
-        $search = \core_search\manager::instance();
-        $results = $search->search((object)['q' => $discussion->name]);
+        $results = $searchmanager->search((object)['q' => $discussion->name]);
         $this->assertEquals(0, count($results));
     }
 
@@ -173,8 +168,7 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
 
         $searchmanager = \core_search\manager::instance();
         $searchmanager->index(true);
-        $search = \core_search\manager::instance();
-        $results = $search->search((object)['q' => $post->message]);
+        $results = $searchmanager->search((object)['q' => $post->message]);
         $this->assertEquals(0, count($results));
 
         $accessmanager = new \mod_moodleoverflow\search\moodleoverflowposts();
