@@ -100,6 +100,9 @@ class moodleoverflowposts extends \core_search\base_mod {
     public function check_access($id) {
         try {
             $post = moodleoverflow_get_post_full($id);
+            if (!$post) {
+                return \core_search\manager::ACCESS_DELETED;
+            }
             if (!$discussion = $this->get_discussion_from_id($post->discussion)) {
                 return \core_search\manager::ACCESS_DELETED;
             }

@@ -473,7 +473,7 @@ function moodleoverflow_get_post_full($postid) {
     $params['postid'] = $postid;
 
     $post = $DB->get_record_sql($sql, $params);
-    if ($post->userid === 0) {
+    if (isset($post->userid) && $post->userid === 0) {
         $post->message = get_string('privacy:anonym_post_message', 'mod_moodleoverflow');
     }
 
