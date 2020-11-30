@@ -108,4 +108,38 @@ class behat_mod_moodleoverflow extends behat_base {
         $this->execute('behat_forms::press_button', get_string('posttomoodleoverflow', 'moodleoverflow'));
         $this->execute('behat_general::i_wait_to_be_redirected');
     }
+
+    /**
+     * @Given I go to :link
+     */
+    public function i_go_to($link) {
+        $this->visitPath($link);
+    }
+
+    /**
+     * Fills in form field with specified id|name|label|value
+     * Example: When I fill in "username" with: "bwayne"
+     * Example: And I fill in "bwayne" for "username"
+     *
+     * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" with "(?P<value>(?:[^"]|\\")*)"$/
+     * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" with:$/
+     * @When /^(?:|I )fill in "(?P<value>(?:[^"]|\\")*)" for "(?P<field>(?:[^"]|\\")*)"$/
+     */
+    public function fill_field($field, $value) {
+        $field = $this->fix_step_argument($field);
+        $value = $this->fix_step_argument($value);
+        $this->getSession()->getPage()->fillField($field, $value);
+    }
+
+    /**
+     * Returns fixed step argument (with \\" replaced back to ")
+     *
+     * @param string $argument
+     *
+     * @return string
+     */
+    protected function fix_step_argument($argument) {
+        return str_replace('\\"', '"', $argument);
+    }
+
 }
