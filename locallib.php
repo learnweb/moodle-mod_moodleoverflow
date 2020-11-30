@@ -1641,11 +1641,11 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
 /**
  * Deletes a single moodleoverflow post.
  *
- * @param int    $post           The post ID
+ * @param object $post           The post object
  * @param array  $children       The child posts
  * @param object $course         The course object.
  * @param object $cm             The course module
- * @param int    $moodleoverflow The moodleoverflow ID
+ * @param object $moodleoverflow The moodleoverflow object
  *
  * @return bool Whether the deletion was successful
  */
