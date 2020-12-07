@@ -1,5 +1,5 @@
 @mod @mod_moodleoverflow @mod_moodleoverflow_search
-Feature: Add moodleoverflow activities and discussions
+Feature: Search moodle for moodleoverflow discussions
   In order to find discussions
   I need to be able to search them
 

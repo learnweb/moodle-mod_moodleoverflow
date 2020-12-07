@@ -133,14 +133,15 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
     public function test_forbidden_discussion() {
         global $CFG;
         $this->resetAfterTest();
+
         $CFG->enableglobalsearch = 1;
 
         $course = $this->getDataGenerator()->create_course();
-        $moodleoverflow = $this->getDataGenerator()->create_module("moodleoverflow", array("course" => $course));
         $moodleoverflowgen = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
+        $moodleoverflow = $this->getDataGenerator()->create_module("moodleoverflow", array("course" => $course));
         $user = $this->getDataGenerator()->create_user();
-        $user2 = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        $user2 = $this->getDataGenerator()->create_user();
         $this->setUser($user2);
 
         [$discussion, $post] = $moodleoverflowgen->post_to_forum($moodleoverflow, $user);
