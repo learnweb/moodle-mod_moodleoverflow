@@ -45,6 +45,7 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
 
         [$discussion, $post1] = $moodleoverflowgen->post_to_forum($moodleoverflow, $user);
         $post2 = $moodleoverflowgen->post_to_discussion($moodleoverflow, $discussion, $user);
+        $this->waitForSecond();
 
         $searchmanager = \core_search\manager::instance();
         $searchmanager->index(true);
