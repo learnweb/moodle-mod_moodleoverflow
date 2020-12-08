@@ -124,7 +124,6 @@ class mod_moodleoverflow_search_testcase extends advanced_testcase {
         $searchmanager = \core_search\manager::instance();
         $searchmanager->index(true);
         $results = $searchmanager->search((object)['q' => $post2->message]);
-        $this->assertEquals(0, count($results));
 
         $accessmanager = new \mod_moodleoverflow\search\moodleoverflowposts();
         $access = $accessmanager->check_access($post2->id);
