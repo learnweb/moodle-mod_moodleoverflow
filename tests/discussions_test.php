@@ -38,12 +38,10 @@ class mod_moodleoverflow_discussions_testcase extends advanced_testcase {
 
     public function test_a_fresh_forum_has_an_empty_discussion_list() {
 
-
         $this->assertEquals(count($discussions), 0);
     }
 
     public function test_a_discussion_can_be_retrieved() {
-
 
         $this->assertEquals(count($discussions), 1);
     }

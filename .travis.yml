@@ -60,6 +60,8 @@ jobs:
         - moodle-plugin-ci savepoints
         - moodle-plugin-ci mustache
         - moodle-plugin-ci grunt
+        - moodle-plugin-ci phpunit --coverage-clover
+        - moodle-plugin-ci behat
     # Smaller build matrix for development builds
     - stage: develop
       php: 7.4
