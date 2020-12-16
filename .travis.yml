@@ -50,7 +50,7 @@ jobs:
       php: 7.4
       env: DB=mysqli MOODLE_BRANCH=MOODLE_310_STABLE
       install:
-        - moodle-plugin-ci install --no-init
+        - moodle-plugin-ci install
       script:
         - moodle-plugin-ci phplint
         - moodle-plugin-ci phpcpd
