@@ -130,7 +130,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->setDefault('trackingtype', $default);
 
         // Grade options
-        $mform->addElement('header', 'gradeheading', get_string('grade'));
+        $mform->addElement('header', 'gradeheading',
+            $CFG->branch >= 311 ? get_string('gradenoun') : get_string('grade'));
 
         $mform->addElement('text', 'grademaxgrade', get_string('modgrademaxgrade', 'grades'));
         $mform->setType('grademaxgrade', PARAM_INT);
