@@ -57,7 +57,7 @@ class backup_moodleoverflow_activity_task extends backup_activity_task {
      *
      * @return string the content with the URLs encoded
      */
-    static public function encode_content_links($content) {
+    public static function encode_content_links($content) {
         global $CFG;
 
         $base = preg_quote($CFG->wwwroot, '/');
