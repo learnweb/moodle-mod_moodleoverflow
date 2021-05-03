@@ -269,7 +269,7 @@ function moodleoverflow_delete_instance($id) {
     // Delete the subscription elements.
     $DB->delete_records('moodleoverflow_subscriptions', array('moodleoverflow' => $moodleoverflow->id));
     $DB->delete_records('moodleoverflow_discuss_subs', array('moodleoverflow' => $moodleoverflow->id));
-    $DB->delete_records('moodleoverflow_grades', array('moodleoverflow' => $moodleoverflow->id));
+    $DB->delete_records('moodleoverflow_grades', array('moodleoverflowid' => $moodleoverflow->id));
 
     // Delete the discussion recursivly.
     if ($discussions = $DB->get_records('moodleoverflow_discussions', array('moodleoverflow' => $moodleoverflow->id))) {
