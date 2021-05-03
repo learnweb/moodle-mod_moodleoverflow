@@ -1444,7 +1444,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         // Test delete for user
         $contextlist = provider::get_contexts_for_userid($user2->id);
         $contextlist = new approved_contextlist($user2, 'mod_moodleoverflow', $contextlist->get_contextids());
-        self::assertContains($context->id, $contextlist->get_contextids());
+        self::assertContains("$context->id", $contextlist->get_contextids());
         provider::delete_data_for_user($contextlist);
         moodleoverflow_update_all_grades_for_cm($forum->id);
         $grades = $DB->get_records('moodleoverflow_grades', array('moodleoverflowid' => $forum->id), null,

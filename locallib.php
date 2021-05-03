@@ -39,7 +39,7 @@ require_once(dirname(__FILE__) . '/lib.php');
  * @return array
  */
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
-    global $DB;
+    global $DB, $CFG;
 
     $params = array($cm->instance);
 
@@ -62,13 +62,23 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     }
 
     // Get all name fields as sql string snippet.
-    $allnames = get_all_user_name_fields(true, 'u');
+    if ($CFG->branch >= 311) {
+        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+    } else {
+        $allnames = get_all_user_name_fields(true, 'u');
+    }
     $postdata = 'p.id, p.modified, p.discussion, p.userid';
     $discussiondata = 'd.name, d.timemodified, d.timestart, d.usermodified';
     $userdata = 'u.email, u.picture, u.imagealt';
 
-    $usermodifiedfields = get_all_user_name_fields(true, 'um', null, 'um') .
-        ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
+    if ($CFG->branch >= 311) {
+        $usermodifiedfields = \core_user\fields::for_name()->get_sql('um', false, 'um',
+                '', false)->selects .
+            ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
+    } else {
+        $usermodifiedfields = get_all_user_name_fields(true, 'um', null, 'um') .
+            ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
+    }
     $usermodifiedtable = " LEFT JOIN {user} um ON (d.usermodified = um.id)";
 
     // Retrieve and return all discussions from the database.
@@ -242,7 +252,12 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Get information about the user who started the discussion.
         $startuser = new stdClass();
-        $startuserfields = explode(',', user_picture::fields());
+        if ($CFG->branch >= 311) {
+            $startuserfields = \core_user\fields::get_picture_fields();
+        } else {
+            $startuserfields = explode(',', user_picture::fields());
+        }
+
         $startuser = username_load_fields_from_object($startuser, $discussion, null, $startuserfields);
         $startuser->id = $discussion->userid;
 
@@ -461,9 +476,13 @@ function moodleoverflow_get_discussions_unread($cm) {
  * @return mixed array of posts or false
  */
 function moodleoverflow_get_post_full($postid) {
-    global $DB;
+    global $DB, $CFG;
 
-    $allnames = get_all_user_name_fields(true, 'u');
+    if ($CFG->branch >= 311) {
+        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+    } else {
+        $allnames = get_all_user_name_fields(true, 'u');
+    }
     $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
               FROM {moodleoverflow_posts} p
                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
@@ -855,7 +874,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
  * @return array
  */
 function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
-    global $DB, $USER;
+    global $DB, $USER, $CFG;
 
     // Initiate tracking settings.
     $params = array();
@@ -871,7 +890,11 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     }
 
     // Get all username fields.
-    $allnames = get_all_user_name_fields(true, 'u');
+    if ($CFG->branch >= 311) {
+        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+    } else {
+        $allnames = get_all_user_name_fields(true, 'u');
+    }
 
     // Create the sql array.
     $sql = "SELECT p.*, m.ratingpreference, $allnames, d.name as subject, u.email, u.picture, u.imagealt $trackingselector
@@ -1048,7 +1071,11 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Build the object that represents the posting user.
     $postinguser = new stdClass();
-    $postinguserfields = explode(',', user_picture::fields());
+    if ($CFG->branch >= 311) {
+        $postinguserfields = \core_user\fields::get_picture_fields();
+    } else {
+        $postinguserfields = explode(',', user_picture::fields());
+    }
     $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
     $postinguser->id = $post->userid;
 

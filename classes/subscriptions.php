@@ -531,7 +531,11 @@ class subscriptions {
 
         // Default fields if none are submitted.
         if (empty($fields)) {
-            $allnames = get_all_user_name_fields(true, 'u');
+            if ($CFG->branch >= 311) {
+                $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+            } else {
+                $allnames = get_all_user_name_fields(true, 'u');
+            }
             $fields   = "u.id, u.username, $allnames, u.maildisplay, u.mailformat, u.maildigest,
                 u.imagealt, u.email, u.emailstop, u.city, u.country, u.lastaccess, u.lastlogin,
                 u.picture, u.timezone, u.theme, u.lang, u.trackforums, u.mnethostid";
