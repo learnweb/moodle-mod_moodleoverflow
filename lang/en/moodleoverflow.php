@@ -380,7 +380,7 @@ $string['privacy:metadata:moodleoverflow_grades:grade'] = 'The grade the user go
 
 $string['privacy:anonym_discussion_name'] = 'Anonymized discussion name';
 $string['privacy:anonym_post_message'] = 'This content has been deleted.';
-$string['privacy:anonym_user_name'] = 'Anonym';
+$string['privacy:anonym_user_name'] = 'Anonymous';
 
 $string['privacy:subscribedtoforum'] = 'You are subscribed to this forum.';
 $string['privacy:discussionsubscriptionpreference'] = 'You have chosen the following discussion subscription preference for this forum: "{$a->preference}"';
@@ -396,3 +396,8 @@ $string['updategrades'] = 'Update grades';
 $string['gradesreport'] = 'Grades report';
 $string['gradesupdated'] = 'Grades updated';
 $string['taskupdategrades'] = 'Moodleoverflow maintenance job to update grades';
+
+$string['anonymous'] = 'Anonymous';
+$string['anonymous_help'] = 'This will hide username from all question and answer posts.<br>WARNING: Once this setting is activated, it cannot be deactivated again!';
+$string['yes_irreversible'] = 'Yes (Irreversible!)';
+$string['anonym_you'] = 'Anonymous (You)';

@@ -67,6 +67,15 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $this->add_intro_editor();
         }
 
+        $mform->addElement('select', 'anonymous', get_string('anonymous', 'moodleoverflow'), [
+            0 => get_string('no'),
+            1 => get_string('yes_irreversible', 'moodleoverflow')
+        ]);
+        $mform->addHelpButton('anonymous', 'anonymous', 'moodleoverflow');
+        if ($this->current && property_exists($this->current, 'anonymous') && $this->current->anonymous) {
+            $mform->freeze(['anonymous']);
+        }
+
         // Attachments.
         $mform->addElement('header', 'attachmentshdr', get_string('attachments', 'moodleoverflow'));
 

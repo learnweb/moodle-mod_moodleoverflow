@@ -81,7 +81,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 // Update user reputation.
                 templates.replaceNode($('.user-details,.author').find('a[href*="id=' + userid + '"]')
                     .siblings('span'), '<span>' + response.raterreputation + '</span>', "");
-                if (userid !== response.ownerid) {
+                if (response.ownerid && userid !== response.ownerid) {
                     templates.replaceNode($('.user-details,.author').find('a[href*="id=' + response.ownerid + '"]')
                         .siblings('span'), '<span>' + response.ownerreputation + '</span>', "");
                 }
