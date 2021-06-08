@@ -20,10 +20,10 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     And I turn editing mode on
 
   Scenario: A disallowed subscription moodleoverflow cannot be subscribed to
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description         | Test moodleoverflow description |
-      | Subscription mode   | Subscription disabled |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | forcesubscribe |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 3              |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject |
       | Message | Test post message |
@@ -37,10 +37,10 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     And "You are not subscribed to this discussion. Click to subscribe." "link" should not exist in the "Test post subject" "table_row"
 
   Scenario: A forced subscription moodleoverflow cannot be subscribed to
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description         | Test moodleoverflow description |
-      | Subscription mode   | Forced subscription |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | forcesubscribe |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 1              |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject |
       | Message | Test post message |
@@ -54,10 +54,10 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     And "You are not subscribed to this discussion. Click to subscribe." "link" should not exist in the "Test post subject" "table_row"
 
   Scenario: An optional moodleoverflow can be subscribed to
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description         | Test moodleoverflow description |
-      | Subscription mode   | Optional subscription |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | forcesubscribe |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 0              |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject |
       | Message | Test post message |

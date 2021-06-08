@@ -20,10 +20,10 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     And I turn editing mode on
 
   Scenario: An optional moodleoverflow can have discussions subscribed to
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description         | Test moodleoverflow description |
-      | Subscription mode   | Optional subscription |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | forcesubscribe |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 0              |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject one |
       | Message | Test post message one |
@@ -64,10 +64,10 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" "table_row"
 
   Scenario: An automatic subscription moodleoverflow can have discussions unsubscribed from
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description         | Test moodleoverflow description |
-      | Subscription mode   | Auto subscription |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | forcesubscribe |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 2              |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject one |
       | Message | Test post message one |
