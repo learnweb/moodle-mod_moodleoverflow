@@ -20,10 +20,10 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I turn editing mode on
 
   Scenario: Tracking moodleoverflow posts off
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description | Test moodleoverflow description |
-      | Read tracking | Off |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | trackingtype |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 0            |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject |
       | Message | Test post message |
@@ -35,10 +35,10 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I should not see "Track unread posts"
 
   Scenario: Tracking moodleoverflow posts optional
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description | Test moodleoverflow description |
-      | Read tracking | Optional |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | trackingtype |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 1            |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject |
       | Message | Test post message |
@@ -58,15 +58,16 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I follow "Course 1"
     And I should not see "1 unread post"
 
+  @javascript
   Scenario: Tracking moodleoverflow posts forced
     Given the following config values are set as admin:
       | allowforcedreadtracking | 1 | moodleoverflow |
     And I am on site homepage
     And I follow "Course 1"
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description | Test moodleoverflow description |
-      | Read tracking | Force |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | trackingtype |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 2            |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject |
       | Message | Test post message |
@@ -85,10 +86,10 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
       | allowforcedreadtracking | 1 | moodleoverflow |
     And I am on site homepage
     And I follow "Course 1"
-    Given I add a "Moodleoverflow" to section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description | Test moodleoverflow description |
-      | Read tracking | Force |
+    Given the following "activities" exist:
+      | activity       | name                     | intro                            | course  | idnumber       | trackingtype |
+      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 2            |
+    And I am on "Course 1" course homepage
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
       | Subject | Test post subject |
       | Message | Test post message |
