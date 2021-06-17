@@ -398,6 +398,7 @@ $string['gradesupdated'] = 'Grades updated';
 $string['taskupdategrades'] = 'Moodleoverflow maintenance job to update grades';
 
 $string['anonymous'] = 'Anonymous';
-$string['anonymous_help'] = 'This will hide username from all question and answer posts.<br>WARNING: Once this setting is activated, it cannot be deactivated again!';
-$string['yes_irreversible'] = 'Yes (Irreversible!)';
+$string['anonymous_help'] = 'This will hide username from all question (and answers).<br>WARNING: Once the questions (and answers) are anonymized, this cannot be reversed.<br>The setting can only be changed to a higher degree of anonymity.';
+$string['anonymous:only_questions'] = 'Only questions (Irreversible!)';
+$string['anonymous:everything'] = 'Questions and answers (Irreversible!)';
 $string['anonym_you'] = 'Anonymous (You)';

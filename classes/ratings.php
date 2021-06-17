@@ -465,51 +465,60 @@ class ratings {
             print_error('invalidmoodleoverflowid', 'moodleoverflow');
         }
 
-        // Get all posts of this user in this module.
-        // Do not count votes for own posts.
-        $sql = "SELECT r.id, r.postid as post, r.rating
-                  FROM {moodleoverflow_posts} p
-                  JOIN {moodleoverflow_ratings} r ON p.id = r.postid
-                 WHERE p.userid = ? AND NOT r.userid = ? AND r.moodleoverflowid = ?
-              ORDER BY r.postid ASC";
-        $params = array($userid, $userid, $moodleoverflowid);
-        $records = $DB->get_records_sql($sql, $params);
-
-        // Check if there are results.
-        $records = (isset($records)) ? $records : array();
-
         // Initiate a variable.
         $reputation = 0;
 
-        // Iterate through all ratings.
-        foreach ($records as $record) {
+        if ($moodleoverflow->anonymous != anonymous::EVERYTHING_ANONYMOUS) {
 
-            // The rating is a downvote.
-            if ($record->rating == RATING_DOWNVOTE) {
-                $reputation += get_config('moodleoverflow', 'votescaledownvote');
-                continue;
+            // Get all posts of this user in this module.
+            // Do not count votes for own posts.
+            $sql = "SELECT r.id, r.postid as post, r.rating
+                  FROM {moodleoverflow_posts} p
+                  JOIN {moodleoverflow_ratings} r ON p.id = r.postid
+                 WHERE p.userid = ? AND NOT r.userid = ? AND r.moodleoverflowid = ? ";
+
+            if ($moodleoverflow->anonymous == anonymous::QUESTION_ANONYMOUS) {
+                $sql .= " AND p.parent <> 0 ";
             }
 
-            // The rating is an upvote.
-            if ($record->rating == RATING_UPVOTE) {
-                $reputation += get_config('moodleoverflow', 'votescaleupvote');
+            $sql .= "ORDER BY r.postid ASC";
+
+            $params = array($userid, $userid, $moodleoverflowid);
+            $records = $DB->get_records_sql($sql, $params);
+
+            // Check if there are results.
+            $records = (isset($records)) ? $records : array();
+
+            // Iterate through all ratings.
+            foreach ($records as $record) {
+
+                // The rating is a downvote.
+                if ($record->rating == RATING_DOWNVOTE) {
+                    $reputation += get_config('moodleoverflow', 'votescaledownvote');
+                    continue;
+                }
+
+                // The rating is an upvote.
+                if ($record->rating == RATING_UPVOTE) {
+                    $reputation += get_config('moodleoverflow', 'votescaleupvote');
+                    continue;
+                }
+
+                // The post has been marked as helpful by the question owner.
+                if ($record->rating == RATING_HELPFUL) {
+                    $reputation += get_config('moodleoverflow', 'votescalehelpful');
+                    continue;
+                }
+
+                // The post has been marked as solved by a teacher.
+                if ($record->rating == RATING_SOLVED) {
+                    $reputation += get_config('moodleoverflow', 'votescalesolved');
+                    continue;
+                }
+
+                // Another rating should not exist.
                 continue;
             }
-
-            // The post has been marked as helpful by the question owner.
-            if ($record->rating == RATING_HELPFUL) {
-                $reputation += get_config('moodleoverflow', 'votescalehelpful');
-                continue;
-            }
-
-            // The post has been marked as solved by a teacher.
-            if ($record->rating == RATING_SOLVED) {
-                $reputation += get_config('moodleoverflow', 'votescalesolved');
-                continue;
-            }
-
-            // Another rating should not exist.
-            continue;
         }
 
         // Get votes this user made.

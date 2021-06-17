@@ -191,11 +191,12 @@
                 </td>
 
                 <td class="author">
-                    <a href="{{ userlink }}">{{ username }}</a>
+                    {{# userlink }}<a href="{{ userlink }}">{{ username }}</a>{{/userlink}} {{^userlink}}{{username}}{{/userlink}}
                 </td>
 
                 <td class="lastpost">
-                    <a href="{{ lastpostuserlink }}">{{ lastpostusername }}</a> <br />
+                    {{# lastpostusername }}<a href="{{ lastpostuserlink }}">{{ lastpostusername }}</a>{{/ lastpostusername }}
+                    {{^ lastpostusername }}-{{/ lastpostusername }}<br />
                     <a href="{{ lastpostlink }}">{{ lastpostdate }}</a>
                 </td>
 
