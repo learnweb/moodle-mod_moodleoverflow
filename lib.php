@@ -779,21 +779,25 @@ function moodleoverflow_send_mails() {
                     continue;
                 }
 
-                // Check whether the sending user is cached already.
-                if (array_key_exists($post->userid, $users)) {
-                    $userfrom = $users[$post->userid];
+                if (\mod_moodleoverflow\anonymous::is_post_anonymous($post, $moodleoverflow, $post->userid)) {
+                    $userfrom = \core_user::get_noreply_user();
                 } else {
-                    // We dont know the the user yet.
-
-                    // Retrieve the user from the database.
-                    $userfrom = $DB->get_record('user', array('id' => $post->userid));
-                    if ($userfrom) {
-                        moodleoverflow_minimise_user_record($userfrom);
+                    // Check whether the sending user is cached already.
+                    if (array_key_exists($post->userid, $users)) {
+                        $userfrom = $users[$post->userid];
                     } else {
-                        $uid = $post->userid;
-                        $pid = $post->id;
-                        mtrace('Could not find user ' . $uid . ', author of post ' . $pid . '. Unable to send message.');
-                        continue;
+                        // We dont know the the user yet.
+
+                        // Retrieve the user from the database.
+                        $userfrom = $DB->get_record('user', array('id' => $post->userid));
+                        if ($userfrom) {
+                            moodleoverflow_minimise_user_record($userfrom);
+                        } else {
+                            $uid = $post->userid;
+                            $pid = $post->id;
+                            mtrace('Could not find user ' . $uid . ', author of post ' . $pid . '. Unable to send message.');
+                            continue;
+                        }
                     }
                 }
 
