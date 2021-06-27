@@ -264,7 +264,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $startuser->id = $discussion->userid;
 
         // Discussion was anonymized.
-        if ($startuser->id == 0 || $moodleoverflow->anonymous !== anonymous::NOT_ANONYMOUS) {
+        if ($startuser->id == 0 || $moodleoverflow->anonymous != anonymous::NOT_ANONYMOUS) {
             // Get his picture, his name and the link to his profile.
             if ($startuser->id == $USER->id) {
                 $preparedarray[$i]['username'] = get_string('anonym_you', 'mod_moodleoverflow');
