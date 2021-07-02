@@ -1289,23 +1289,17 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // The rating of the user.
-    if (anonymous::is_post_anonymous($post, $moodleoverflow, $post->userid) && $post->userid !== $USER->id) {
-        $postuserrating = '--';
+    if (anonymous::is_post_anonymous($post, $moodleoverflow, $post->userid)) {
+        $postuserrating = null;
     } else {
         $postuserrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);
     }
 
     // The name of the user and the date modified.
-    $by = new stdClass();
-    $by->date = userdate($post->modified);
-    $by->name = $postinguser->profilelink ?
-            html_writer::link($postinguser->profilelink, $postinguser->fullname)
-            : $postinguser->fullname;
-    $by->rating = "<img class='icon iconsmall' src='" .
-        $OUTPUT->image_url('star', 'moodleoverflow') . "'><span>" . $postuserrating . '</span>';
-    $mustachedata->bytext = get_string('bynameondate', 'moodleoverflow', $by);
-    $mustachedata->bydate = $by->date;
-    $mustachedata->byname = $by->name;
+    $mustachedata->bydate = userdate($post->modified);
+    $mustachedata->byname = $postinguser->profilelink ?
+        html_writer::link($postinguser->profilelink, $postinguser->fullname)
+        : $postinguser->fullname;
     $mustachedata->byrating = $postuserrating;
 
     // Set options for the post.

@@ -121,18 +121,19 @@ class mod_moodleoverflow_external extends external_api {
             print_error('ratingfailed', 'moodleoverflow');
         }
 
-        $postownerid = moodleoverflow_get_post_full($params['postid'])->userid;
+        $post = moodleoverflow_get_post_full($params['postid']);
+        $postownerid = $post->userid;
         $rating      = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id,
             $params['postid']);
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
 
-        $canseeowner = $moodleoverflow->anonymous && $USER->id != $postownerid;
+        $cannotseeowner = \mod_moodleoverflow\anonymous::is_post_anonymous($post, $moodleoverflow, $USER->id) && $USER->id != $postownerid;
 
         $params['postrating']      = $rating->upvotes - $rating->downvotes;
-        $params['ownerreputation'] = $canseeowner ? null : $ownerrating;
+        $params['ownerreputation'] = $cannotseeowner ? null : $ownerrating;
         $params['raterreputation'] = $raterrating;
-        $params['ownerid']         = $canseeowner ? null : $postownerid;
+        $params['ownerid']         = $cannotseeowner ? null : $postownerid;
 
         $transaction->allow_commit();
 

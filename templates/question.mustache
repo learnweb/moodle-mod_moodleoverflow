@@ -59,7 +59,11 @@
 
                 {{! The author and date. }}
                 <div class="author" role="heading" aria-level="2">
-                    {{{ bytext }}}
+                    <span class="user-details">
+                        by {{{ byname }}}
+                        {{#byrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span>{{ byrating }}</span>){{/byrating}} -
+                            {{ bydate }}
+                    </span>
                 </div>
 
                 {{^isfirstpost}}
