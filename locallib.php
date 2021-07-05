@@ -492,7 +492,7 @@ function moodleoverflow_get_post_full($postid) {
     $params['postid'] = $postid;
 
     $post = $DB->get_record_sql($sql, $params);
-    if ($post->userid === 0) {
+    if (isset($post->userid) && $post->userid === 0) {
         $post->message = get_string('privacy:anonym_post_message', 'mod_moodleoverflow');
     }
 
@@ -1668,11 +1668,11 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
 /**
  * Deletes a single moodleoverflow post.
  *
- * @param int    $post           The post ID
+ * @param object $post           The post object
  * @param array  $children       The child posts
  * @param object $course         The course object.
  * @param object $cm             The course module
- * @param int    $moodleoverflow The moodleoverflow ID
+ * @param object $moodleoverflow The moodleoverflow object
  *
  * @return bool Whether the deletion was successful
  */

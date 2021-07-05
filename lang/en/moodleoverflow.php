@@ -396,3 +396,6 @@ $string['updategrades'] = 'Update grades';
 $string['gradesreport'] = 'Grades report';
 $string['gradesupdated'] = 'Grades updated';
 $string['taskupdategrades'] = 'Moodleoverflow maintenance job to update grades';
+
+// Search.
+$string['search:moodleoverflowposts'] = 'Moodleoverflow Posts';
