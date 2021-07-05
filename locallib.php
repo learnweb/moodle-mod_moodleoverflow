@@ -1301,6 +1301,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         html_writer::link($postinguser->profilelink, $postinguser->fullname)
         : $postinguser->fullname;
     $mustachedata->byrating = $postuserrating;
+    $mustachedata->showrating = $postuserrating !== null;
 
     // Set options for the post.
     $options = new stdClass();
