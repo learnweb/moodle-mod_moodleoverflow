@@ -25,6 +25,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\anonymous;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
@@ -66,6 +68,23 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         } else {
             $this->add_intro_editor();
         }
+
+        $currentsetting = $this->current && property_exists($this->current, 'anonymous') ? $this->current->anonymous : 0;
+        $possiblesettings = [
+                anonymous::EVERYTHING_ANONYMOUS => get_string('anonymous:everything', 'moodleoverflow')
+        ];
+
+        if ($currentsetting <= anonymous::QUESTION_ANONYMOUS) {
+            $possiblesettings[anonymous::QUESTION_ANONYMOUS] = get_string('anonymous:only_questions', 'moodleoverflow');
+        }
+
+        if ($currentsetting == anonymous::NOT_ANONYMOUS) {
+            $possiblesettings[anonymous::NOT_ANONYMOUS] = get_string('no');
+        }
+
+        $mform->addElement('select', 'anonymous', get_string('anonymous', 'moodleoverflow'), $possiblesettings);
+        $mform->addHelpButton('anonymous', 'anonymous', 'moodleoverflow');
+        $mform->setDefault('anonymous', anonymous::NOT_ANONYMOUS);
 
         // Attachments.
         $mform->addElement('header', 'attachmentshdr', get_string('attachments', 'moodleoverflow'));
@@ -166,6 +185,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('selectyesno', 'coursewidereputation', get_string('coursewidereputation', 'moodleoverflow'));
         $mform->addHelpButton('coursewidereputation', 'coursewidereputation', 'moodleoverflow');
         $mform->setDefault('coursewidereputation', MOODLEOVERFLOW_REPUTATION_COURSE);
+        $mform->hideIf('coursewidereputation', 'anonymous', 'gt', 0);
 
         // Allow negative reputations?
         $mform->addElement('selectyesno', 'allownegativereputation', get_string('allownegativereputation', 'moodleoverflow'));
@@ -180,5 +200,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Add standard buttons, common to all modules.
         $this->add_action_buttons();
+    }
+
+    public function data_postprocessing($data) {
+        if ($data->anonymous != anonymous::NOT_ANONYMOUS) {
+            $data->coursewidereputation = false;
+        }
     }
 }

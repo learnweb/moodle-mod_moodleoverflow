@@ -24,6 +24,8 @@
 
 namespace mod_moodleoverflow\output;
 
+use mod_moodleoverflow\anonymous;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -357,7 +359,11 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_author_fullname() {
-        return fullname($this->author, $this->viewfullnames);
+        if (anonymous::is_post_anonymous($this->post, $this->moodleoverflow, $this->author->id)) {
+            return get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
+        } else {
+            return fullname($this->author, $this->viewfullnames);
+        }
     }
 
     /**
@@ -515,6 +521,10 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_authorlink() {
+        if (anonymous::is_post_anonymous($this->post, $this->moodleoverflow, $this->author->id)) {
+            return null;
+        }
+
         $link = new \moodle_url(
             '/user/view.php', array(
                 'id'     => $this->post->userid,
@@ -532,6 +542,9 @@ class moodleoverflow_email implements \renderable, \templatable {
      */
     public function get_author_picture() {
         global $OUTPUT;
+        if (anonymous::is_post_anonymous($this->post, $this->moodleoverflow, $this->author->id)) {
+            return '';
+        }
 
         return $OUTPUT->user_picture($this->author, array('courseid' => $this->course->id));
     }
@@ -542,6 +555,10 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_group_picture() {
+        if (anonymous::is_post_anonymous($this->post, $this->moodleoverflow, $this->author->id)) {
+            return '';
+        }
+
         if (isset($this->userfrom->groups)) {
             $groups = $this->userfrom->groups[$this->moodleoverflow->id];
         } else {

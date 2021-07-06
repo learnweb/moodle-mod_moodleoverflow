@@ -88,8 +88,9 @@
             </div>
             <div class="author">
                 {{# str }} bynameondatenorating, moodleoverflow, {
-                    "name": {{# quote }}
-                        <a target='_blank' href='{{{ authorlink }}}'>{{ authorfullname }}</a>{{/ quote }},
+                    "name":
+                        {{# authorlink }}{{# quote }} <a target='_blank' href='{{{ authorlink }}}'>{{ authorfullname }}</a>{{/ quote }}{{/authorlink}}
+                        {{^ authorlink }}{{# quote }} {{ authorfullname }} {{/ quote }}{{/ authorlink }} ,
                     "date": {{# quote }}{{ postdate }}{{/ quote }}
                     } {{/ str }}
             </div>
