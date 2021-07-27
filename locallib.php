@@ -1901,8 +1901,6 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
         $gradedataobject->moodleoverflowid = $moodleoverflow->id;
         $gradedataobject->userid = $userid;
         $gradedataobject->grade = $grade;
-        $gradedataobject->late = 0;
-        $gradedataobject->completed = 0;
         $DB->insert_record('moodleoverflow_grades', $gradedataobject, false);
     }
 
