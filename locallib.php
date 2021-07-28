@@ -177,7 +177,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
     // Iterate through every visible discussion.
     $i = 0;
-    $rowcount = 0;
     $preparedarray = array();
     foreach ($discussions as $discussion) {
         $preparedarray[$i] = array();
@@ -244,9 +243,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Use the discussions name instead of the subject of the first post.
         $discussion->subject = $discussion->name;
-
-        // Increase the rowcount.
-        $rowcount = ($rowcount + 1) % 2;
 
         // Format the subjectname and the link to the topic.
         $preparedarray[$i]['subjecttext'] = format_string($discussion->subject);
@@ -334,7 +330,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Add all created data to an array.
 
-        $preparedarray[$i]['rowcount'] = $rowcount;
         $preparedarray[$i]['statusstarter'] = $statusstarter;
         $preparedarray[$i]['statusteacher'] = $statusteacher;
         $preparedarray[$i]['statusboth'] = $statusboth;
