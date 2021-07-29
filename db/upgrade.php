@@ -94,8 +94,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         $table->add_field('moodleoverflowid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('grade', XMLDB_TYPE_FLOAT, '10', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('late', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('completed', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
 
         // Adding keys to table moodleoverflow_grades.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
@@ -153,6 +151,25 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
         // Moodleoverflow savepoint reached.
         upgrade_mod_savepoint(true, 2021060800, 'moodleoverflow');
+    }
+
+    if ($oldversion < 2021072700) {
+        // Define fields late and completed to be dropped from moodleoverflow_grades.
+        $table = new xmldb_table('moodleoverflow_grades');
+
+        $field = new xmldb_field('late');
+        // Conditionally launch drop field late.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        $field = new xmldb_field('completed');
+        // Conditionally launch drop field completed.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2021072700, 'moodleoverflow');
     }
 
     return true;
