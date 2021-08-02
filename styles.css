@@ -12,18 +12,6 @@
 /*
  * The discussionlist in the view.php
  */
-.moodleoverflowheaderlist {
-    border-collapse: separate;
-    border-style: solid;
-    border-width: 1px;
-    margin-top: 10px;
-    width: 100%;
-}
-
-.moodleoverflowheaderlist td {
-    border-style: solid;
-    border-width: 1px 0 0 1px;
-}
 
 .moodleoverflowheaderlist th.header.replies .iconsmall {
     margin: 0 .3em;
@@ -53,64 +41,6 @@
 
 .moodleoverflowheaderlist thead .discussionsubscription {
     text-align: center;
-}
-
-.moodleoverflowheaderlist tbody tr:nth-of-type(odd) {
-    background-color: #fafafa;
-}
-
-.moodleoverflowheaderlist {
-    background-color: #f9feff;
-}
-
-.moodleoverflowheaderlist .table-active:hover {
-    background-color: #dff8ff;
-}
-
-.moodleoverflowheaderlist .table-active:hover > td,
-.moodleoverflowheaderlist .table-active:hover > th {
-    background-color: #dff8ff;
-}
-
-.moodleoverflowheaderlist .table-success:hover {
-    background-color: #d0e9c6;
-}
-
-.moodleoverflowheaderlist .table-success:hover > td,
-.moodleoverflowheaderlist .table-success:hover > th {
-    background-color: #d0e9c6;
-}
-
-.moodleoverflowheaderlist .table-info:hover {
-    background-color: #c4e3f3;
-}
-
-.moodleoverflowheaderlist .table-info:hover > td,
-.moodleoverflowheaderlist .table-info:hover > th {
-    background-color: #c4e3f3;
-}
-
-.moodleoverflowheaderlist .table-warning:hover {
-    background-color: #faf2cc;
-}
-
-.moodleoverflowheaderlist .table-warning:hover > td,
-.moodleoverflowheaderlist .table-warning:hover > th {
-    background-color: #faf2cc;
-}
-
-.moodleoverflowheaderlist .table-danger:hover {
-    background-color: #ebcccc;
-}
-
-.moodleoverflowheaderlist .table-danger:hover > td,
-.moodleoverflowheaderlist .table-danger:hover > th {
-    background-color: #ebcccc;
-}
-
-.moodleoverflowheaderlist,
-.moodleoverflowheaderlist td {
-    border: none;
 }
 
 .moodleoverflowheaderlist thead .header,
@@ -292,8 +222,6 @@
 }
 
 .moodleoverflowpost {
-    background-color: #fff;
-    border: 1px solid rgba(238, 238, 238, 1);
     border-radius: 0;
     display: block;
     margin-bottom: 5px;

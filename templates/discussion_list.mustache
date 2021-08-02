@@ -35,7 +35,7 @@
 {{! There are discussions. Start to print the table. }}
 {{#hasdiscussions}}
 
-    <table cellspacing="0" class="moodleoverflowheaderlist">
+    <table cellspacing="0" class="moodleoverflowheaderlist generaltable">
 
         {{! Print the heading row of the table. }}
         <thead>
@@ -95,7 +95,7 @@
 
         {{! Loop through all discussions. }}
         {{#discussions}}
-            <tr class="discussion r{{ rowcount }}">
+            <tr class="discussion">
 
                 {{! The status of the discussion. }}
                 <td class="topic replies">
