@@ -828,12 +828,15 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     // Start with the parent post.
     $post = $posts[$post->id];
 
+    $answercount = 0;
+
     // Lets clear all posts above level 2.
     // Check if there are answers.
     if (isset($post->children)) {
 
         // Itereate through all answers.
         foreach ($post->children as $aid => $a) {
+            $answercount += 1;
 
             // Check for each answer if they have children as well.
             if (isset($post->children[$aid]->children)) {
@@ -858,18 +861,20 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     $postread = !empty($post->postread);
 
     // Print a button to reply to the discussion.
-    if ($canreply) {
+/*    if ($canreply) {
         $buttontext = get_string('addanewreply', 'moodleoverflow');
         $buttonurl = new moodle_url('/mod/moodleoverflow/post.php', ['reply' => $post->id]);
         $button = new single_button($buttonurl, $buttontext, 'get');
         $button->class = 'singlebutton moodleoverflowaddnew';
         $button->formid = 'newdiscussionform';
         echo $OUTPUT->render($button);
-    }
+    }*/
 
     // Print the starting post.
     echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
         $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0);
+
+    echo "<br><h2>$answercount " . get_string('answers', 'moodleoverflow') . "</h2>";
 
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts);
@@ -928,7 +933,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     // Assign ratings to the posts.
     foreach ($posts as $postid => $post) {
 
-        // Assign the ratings to the machting posts.
+        // Assign the ratings to the matching posts.
         $posts[$postid]->upvotes = $discussionratings[$post->id]->upvotes;
         $posts[$postid]->downvotes = $discussionratings[$post->id]->downvotes;
         $posts[$postid]->statusstarter = $discussionratings[$post->id]->ishelpful;
@@ -1292,6 +1297,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // The name of the user and the date modified.
     $mustachedata->bydate = userdate($post->modified);
+    $mustachedata->byshortdate = userdate($post->modified, get_string('strftimedatetimeshort', 'core_langconfig'));
     $mustachedata->byname = $postinguser->profilelink ?
         html_writer::link($postinguser->profilelink, $postinguser->fullname)
         : $postinguser->fullname;
@@ -1306,6 +1312,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Prepare the post.
     $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
+    $mustachedata->commentcontent = strip_tags($post->message, "<style>");
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
@@ -1335,8 +1342,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Render the different elements.
     if ($level == 0) {
         return $renderer->render_question($mustachedata);
-    } else if ($level == 1 || $level == 2) {
+    } else if ($level == 1) {
         return $renderer->render_answer($mustachedata);
+    } else if ($level == 2) {
+        return $renderer->render_comment($mustachedata);
     } else {
         return null;
     }

@@ -25,6 +25,8 @@
   }
 }}
 
+{{! TODO: Optimize for mobile view. }}
+
 {{! Print an anchor if the post is the first unread post of the discussion. }}
 {{# isfirstunread}}
     <a id="unread"></a>
@@ -37,72 +39,20 @@
 <div class="moodleoverflowpost border clearfix{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region"
      aria-label="{{ discussionby }}">
 
-    <div>
-
-        {{! {{^iscomment}}
-        <div class="row header clearfix">
-
-            {{! User picture. }}
-            <div class="left picture">
-                {{{ picture }}}
-            </div>
-
-            {{! Begin the topic column. }}
-            <div class="topic{{# isfirstpost}} firstpost starter{{/isfirstpost}}">
-
-                {{#isfirstpost}}
-                {{! The subject. }}
-                    <div class="subject" role="heading" aria-level="2">
-                        {{{ subject }}}
-                    </div>
-                {{/isfirstpost}}
-
-                {{! The author and date. }}
-                <div class="author" role="heading" aria-level="2">
-                    <span class="user-details">
-                        by {{{ byname }}}
-                        {{#showrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span>{{ byrating }}</span>){{/showrating}} -
-                            {{ bydate }}
-                    </span>
-                </div>
-
-                {{^isfirstpost}}
-                    <div class="subject" role="heading" aria-level="2">
-                        &nbsp;
-                    </div>{{/isfirstpost}}
-
-            </div>
-            {{! End of the topic column. }}
-
-        </div>
-        {{! End of the header row. }}
-
-        {{! Row with the post content. }}
-        <div class="row maincontent clearfix">
-
-            {{! The author. }}
-            <div class="left">
-
+    <table>
+        <tbody>
+        <tr>
+            <td class="votecell">
                 <div class="votes">
                     {{> mod_moodleoverflow/postvoting }}
                 </div>
-            </div>
-
-            {{! The message of the post. }}
-            <div class="no-overflow">
-                <div class="content">
-                    <div class="posting fullpost">
-                        {{{ postcontent }}}
-                    </div>
+            </td>
+            <td class="answercell">
+                <div class="post-text">
+                    {{{ postcontent }}}
                 </div>
-
-                {{! Row with attachments. }}
                 <div class="attachments">
-
-                    {{! Loop through all attachments. }}
                     {{#attachments}}
-
-                    {{! Don't display images as links}}
                         {{#image}}
                             <img src="{{filepath}}" alt=""/>
                             <br>
@@ -114,36 +64,41 @@
                             <a href="{{filepath}}">
                                 {{filename}}
                             </a>
-
                         {{/image}}
-
                         <br>
                     {{/attachments}}
-
                 </div>
-            </div>
+                <div class="post-info">
+                    <div class="leftbox">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                {{{ picture }}}
+                            </div>
+                            <div class="user-details">
+                                {{{ byname }}} {{#showrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span>{{ byrating }}</span>){{/showrating}}
+                                <div class="-flair">
+                                    <div class="user-action-time">
+                                        {{ bydate }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rightbox">
+                        <div class="post-menu">
+                            {{{ commands }}}
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 
+    {{! Print the footer if requested. }}
+    {{# footer }}
+        <div class="footer">
+            {{ footer }}
         </div>
-        {{! End of the post content row. }}
-        <div class="row side">
-            <div class="left">
-                &nbsp;
-            </div>
-
-            {{! The commands. }}
-            <div class="options clearfix">
-                <div class="commands">
-                    {{{ commands }}}
-                </div>
-            </div>
-
-            {{! Print the footer if requested. }}
-            {{# footer }}
-                <div class="footer">
-                    {{ footer }}
-                </div>
-            {{/footer}}
-
-        </div>
-    </div>
+    {{/footer}}
 </div>

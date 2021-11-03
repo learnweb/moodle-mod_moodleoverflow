@@ -106,6 +106,8 @@ $string['forcedreadtracking']        = 'Allow forced read tracking';
 $string['configforcedreadtracking']  = 'Allows Moodleoverflows to be set to forced read tracking. Will result in decreased performance for some users, particularly on courses with many moodleoverflows and posts. When off, any moodleoverflows previously set to Forced are treated as optional.';
 $string['cleanreadtime']             = 'Mark old posts as read hour';
 $string['configcleanreadtime']       = 'The hour of the day to clean old posts from the \'read\' table.';
+$string['allowdisablerating']        = 'Allow teachers to disable rating and reputation';
+$string['configallowdisablerating']  = 'Set to \'yes\' if you want to give teachers the ability to disable rating and reputation.';
 
 $string['votescalevote']               = 'Reputation: Vote.';
 $string['configvotescalevote']         = 'The amount of reputation voting gives.';
@@ -192,6 +194,7 @@ $string['marksolved']                  = 'Mark as solution';
 $string['marknotsolved']               = 'Remove solution mark';
 $string['markhelpful']                 = 'Mark as Helpful';
 $string['marknothelpful']              = 'Not Helpful';
+$string['answers']                     = 'Answers';
 
 // Strings for the readtracking.php.
 $string['markreadfailed']                   = 'A post of the discussion could not be marked as read.';
@@ -306,6 +309,10 @@ $string['ratingpreference_help']        = 'Answers can be marked as solution and
 
 * Heplful - A topic starter\'s helpful mark will be pinned at the top of the discussion
 * Solved - A teacher\'s solution mark will be pinned at the top of the discussion';
+$string['allowrating']                  = 'Allow post ratings?';
+$string['allowrating_help']             = 'If set to yes, users can up or downvote a post to give the reader an idea of how helpful the post was to other people. If set to no, ratings will be disabled.';
+$string['allowreputation']              = 'Allow user reputation?';
+$string['allowreputation_help']         = 'If set to yes, the users can gain or lose reputation depending on other users voting on their posts. If set to no, user reputation will be disabled.';
 $string['allownegativereputation']      = 'Allow negative reputation?';
 $string['allownegativereputation_help'] = 'If set to yes, the users reputation within a course or within a module can be negative. If set to no, the reputation will stop to decrease at zero.';
 $string['coursewidereputation']         = 'Cross module reputation?';

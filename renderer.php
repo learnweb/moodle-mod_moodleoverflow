@@ -81,6 +81,17 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Renders all comments of a discussion.
+     *
+     * @param object $data The submitted variables.
+     *
+     * @return bool|string
+     */
+    public function render_comment($data) {
+        return $this->render_from_template('mod_moodleoverflow/comment', $data);
+    }
+
+    /**
      * Display a moodleoverflow post in the relevant context.
      *
      * @param \mod_moodleoverflow\output\moodleoverflow_email $post The post to display.

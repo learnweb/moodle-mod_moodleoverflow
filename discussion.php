@@ -137,8 +137,8 @@ $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 
 // Start the side-output.
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
-echo $OUTPUT->heading(format_string($discussion->name), 3, 'discussionname');
+echo $OUTPUT->heading(format_string($moodleoverflow->name), 3);
+echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
 
 // Guests and users can not subscribe to a discussion.
 if ((!is_guest($modulecontext, $USER) AND isloggedin() AND $canviewdiscussion)) {
@@ -155,7 +155,7 @@ if (!$canreply) {
     }
 }
 
-echo "<br><br>";
+echo "<br>";
 
 moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply);
 
