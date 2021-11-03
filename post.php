@@ -287,7 +287,8 @@ if (!empty($moodleoverflow)) {
     // Check if the post can be edited.
     $intime = ((time() - $post->created) > get_config('moodleoverflow', 'maxeditingtime'));
     if ($intime AND !has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
-        throw new moodle_exception('maxtimehaspassed', 'moodleoverflow', '', format_time(get_config('moodleoverflow', 'maxeditingtime')));
+        throw new moodle_exception('maxtimehaspassed', 'moodleoverflow', '',
+            format_time(get_config('moodleoverflow', 'maxeditingtime')));
     }
 
     // If the current user is not the one who posted this post.

@@ -77,7 +77,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('moodleoverflow/cleanreadtime', get_string('cleanreadtime', 'moodleoverflow'),
         get_string('configcleanreadtime', 'moodleoverflow'), 2, $options));
 
-    // Allow teachers to disable ratings/reputation
+    // Allow teachers to disable ratings/reputation.
     $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowdisablerating',
         get_string('allowdisablerating', 'moodleoverflow'), get_string('configallowdisablerating', 'moodleoverflow'), 1));
 
@@ -103,7 +103,8 @@ if ($ADMIN->fulltree) {
         get_string('configvotescaleupvote', 'moodleoverflow'), 5, PARAM_INT));
 
     // Votescale: How much reputation gives a post that is marked as solved.
-    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescalesolved', get_string('votescalesolved', 'moodleoverflow'),
+    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescalesolved',
+        get_string('votescalesolved', 'moodleoverflow'),
         get_string('configvotescalesolved', 'moodleoverflow'), 30, PARAM_INT));
 
     // Votescale: How much reputation gives a post that is marked as helpful.

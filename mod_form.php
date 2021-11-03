@@ -185,13 +185,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('selectyesno', 'allowrating', get_string('allowrating', 'moodleoverflow'));
         $mform->addHelpButton('allowrating', 'allowrating', 'moodleoverflow');
         $mform->setDefault('allowrating', MOODLEOVERFLOW_RATING_NEGATIVE);
-        // $mform->hideIf('allowrating', 'anonymous', 'gt', 0);
 
         // Allow Reputation.
         $mform->addElement('selectyesno', 'allowreputation', get_string('allowreputation', 'moodleoverflow'));
         $mform->addHelpButton('allowreputation', 'allowreputation', 'moodleoverflow');
         $mform->setDefault('allowreputation', MOODLEOVERFLOW_REPUTATION_NEGATIVE);
-        // $mform->hideIf('allowreputation', 'anonymous', 'gt', 0);
 
         // Course wide reputation?
         $mform->addElement('selectyesno', 'coursewidereputation', get_string('coursewidereputation', 'moodleoverflow'));

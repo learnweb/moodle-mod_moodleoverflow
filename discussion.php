@@ -106,7 +106,8 @@ if (!$post = moodleoverflow_get_post_full($parent)) {
 
 // Has the user the capability to view the post?
 if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, null, $cm)) {
-    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
+    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow',
+        "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
 }
 
 // Append the discussion name to the navigation.
