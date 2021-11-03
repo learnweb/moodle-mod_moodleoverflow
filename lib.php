@@ -57,7 +57,11 @@ define('MOODLEOVERFLOW_PREFERENCE_TEACHER', 1);
 define('MOODLEOVERFLOW_REPUTATION_MODULE', 0);
 define('MOODLEOVERFLOW_REPUTATION_COURSE', 1);
 
-// Allow negative reputations?
+// Allow ratings?
+define('MOODLEOVERFLOW_RATING_POSITIVE', 0);
+define('MOODLEOVERFLOW_RATING_NEGATIVE', 1);
+
+// Allow (negative) reputations?
 define('MOODLEOVERFLOW_REPUTATION_POSITIVE', 0);
 define('MOODLEOVERFLOW_REPUTATION_NEGATIVE', 1);
 
@@ -191,7 +195,7 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
 
     moodleoverflow_grade_item_update($moodleoverflow);
 
-    // Update all grades
+    // Update all grades.
     moodleoverflow_update_all_grades_for_cm($moodleoverflow->id);
 
     return $result;
@@ -452,7 +456,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
     }
 
     // Finally send the file.
-    send_stored_file($file, 0, 0, true, $options); // download MUST be forced - security!
+    send_stored_file($file, 0, 0, true, $options); // Download MUST be forced - security!
 }
 
 /* Navigation API */
@@ -1140,14 +1144,14 @@ function moodleoverflow_update_grades($moodleoverflow, $userid, $nullifnone = nu
     global $CFG;
     require_once($CFG->libdir.'/gradelib.php');
 
-    // try to get the grades to update
+    // Try to get the grades to update.
     if ($grades = moodleoverflow_get_user_grades($moodleoverflow, $userid)) {
 
         moodleoverflow_grade_item_update($moodleoverflow, $grades);
 
     } else if ($userid and $nullifnone) {
 
-        // insert a grade with rawgrade = null. As described in Gradebook API
+        // Insert a grade with rawgrade = null. As described in Gradebook API.
         $grade = new stdClass();
         $grade->userid = $userid;
         $grade->rawgrade = null;

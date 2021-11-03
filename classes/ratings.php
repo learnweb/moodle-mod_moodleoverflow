@@ -23,6 +23,8 @@
  */
 
 namespace mod_moodleoverflow;
+use moodle_exception;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -59,22 +61,22 @@ class ratings {
             RATING_HELPFUL, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE,
             RATING_REMOVE_SOLVED, RATING_REMOVE_HELPFUL);
         if (!in_array($rating, $possibleratings)) {
-            print_error('invalidratingid', 'moodleoverflow');
+            throw new moodle_exception('invalidratingid', 'moodleoverflow');
         }
 
         // Get the related discussion.
         if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
-            print_error('invalidparentpostid', 'moodleoverflow');
+            throw new moodle_exception('invalidparentpostid', 'moodleoverflow');
         }
 
         // Check if the post belongs to a discussion.
         if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
-            print_error('notpartofdiscussion', 'moodleoverflow');
+            throw new moodle_exception('notpartofdiscussion', 'moodleoverflow');
         }
 
         // Get the related course.
         if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
-            print_error('invalidcourseid');
+            throw new moodle_exception('invalidcourseid');
         }
 
         // Retrieve the contexts.
@@ -96,21 +98,21 @@ class ratings {
             }
 
             // Notify the user, that he can not post a new discussion.
-            print_error('noratemoodleoverflow', 'moodleoverflow');
+            throw new moodle_exception('noratemoodleoverflow', 'moodleoverflow');
         }
 
         // Make sure post author != current user, unless they have permission.
         if (($post->userid == $userid) && !
             (($rating == RATING_SOLVED || $rating == RATING_REMOVE_SOLVED) && has_capability('mod/moodleoverflow:marksolved', $modulecontext))
         ) {
-            print_error('rateownpost', 'moodleoverflow');
+            throw new moodle_exception('rateownpost', 'moodleoverflow');
         }
 
         // Check if we are removing a mark.
         if (in_array($rating / 10, $possibleratings)) {
 
             if (!get_config('moodleoverflow', 'allowratingchange')) {
-                print_error('noratingchangeallowed', 'moodleoverflow');
+                throw new moodle_exception('noratingchangeallowed', 'moodleoverflow');
 
                 return false;
             }
@@ -129,12 +131,12 @@ class ratings {
 
             // Check if the current user is the startuser.
             if ($rating == RATING_HELPFUL && $userid != $discussion->userid) {
-                print_error('notstartuser', 'moodleoverflow');
+                throw new moodle_exception('notstartuser', 'moodleoverflow');
             }
 
             // Check if the current user is a teacher.
             if ($rating == RATING_SOLVED && !has_capability('mod/moodleoverflow:marksolved', $modulecontext)) {
-                print_error('notteacher', 'moodleoverflow');
+                throw new moodle_exception('notteacher', 'moodleoverflow');
             }
 
             // Get other ratings in the discussion.
@@ -157,7 +159,7 @@ class ratings {
         if ($oldrating['normal']) {
 
             if (!get_config('moodleoverflow', 'allowratingchange')) {
-                print_error('noratingchangeallowed', 'moodleoverflow');
+                throw new moodle_exception('noratingchangeallowed', 'moodleoverflow');
 
                 return false;
             }
@@ -199,7 +201,7 @@ class ratings {
 
         // Check the moodleoverflow instance.
         if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
-            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
         }
 
         // Check whether the reputation can be summed over the whole course.
@@ -363,7 +365,7 @@ class ratings {
 
         // Retrieve the full post.
         if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
-            print_error('postnotexist', 'moodleoverflow');
+            throw new moodle_exception('postnotexist', 'moodleoverflow');
         }
 
         // Get the rating for this single post.
@@ -401,7 +403,7 @@ class ratings {
             }
 
             // The requested post is not part of the discussion.
-            print_error('postnotpartofdiscussion', 'moodleoverflow');
+            throw new moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
         }
 
         // Return the array.
@@ -462,7 +464,7 @@ class ratings {
 
         // Check the moodleoverflow instance.
         if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
-            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
         }
 
         // Initiate a variable.
@@ -562,7 +564,7 @@ class ratings {
 
         // Check if the course exists.
         if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-            print_error('invalidcourseid');
+            throw new moodle_exception('invalidcourseid');
         }
 
         // Get all moodleoverflow instances in this course.
@@ -670,7 +672,7 @@ class ratings {
         }
 
         // Print an error message.
-        print_error('ratingtoold', 'moodleoverflow');
+        throw new moodle_exception('ratingtoold', 'moodleoverflow');
 
         return false;
     }
@@ -802,7 +804,7 @@ class ratings {
         // Retrieve the coursemodule.
         if (!$cm) {
             if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-                print_error('invalidcoursemodule');
+                throw new moodle_exception('invalidcoursemodule');
             }
         }
 

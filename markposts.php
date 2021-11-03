@@ -47,17 +47,17 @@ $PAGE->set_url($url);
 
 // Retrieve the connected moodleoverflow instance.
 if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
-    print_error('invalidmoodleoverflowid', 'moodleoverflow');
+    throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Retrieve the connected course.
 if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
-    print_error('invalidcourseid');
+    throw new moodle_exception('invalidcourseid');
 }
 
 // Get the coursemodule.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-    print_error('invalidcoursemodule');
+    throw new moodle_exception('invalidcoursemodule');
 }
 
 // Get the current user.
@@ -102,7 +102,7 @@ if (!empty($discussionid)) {
     $options    = array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id);
     $discussion = $DB->get_record('moodleoverflow_discussions', $options);
     if (!$discussion) {
-        print_error('invaliddiscussionid', 'moodleoverflow');
+        throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
     }
 
     // Mark all the discussions read.

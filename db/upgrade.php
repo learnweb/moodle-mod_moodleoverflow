@@ -104,7 +104,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // Define table moodleoverflow to be edited
+        // Define table moodleoverflow to be edited.
         $table = new xmldb_table('moodleoverflow');
 
         // Define field grademaxgrade to be added to moodleoverflow.
@@ -138,7 +138,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
     if ($oldversion < 2021060800) {
 
-        // Define table moodleoverflow to be edited
+        // Define table moodleoverflow to be edited.
         $table = new xmldb_table('moodleoverflow');
 
         // Define field anonymous to be added to moodleoverflow.

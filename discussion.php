@@ -37,22 +37,22 @@ $PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d));
 
 // Check if the discussion is valid.
 if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
-    print_error('invaliddiscussionid', 'moodleoverflow');
+    throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
 }
 
 // Check if the related moodleoverflow instance is valid.
 if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
-    print_error('invalidmoodleoverflowid', 'moodleoverflow');
+    throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Check if the related moodleoverflow instance is valid.
 if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
-    print_error('invalidcourseid');
+    throw new moodle_exception('invalidcourseid');
 }
 
 // Get the related coursemodule and its context.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-    print_error('invalidcoursemodule');
+    throw new moodle_exception('invalidcoursemodule');
 }
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
@@ -77,7 +77,7 @@ if ($ratingid) {
     if (in_array($ratingid, array(RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL))) {
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
-            print_error('ratingfailed', 'moodleoverflow');
+            throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
         // Return to the discussion.
@@ -101,12 +101,12 @@ unset($SESSION->fromdiscussion);
 // Get the parent post.
 $parent = $discussion->firstpost;
 if (!$post = moodleoverflow_get_post_full($parent)) {
-    print_error("notexists", 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
+    throw new moodle_exception("notexists", 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
 }
 
 // Has the user the capability to view the post?
 if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, null, $cm)) {
-    print_error('noviewdiscussionspermission', 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
+    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
 }
 
 // Append the discussion name to the navigation.
