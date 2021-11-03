@@ -489,10 +489,6 @@ span.unread {
     word-wrap: break-word;
 }
 
-.moodleoverflowpost td.commentcell .comment-text .user-info {
-    /*white-space: nowrap;*/
-}
-
 .moodleoverflowpost td.commentcell .post-menu {
     float: right;
 }
