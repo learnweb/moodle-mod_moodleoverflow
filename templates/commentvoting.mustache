@@ -50,3 +50,26 @@
 
 {{! Display the amount of votes. }}
 <p>{{ votes }}</p>
+
+{{! Did the current user upvoted this post? }}
+{{#userdownvoted}}
+{{! Can the user change its vote? }}
+    {{#canchange}}
+        <a class="downvote active" href="javascript:void(0)">
+            {{# pix}} vote/downvoted, moodleoverflow, {{#str}}downvote, moodleoverflow{{/str}}{{/ pix}}
+        </a>
+    {{/canchange}}
+    {{^canchange}}
+        {{# pix}} vote/downvotedfinal, moodleoverflow, {{#str}}downvotenotchangeable, moodleoverflow{{/str}}{{/ pix}}
+    {{/canchange}}
+{{/userdownvoted}}
+{{^userdownvoted}}
+    {{#canchange}}
+        <a class="downvote" href="javascript:void(0)">
+            {{# pix}} vote/downvote, moodleoverflow, {{#str}}nodownvote, moodleoverflow{{/str}}{{/ pix}}
+        </a>
+    {{/canchange}}
+    {{^canchange}}
+        {{# pix}} vote/downvote, moodleoverflow, {{#str}}nodownvote, moodleoverflow{{/str}}{{/ pix}}
+    {{/canchange}}
+{{/userdownvoted}}

@@ -864,7 +864,13 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
         $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0);
 
-    echo "<br><h2>$answercount " . get_string('answers', 'moodleoverflow') . "</h2>";
+    // Print answer divider.
+    if ($answercount == 1) {
+        $answerstring = get_string('replyfirst', 'moodleoverflow');
+    } else {
+        $answerstring = get_string('answers', 'moodleoverflow');
+    }
+    echo "<br><h2>$answercount $answerstring</h2>";
 
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts);
@@ -1866,14 +1872,30 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
     return $amount;
 }
 
+/**
+ * Updates user grade.
+ *
+ * @param object $moodleoverflow
+ * @param int $postuserrating
+ * @param object $postinguser
+ *
+ */
 function moodleoverflow_update_user_grade($moodleoverflow, $postuserrating, $postinguser) {
 
-    // Check wheter moodleoverlfow object has the added params.
+    // Check whether moodleoverflow object has the added params.
     if ($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0) {
         moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating, $postinguser);
     }
 }
 
+/**
+ * Updates user grade in database.
+ *
+ * @param object $moodleoverflow
+ * @param int $postuserrating
+ * @param int $userid
+ *
+ */
 function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating, $userid) {
     global $DB;
 
@@ -1904,12 +1926,18 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     moodleoverflow_update_grades($moodleoverflow, $userid);
 }
 
+/**
+ * Updates all grades for context module.
+ *
+ * @param int $moodleoverflowid
+ *
+ */
 function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
     global $DB;
 
     $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid));
 
-    // Check wheter moodleoverlfow object has the added params.
+    // Check whether moodleoverflow object has the added params.
     if ($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0) {
 
         // Get all users id.
@@ -1940,6 +1968,10 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
     }
 }
 
+/**
+ * Updates all grades.
+ *
+ */
 function moodleoverflow_update_all_grades() {
     global $DB;
     $cmids = $DB->get_records_select('moodleoverflow', null, null, 'id');

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The main moodleoverflow configuration form
+ * The main moodleoverflow configuration form.
  *
  * It uses the standard core Moodle formslib. For more info about them, please
  * visit: http://docs.moodle.org/en/Development:lib/formslib.php
@@ -32,7 +32,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 
 /**
- * Module instance settings form
+ * Module instance settings form.
  *
  * @package    mod_moodleoverflow
  * @copyright  2017 Kennet Winter <k_wint10@uni-muenster.de>
@@ -41,7 +41,7 @@ require_once($CFG->dirroot . '/course/moodleform_mod.php');
 class mod_moodleoverflow_mod_form extends moodleform_mod {
 
     /**
-     * Defines forms elements
+     * Defines forms elements.
      */
     public function definition() {
         global $CFG, $COURSE;
@@ -212,6 +212,9 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $this->add_action_buttons();
     }
 
+    /**
+     * Handles data postprocessing.
+     */
     public function data_postprocessing($data) {
         if ($data->anonymous != anonymous::NOT_ANONYMOUS) {
             $data->coursewidereputation = false;

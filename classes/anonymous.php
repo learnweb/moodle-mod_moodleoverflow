@@ -35,10 +35,29 @@ defined('MOODLE_INTERNAL') || die();
  */
 class anonymous {
 
+    /**
+     * Used if nothing is anonymous.
+     */
     const NOT_ANONYMOUS = 0;
+    /**
+     * Used if question is anonymous.
+     */
     const QUESTION_ANONYMOUS = 1;
+    /**
+     * Used if whole post is anonymous.
+     */
     const EVERYTHING_ANONYMOUS = 2;
 
+    /**
+     * Checks if post is anonymous.
+     *
+     * @param object $post              moodleoverflow post object
+     * @param object $moodleoverflow
+     * @param int $postinguserid        user id of posting user
+     *
+     * @return bool true if user is not logged in, everything is marked anonymous
+     * and if the question is anonymous and there are no answers yet, else false
+     */
     public static function is_post_anonymous($post, $moodleoverflow, $postinguserid): bool {
         if ($postinguserid == 0) {
             return true;

@@ -79,7 +79,7 @@ define('RATING_REMOVE_HELPFUL', 40);
 /* Moodle core API */
 
 /**
- * Returns the information on whether the module supports a feature
+ * Returns the information on whether the module supports a feature.
  *
  * See {@link plugin_supports()} for more info.
  *
@@ -105,7 +105,7 @@ function moodleoverflow_supports($feature) {
 }
 
 /**
- * Saves a new instance of the moodleoverflow into the database
+ * Saves a new instance of the moodleoverflow into the database.
  *
  * Given an object containing all the necessary data,
  * (defined by the form in mod_form.php) this function
@@ -153,7 +153,7 @@ function moodleoverflow_instance_created($context, $moodleoverflow) {
 }
 
 /**
- * Updates an instance of the moodleoverflow in the database
+ * Updates an instance of the moodleoverflow in the database.
  *
  * Given an object containing all the necessary data,
  * (defined by the form in mod_form.php) this function
@@ -225,18 +225,11 @@ function moodleoverflow_refresh_events($courseid = 0) {
         }
     }
 
-    /*
-    foreach ($moodleoverflows as $moodleoverflow) {
-        // Create a function such as the one below to deal with updating calendar events.
-        // moodleoverflow_update_events($moodleoverflow);
-    }
-    */
-
     return true;
 }
 
 /**
- * Removes an instance of the moodleoverflow from the database
+ * Removes an instance of the moodleoverflow from the database.
  *
  * Given an ID of an instance of this module,
  * this function will permanently delete the instance
@@ -335,7 +328,7 @@ function moodleoverflow_print_recent_activity($course, $viewfullnames, $timestar
 }
 
 /**
- * Returns all other caps used in the module
+ * Returns all other caps used in the module.
  *
  * For example, this could be array('moodle/site:accessallgroups') if the
  * module uses that capability.
@@ -349,7 +342,7 @@ function moodleoverflow_get_extra_capabilities() {
 /* File API */
 
 /**
- * Returns the lists of all browsable file areas within the given module context
+ * Returns the lists of all browsable file areas within the given module context.
  *
  * The file area 'intro' for the activity introduction field is added automatically
  * by {@link file_browser::get_file_info_context_module()}
@@ -368,7 +361,7 @@ function moodleoverflow_get_file_areas($course, $cm, $context) {
 }
 
 /**
- * File browsing support for moodleoverflow file areas
+ * File browsing support for moodleoverflow file areas.
  *
  * @package  mod_moodleoverflow
  * @category files
@@ -390,7 +383,7 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
 }
 
 /**
- * Serves the files from the moodleoverflow file areas
+ * Serves the files from the moodleoverflow file areas.
  *
  * @package  mod_moodleoverflow
  * @category files
@@ -462,7 +455,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
 /* Navigation API */
 
 /**
- * Extends the settings navigation with the moodleoverflow settings
+ * Extends the settings navigation with the moodleoverflow settings.
  *
  * This function is called when the context for the page is a moodleoverflow module. This is not called by AJAX
  * so it is safe to rely on the $PAGE.
@@ -1110,7 +1103,7 @@ function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
 /**
  * Obtain grades from plugin's database tab
  *
- * @param stdClass $moodleoverlfow moodleoverflow object
+ * @param stdClass $moodleoverflow moodleoverflow object
  * @param int $userid optional userid, 0 means all users.
  *
  * @return array array of grades
@@ -1135,7 +1128,7 @@ function moodleoverflow_get_user_grades($moodleoverflow, $userid=0) {
 /**
  * Update grades
  *
- * @param stdClass $moodleoverlfow moodleoverflow object
+ * @param stdClass $moodleoverflow moodleoverflow object
  * @param int $userid userid
  * @param bool $nullifnone
  *
@@ -1166,7 +1159,7 @@ function moodleoverflow_update_grades($moodleoverflow, $userid, $nullifnone = nu
 /**
  * Update plugin's grade item
  *
- * @param stdClass $moodleoverlfow moodleoverflow object
+ * @param stdClass $moodleoverflow moodleoverflow object
  * @param array $grades array of grades
  *
  * @return int grade_update function success code

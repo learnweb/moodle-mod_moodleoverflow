@@ -447,7 +447,6 @@ span.unread {
 .moodleoverflowpost td.answercell .post-info .leftbox .user-info .user-action-time {
     margin-bottom: 4px;
     margin-top: 1px;
-    /*white-space: nowrap;*/
 }
 
 .moodleoverflowpost td.answercell .post-info .leftbox .user-info .user-avatar {
@@ -480,8 +479,8 @@ span.unread {
 }
 
 .moodleoverflowpost td.commentcell {
-    vertical-align: top;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .moodleoverflowpost td.commentcell .comment-text {
@@ -490,5 +489,6 @@ span.unread {
 }
 
 .moodleoverflowpost td.commentcell .post-menu {
-    float: right;
+    margin-top: auto;
+    text-align: right;
 }
