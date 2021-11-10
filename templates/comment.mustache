@@ -43,7 +43,6 @@
     <div class="commentcell">
         <div class="comment-text">
             {{{ commentcontent }}}
-            - {{{ byname }}} <span class="text-muted">{{ byshortdate }}</span>
         </div>
         <div class="attachments">
             {{#attachments}}
@@ -80,8 +79,9 @@
                 {{#str}} solvedanswer, moodleoverflow {{/str}}
             {{/statusteacher}}
         {{/statusstarter}}
-        <div class="post-menu">
-            {{{ commands }}}
+        <div class="post-info">
+            <div class="leftbox">{{{ byname }}} <span class="text-muted">{{ byshortdate }}</span></div>
+            <div class="rightbox">{{{ commands }}}</div>
         </div>
     </div>
 </div>
