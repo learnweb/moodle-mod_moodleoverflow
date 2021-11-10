@@ -34,62 +34,54 @@
 <a id="p{{ postid }}"></a>
 
 {{! Start the post. Mark it read or unread. }}
-<div class="moodleoverflowpost border clearfix bg-light{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
-
-    <table>
-        <tbody>
-            <tr>
-                <td class="votecell">
-                    <div class="votes">
-                        {{> mod_moodleoverflow/commentvoting }}
-                    </div>
-                </td>
-                <td class="commentcell">
-                    <div class="comment-text">
-                        {{{ commentcontent }}}
-                            - {{{ byname }}} <span class="text-muted">{{ byshortdate }}</span>
-                    </div>
-                    <div class="attachments">
-                        {{#attachments}}
-                            {{#image}}
-                                <img src="{{filepath}}" alt=""/>
-                                <br>
-                            {{/image}}
-                            {{^image}}
-                                <a href="{{filepath}}">
-                                    {{{icon}}}
-                                </a>
-                                <a href="{{filepath}}">
-                                    {{filename}}
-                                </a>
-                            {{/image}}
-                            <br>
-                        {{/attachments}}
-                    </div>
-                    {{! The displayed text. }}
-                    {{#statusstarter}}
-                        {{^statusteacher}}
-                            {{#pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
-                            {{#str}} helpfulanswer, moodleoverflow {{/str}}
-                        {{/statusteacher}}
-                        {{#statusteacher}}
-                            {{#pix}} status/c_circle, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
-                            {{#pix}} status/b_box, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
-                            {{#str}} bestanswer, moodleoverflow {{/str}}
-                        {{/statusteacher}}
-                    {{/statusstarter}}
-                    {{^statusstarter}}
-                        {{#statusteacher}}
-                            {{#pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
-                            {{#str}} solvedanswer, moodleoverflow {{/str}}
-                        {{/statusteacher}}
-                    {{/statusstarter}}
-                    <div class="post-menu">
-                        {{{ commands }}}
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
+<div class="moodleoverflowpost moodleoverflowcomment border clearfix bg-light{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
+    <div class="votecell">
+        <div class="votes">
+            {{> mod_moodleoverflow/commentvoting }}
+        </div>
+    </div>
+    <div class="commentcell">
+        <div class="comment-text">
+            {{{ commentcontent }}}
+            - {{{ byname }}} <span class="text-muted">{{ byshortdate }}</span>
+        </div>
+        <div class="attachments">
+            {{#attachments}}
+                {{#image}}
+                    <img src="{{filepath}}" alt=""/>
+                    <br>
+                {{/image}}
+                {{^image}}
+                    <a href="{{filepath}}">
+                        {{{icon}}}
+                    </a>
+                    <a href="{{filepath}}">
+                        {{filename}}
+                    </a>
+                {{/image}}
+                <br>
+            {{/attachments}}
+        </div>
+        {{! The displayed text. }}
+        {{#statusstarter}}
+            {{^statusteacher}}
+                {{#pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
+                {{#str}} helpfulanswer, moodleoverflow {{/str}}
+            {{/statusteacher}}
+            {{#statusteacher}}
+                {{#pix}} status/c_circle, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
+                {{#pix}} status/b_box, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
+                {{#str}} bestanswer, moodleoverflow {{/str}}
+            {{/statusteacher}}
+        {{/statusstarter}}
+        {{^statusstarter}}
+            {{#statusteacher}}
+                {{#pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
+                {{#str}} solvedanswer, moodleoverflow {{/str}}
+            {{/statusteacher}}
+        {{/statusstarter}}
+        <div class="post-menu">
+            {{{ commands }}}
+        </div>
+    </div>
 </div>

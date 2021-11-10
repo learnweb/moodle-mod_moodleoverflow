@@ -38,63 +38,55 @@
 {{! Start the post. Mark it read or unread. }}
 <div class="moodleoverflowpost border clearfix{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region"
      aria-label="{{ discussionby }}">
-
-    <table>
-        <tbody>
-        <tr>
-            <td class="votecell">
-                <div class="votes">
-                    {{> mod_moodleoverflow/postvoting }}
-                </div>
-            </td>
-            <td class="answercell">
-                <div class="post-text">
-                    {{{ postcontent }}}
-                </div>
-                <div class="attachments">
-                    {{#attachments}}
-                        {{#image}}
-                            <img src="{{filepath}}" alt=""/>
-                            <br>
-                        {{/image}}
-                        {{^image}}
-                            <a href="{{filepath}}">
-                                {{{icon}}}
-                            </a>
-                            <a href="{{filepath}}">
-                                {{filename}}
-                            </a>
-                        {{/image}}
-                        <br>
-                    {{/attachments}}
-                </div>
-                <div class="post-info">
-                    <div class="leftbox">
-                        <div class="user-info">
-                            <div class="user-avatar">
-                                {{{ picture }}}
-                            </div>
-                            <div class="user-details">
-                                {{{ byname }}} {{#showrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span>{{ byrating }}</span>){{/showrating}}
-                                <div class="-flair">
-                                    <div class="user-action-time">
-                                        {{ bydate }}
-                                    </div>
-                                </div>
+    <div class="votecell">
+        <div class="votes">
+            {{> mod_moodleoverflow/postvoting }}
+        </div>
+    </div>
+    <div class="answercell">
+        <div class="post-text">
+            {{{ postcontent }}}
+        </div>
+        <div class="attachments">
+            {{#attachments}}
+                {{#image}}
+                    <img src="{{filepath}}" alt=""/>
+                    <br>
+                {{/image}}
+                {{^image}}
+                    <a href="{{filepath}}">
+                        {{{icon}}}
+                    </a>
+                    <a href="{{filepath}}">
+                        {{filename}}
+                    </a>
+                {{/image}}
+                <br>
+            {{/attachments}}
+        </div>
+        <div class="post-info">
+            <div class="leftbox">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{{ picture }}}
+                    </div>
+                    <div class="user-details">
+                        {{{ byname }}} {{#showrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span>{{ byrating }}</span>){{/showrating}}
+                        <div class="-flair">
+                            <div class="user-action-time">
+                                {{ bydate }}
                             </div>
                         </div>
                     </div>
-                    <div class="rightbox">
-                        <div class="post-menu">
-                            {{{ commands }}}
-                        </div>
-                    </div>
                 </div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-
+            </div>
+            <div class="rightbox">
+                <div class="post-menu">
+                    {{{ commands }}}
+                </div>
+            </div>
+        </div>
+    </div>
     {{! Print the footer if requested. }}
     {{# footer }}
         <div class="footer">
