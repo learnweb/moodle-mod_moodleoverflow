@@ -172,5 +172,39 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2021072700, 'moodleoverflow');
     }
 
+    if ($oldversion < 2021072700) {
+
+        // Define table moodleoverflow to be edited.
+        $table = new xmldb_table('moodleoverflow');
+
+        // Define field anonymous to be added to moodleoverflow.
+        $field = new xmldb_field('allowrating', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, 0, 'coursewidereputation');
+
+        // Conditionally launch add field grademaxgrade.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2021072700, 'moodleoverflow');
+    }
+
+    if ($oldversion < 2021072700) {
+
+        // Define table moodleoverflow to be edited.
+        $table = new xmldb_table('moodleoverflow');
+
+        // Define field anonymous to be added to moodleoverflow.
+        $field = new xmldb_field('allowreputation', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, 0, 'allowrating');
+
+        // Conditionally launch add field grademaxgrade.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2021072700, 'moodleoverflow');
+    }
+
     return true;
 }

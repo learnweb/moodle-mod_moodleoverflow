@@ -37,11 +37,16 @@
 
 {{! Start the post. Mark it read or unread. }}
 <div class="moodleoverflowpost border clearfix{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
-    <div class="votecell">
-        <div class="votes">
-            {{> mod_moodleoverflow/postvoting }}
+    {{#showvotes}}
+        <div class="votecell">
+            <div class="votes">
+                {{> mod_moodleoverflow/postvoting }}
+            </div>
         </div>
-    </div>
+    {{/showvotes}}
+    {{^showvotes}}
+        <div class="novotecell"></div>
+    {{/showvotes}}
     <div class="answercell">
         <div class="post-text">
             {{{ postcontent }}}
@@ -70,10 +75,13 @@
                         {{{ picture }}}
                     </div>
                     <div class="user-details">
-                        {{{ byname }}} {{#showrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span>{{ byrating }}</span>){{/showrating}}
+                        {{{ byname }}} {{#showreputation}}{{#showrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span>{{ byrating }}</span>){{/showrating}}{{/showreputation}}
                         <div class="-flair">
                             <div class="user-action-time">
                                 {{ bydate }}
+                            </div>
+                            <div class="user-action-shorttime">
+                                {{byshortdate}}
                             </div>
                         </div>
                     </div>
@@ -86,18 +94,24 @@
                     {{#statusstarter}}
                         {{^statusteacher}}
                             {{#pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
-                            {{#str}} helpfulanswer, moodleoverflow {{/str}}
+                            <span class="hide-600">
+                                {{#str}} helpfulanswer, moodleoverflow {{/str}}
+                            </span>
                         {{/statusteacher}}
                         {{#statusteacher}}
                             {{#pix}} status/c_circle, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
                             {{#pix}} status/b_box, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
-                            {{#str}} bestanswer, moodleoverflow {{/str}}
+                            <span class="hide-600">
+                                {{#str}} bestanswer, moodleoverflow {{/str}}
+                            </span>
                         {{/statusteacher}}
                     {{/statusstarter}}
                     {{^statusstarter}}
                         {{#statusteacher}}
                             {{#pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
-                            {{#str}} solvedanswer, moodleoverflow {{/str}}
+                            <span class="hide-600">
+                                {{#str}} solvedanswer, moodleoverflow {{/str}}
+                            </span>
                         {{/statusteacher}}
                     {{/statusstarter}}
                 </div>

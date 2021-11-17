@@ -351,10 +351,15 @@ span.unread {
 /*
  * The Votes.
  */
+.moodleoverflowpost .novotecell {
+    width: 10px;
+}
+
 .moodleoverflowpost .votecell {
     vertical-align: top;
     overflow: hidden;
     width: 43px;
+    flex-shrink: 0;
 }
 
 .moodleoverflowpost .votecell .votes {
@@ -455,8 +460,25 @@ span.unread {
 }
 
 .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-time {
+    display: block;
     margin-bottom: 4px;
     margin-top: 1px;
+}
+
+.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-shorttime {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-time {
+        display: none;
+    }
+
+    .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-shorttime {
+        display: block;
+        margin-bottom: 4px;
+        margin-top: 1px;
+    }
 }
 
 .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-avatar {
@@ -484,10 +506,6 @@ span.unread {
     width: calc(100% - 40px);
 }
 
-.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-details .-flair {
-    display: block;
-}
-
 .moodleoverflowpost .commentcell {
     display: flex;
     flex-direction: column;
@@ -502,4 +520,10 @@ span.unread {
 
 .moodleoverflowpost .commentcell .post-menu {
     text-align: right;
+}
+
+@media (max-width: 600px) {
+    .hide-600 {
+        display: none;
+    }
 }

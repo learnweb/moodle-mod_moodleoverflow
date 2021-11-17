@@ -35,11 +35,16 @@
 
 {{! Start the post. Mark it read or unread. }}
 <div class="moodleoverflowpost moodleoverflowcomment border clearfix bg-light{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
-    <div class="votecell">
-        <div class="votes">
-            {{> mod_moodleoverflow/commentvoting }}
+    {{#showvotes}}
+        <div class="votecell">
+            <div class="votes">
+                {{> mod_moodleoverflow/postvoting }}
+            </div>
         </div>
-    </div>
+    {{/showvotes}}
+    {{^showvotes}}
+        <div class="novotecell"></div>
+    {{/showvotes}}
     <div class="commentcell">
         <div class="comment-text">
             {{{ commentcontent }}}

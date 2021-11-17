@@ -181,15 +181,17 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('ratingpreference', 'ratingpreference', 'moodleoverflow');
         $mform->setDefault('ratingpreference', MOODLEOVERFLOW_PREFERENCE_STARTER);
 
-        // Allow Rating.
-        $mform->addElement('selectyesno', 'allowrating', get_string('allowrating', 'moodleoverflow'));
-        $mform->addHelpButton('allowrating', 'allowrating', 'moodleoverflow');
-        $mform->setDefault('allowrating', MOODLEOVERFLOW_RATING_NEGATIVE);
+        if (get_config('moodleoverflow', 'allowdisablerating') == 1) {
+            // Allow Rating.
+            $mform->addElement('selectyesno', 'allowrating', get_string('allowrating', 'moodleoverflow'));
+            $mform->addHelpButton('allowrating', 'allowrating', 'moodleoverflow');
+            $mform->setDefault('allowrating', MOODLEOVERFLOW_RATING_ALLOW);
 
-        // Allow Reputation.
-        $mform->addElement('selectyesno', 'allowreputation', get_string('allowreputation', 'moodleoverflow'));
-        $mform->addHelpButton('allowreputation', 'allowreputation', 'moodleoverflow');
-        $mform->setDefault('allowreputation', MOODLEOVERFLOW_REPUTATION_NEGATIVE);
+            // Allow Reputation.
+            $mform->addElement('selectyesno', 'allowreputation', get_string('allowreputation', 'moodleoverflow'));
+            $mform->addHelpButton('allowreputation', 'allowreputation', 'moodleoverflow');
+            $mform->setDefault('allowreputation', MOODLEOVERFLOW_REPUTATION_ALLOW);
+        }
 
         // Course wide reputation?
         $mform->addElement('selectyesno', 'coursewidereputation', get_string('coursewidereputation', 'moodleoverflow'));
