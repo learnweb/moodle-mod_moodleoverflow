@@ -144,7 +144,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         // Define field anonymous to be added to moodleoverflow.
         $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, 0, 'gradecat');
 
-        // Conditionally launch add field grademaxgrade.
+        // Conditionally launch add field anonymous.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
@@ -172,38 +172,29 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2021072700, 'moodleoverflow');
     }
 
-    if ($oldversion < 2021072700) {
+    if ($oldversion < 2021111700) {
 
         // Define table moodleoverflow to be edited.
         $table = new xmldb_table('moodleoverflow');
 
-        // Define field anonymous to be added to moodleoverflow.
-        $field = new xmldb_field('allowrating', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, 0, 'coursewidereputation');
+        // Define field allowrating to be added to moodleoverflow.
+        $field = new xmldb_field('allowrating', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, 1, 'coursewidereputation');
 
-        // Conditionally launch add field grademaxgrade.
+        // Conditionally launch add field allowrating.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field allowreputation to be added to moodleoverflow.
+        $field = new xmldb_field('allowreputation', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, 1, 'allowrating');
+
+        // Conditionally launch add field allowreputation.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
         // Moodleoverflow savepoint reached.
-        upgrade_mod_savepoint(true, 2021072700, 'moodleoverflow');
-    }
-
-    if ($oldversion < 2021072700) {
-
-        // Define table moodleoverflow to be edited.
-        $table = new xmldb_table('moodleoverflow');
-
-        // Define field anonymous to be added to moodleoverflow.
-        $field = new xmldb_field('allowreputation', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, 0, 'allowrating');
-
-        // Conditionally launch add field grademaxgrade.
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        // Moodleoverflow savepoint reached.
-        upgrade_mod_savepoint(true, 2021072700, 'moodleoverflow');
+        upgrade_mod_savepoint(true, 2021111700, 'moodleoverflow');
     }
 
     return true;
