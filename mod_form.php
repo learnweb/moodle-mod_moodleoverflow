@@ -216,6 +216,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
     /**
      * Handles data postprocessing.
+     *
+     * @param array $data data from the form.
      */
     public function data_postprocessing($data) {
         if ($data->anonymous != anonymous::NOT_ANONYMOUS) {
