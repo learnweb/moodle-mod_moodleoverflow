@@ -72,4 +72,38 @@ class anonymous {
         return false;
     }
 
+    /**
+     * Returns a usermapping for the Moodleoverflow, where each anonymized userid is replaced by an int, to form the
+     * new name, e.g. Answerer #4.
+     *
+     * @param \stdClass $moodleoverflow
+     * @param int $discussionid
+     */
+    public static function get_userid_mapping($moodleoverflow, $discussionid) {
+        global $DB;
+        if ($moodleoverflow->anonymous == self::NOT_ANONYMOUS) {
+            return [];
+        }
+        if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
+            return [
+                $DB->get_field('moodleoverflow_posts', 'userid',
+                    ['parent' => 0, 'discussion' => $discussionid]) => 0
+            ];
+        }
+
+        $userids = $DB->get_records_sql(
+            'SELECT userid ' .
+            'FROM mdl_moodleoverflow_posts ' .
+            'WHERE discussion = :discussion' .
+            'GROUP BY userid ' .
+            'ORDER BY MIN(created) ASC;', ['discussion' => $discussionid]);
+
+        $mapping = [];
+        $i = 0;
+        foreach ($userids as $userid) {
+            $mapping[$userid] = $i;
+        }
+        return $mapping;
+    }
+
 }
