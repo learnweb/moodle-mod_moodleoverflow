@@ -17,7 +17,6 @@
  * Ajax functions for moodleoverflow
  *
  * @module     mod/moodleoverflow
- * @package
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
