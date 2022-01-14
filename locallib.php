@@ -866,18 +866,18 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Print answer divider.
     if ($answercount == 1) {
-        $answerstring = get_string('replyfirst', 'moodleoverflow');
+        $answerstring = get_string('answer', 'moodleoverflow', $answercount);
     } else {
-        $answerstring = get_string('answers', 'moodleoverflow');
+        $answerstring = get_string('answers', 'moodleoverflow', $answercount);
     }
-    echo "<br><h2>$answercount $answerstring</h2>";
+    echo "<br><h2>$answerstring</h2>";
 
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts);
 }
 
 /**
- * Get all posts in discussion inculding the starting post.
+ * Get all posts in discussion including the starting post.
  *
  * @param int     $discussionid The ID of the discussion
  * @param boolean $tracking     Whether tracking is activated

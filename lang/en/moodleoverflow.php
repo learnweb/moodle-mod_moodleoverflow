@@ -194,7 +194,8 @@ $string['marksolved']                  = 'Mark as solution';
 $string['marknotsolved']               = 'Remove solution mark';
 $string['markhelpful']                 = 'Mark as Helpful';
 $string['marknothelpful']              = 'Not Helpful';
-$string['answers']                     = 'Answers';
+$string['answer']                      = '{$a} Answer';
+$string['answers']                     = '{$a} Answers';
 
 // Strings for the readtracking.php.
 $string['markreadfailed']                   = 'A post of the discussion could not be marked as read.';
