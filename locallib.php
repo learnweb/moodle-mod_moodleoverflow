@@ -1316,7 +1316,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Prepare the post.
     $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
-    $mustachedata->commentcontent = strip_tags($post->message, "<style>");
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
