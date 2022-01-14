@@ -1300,8 +1300,13 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         : $postinguser->fullname;
     $mustachedata->byrating = $postuserrating;
     $mustachedata->showrating = $postuserrating !== null;
-    $mustachedata->showvotes = $moodleoverflow->allowrating;
-    $mustachedata->showreputation = $moodleoverflow->allowreputation;
+    if (get_config('moodleoverflow', 'allowdisablerating') == 1) {
+        $mustachedata->showvotes = $moodleoverflow->allowrating;
+        $mustachedata->showreputation = $moodleoverflow->allowreputation;
+    } else {
+        $mustachedata->showvotes = MOODLEOVERFLOW_RATING_ALLOW;
+        $mustachedata->showreputation = MOODLEOVERFLOW_REPUTATION_ALLOW;
+    }
 
     // Set options for the post.
     $options = new stdClass();
