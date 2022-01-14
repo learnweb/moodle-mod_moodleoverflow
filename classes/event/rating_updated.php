@@ -23,7 +23,6 @@
  */
 
 namespace mod_moodleoverflow\event;
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * The mod_moodleoverflow rating updated event class.
