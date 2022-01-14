@@ -24,8 +24,6 @@
 
 namespace mod_moodleoverflow;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Class for Moodleoverflow anonymity
  *

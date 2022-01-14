@@ -32,8 +32,6 @@ use core_privacy\local\request\contextlist;
 use core_privacy\local\request\writer;
 use \core_privacy\local\request\helper as request_helper;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy Subsystem for mod_moodleoverflow implementing provider.
  *

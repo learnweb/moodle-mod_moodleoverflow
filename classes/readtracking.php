@@ -26,8 +26,6 @@ namespace mod_moodleoverflow;
 
 use moodle_exception;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Static methods for managing the tracking of read posts and discussions.
  *

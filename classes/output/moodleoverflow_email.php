@@ -26,8 +26,6 @@ namespace mod_moodleoverflow\output;
 
 use mod_moodleoverflow\anonymous;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Moodleoverflow email renderable for use in e-mail.
  *

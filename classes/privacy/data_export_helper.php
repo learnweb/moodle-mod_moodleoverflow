@@ -25,7 +25,6 @@ use core_privacy\local\request\transform;
 use \core_privacy\local\request\writer;
 use mod_moodleoverflow\ratings;
 
-defined('MOODLE_INTERNAL') || die();
 /**
  * Subcontext helper class.
  *

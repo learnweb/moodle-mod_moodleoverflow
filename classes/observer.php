@@ -22,8 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event observer for mod_moodleoverflow.
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
