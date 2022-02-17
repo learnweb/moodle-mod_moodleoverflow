@@ -17,7 +17,7 @@
  * Ajax functions for moodleoverflow
  *
  * @module     mod/moodleoverflow
- * @package    mod_moodleoverflow
+ * @package
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -148,7 +148,6 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                         $.when(promiseStringNotSolved).done(function(string) {
                             $(event.target).text(string);
                         });
-
                         t.redoStatus(post);
                     });
                 }
@@ -248,7 +247,11 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                     var circle = templates.renderPix('status/c_circle', 'mod_moodleoverflow', results[0]);
                     var box = templates.renderPix('status/b_box', 'mod_moodleoverflow', results[1]);
                     $.when(box, circle).done(function(boxImg, circleImg) {
-                        post.find('.status').html(boxImg + circleImg + results[2]);
+                        if (screen.width > 600) {
+                            post.find('.status').html(boxImg + circleImg + results[2]);
+                        } else {
+                            post.find('.status').html(boxImg + circleImg);
+                        }
                     });
                     return results;
                 });
@@ -260,7 +263,12 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 str.get_strings(statusTeacherRequest).then(function(results) {
                     var circle = templates.renderPix('status/c_outline', 'mod_moodleoverflow', results[0]);
                     $.when(circle).done(function(circleImg) {
-                        post.find('.status').html(circleImg + results[1]);
+                        if (screen.width > 600) {
+                            post.find('.status').html(circleImg + results[1]);
+                        } else {
+                            post.find('.status').html(circleImg);
+                        }
+
                     });
                     return results;
                 });
@@ -272,7 +280,11 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 str.get_strings(statusStarterRequest).then(function(results) {
                     var box = templates.renderPix('status/b_outline', 'mod_moodleoverflow', results[0]);
                     $.when(box).done(function(boxImg) {
-                        post.find('.status').html(boxImg + results[1]);
+                        if (screen.width > 600) {
+                            post.find('.status').html(boxImg + results[1]);
+                        } else {
+                            post.find('.status').html(boxImg);
+                        }
                     });
                     return results;
                 });

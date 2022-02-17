@@ -24,7 +24,7 @@
 
 namespace mod_moodleoverflow;
 
-defined('MOODLE_INTERNAL') || die();
+use moodle_exception;
 
 /**
  * Static methods for managing the tracking of read posts and discussions.
@@ -137,7 +137,7 @@ class readtracking {
 
             // Mark the discussion as read.
             if (!self::moodleoverflow_mark_discussion_read($discussionid, $userid)) {
-                print_error('markreadfailed', 'moodleoverflow');
+                throw new moodle_exception('markreadfailed', 'moodleoverflow');
 
                 return false;
             }
@@ -173,7 +173,7 @@ class readtracking {
 
             // Mark the post as read.
             if (!self::moodleoverflow_mark_post_read($userid, $post)) {
-                print_error('markreadfailed', 'moodleoverflow');
+                throw new moodle_exception('markreadfailed', 'moodleoverflow');
 
                 return false;
             }

@@ -1434,14 +1434,14 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         self::assertEquals("2.50", $grades->items[0]->grades[$user->id]->str_grade);
         self::assertEquals("0.50", $grades->items[0]->grades[$user2->id]->str_grade);
 
-        // Test export
+        // Test export.
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
         $writer = \core_privacy\local\request\writer::with_context($context);
         $metadata = $writer->get_all_metadata([]);
         self::assertArrayHasKey('grade', $metadata);
         self::assertEquals(2.5, $metadata['grade']->value);
 
-        // Test delete for user
+        // Test delete for user.
         $contextlist = provider::get_contexts_for_userid($user2->id);
         $contextlist = new approved_contextlist($user2, 'mod_moodleoverflow', $contextlist->get_contextids());
         self::assertContains("$context->id", $contextlist->get_contextids());
@@ -1452,7 +1452,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         self::assertEquals(2.5, $grades[$user->id]->grade);
         self::assertArrayNotHasKey($user2->id, $grades);
 
-        // Test delete context
+        // Test delete context.
         provider::delete_data_for_all_users_in_context($context);
         moodleoverflow_update_all_grades_for_cm($forum->id);
         $grades = $DB->get_records('moodleoverflow_grades', array('moodleoverflowid' => $forum->id), null,

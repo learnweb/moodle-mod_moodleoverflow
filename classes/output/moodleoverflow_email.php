@@ -26,8 +26,6 @@ namespace mod_moodleoverflow\output;
 
 use mod_moodleoverflow\anonymous;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Moodleoverflow email renderable for use in e-mail.
  *
@@ -399,7 +397,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_permalink() {
-        $link = $this->_get_discussionlink();
+        $link = $this->get_discussionurl();
         $link->set_anchor($this->get_postanchor());
 
         return $link->out(false);
@@ -451,7 +449,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_parentpostlink() {
-        $link = $this->_get_discussionlink();
+        $link = $this->get_discussionurl();
         $link->param('parent', $this->post->parent);
 
         return $link->out(false);
@@ -462,7 +460,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      *
      * @return string
      */
-    protected function _get_discussionlink() {
+    protected function get_discussionurl() {
         return new \moodle_url(
         // Posts are viewed on the topic.
             '/mod/moodleoverflow/discussion.php', array(
@@ -478,7 +476,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_discussionlink() {
-        $link = $this->_get_discussionlink();
+        $link = $this->get_discussionurl();
 
         return $link->out(false);
     }

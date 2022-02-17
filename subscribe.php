@@ -51,7 +51,7 @@ if (!is_null($sesskey)) {
 if (!is_null($discussionid)) {
     $url->param('d', $discussionid);
     if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussionid, 'moodleoverflow' => $id))) {
-        print_error('invaliddiscussionid', 'moodleoverflow');
+        throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
     }
 }
 
@@ -84,7 +84,7 @@ if ($user) {
 
     // Check the users capabilities.
     if (!has_capability('mod/moodleoverflow:managesubscriptions', $context)) {
-        print_error('nopermissiontosubscribe', 'moodleoverflow');
+        throw new moodle_exception('nopermissiontosubscribe', 'moodleoverflow');
     }
 
     // Retrieve the user from the database.
@@ -178,7 +178,7 @@ if (!is_null($mode) AND has_capability('mod/moodleoverflow:managesubscriptions',
             break;
 
         default:
-            print_error($strings['invalidforcesubscribe']);
+            throw new moodle_exception($strings['invalidforcesubscribe']);
     }
 }
 
@@ -244,7 +244,7 @@ if ($issubscribed) {
         if (\mod_moodleoverflow\subscriptions::unsubscribe_user($user->id, $moodleoverflow, $context, true)) {
             redirect($returnto, get_string('nownotsubscribed', 'moodleoverflow', $info), null, $notify['success']);
         } else {
-            print_error('cannotunsubscribe', 'moodleoverflow', get_local_referer(false));
+            throw new moodle_exception('cannotunsubscribe', 'moodleoverflow', get_local_referer(false));
         }
 
     } else {
@@ -254,7 +254,7 @@ if ($issubscribed) {
             $info->discussion = $discussion->name;
             redirect($returnto, get_string('discussionnownotsubscribed', 'moodleoverflow', $info), null, $notify['success']);
         } else {
-            print_error('cannotunsubscribe', 'moodleoverflow', get_local_referer(false));
+            throw new moodle_exception('cannotunsubscribe', 'moodleoverflow', get_local_referer(false));
         }
     }
 
@@ -270,12 +270,12 @@ if ($issubscribed) {
     // Check if subscriptionsare allowed.
     $disabled = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
     if ($disabled AND !$capabilities['managesubscriptions']) {
-        print_error('disallowsubscribe', 'moodleoverflow', get_local_referer(false));
+        throw new moodle_exception('disallowsubscribe', 'moodleoverflow', get_local_referer(false));
     }
 
     // Check if the user can view discussions.
     if (!$capabilities['viewdiscussion']) {
-        print_error('noviewdiscussionspermission', 'moodleoverflow', get_local_referer(false));
+        throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow', get_local_referer(false));
     }
 
     // Check the session key.

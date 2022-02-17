@@ -223,15 +223,10 @@
 
 .moodleoverflowpost {
     border-radius: 0;
-    display: block;
+    display: flex;
     margin-bottom: 5px;
     position: relative;
     padding: 6px;
-}
-
-.moodleoverflowpost > table {
-    table-layout: fixed;
-    width: 100%;
 }
 
 .moodleoverflowpost.statusboth:before {
@@ -356,99 +351,137 @@ span.unread {
 /*
  * The Votes.
  */
-.moodleoverflowpost td.votecell {
+.moodleoverflowpost .novotecell {
+    width: 10px;
+}
+
+.moodleoverflowpost .votecell {
     vertical-align: top;
     overflow: hidden;
     width: 43px;
+    flex-shrink: 0;
 }
 
-.moodleoverflowpost td.votecell .votes {
+.moodleoverflowpost .votecell .votes {
     display: block;
     margin: 0 8px 0 0;
     text-align: center;
 }
 
-.moodleoverflowpost td.votecell .votes p {
+.moodleoverflowpost .votecell .votes p {
     margin-bottom: 0;
     margin-top: 0;
 }
 
-.moodleoverflowpost td.votecell .votes .icon {
+.moodleoverflowpost.moodleoverflowcomment .votecell .votes p {
+    margin-bottom: -10px;
+    margin-top: -10px;
+}
+
+.moodleoverflowpost .votecell .votes .icon {
     color: #0a0;
     height: 24px;
     margin: 0;
     width: 24px;
 }
 
+.moodleoverflowpost.moodleoverflowcomment .votecell .votes p {
+    margin-bottom: -6px;
+    margin-top: -6px;
+    color: grey;
+}
+
 /*
  * The Answers.
  */
-.moodleoverflowpost td.answercell {
+.moodleoverflowpost .answercell {
     vertical-align: top;
     width: 100%;
 }
 
-.moodleoverflowpost td.answercell .post-text {
+.moodleoverflowpost .answercell .post-text {
     margin-bottom: 5px;
     overflow-wrap: break-word;
     width: 100%;
     word-wrap: break-word;
 }
 
-.moodleoverflowpost td.answercell .comment-by {
+.moodleoverflowpost .answercell .comment-by {
     color: #848d95;
 }
 
-.moodleoverflowpost td.answercell .comment-commands {
+.moodleoverflowpost .answercell .comment-commands {
     text-align: right;
 }
 
-.moodleoverflowpost td.answercell table.post-info {
-    margin-bottom: 4px;
+.moodleoverflowpost .answercell .post-info,
+.moodleoverflowpost .commentcell .post-info {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: flex-end;
     width: 100%;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.rightbox {
+.moodleoverflowpost .answercell .post-info .rightbox,
+.moodleoverflowpost .commentcell .post-info .rightbox {
     text-align: right;
-    vertical-align: bottom;
+    flex-grow: 1;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.rightbox .status {
+.moodleoverflowpost .answercell .post-info .rightbox .status {
     color: #848d95;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.rightbox .status .icon {
+.moodleoverflowpost .answercell .post-info .rightbox .status .icon {
     height: 16px;
     width: 16px;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox {
+.moodleoverflowpost .answercell .post-info .leftbox,
+.moodleoverflowpost .commentcell .post-info .leftbox {
     text-align: left;
-    vertical-align: top;
+    margin-right: 12px;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info {
     box-sizing: border-box;
     color: #848d95;
     padding: 5px 6px 7px 7px;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info::before {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info::before {
     content: "";
     display: table;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info::after {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info::after {
     clear: both;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-action-time {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-time {
+    display: block;
     margin-bottom: 4px;
     margin-top: 1px;
-    white-space: nowrap;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-avatar {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-shorttime {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-time {
+        display: none;
+    }
+
+    .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-shorttime {
+        display: block;
+        margin-bottom: 4px;
+        margin-top: 1px;
+    }
+}
+
+.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-avatar {
     border-collapse: separate;
     border-radius: 1px;
     float: left;
@@ -456,23 +489,41 @@ span.unread {
     width: 32px;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-details {
     float: left;
     line-height: 17px;
     width: 100%;
     word-wrap: break-word;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details .icon {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-details .icon {
     margin-bottom: 3px;
     margin-right: 0;
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-avatar + .user-details {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-avatar + .user-details {
     margin-left: 8px;
     width: calc(100% - 40px);
 }
 
-.moodleoverflowpost td.answercell table.post-info td.leftbox .user-info .user-details .-flair {
-    display: block;
+.moodleoverflowpost .commentcell {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.moodleoverflowpost .commentcell .comment-text {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    flex-grow: 1;
+}
+
+.moodleoverflowpost .commentcell .post-menu {
+    text-align: right;
+}
+
+@media (max-width: 600px) {
+    .hide-600 {
+        display: none;
+    }
 }

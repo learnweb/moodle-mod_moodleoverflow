@@ -89,22 +89,22 @@ class mod_moodleoverflow_external extends external_api {
 
         // Check if the discussion is valid.
         if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $params['discussionid']))) {
-            print_error('invaliddiscussionid', 'moodleoverflow');
+            throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
         }
 
         // Check if the related moodleoverflow instance is valid.
         if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
-            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
         }
 
         // Check if the related moodleoverflow instance is valid.
         if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
-            print_error('invalidcourseid');
+            throw new moodle_exception('invalidcourseid');
         }
 
         // Get the related coursemodule and its context.
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-            print_error('invalidcoursemodule');
+            throw new moodle_exception('invalidcoursemodule');
         }
 
         // Security checks.
@@ -112,13 +112,13 @@ class mod_moodleoverflow_external extends external_api {
         self::validate_context($context);
         require_capability('mod/moodleoverflow:ratepost', $context);
         if (!confirm_sesskey($sesskey)) {
-            print_error('invalidsesskey');
+            throw new moodle_exception('invalidsesskey');
         }
 
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,
             $params['postid'], $params['ratingid'], $cm)) {
-            print_error('ratingfailed', 'moodleoverflow');
+            throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
         $post = moodleoverflow_get_post_full($params['postid']);
@@ -128,7 +128,8 @@ class mod_moodleoverflow_external extends external_api {
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
 
-        $cannotseeowner = \mod_moodleoverflow\anonymous::is_post_anonymous($post, $moodleoverflow, $USER->id) && $USER->id != $postownerid;
+        $cannotseeowner = \mod_moodleoverflow\anonymous::is_post_anonymous($post, $moodleoverflow, $USER->id) &&
+            $USER->id != $postownerid;
 
         $params['postrating']      = $rating->upvotes - $rating->downvotes;
         $params['ownerreputation'] = $cannotseeowner ? null : $ownerrating;

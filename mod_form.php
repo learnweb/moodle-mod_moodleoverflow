@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The main moodleoverflow configuration form
+ * The main moodleoverflow configuration form.
  *
  * It uses the standard core Moodle formslib. For more info about them, please
  * visit: http://docs.moodle.org/en/Development:lib/formslib.php
@@ -32,7 +32,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 
 /**
- * Module instance settings form
+ * Module instance settings form.
  *
  * @package    mod_moodleoverflow
  * @copyright  2017 Kennet Winter <k_wint10@uni-muenster.de>
@@ -41,7 +41,7 @@ require_once($CFG->dirroot . '/course/moodleform_mod.php');
 class mod_moodleoverflow_mod_form extends moodleform_mod {
 
     /**
-     * Defines forms elements
+     * Defines forms elements.
      */
     public function definition() {
         global $CFG, $COURSE;
@@ -148,7 +148,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
         $mform->setDefault('trackingtype', $default);
 
-        // Grade options
+        // Grade options.
         $mform->addElement('header', 'gradeheading',
             $CFG->branch >= 311 ? get_string('gradenoun') : get_string('grade'));
 
@@ -181,6 +181,18 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('ratingpreference', 'ratingpreference', 'moodleoverflow');
         $mform->setDefault('ratingpreference', MOODLEOVERFLOW_PREFERENCE_STARTER);
 
+        if (get_config('moodleoverflow', 'allowdisablerating') == 1) {
+            // Allow Rating.
+            $mform->addElement('selectyesno', 'allowrating', get_string('allowrating', 'moodleoverflow'));
+            $mform->addHelpButton('allowrating', 'allowrating', 'moodleoverflow');
+            $mform->setDefault('allowrating', MOODLEOVERFLOW_RATING_ALLOW);
+
+            // Allow Reputation.
+            $mform->addElement('selectyesno', 'allowreputation', get_string('allowreputation', 'moodleoverflow'));
+            $mform->addHelpButton('allowreputation', 'allowreputation', 'moodleoverflow');
+            $mform->setDefault('allowreputation', MOODLEOVERFLOW_REPUTATION_ALLOW);
+        }
+
         // Course wide reputation?
         $mform->addElement('selectyesno', 'coursewidereputation', get_string('coursewidereputation', 'moodleoverflow'));
         $mform->addHelpButton('coursewidereputation', 'coursewidereputation', 'moodleoverflow');
@@ -202,6 +214,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $this->add_action_buttons();
     }
 
+    /**
+     * Handles data postprocessing.
+     *
+     * @param array $data data from the form.
+     */
     public function data_postprocessing($data) {
         if ($data->anonymous != anonymous::NOT_ANONYMOUS) {
             $data->coursewidereputation = false;

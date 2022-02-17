@@ -24,8 +24,6 @@
 
 namespace mod_moodleoverflow\output\email;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Moodleoverflow post renderable.
  *

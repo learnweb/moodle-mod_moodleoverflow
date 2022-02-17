@@ -35,17 +35,17 @@ require_sesskey();
 
 // Retrieve the moodleoverflow instance to track or untrack.
 if (!$moodleoverflow = $DB->get_record("moodleoverflow", array("id" => $id))) {
-    print_error('invalidmoodleoverflowid', 'moodleoverflow');
+    throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Retrieve the course of the instance.
 if (!$course = $DB->get_record("course", array("id" => $moodleoverflow->course))) {
-    print_error('invalidcoursemodule');
+    throw new moodle_exception('invalidcoursemodule');
 }
 
 // Retrieve the course module of that course.
 if (!$cm = get_coursemodule_from_instance("moodleoverflow", $moodleoverflow->id, $course->id)) {
-    print_error('invalidcoursemodule');
+    throw new moodle_exception('invalidcoursemodule');
 }
 
 // From now on the user needs to be logged in and enrolled.
@@ -98,7 +98,7 @@ if ($istracked) {
         // The insertion failed.
 
         // Print an error message.
-        print_error('cannottrack', 'moodleoverflow', get_local_referer(false));
+        throw new moodle_exception('cannottrack', 'moodleoverflow', get_local_referer(false));
     }
 
 } else {
@@ -119,6 +119,6 @@ if ($istracked) {
         // The deletion failed.
 
         // Print an error message.
-        print_error('cannottrack', 'moodleoverflow', get_local_referer(false));
+        throw new moodle_exception('cannottrack', 'moodleoverflow', get_local_referer(false));
     }
 }

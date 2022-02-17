@@ -109,7 +109,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     // Check if the course supports the module.
     if (!$cm) {
         if (!$cm = get_course_and_cm_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-            print_error('invalidcoursemodule');
+            throw new moodle_exception('invalidcoursemodule');
         }
     }
 
@@ -399,7 +399,7 @@ function moodleoverflow_user_can_post_discussion($moodleoverflow, $cm = null, $c
     // Get the coursemodule.
     if (!$cm) {
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-            print_error('invalidcoursemodule');
+            throw new moodle_exception('invalidcoursemodule');
         }
     }
 
@@ -559,7 +559,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
     if (!$cm) {
         debugging('missing cm', DEBUG_DEVELOPER);
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-            print_error('invalidcoursemodule');
+            throw new moodle_exception('invalidcoursemodule');
         }
     }
 
@@ -624,7 +624,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
 
     // Retrieve the coursemodule.
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-        print_error('invalidcoursemodule');
+        throw new moodle_exception('invalidcoursemodule');
     }
 
     // Check the users capability.
@@ -666,7 +666,7 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
 
     // Retrieve the coursemodule.
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-        print_error('invalidcoursemodule');
+        throw new moodle_exception('invalidcoursemodule');
     }
 
     // Create the post-object.
@@ -770,14 +770,14 @@ function moodleoverflow_user_can_post($moodleoverflow, $user = null, $cm = null,
     // Fetch the coursemodule.
     if (!$cm) {
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-            print_error('invalidcoursemodule');
+            throw new moodle_exception('invalidcoursemodule');
         }
     }
 
     // Fetch the related course.
     if (!$course) {
         if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
-            print_error('invalidcourseid');
+            throw new moodle_exception('invalidcourseid');
         }
     }
 
@@ -828,12 +828,15 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     // Start with the parent post.
     $post = $posts[$post->id];
 
+    $answercount = 0;
+
     // Lets clear all posts above level 2.
     // Check if there are answers.
     if (isset($post->children)) {
 
         // Itereate through all answers.
         foreach ($post->children as $aid => $a) {
+            $answercount += 1;
 
             // Check for each answer if they have children as well.
             if (isset($post->children[$aid]->children)) {
@@ -857,26 +860,24 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     // Check if the post was read.
     $postread = !empty($post->postread);
 
-    // Print a button to reply to the discussion.
-    if ($canreply) {
-        $buttontext = get_string('addanewreply', 'moodleoverflow');
-        $buttonurl = new moodle_url('/mod/moodleoverflow/post.php', ['reply' => $post->id]);
-        $button = new single_button($buttonurl, $buttontext, 'get');
-        $button->class = 'singlebutton moodleoverflowaddnew';
-        $button->formid = 'newdiscussionform';
-        echo $OUTPUT->render($button);
-    }
-
     // Print the starting post.
     echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
         $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0);
+
+    // Print answer divider.
+    if ($answercount == 1) {
+        $answerstring = get_string('answer', 'moodleoverflow', $answercount);
+    } else {
+        $answerstring = get_string('answers', 'moodleoverflow', $answercount);
+    }
+    echo "<br><h2>$answerstring</h2>";
 
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts);
 }
 
 /**
- * Get all posts in discussion inculding the starting post.
+ * Get all posts in discussion including the starting post.
  *
  * @param int     $discussionid The ID of the discussion
  * @param boolean $tracking     Whether tracking is activated
@@ -928,7 +929,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking) {
     // Assign ratings to the posts.
     foreach ($posts as $postid => $post) {
 
-        // Assign the ratings to the machting posts.
+        // Assign the ratings to the matching posts.
         $posts[$postid]->upvotes = $discussionratings[$post->id]->upvotes;
         $posts[$postid]->downvotes = $discussionratings[$post->id]->downvotes;
         $posts[$postid]->statusstarter = $discussionratings[$post->id]->ishelpful;
@@ -1112,7 +1113,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $commands[] = array('url' => $permalink, 'text' => get_string('permalink', 'moodleoverflow'));
 
     // If the user has started the discussion, he can mark the answer as helpful.
-    $canmarkhelpful = (($USER->id == $discussion->userid) && ($USER->id != $post->userid) && ($iscomment != $post->parent) && !empty($post->parent));
+    $canmarkhelpful = (($USER->id == $discussion->userid) && ($USER->id != $post->userid) &&
+        ($iscomment != $post->parent) && !empty($post->parent));
     if ($canmarkhelpful) {
 
         // When the post is already marked, remove the mark instead.
@@ -1268,7 +1270,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $postbyuser = new stdClass();
     $postbyuser->post = $post->subject;
 
-    // Anonymization already handled in $postinguser->fullname
+    // Anonymization already handled in $postinguser->fullname.
     $postbyuser->user = $postinguser->fullname;
 
     $mustachedata->discussionby = get_string('postbyuser', 'moodleoverflow', $postbyuser);
@@ -1292,11 +1294,19 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // The name of the user and the date modified.
     $mustachedata->bydate = userdate($post->modified);
+    $mustachedata->byshortdate = userdate($post->modified, get_string('strftimedatetimeshort', 'core_langconfig'));
     $mustachedata->byname = $postinguser->profilelink ?
         html_writer::link($postinguser->profilelink, $postinguser->fullname)
         : $postinguser->fullname;
     $mustachedata->byrating = $postuserrating;
     $mustachedata->showrating = $postuserrating !== null;
+    if (get_config('moodleoverflow', 'allowdisablerating') == 1) {
+        $mustachedata->showvotes = $moodleoverflow->allowrating;
+        $mustachedata->showreputation = $moodleoverflow->allowreputation;
+    } else {
+        $mustachedata->showvotes = MOODLEOVERFLOW_RATING_ALLOW;
+        $mustachedata->showreputation = MOODLEOVERFLOW_REPUTATION_ALLOW;
+    }
 
     // Set options for the post.
     $options = new stdClass();
@@ -1335,8 +1345,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Render the different elements.
     if ($level == 0) {
         return $renderer->render_question($mustachedata);
-    } else if ($level == 1 || $level == 2) {
+    } else if ($level == 1) {
         return $renderer->render_answer($mustachedata);
+    } else if ($level == 2) {
+        return $renderer->render_comment($mustachedata);
     } else {
         return null;
     }
@@ -1866,18 +1878,34 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
     return $amount;
 }
 
+/**
+ * Updates user grade.
+ *
+ * @param object $moodleoverflow
+ * @param int $postuserrating
+ * @param object $postinguser
+ *
+ */
 function moodleoverflow_update_user_grade($moodleoverflow, $postuserrating, $postinguser) {
 
-    // check wheter moodleoverlfow object has the added params
+    // Check whether moodleoverflow object has the added params.
     if ($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0) {
         moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating, $postinguser);
     }
 }
 
+/**
+ * Updates user grade in database.
+ *
+ * @param object $moodleoverflow
+ * @param int $postuserrating
+ * @param int $userid
+ *
+ */
 function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating, $userid) {
     global $DB;
 
-    // calculate the posting user's updated grade
+    // Calculate the posting user's updated grade.
     $grade = $postuserrating / $moodleoverflow->gradescalefactor;
 
     if ($grade > $moodleoverflow->grademaxgrade) {
@@ -1885,10 +1913,11 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
         $grade = $moodleoverflow->grademaxgrade;
     }
 
-    // save updated grade on local table
+    // Save updated grade on local table.
     if ($DB->record_exists('moodleoverflow_grades', array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id))) {
 
-        $DB->set_field('moodleoverflow_grades', 'grade', $grade, array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id ));
+        $DB->set_field('moodleoverflow_grades', 'grade', $grade, array('userid' => $userid,
+            'moodleoverflowid' => $moodleoverflow->id ));
 
     } else {
 
@@ -1899,19 +1928,25 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
         $DB->insert_record('moodleoverflow_grades', $gradedataobject, false);
     }
 
-                // update gradebook
+    // Update gradebook.
     moodleoverflow_update_grades($moodleoverflow, $userid);
 }
 
+/**
+ * Updates all grades for context module.
+ *
+ * @param int $moodleoverflowid
+ *
+ */
 function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
     global $DB;
 
     $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid));
 
-    // check wheter moodleoverlfow object has the added params
+    // Check whether moodleoverflow object has the added params.
     if ($moodleoverflow->grademaxgrade > 0 and $moodleoverflow->gradescalefactor > 0) {
 
-        // get all users id
+        // Get all users id.
         $params = ['moodleoverflowid' => $moodleoverflowid, 'moodleoverflowid2' => $moodleoverflowid];
         $sql = 'SELECT DISTINCT u.userid FROM (
                     SELECT p.userid as userid
@@ -1924,21 +1959,25 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
                 ) as u';
         $userids = $DB->get_fieldset_sql($sql, $params);
 
-        // iterate all users
+        // Iterate all users.
         foreach ($userids as $userid) {
             if ($userid == 0) {
                 continue;
             }
 
-            // get user reputation
+            // Get user reputation.
             $userrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid, true);
 
-            // calculate the posting user's updated grade
+            // Calculate the posting user's updated grade.
             moodleoverflow_update_user_grade_on_db($moodleoverflow, $userrating, $userid);
         }
     }
 }
 
+/**
+ * Updates all grades.
+ *
+ */
 function moodleoverflow_update_all_grades() {
     global $DB;
     $cmids = $DB->get_records_select('moodleoverflow', null, null, 'id');

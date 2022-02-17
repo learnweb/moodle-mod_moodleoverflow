@@ -25,7 +25,6 @@ use core_privacy\local\request\transform;
 use \core_privacy\local\request\writer;
 use mod_moodleoverflow\ratings;
 
-defined('MOODLE_INTERNAL') || die();
 /**
  * Subcontext helper class.
  *
@@ -305,7 +304,7 @@ class data_export_helper {
         $ratingdata['your_rating'] = (object) $userratings;
 
         if (empty($ratingdata)) {
-            // Return empty.
+            // Returns an empty stdClass.
             return new \stdClass();
         }
 

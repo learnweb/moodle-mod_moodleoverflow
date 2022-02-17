@@ -56,7 +56,7 @@ if ($id) {
     $course          = $DB->get_record('course', array('id' => $moodleoverflow->course), '*', MUST_EXIST);
     $cm              = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
 } else {
-    print_error('missingparameter');
+    throw new moodle_exception('missingparameter');
 }
 
 

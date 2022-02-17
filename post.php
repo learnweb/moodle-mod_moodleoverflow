@@ -57,7 +57,7 @@ if (!isloggedin() OR isguestuser()) {
 
         // Check the moodleoverflow instance is valid.
         if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
-            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
         }
 
         // The user is replying to an existing moodleoverflow discussion.
@@ -65,28 +65,28 @@ if (!isloggedin() OR isguestuser()) {
 
         // Check if the related post exists.
         if (!$parent = moodleoverflow_get_post_full($reply)) {
-            print_error('invalidparentpostid', 'moodleoverflow');
+            throw new moodle_exception('invalidparentpostid', 'moodleoverflow');
         }
 
         // Check if the post is part of a valid discussion.
         if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $parent->discussion))) {
-            print_error('notpartofdiscussion', 'moodleoverflow');
+            throw new moodle_exception('notpartofdiscussion', 'moodleoverflow');
         }
 
         // Check if the post is related to a valid moodleoverflow instance.
         if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
-            print_error('invalidmoodleoverflowid', 'moodleoverflow');
+            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
         }
     }
 
     // Get the related course.
     if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
-        print_error('invalidcourseid');
+        throw new moodle_exception('invalidcourseid');
     }
 
     // Get the related coursemodule and its context.
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-        print_error('invalidcoursemodule');
+        throw new moodle_exception('invalidcoursemodule');
     }
 
     // Get the context of the module.
@@ -114,17 +114,17 @@ if (!empty($moodleoverflow)) {
 
     // Check the moodleoverflow instance is valid.
     if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
-        print_error('invalidmoodleoverflowid', 'moodleoverflow');
+        throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
     }
 
     // Get the related course.
     if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
-        print_error('invalidcourseid');
+        throw new moodle_exception('invalidcourseid');
     }
 
     // Get the related coursemodule.
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-        print_error('invalidcoursemodule');
+        throw new moodle_exception('invalidcoursemodule');
     }
 
     // Retrieve the contexts.
@@ -135,7 +135,7 @@ if (!empty($moodleoverflow)) {
     if (!moodleoverflow_user_can_post_discussion($moodleoverflow, $cm, $modulecontext)) {
 
         // Catch unenrolled user.
-        if (!isguestuser() AND !is_enrolled($cousecontext)) {
+        if (!isguestuser() AND !is_enrolled($coursecontext)) {
             if (enrol_selfenrol_available($course->id)) {
                 $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
@@ -147,7 +147,7 @@ if (!empty($moodleoverflow)) {
         }
 
         // Notify the user, that he can not post a new discussion.
-        print_error('nopostmoodleoverflow', 'moodleoverflow');
+        throw new moodle_exception('nopostmoodleoverflow', 'moodleoverflow');
     }
 
     // Where is the user coming from?
@@ -172,27 +172,27 @@ if (!empty($moodleoverflow)) {
 
     // Check if the post exists.
     if (!$parent = moodleoverflow_get_post_full($reply)) {
-        print_error('invalidparentpostid', 'moodleoverflow');
+        throw new moodle_exception('invalidparentpostid', 'moodleoverflow');
     }
 
     // Check if the post is part of a discussion.
     if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $parent->discussion))) {
-        print_error('notpartofdiscussion', 'moodleoverflow');
+        throw new moodle_exception('notpartofdiscussion', 'moodleoverflow');
     }
 
     // Check if the discussion is part of a moodleoverflow instance.
     if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
-        print_error('invalidmoodleoverflowid', 'moodleoverflow');
+        throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
     }
 
     // Check if the moodleoverflow instance is part of a course.
     if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
-        print_error('invalidcourseid');
+        throw new moodle_exception('invalidcourseid');
     }
 
     // Retrieve the related coursemodule.
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-        print_error('invalidcoursemodule');
+        throw new moodle_exception('invalidcoursemodule');
     }
 
     // Ensure the coursemodule is set correctly.
@@ -215,12 +215,12 @@ if (!empty($moodleoverflow)) {
         }
 
         // Print the error message.
-        print_error('nopostmoodleoverflow', 'moodleoverflow');
+        throw new moodle_exception('nopostmoodleoverflow', 'moodleoverflow');
     }
 
     // Make sure the user can post here.
     if (!$cm->visible AND !has_capability('moodle/course:viewhiddenactivities', $modulecontext)) {
-        print_error('activityiscurrentlyhidden');
+        throw new moodle_exception('activityiscurrentlyhidden');
     }
 
     // Load the $post variable.
@@ -249,34 +249,34 @@ if (!empty($moodleoverflow)) {
 
     // Check if the submitted post exists.
     if (!$post = moodleoverflow_get_post_full($edit)) {
-        print_error('invalidpostid', 'moodleoverflow');
+        throw new moodle_exception('invalidpostid', 'moodleoverflow');
     }
 
     // Get the parent post of this post if it is not the starting post of the discussion.
     if ($post->parent) {
         if (!$parent = moodleoverflow_get_post_full($post->parent)) {
-            print_error('invalidparentpostid', 'moodleoverflow');
+            throw new moodle_exception('invalidparentpostid', 'moodleoverflow');
         }
     }
 
     // Check if the post refers to a valid discussion.
     if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
-        print_error('notpartofdiscussion', 'moodleoverflow');
+        throw new moodle_exception('notpartofdiscussion', 'moodleoverflow');
     }
 
     // Check if the post refers to a valid moodleoverflow instance.
     if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
-        print_error('invalidmoodleoverflowid', 'moodleoverflow');
+        throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
     }
 
     // Check if the post refers to a valid course.
     if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
-        print_error('invalidcourseid');
+        throw new moodle_exception('invalidcourseid');
     }
 
     // Retrieve the related coursemodule.
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-        print_error('invalidcoursemodule');
+        throw new moodle_exception('invalidcoursemodule');
     } else {
         $modulecontext = context_module::instance($cm->id);
     }
@@ -287,7 +287,8 @@ if (!empty($moodleoverflow)) {
     // Check if the post can be edited.
     $intime = ((time() - $post->created) > get_config('moodleoverflow', 'maxeditingtime'));
     if ($intime AND !has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
-        print_error('maxtimehaspassed', 'moodleoverflow', '', format_time(get_config('moodleoverflow', 'maxeditingtime')));
+        throw new moodle_exception('maxtimehaspassed', 'moodleoverflow', '',
+            format_time(get_config('moodleoverflow', 'maxeditingtime')));
     }
 
     // If the current user is not the one who posted this post.
@@ -297,7 +298,7 @@ if (!empty($moodleoverflow)) {
         if (!has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
 
             // Display the error. Capabilities are missing.
-            print_error('cannoteditposts', 'moodleoverflow');
+            throw new moodle_exception('cannoteditposts', 'moodleoverflow');
         }
     }
 
@@ -314,27 +315,27 @@ if (!empty($moodleoverflow)) {
     // Fourth possibility: The user is deleting a post.
     // Check if the post is existing.
     if (!$post = moodleoverflow_get_post_full($delete)) {
-        print_error('invalidpostid', 'moodleoverflow');
+        throw new moodle_exception('invalidpostid', 'moodleoverflow');
     }
 
     // Get the related discussion.
     if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
-        print_error('notpartofdiscussion', 'moodleoverflow');
+        throw new moodle_exception('notpartofdiscussion', 'moodleoverflow');
     }
 
     // Get the related moodleoverflow instance.
     if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
-        print_error('invalidmoodleoverflowid', 'moodleoveflow');
+        throw new moodle_exception('invalidmoodleoverflowid', 'moodleoveflow');
     }
 
     // Get the related coursemodule.
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-        print_error('invalidcoursemodule');
+        throw new moodle_exception('invalidcoursemodule');
     }
 
     // Get the related course.
     if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
-        print_error('invalidcourseid');
+        throw new moodle_exception('invalidcourseid');
     }
 
     // Require a login and retrieve the modulecontext.
@@ -345,7 +346,7 @@ if (!empty($moodleoverflow)) {
     $deleteownpost = has_capability('mod/moodleoverflow:deleteownpost', $modulecontext);
     $deleteanypost = has_capability('mod/moodleoverflow:deleteanypost', $modulecontext);
     if (!(($post->userid == $USER->id AND $deleteownpost) OR $deleteanypost)) {
-        print_error('cannotdeletepost', 'moodleoverflow');
+        throw new moodle_exception('cannotdeletepost', 'moodleoverflow');
     }
 
     // Count all replies of this post.
@@ -358,13 +359,13 @@ if (!empty($moodleoverflow)) {
         $timepassed = time() - $post->created;
         if (($timepassed > get_config('moodleoverflow', 'maxeditingtime')) AND !$deleteanypost) {
             $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
-            print_error('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to($url));
+            throw new moodle_exception('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to($url));
         }
 
         // A normal user cannot delete his post if there are direct replies.
         if ($replycount AND !$deleteanypost) {
             $url = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
-            print_error('couldnotdeletereplies', 'moodleoverflow', moodleoverflow_go_back_to($url));
+            throw new moodle_exception('couldnotdeletereplies', 'moodleoverflow', moodleoverflow_go_back_to($url));
         } else {
             // Delete the post.
 
@@ -394,7 +395,7 @@ if (!empty($moodleoverflow)) {
 
             } else {
                 // Something went wrong.
-                print_error('errorwhiledelete', 'moodleoverflow');
+                throw new moodle_exception('errorwhiledelete', 'moodleoverflow');
             }
         }
     } else {
@@ -410,7 +411,7 @@ if (!empty($moodleoverflow)) {
 
             // Check if the user has capabilities to delete more than one post.
             if (!$deleteanypost) {
-                print_error('couldnotdeletereplies', 'moodleoverflow',
+                throw new moodle_exception('couldnotdeletereplies', 'moodleoverflow',
                     moodleoverflow_go_back_to(new moodle_url('/mod/moodleoverflow/discussion.php',
                         array('d' => $post->discussion, 'p' . $post->id))));
             }
@@ -439,7 +440,7 @@ if (!empty($moodleoverflow)) {
 } else {
     // Last posibility: the action is not known.
 
-    print_error('unknownaction');
+    throw new moodle_exception('unknownaction');
 }
 
 // Second step: The user must be logged on properly. Must be enrolled to the course as well.
@@ -588,14 +589,14 @@ if ($fromform = $mformpost->get_data()) {
         $startdiscussion = has_capability('mod/moodleoverflow:startdiscussion', $modulecontext);
         $ownpost = ($realpost->userid == $USER->id);
         if (!((($ownpost AND $replypost OR $startdiscussion)) OR $editanypost)) {
-            print_error('cannotupdatepost', 'moodleoverflow');
+            throw new moodle_exception('cannotupdatepost', 'moodleoverflow');
         }
 
         // Update the post or print an error message.
         $updatepost = $fromform;
         $updatepost->moodleoverflow = $moodleoverflow->id;
         if (!moodleoverflow_update_post($updatepost, $mformpost)) {
-            print_error('couldnotupdate', 'moodleoverflow', $errordestination);
+            throw new moodle_exception('couldnotupdate', 'moodleoverflow', $errordestination);
         }
 
         // Create a success-message.
@@ -679,7 +680,7 @@ if ($fromform = $mformpost->get_data()) {
 
             // Print an error if the answer could not be added.
         } else {
-            print_error('couldnotadd', 'moodleoverflow', $errordestination);
+            throw new moodle_exception('couldnotadd', 'moodleoverflow', $errordestination);
         }
 
         // The post has been added.
@@ -696,13 +697,13 @@ if ($fromform = $mformpost->get_data()) {
 
         // Check if the user is allowed to post here.
         if (!moodleoverflow_user_can_post_discussion($moodleoverflow)) {
-            print_error('cannotcreatediscussion', 'moodleoverflow');
+            throw new moodle_exception('cannotcreatediscussion', 'moodleoverflow');
         }
 
         // Check if the creation of the new discussion failed.
         if (!$discussion->id = moodleoverflow_add_discussion($discussion, $modulecontext)) {
 
-            print_error('couldnotadd', 'moodleoverflow', $errordestination);
+            throw new moodle_exception('couldnotadd', 'moodleoverflow', $errordestination);
 
         } else {    // The creation of the new discussion was successful.
 

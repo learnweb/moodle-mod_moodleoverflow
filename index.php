@@ -45,7 +45,7 @@ $PAGE->set_url($url);
 
 // Check if the id is related to a valid course.
 if (!$course = $DB->get_record('course', array('id' => $id))) {
-    print_error('invalidcourseid');
+    throw new moodle_exception('invalidcourseid');
 }
 
 // From now on, the user must be enrolled to a course.
