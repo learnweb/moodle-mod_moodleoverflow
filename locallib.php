@@ -1309,6 +1309,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $mustachedata->showvotes = MOODLEOVERFLOW_RATING_ALLOW;
         $mustachedata->showreputation = MOODLEOVERFLOW_REPUTATION_ALLOW;
     }
+    $mustachedata->questioner = $post->userid == $discussion->userid ? 'questioner' : '';
 
     // Set options for the post.
     $options = new stdClass();
