@@ -780,7 +780,7 @@ function moodleoverflow_send_mails() {
                     continue;
                 }
 
-                if (\mod_moodleoverflow\anonymous::is_post_anonymous($post, $moodleoverflow, $post->userid)) {
+                if (\mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
                     $userfrom = \core_user::get_noreply_user();
                 } else {
                     // Check whether the sending user is cached already.

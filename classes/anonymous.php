@@ -49,14 +49,14 @@ class anonymous {
     /**
      * Checks if post is anonymous.
      *
-     * @param object $post              moodleoverflow post object
+     * @param object $discussion              moodleoverflow discussion
      * @param object $moodleoverflow
      * @param int $postinguserid        user id of posting user
      *
      * @return bool true if user is not logged in, everything is marked anonymous
      * and if the question is anonymous and there are no answers yet, else false
      */
-    public static function is_post_anonymous($post, $moodleoverflow, $postinguserid): bool {
+    public static function is_post_anonymous($discussion, $moodleoverflow, $postinguserid): bool {
         if ($postinguserid == 0) {
             return true;
         }
@@ -66,7 +66,7 @@ class anonymous {
         }
 
         if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
-            return $post->parent == 0;
+            return $discussion->userid == $postinguserid;
         }
 
         return false;
@@ -87,7 +87,7 @@ class anonymous {
         if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
             return [
                 $DB->get_field('moodleoverflow_posts', 'userid',
-                    ['parent' => 0, 'discussion' => $discussionid]) => 0
+                    ['parent' => 0, 'discussion' => $discussionid]) => get_string('questioner', 'mod_moodleoverflow')
             ];
         }
 
@@ -99,9 +99,12 @@ class anonymous {
             'ORDER BY MIN(created) ASC;', ['discussion' => $discussionid]);
 
         $mapping = [];
-        $i = 0;
-        foreach ($userids as $userid) {
-            $mapping[$userid] = $i;
+        $questioner = array_shift($userids);
+        $mapping[$questioner->userid] = get_string('questioner', 'moodleoverflow');
+        $i = 1;
+        foreach ($userids as $user) {
+            $mapping[$user->userid] = get_string('answerer', 'moodleoverflow', $i);
+            $i++;
         }
         return $mapping;
     }

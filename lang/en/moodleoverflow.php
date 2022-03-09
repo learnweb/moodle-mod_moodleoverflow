@@ -414,4 +414,4 @@ $string['anonym_you'] = 'Anonymous (You)';
 $string['allowanonymous'] = 'Allow anonymous';
 $string['allowanonymous_desc'] = 'Allow teachers to put moodleoverflow forums into anonymous question or full anonymous mode';
 $string['questioner'] = 'Questioner';
-$string['answerer'] = 'Answerer #{$i}';
+$string['answerer'] = 'Answerer #{$a}';
