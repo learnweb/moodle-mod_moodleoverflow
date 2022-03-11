@@ -507,7 +507,7 @@ span.unread {
 }
 
 .moodleoverflowpost .questioner {
-    background-color: rgba(0, 127, 255, 0.1);
+    background-color: rgba(80, 168, 255, .1);
 }
 
 .moodleoverflowpost .commentcell .comment-text {
