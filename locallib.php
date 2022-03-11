@@ -825,6 +825,8 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked);
 
+    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+
     // Start with the parent post.
     $post = $posts[$post->id];
 
@@ -862,7 +864,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Print the starting post.
     echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
-        $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0);
+        $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0, $usermapping);
 
     // Print answer divider.
     if ($answercount == 1) {
@@ -873,7 +875,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     echo "<br><h2>$answerstring</h2>";
 
     // Print the other posts.
-    echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts);
+    echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts, null, $usermapping);
 }
 
 /**
@@ -998,7 +1000,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                                    $ownpost = false, $canreply = false, $link = false,
                                    $footer = '', $highlight = '', $postisread = null,
                                    $dummyifcantsee = true, $istracked = false,
-                                   $iscomment = false, $level = 0) {
+                                   $iscomment = false, $usermapping = [], $level = 0) {
     global $USER, $CFG, $OUTPUT, $PAGE;
 
     // Require the filelib.
@@ -1091,12 +1093,12 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $postinguser->id = $post->userid;
 
     // Post was anonymized.
-    if (anonymous::is_post_anonymous($post, $moodleoverflow, $post->userid)) {
+    if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
         if ($post->userid == $USER->id) {
             $postinguser->fullname = get_string('anonym_you', 'mod_moodleoverflow');
             $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
         } else {
-            $postinguser->fullname = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
+            $postinguser->fullname = $usermapping[(int) $post->userid];
             $postinguser->profilelink = null;
         }
     } else {
@@ -1280,13 +1282,13 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->subject = format_string($post->subject);
 
     // Post was anonymized.
-    if (!anonymous::is_post_anonymous($post, $moodleoverflow, $post->userid)) {
+    if (!anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
         // User picture.
         $mustachedata->picture = $OUTPUT->user_picture($postinguser, ['courseid' => $course->id]);
     }
 
     // The rating of the user.
-    if (anonymous::is_post_anonymous($post, $moodleoverflow, $post->userid)) {
+    if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
         $postuserrating = null;
     } else {
         $postuserrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);
@@ -1307,6 +1309,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $mustachedata->showvotes = MOODLEOVERFLOW_RATING_ALLOW;
         $mustachedata->showreputation = MOODLEOVERFLOW_REPUTATION_ALLOW;
     }
+    $mustachedata->questioner = $post->userid == $discussion->userid ? 'questioner' : '';
 
     // Set options for the post.
     $options = new stdClass();
@@ -1370,7 +1373,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
  * @return string The html output.
  */
 function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent,
-                                           $canreply, $istracked, $posts, $iscomment = null) {
+                                           $canreply, $istracked, $posts, $iscomment = null, $usermapping = []) {
     global $USER;
 
     // Prepare the output.
@@ -1412,11 +1415,11 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
 
             // Print the answer.
             $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
-                $ownpost, $canreply, false, '', '', $postread, true, $istracked, $parentid, $level);
+                $ownpost, $canreply, false, '', '', $postread, true, $istracked, $parentid, $usermapping, $level);
 
             // Print its children.
             $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow,
-                $discussion, $post, $canreply, $istracked, $posts, $parentid);
+                $discussion, $post, $canreply, $istracked, $posts, $parentid, $usermapping);
 
             // End the div.
             $output .= "</div>\n";

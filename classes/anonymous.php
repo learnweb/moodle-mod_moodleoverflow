@@ -49,14 +49,14 @@ class anonymous {
     /**
      * Checks if post is anonymous.
      *
-     * @param object $post              moodleoverflow post object
+     * @param object $discussion              moodleoverflow discussion
      * @param object $moodleoverflow
      * @param int $postinguserid        user id of posting user
      *
      * @return bool true if user is not logged in, everything is marked anonymous
      * and if the question is anonymous and there are no answers yet, else false
      */
-    public static function is_post_anonymous($post, $moodleoverflow, $postinguserid): bool {
+    public static function is_post_anonymous($discussion, $moodleoverflow, $postinguserid): bool {
         if ($postinguserid == 0) {
             return true;
         }
@@ -66,10 +66,47 @@ class anonymous {
         }
 
         if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
-            return $post->parent == 0;
+            return $discussion->userid == $postinguserid;
         }
 
         return false;
+    }
+
+    /**
+     * Returns a usermapping for the Moodleoverflow, where each anonymized userid is replaced by an int, to form the
+     * new name, e.g. Answerer #4.
+     *
+     * @param \stdClass $moodleoverflow
+     * @param int $discussionid
+     */
+    public static function get_userid_mapping($moodleoverflow, $discussionid) {
+        global $DB;
+        if ($moodleoverflow->anonymous == self::NOT_ANONYMOUS) {
+            return [];
+        }
+        if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
+            return [
+                $DB->get_field('moodleoverflow_posts', 'userid',
+                    ['parent' => 0, 'discussion' => $discussionid]) => get_string('questioner', 'mod_moodleoverflow')
+            ];
+        }
+
+        $userids = $DB->get_records_sql(
+            'SELECT userid ' .
+            'FROM mdl_moodleoverflow_posts ' .
+            'WHERE discussion = :discussion' .
+            'GROUP BY userid ' .
+            'ORDER BY MIN(created) ASC;', ['discussion' => $discussionid]);
+
+        $mapping = [];
+        $questioner = array_shift($userids);
+        $mapping[$questioner->userid] = get_string('questioner', 'moodleoverflow');
+        $i = 1;
+        foreach ($userids as $user) {
+            $mapping[$user->userid] = get_string('answerer', 'moodleoverflow', $i);
+            $i++;
+        }
+        return $mapping;
     }
 
 }

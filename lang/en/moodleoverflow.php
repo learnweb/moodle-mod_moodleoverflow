@@ -405,8 +405,15 @@ $string['gradesreport'] = 'Grades report';
 $string['gradesupdated'] = 'Grades updated';
 $string['taskupdategrades'] = 'Moodleoverflow maintenance job to update grades';
 
+// Anonymous Feature
 $string['anonymous'] = 'Anonymous';
 $string['anonymous_help'] = 'This will hide username from all question (and answers).<br>WARNING: Once the questions (and answers) are anonymized, this cannot be reversed.<br>The setting can only be changed to a higher degree of anonymity.';
-$string['anonymous:only_questions'] = 'Only questions (Irreversible!)';
-$string['anonymous:everything'] = 'Questions and answers (Irreversible!)';
+$string['anonymous:only_questions'] = 'Only questioners (Irreversible!)';
+$string['anonymous:everything'] = 'Questioners and answerers (Irreversible!)';
 $string['anonym_you'] = 'Anonymous (You)';
+$string['allowanonymous'] = 'Allow anonymous';
+$string['allowanonymous_desc'] = 'Allow teachers to put moodleoverflow forums into anonymous question or full anonymous mode';
+$string['questioner'] = 'Questioner';
+$string['answerer'] = 'Answerer #{$a}';
+$string['desc:only_questions'] = 'The name of questioners will not be displayed in their question and comments.';
+$string['desc:anonymous'] = 'No names will be displayed.';

@@ -438,31 +438,27 @@ span.unread {
     width: 16px;
 }
 
-.moodleoverflowpost .answercell .post-info .leftbox,
-.moodleoverflowpost .commentcell .post-info .leftbox {
-    text-align: left;
+.moodleoverflowpost .answercell .leftbox,
+.moodleoverflowpost .commentcell .leftbox {
     margin-right: 12px;
 }
 
+.moodleoverflowpost .answercell .leftbox.questioner {
+    margin-right: 8px;
+    padding: 4px;
+}
+
+.moodleoverflowpost .commentcell .leftbox.questioner {
+    margin-right: 8px;
+    padding: 0 4px;
+}
+
 .moodleoverflowpost .answercell .post-info .leftbox .user-info {
-    box-sizing: border-box;
     color: #848d95;
-    padding: 5px 6px 7px 7px;
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info::before {
-    content: "";
-    display: table;
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info::after {
-    clear: both;
 }
 
 .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-time {
     display: block;
-    margin-bottom: 4px;
-    margin-top: 1px;
 }
 
 .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-shorttime {
@@ -476,8 +472,6 @@ span.unread {
 
     .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-shorttime {
         display: block;
-        margin-bottom: 4px;
-        margin-top: 1px;
     }
 }
 
@@ -510,6 +504,10 @@ span.unread {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+}
+
+.moodleoverflowpost .questioner {
+    background-color: rgba(80, 168, 255, .1);
 }
 
 .moodleoverflowpost .commentcell .comment-text {

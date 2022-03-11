@@ -34,7 +34,7 @@
 <a id="p{{ postid }}"></a>
 
 {{! Start the post. Mark it read or unread. }}
-<div class="moodleoverflowpost moodleoverflowcomment border clearfix bg-light{{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
+<div class="moodleoverflowpost moodleoverflowcomment border clearfix bg-light {{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
     {{#showvotes}}
         <div class="votecell">
             <div class="votes">
@@ -85,7 +85,7 @@
             {{/statusteacher}}
         {{/statusstarter}}
         <div class="post-info">
-            <div class="leftbox">{{{ byname }}} <span class="text-muted">{{ byshortdate }}</span></div>
+            <div class="leftbox {{questioner}}"><span class="text-muted">{{{ byname }}} - {{ byshortdate }}</span></div>
             <div class="rightbox">{{{ commands }}}</div>
         </div>
     </div>

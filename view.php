@@ -91,6 +91,14 @@ echo $OUTPUT->header();
 // Show the name of the instance.
 echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
 
+if ($moodleoverflow->anonymous > 0) {
+    $strkeys = [
+            \mod_moodleoverflow\anonymous::QUESTION_ANONYMOUS => 'desc:only_questions',
+            \mod_moodleoverflow\anonymous::EVERYTHING_ANONYMOUS => 'desc:anonymous'
+    ];
+    echo html_writer::tag('p', get_string($strkeys[$moodleoverflow->anonymous], 'moodleoverflow'));
+}
+
 // Show the description of the instance.
 if (!empty($moodleoverflow->intro)) {
     echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
@@ -100,7 +108,6 @@ if (!empty($moodleoverflow->intro)) {
 $SESSION->fromdiscussion = qualified_me();
 
 // Print the discussions.
-echo '<br />';
 moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, get_config('moodleoverflow', 'manydiscussions'));
 
 // Finish the page.

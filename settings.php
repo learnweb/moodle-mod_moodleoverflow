@@ -77,6 +77,12 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('moodleoverflow/cleanreadtime', get_string('cleanreadtime', 'moodleoverflow'),
         get_string('configcleanreadtime', 'moodleoverflow'), 2, $options));
 
+    $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowanonymous',
+        get_string('allowanonymous', 'moodleoverflow'),
+        get_string('allowanonymous_desc', 'moodleoverflow'),
+        1
+    ));
+
     // Allow teachers to disable ratings/reputation.
     $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowdisablerating',
         get_string('allowdisablerating', 'moodleoverflow'), get_string('configallowdisablerating', 'moodleoverflow'), 1));
