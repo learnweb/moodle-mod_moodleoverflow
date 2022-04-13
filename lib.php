@@ -448,7 +448,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
     }
 
     // Make sure we're allowed to see it...
-    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, null, $cm)) {
+    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
         return false;
     }
 
@@ -827,7 +827,7 @@ function moodleoverflow_send_mails() {
                 }
 
                 // Make sure the current user is allowed to see the post.
-                if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, null, $cm)) {
+                if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
                     mtrace('User ' . $userto->id . ' can not see ' . $post->id . '. Not sending message.');
                     continue;
                 }

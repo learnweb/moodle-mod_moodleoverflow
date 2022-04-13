@@ -515,12 +515,12 @@ function moodleoverflow_get_post_full($postid) {
  * @param object $moodleoverflow
  * @param object $discussion
  * @param object $post
- * @param null   $user
  * @param object $cm
+ * @param null   $user
  *
  * @return bool
  */
-function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $user = null, $cm) {
+function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm, $user = null) {
     global $USER, $DB;
 
     // Retrieve the modulecontext.
@@ -1044,7 +1044,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // Check if the user has the capability to see posts.
-    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, null, $cm)) {
+    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
 
         // No dummy message is requested.
         if (!$dummyifcantsee) {
