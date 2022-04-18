@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         php: ['7.4']
-        moodle-branch: ['master']
+        moodle-branch: ['MOODLE_400_STABLE']
         database: ['pgsql']
 
     steps:
@@ -108,7 +108,7 @@ jobs:
       fail-fast: false
       matrix:
         php: ['7.4']
-        moodle-branch: ['MOODLE_39_STABLE', 'MOODLE_310_STABLE', 'MOODLE_311_STABLE', 'master']
+        moodle-branch: ['MOODLE_39_STABLE', 'MOODLE_310_STABLE', 'MOODLE_311_STABLE', 'MOODLE_400_STABLE']
         database: ['mariadb', 'pgsql']
 
     steps:
