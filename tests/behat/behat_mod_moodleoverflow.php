@@ -100,12 +100,14 @@ class behat_mod_moodleoverflow extends behat_base {
     protected function add_new_discussion($moodleoverflowname, TableNode $table, $buttonstr) {
 
         // Navigate to moodleoverflow.
-        $this->execute('behat_general::click_link', $this->escape($moodleoverflowname));
+        $this->execute('behat_navigation::i_am_on_page_instance', [$this->escape($moodleoverflowname),
+            'moodleoverflow activity']);
         $this->execute('behat_forms::press_button', $buttonstr);
 
         // Fill form and post.
         $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
-        $this->execute('behat_forms::press_button', get_string('posttomoodleoverflow', 'moodleoverflow'));
+        $this->execute('behat_forms::press_button', get_string('posttomoodleoverflow',
+            'moodleoverflow'));
         $this->execute('behat_general::i_wait_to_be_redirected');
     }
 }

@@ -92,6 +92,13 @@ define('RATING_REMOVE_HELPFUL', 40);
  * @return mixed true if the feature is supported, null if unknown
  */
 function moodleoverflow_supports($feature) {
+    global $CFG;
+
+    if (defined('FEATURE_MOD_PURPOSE')) {
+        if ($feature == FEATURE_MOD_PURPOSE) {
+            return MOD_PURPOSE_COLLABORATION;
+        }
+    }
 
     switch ($feature) {
         case FEATURE_MOD_INTRO:
