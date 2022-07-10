@@ -1006,6 +1006,7 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
     // Set params for the sql query.
     $params               = array();
     $params['mailed']     = MOODLEOVERFLOW_MAILED_PENDING;
+    $params['reviewed'] = 1;
     $params['ptimestart'] = $starttime;
     $params['ptimeend']   = $endtime;
 
@@ -1013,7 +1014,7 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
     $sql = "SELECT p.*, d.course, d.moodleoverflow
             FROM {moodleoverflow_posts} p
             JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-            WHERE p.mailed = :mailed AND p.created >= :ptimestart AND p.created < :ptimeend
+            WHERE p.mailed = :mailed AND p.created >= :ptimestart AND p.created < :ptimeend AND p.reviewed = :reviewed
             ORDER BY p.modified ASC";
 
     return $DB->get_records_sql($sql, $params);
@@ -1038,6 +1039,8 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
     $params['now']           = $now;
     $params['endtime']       = $endtime;
     $params['mailedpending'] = MOODLEOVERFLOW_MAILED_PENDING;
+
+    // TODO do something about this. Add field timereviewed to post? / Make reviewed contain either null or timestamp?
 
     // Define the sql query.
     $sql = "UPDATE {moodleoverflow_posts}

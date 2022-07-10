@@ -360,7 +360,7 @@ if (!empty($moodleoverflow)) {
     }
 
     // Count all replies of this post.
-    $replycount = moodleoverflow_count_replies($post);
+    $replycount = moodleoverflow_count_replies($post, has_capability('mod/moodleoverflow:reviewpost', $modulecontext));
 
     // Has the user confirmed the deletion?
     if (!empty($confirm) AND confirm_sesskey()) {

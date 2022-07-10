@@ -24,6 +24,7 @@
 
 namespace mod_moodleoverflow;
 
+use context_module;
 use moodle_exception;
 
 /**
@@ -136,7 +137,7 @@ class readtracking {
         foreach ($discussions as $discussionid => $amount) {
 
             // Mark the discussion as read.
-            if (!self::moodleoverflow_mark_discussion_read($discussionid, $userid)) {
+            if (!self::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $userid)) {
                 throw new moodle_exception('markreadfailed', 'moodleoverflow');
 
                 return false;
@@ -150,13 +151,14 @@ class readtracking {
      * Marks a specific discussion as read by a specific user.
      *
      * @param int  $discussionid
+     * @param context_module $modcontext
      * @param null $userid
      */
-    public static function moodleoverflow_mark_discussion_read($discussionid, $userid = null) {
+    public static function moodleoverflow_mark_discussion_read($discussionid, $modcontext, $userid = null) {
         global $USER;
 
         // Get all posts.
-        $posts = moodleoverflow_get_all_discussion_posts($discussionid, true);
+        $posts = moodleoverflow_get_all_discussion_posts($discussionid, true, $modcontext);
 
         // If no user is submitted, use the current one.
         if (!isset($userid)) {
