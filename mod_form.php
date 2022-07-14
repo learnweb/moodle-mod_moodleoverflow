@@ -82,9 +82,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $possiblesettings[anonymous::NOT_ANONYMOUS] = get_string('no');
         }
 
-        $mform->addElement('select', 'anonymous', get_string('anonymous', 'moodleoverflow'), $possiblesettings);
-        $mform->addHelpButton('anonymous', 'anonymous', 'moodleoverflow');
-        $mform->setDefault('anonymous', anonymous::NOT_ANONYMOUS);
+        if (get_config('moodleoverflow', 'allowanonymous') == '1') {
+            $mform->addElement('select', 'anonymous', get_string('anonymous', 'moodleoverflow'), $possiblesettings);
+            $mform->addHelpButton('anonymous', 'anonymous', 'moodleoverflow');
+            $mform->setDefault('anonymous', anonymous::NOT_ANONYMOUS);
+        }
 
         // Attachments.
         $mform->addElement('header', 'attachmentshdr', get_string('attachments', 'moodleoverflow'));
@@ -220,7 +222,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      * @param array $data data from the form.
      */
     public function data_postprocessing($data) {
-        if ($data->anonymous != anonymous::NOT_ANONYMOUS) {
+        if (isset($data->anonymous) && $data->anonymous != anonymous::NOT_ANONYMOUS) {
             $data->coursewidereputation = false;
         }
     }
