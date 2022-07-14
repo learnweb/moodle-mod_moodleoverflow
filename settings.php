@@ -77,9 +77,11 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('moodleoverflow/cleanreadtime', get_string('cleanreadtime', 'moodleoverflow'),
         get_string('configcleanreadtime', 'moodleoverflow'), 2, $options));
 
+    $url = new moodle_url('/mod/moodleoverflow/resetanonymous.php');
+
     $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowanonymous',
         get_string('allowanonymous', 'moodleoverflow'),
-        get_string('allowanonymous_desc', 'moodleoverflow'),
+        get_string('allowanonymous_desc', 'moodleoverflow', $url->out(false)),
         1
     ));
 
