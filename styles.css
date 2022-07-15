@@ -520,6 +520,17 @@ span.unread {
     text-align: right;
 }
 
+.mod_moodleoverflow-hack-primary-to-danger-btn .btn-primary {
+    background-color: #a90000;
+    border-color: #a90000;
+}
+
+.mod_moodleoverflow-hack-primary-to-danger-btn .btn-primary:hover,
+.mod_moodleoverflow-hack-primary-to-danger-btn .btn-primary:focus {
+    background-color: #900000;
+    border-color: #900000;
+}
+
 @media (max-width: 600px) {
     .hide-600 {
         display: none;
