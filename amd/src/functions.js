@@ -16,7 +16,7 @@
 /**
  * Ajax functions for moodleoverflow
  *
- * @module     mod/moodleoverflow
+ * @module     mod_moodleoverflow/functions
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -39,7 +39,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
          * @returns {string}
          */
         recordvote: function(discussionid, ratingid, userid, event) {
-            var target = $(event.target).closest('.moodleoverflowpost').prev();
+            var target = $(event.target).closest('.moodleoverflowpost');
             var postid = target.attr('id');
             postid = postid.substring(1);
 

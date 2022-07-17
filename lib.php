@@ -1006,7 +1006,6 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
     // Set params for the sql query.
     $params               = array();
     $params['mailed']     = MOODLEOVERFLOW_MAILED_PENDING;
-    $params['reviewed'] = 1;
     $params['ptimestart'] = $starttime;
     $params['ptimeend']   = $endtime;
 
@@ -1014,7 +1013,7 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
     $sql = "SELECT p.*, d.course, d.moodleoverflow
             FROM {moodleoverflow_posts} p
             JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-            WHERE p.mailed = :mailed AND p.created >= :ptimestart AND p.created < :ptimeend AND p.reviewed = :reviewed
+            WHERE p.mailed = :mailed AND p.created >= :ptimestart AND p.created < :ptimeend AND p.reviewed = 1
             ORDER BY p.modified ASC";
 
     return $DB->get_records_sql($sql, $params);
@@ -1212,4 +1211,14 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades=null) {
     }
 
     return $gradeupdate;
+}
+
+/**
+ * Map icons for font-awesome themes.
+ */
+function moodleoverflow_get_fontawesome_icon_map() {
+    return [
+        'mod_moodleoverflow:i/commenting' => 'fa-commenting',
+        'mod_moodleoverflow:i/pending-big' => 'fa-clock-o text-danger moodleoverflow-icon-big'
+    ];
 }

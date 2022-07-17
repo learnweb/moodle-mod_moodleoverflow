@@ -93,6 +93,10 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowratingchange',
         get_string('allowratingchange', 'moodleoverflow'), get_string('configallowratingchange', 'moodleoverflow'), 1));
 
+    // Allow teachers to enable review before publish.
+    $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowreview',
+        get_string('allowreview', 'moodleoverflow'), get_string('allowreview_desc', 'moodleoverflow'), 1));
+
     // Set scales for the reputation.
     $votesettings = [];
 

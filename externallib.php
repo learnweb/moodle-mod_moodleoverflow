@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->libdir/externallib.php");
+require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
  * Class implementing the external API, esp. for AJAX functions.
@@ -142,5 +143,95 @@ class mod_moodleoverflow_external extends external_api {
         moodleoverflow_update_user_grade($moodleoverflow, $raterrating, $USER->id);
 
         return $params;
+    }
+
+    /**
+     * Returns description of method parameters.
+     * @return external_function_parameters
+     */
+    public static function review_approve_post_parameters() {
+        return new external_function_parameters([
+            'postid' => new external_value(PARAM_INT, 'id of post')
+        ]);
+    }
+
+    /**
+     * Returns description of return value.
+     * @return external_value
+     */
+    public static function review_approve_post_returns() {
+        return new external_value(PARAM_TEXT, 'the url of the next post to review');
+    }
+
+    public static function review_approve_post($postid) {
+        global $DB;
+
+        $params = self::validate_parameters(self::review_approve_post_parameters(), ['postid' => $postid]);
+        $postid = $params['postid'];
+
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
+        $moodleoverflow = $DB->get_record_sql(
+            'SELECT m.* FROM {moodleoverflow} m ' .
+            'JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = m.id ' .
+            'WHERE d.id = :discussionid',
+            ['discussionid' => $post->discussion], MUST_EXIST
+        );
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = context_module::instance($cm->id);
+
+        require_capability('mod/moodleoverflow:reviewpost', $context);
+
+        $post->reviewed = 1;
+
+        $DB->update_record('moodleoverflow_posts', $post);
+
+        return \mod_moodleoverflow\review::get_first_review_post($post->id);
+    }
+
+    /**
+     * Returns description of method parameters.
+     * @return external_function_parameters
+     */
+    public static function review_reject_post_parameters() {
+        return new external_function_parameters([
+            'postid' => new external_value(PARAM_INT, 'id of post'),
+            'reason' => new external_value(PARAM_RAW, 'reason of rejection', VALUE_OPTIONAL)
+        ]);
+    }
+
+    /**
+     * Returns description of return value.
+     * @return external_value
+     */
+    public static function review_reject_post_returns() {
+        return new external_value(PARAM_TEXT, 'the url of the next post to review');
+    }
+
+    public static function review_reject_post($postid) {
+        global $DB;
+
+        $params = self::validate_parameters(self::review_reject_post_parameters(), ['postid' => $postid]);
+        $postid = $params['postid'];
+
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
+        $moodleoverflow = $DB->get_record_sql(
+            'SELECT m.* FROM {moodleoverflow} m ' .
+            'JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = m.id ' .
+            'WHERE d.id = :discussionid',
+            ['discussionid' => $post->discussion], MUST_EXIST
+        );
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = context_module::instance($cm->id);
+
+        require_capability('mod/moodleoverflow:reviewpost', $context);
+
+        // Has to be done before deleting the post.
+        $url = \mod_moodleoverflow\review::get_first_review_post($post->id);
+
+        moodleoverflow_delete_post($post, true, $cm, $moodleoverflow);
+
+        // email_to_user(core_user::get_user($post->userid), core_user::get_noreply_user(), )
+
+        return $url;
     }
 }

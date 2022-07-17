@@ -418,3 +418,24 @@ $string['answerer'] = 'Answerer #{$a}';
 $string['desc:only_questions'] = 'The name of questioners will not be displayed in their question and comments.';
 $string['desc:anonymous'] = 'No names will be displayed.';
 $string['resetanonymous_warning'] = 'Are you sure? If you are in production, <b>this is most certainly a bad decision</b> because your students and teachers posted their questions and answers, believing they would remain anonymous. <br><br><b>{$a->fullanoncount}</b> forums are currently fully anonymized, and in <b>{$a->questionanoncount}</b> additional forums the questioners are anonymized.<br><br><b>In all these forums, the real names of posters will be displayed again, even in already existing posts!</b><br><br>There is no way of reverting those changes!</br>';
+
+// Review feature
+$string['review'] = 'Review';
+$string['review_help'] = 'Select what has to be approved by a teacher before being shown to students.';
+$string['nothing'] = 'Nothing';
+$string['questions'] = 'Questions';
+$string['questions_and_posts'] = 'Questions and answers';
+$string['allowreview'] = 'Allow reviews';
+$string['allowreview_desc'] = 'Allow teachers to enable that all posts (or only all questions) have to be reviewed by them in order to be published.';
+$string['amount_waiting_for_review'] = '{$a} post(s) need to be reviewed!';
+$string['pending_review'] = 'Pending review';
+$string['post_was_approved'] = 'The post was approved.';
+$string['post_was_rejected'] = 'The post was rejected.';
+$string['jump_to_next_post_needing_review'] = 'Jump to next post needing to be reviewed.';
+$string['there_are_no_posts_needing_review'] = 'There are no more posts needing to be reviewed.';
+$string['give_a_reason'] = 'Give a reason (optional)';
+$string['approve'] = 'Approve';
+$string['reject'] = 'Reject';
+
+$string['rejected_email_subject'] = 'One of your posts in {$a->course} {$a->activity} has been rejected.';
+$string['rejected_email_content'] = 'This post has been rejected in {$a->course} {$a->activity}';

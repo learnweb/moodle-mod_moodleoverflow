@@ -66,7 +66,7 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
      * @return bool|string
      */
     public function render_question($data) {
-        return $this->render_from_template('mod_moodleoverflow/question', $data);
+        return $this->render_from_template('mod_moodleoverflow/answer', $data);
     }
 
     /**

@@ -26,6 +26,7 @@
  */
 
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -41,7 +42,7 @@ require_once(dirname(__FILE__) . '/lib.php');
  * @return array
  */
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
-    global $DB, $CFG;
+    global $DB, $CFG, $USER;
 
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
@@ -84,7 +85,8 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     $whereconditions = ['d.moodleoverflow = ?', 'p.parent = 0'];
 
     if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
-        $whereconditions[] = 'p.reviewed = 1';
+        $whereconditions[] = '(p.reviewed = 1 OR p.userid = ?)';
+        $params[] = $USER->id;
     }
 
     $wheresql = join(' AND ', $whereconditions);
@@ -131,6 +133,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     // Check some capabilities.
     $canstartdiscussion = moodleoverflow_user_can_post_discussion($moodleoverflow, $cm, $context);
     $canviewdiscussions = has_capability('mod/moodleoverflow:viewdiscussion', $context);
+    $canreviewposts = has_capability('mod/moodleoverflow:reviewpost', $context);
 
     // Print a button if the user is capable of starting
     // a new discussion or if the selfenrol is aviable.
@@ -157,7 +160,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     }
 
     // Get the number of replies for each discussion.
-    $replies = moodleoverflow_count_discussion_replies($moodleoverflow->id);
+    $replies = moodleoverflow_count_discussion_replies($cm);
 
     // Check whether the moodleoverflow instance can be tracked and is tracked.
     if ($cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
@@ -288,6 +291,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Get the amount of replies and the link to the discussion.
         $preparedarray[$i]['replyamount'] = $discussion->replies;
+        $preparedarray[$i]['questionunderreview'] = $discussion->reviewed == 0;
 
         // Are there unread messages? Create a link to them.
         $preparedarray[$i]['unreadamount'] = $discussion->unread;
@@ -334,6 +338,14 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             }
         }
 
+        if ($canreviewposts) {
+            $reviewinfo = review::get_short_review_info_for_discussion($discussion->discussion);
+            $preparedarray[$i]['needreview'] = $reviewinfo->count;
+            $preparedarray[$i]['reviewlink'] = (new moodle_url('/mod/moodleoverflow/discussion.php', [
+                'd' => $discussion->discussion
+            ], 'p' . $reviewinfo->first))->out(false);
+        }
+
         // Add all created data to an array.
 
         $preparedarray[$i]['statusstarter'] = $statusstarter;
@@ -352,6 +364,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $mustachedata = new stdClass();
     $mustachedata->cantrack = $cantrack;
     $mustachedata->canviewdiscussions = $canviewdiscussions;
+    $mustachedata->canreview = $canreviewposts;
     $mustachedata->discussions = $preparedarray;
     $mustachedata->hasdiscussions = (count($discussions) >= 0) ? true : false;
     $mustachedata->istracked = $istracked;
@@ -370,20 +383,32 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 /**
  * Returns an array of counts of replies for each discussion.
  *
- * @param int $moodleoverflowid
+ * @param object $cm coursemodule
  *
  * @return array
  */
-function moodleoverflow_count_discussion_replies($moodleoverflowid) {
-    global $DB;
+function moodleoverflow_count_discussion_replies($cm) {
+    global $DB, $USER;
+
+    $modcontext = context_module::instance($cm->id);
+
+    $params = [$cm->instance];
+    $whereconditions = ['d.moodleoverflow = ?', 'p.parent > 0'];
+
+    if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
+        $whereconditions[] = '(p.reviewed = 1 OR p.userid = ?)';
+        $params[] = $USER->id;
+    }
+
+    $wheresql = join(' AND ', $whereconditions);
 
     $sql = "SELECT p.discussion, COUNT(p.id) AS replies, MAX(p.id) AS lastpostid
               FROM {moodleoverflow_posts} p
                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
-             WHERE p.parent > 0 AND d.moodleoverflow = ?
+             WHERE $wheresql
           GROUP BY p.discussion";
 
-    return $DB->get_records_sql($sql, array($moodleoverflowid));
+    return $DB->get_records_sql($sql, $params);
 }
 
 /**
@@ -430,7 +455,7 @@ function moodleoverflow_user_can_post_discussion($moodleoverflow, $cm = null, $c
  * @return array
  */
 function moodleoverflow_get_discussions_count($cm) {
-    global $DB;
+    global $DB, $USER;
 
     $modcontext = context_module::instance($cm->id);
 
@@ -438,7 +463,8 @@ function moodleoverflow_get_discussions_count($cm) {
     $whereconditions = ['d.moodleoverflow = ?', 'p.parent = 0'];
 
     if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
-        $whereconditions[] = 'p.reviewed = 1';
+        $whereconditions[] = '(p.reviewed = 1 OR p.userid = ?)';
+        $params[] = $USER->id;
     }
 
     $wheresql = join(' AND ', $whereconditions);
@@ -475,7 +501,8 @@ function moodleoverflow_get_discussions_unread($cm) {
     ];
 
     if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
-        $whereconditions[] = 'p.reviewed = 1';
+        $whereconditions[] = '(p.reviewed = 1 OR p.userid = :userid2)';
+        $params['userid2'] = $USER->id;
     }
 
     $wheresql = join(' AND ', $whereconditions);
@@ -602,7 +629,8 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
         return false;
     }
 
-    if ($post->reviewed == 0 && !has_capability('mod/moodleoverflow:reviewpost', $modulecontext, $user)) {
+    if (!($post->reviewed == 1 || $post->userid == $user->id ||
+            has_capability('mod/moodleoverflow:reviewpost', $modulecontext, $user))) {
         return false;
     }
 
@@ -709,7 +737,9 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     $post->moodleoverflow = $moodleoverflow->id;
     $post->course = $moodleoverflow->course;
 
-    // TODO set reviewed = 0 if moodleoverflow is reviewable
+    if (review::get_review_level($moodleoverflow) > review::QUESTIONS) {
+        $post->reviewed = 0;
+    }
 
     // Submit the post to the database and get its id.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
@@ -904,8 +934,12 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     }
     echo "<br><h2>$answerstring</h2>";
 
+    echo '<div id="moodleoverflow-posts">';
+
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts, null, $usermapping);
+
+    echo '</div>';
 }
 
 /**
@@ -943,7 +977,8 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
     $additionalwhere = '';
 
     if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
-        $additionalwhere = ' AND p.reviewed = 1 ';
+        $additionalwhere = ' AND (p.reviewed = 1 OR p.userid = :userid2) ';
+        $params['userid2'] = $USER->id;
     }
 
     // Create the sql array.
@@ -1078,6 +1113,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $cm->cache->caps['mod/moodleoverflow:viewanyrating'] = has_capability('mod/moodleoverflow:viewanyrating', $modulecontext);
         $cm->cache->caps['moodle/site:viewfullnames'] = has_capability('moodle/site:viewfullnames', $modulecontext);
         $cm->cache->caps['mod/moodleoverflow:marksolved'] = has_capability('mod/moodleoverflow:marksolved', $modulecontext);
+        $cm->cache->caps['mod/moodleoverflow:reviewpost'] = has_capability('mod/moodleoverflow:reviewpost', $modulecontext);
     }
 
     // Check if the user has the capability to see posts.
@@ -1354,6 +1390,9 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $options->trusted = false;
     $options->context = $modulecontext;
 
+    $mustachedata->needsreview = !$post->reviewed;
+    $mustachedata->canreview = $cm->cache->caps['mod/moodleoverflow:reviewpost'];
+
     // Prepare the post.
     $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
 
@@ -1572,11 +1611,13 @@ function moodleoverflow_add_new_post($post) {
         $post->totalscore = 0;
     }
 
-    // TODO add reiview = 0 if enabled on moodleoverflow module.
+    if (review::get_review_level($moodleoverflow) == review::EVERYTHING) {
+        $post->reviewed = 0;
+    }
 
     // Add the post to the database.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
-    $DB->set_field('moodleoverflow_posts', 'message', $post->message, array('id' => $post->id));
+    $DB->set_field('moodleoverflow_posts', 'message', $post->message, array('id' => $post->id)); // ??
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
     // Update the discussion.
@@ -1624,10 +1665,12 @@ function moodleoverflow_update_post($newpost) {
         }
     }
 
-    // Update the date and the user of the post and the discussion.
-    $post->modified = time();
-    $discussion->timemodified = $post->modified;
-    $discussion->usermodified = $post->userid;
+    if (isset($newpost->reviewed) ? $newpost->reviewed : $post->reviewed) {
+        // Update the date and the user of the post and the discussion.
+        $post->modified = time();
+        $discussion->timemodified = $post->modified;
+        $discussion->usermodified = $post->userid;
+    }
 
     // When editing the starting post of a discussion.
     if (!$post->parent) {
@@ -1696,7 +1739,7 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
         foreach ($posts as $post) {
             $post->course = $discussion->course;
             $post->moodleoverflow = $discussion->moodleoverflow;
-            if (!moodleoverflow_delete_post($post, 'ignore', $course, $cm, $moodleoverflow)) {
+            if (!moodleoverflow_delete_post($post, 'ignore', $cm, $moodleoverflow)) {
 
                 // If the deletion failed, change the pointer.
                 $result = false;
@@ -1720,28 +1763,21 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
 /**
  * Deletes a single moodleoverflow post.
  *
- * @param int    $post           The post ID
- * @param array  $children       The child posts
- * @param object $course         The course object.
+ * @param object $post           The post ID
+ * @param bool   $deletechildren       The child posts
  * @param object $cm             The course module
- * @param int    $moodleoverflow The moodleoverflow ID
+ * @param object $moodleoverflow The moodleoverflow ID
  *
  * @return bool Whether the deletion was successful
  */
-function moodleoverflow_delete_post($post, $children, $course, $cm, $moodleoverflow) {
+function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow) {
     global $DB, $USER;
 
     // Iterate through all children and delete them.
     $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
-    if (($children !== 'ignore') AND $childposts) {
-        if ($children) {
-            foreach ($childposts as $childpost) {
-                moodleoverflow_delete_post($childpost, true, $course, $cm, $moodleoverflow);
-            }
-
-        } else {
-            // If there are no children, return false.
-            return false;
+    if ($deletechildren AND $childposts) {
+        foreach ($childposts as $childpost) {
+            moodleoverflow_delete_post($childpost, true, $cm, $moodleoverflow);
         }
     }
 

@@ -129,75 +129,15 @@
  * The styles for the discussion.php
  */
 .moodleoverflowpost {
-    border: 1px solid #000;
-    display: block;
     margin: 0 0 1em 0;
     max-width: 100%;
-    padding: 0;
     position: relative;
-}
-
-.moodleoverflowpost .row {
-    position: relative;
-    width: 100%;
-}
-
-.moodleoverflowpost .row .left {
-    float: left;
-    overflow: hidden;
-    width: 43px;
-}
-
-.moodleoverflowpost .row .left + .no-overflow {
-    max-width: calc(100% - 43px);
-}
-
-.moodleoverflowpost .row .left .votes {
-    display: block;
-    margin: 0 8px 0 0;
-    text-align: center;
-}
-
-.moodleoverflowpost .row .left .votes p {
-    margin-bottom: 0;
-    margin-top: 0;
-}
-
-.moodleoverflowpost .row .left .votes .icon {
-    color: #0a0;
-    height: 24px;
-    margin: 0;
-    width: 24px;
-}
-
-.moodleoverflowpost .row .topic,
-.moodleoverflowpost .row .content-mask,
-.moodleoverflowpost .row .options {
-    margin-left: 43px;
+    border-radius: 0;
+    display: flex;
 }
 
 .moodleoverflowpost .picture img {
     margin: 4px;
-}
-
-.moodleoverflowpost .options .commands,
-.moodleoverflowpost .content .attachments,
-.moodleoverflowpost .options .footer,
-.moodleoverflowpost .options .link {
-    text-align: right;
-}
-
-.moodleoverflowpost .options .moodleoverflow-post-rating {
-    float: left;
-}
-
-.moodleoverflowpost .content .posting {
-    max-width: 100%;
-    overflow: auto;
-}
-
-.moodleoverflowpost .content .attachedimages img {
-    max-width: 100%;
 }
 
 .moodleoverflowpost .post-word-count {
@@ -210,7 +150,7 @@
     padding: 0 .3em;
 }
 
-:target ~ .moodleoverflowpost:before {
+.moodleoverflowpost:target:before {
     background: #0070a8;
     bottom: -1px;
     content: "";
@@ -219,14 +159,6 @@
     position: absolute;
     top: -1px;
     width: 4px;
-}
-
-.moodleoverflowpost {
-    border-radius: 0;
-    display: flex;
-    margin-bottom: 5px;
-    position: relative;
-    padding: 6px;
 }
 
 .moodleoverflowpost.statusboth:before {
@@ -296,23 +228,6 @@
     margin-right: 10px;
 }
 
-.moodleoverflowpost .content .posting.fullpost {
-    margin-top: 8px;
-}
-
-.moodleoverflowpost .row.side {
-    clear: both;
-}
-
-.moodleoverflowpost .options .commands {
-    margin-left: 0;
-}
-
-.moodleoverflowpost .options .moodleoverflow-post-rating .icon {
-    height: 20px;
-    width: 24px;
-}
-
 .moodleoverflowpost .subject {
     font-weight: 700;
 }
@@ -324,15 +239,6 @@ span.unread {
 
 .moodleoverflowpost.unread .row.header {
     border-bottom: 1px solid #ddd;
-}
-
-.moodleoverflowpost .row {
-    margin-left: 0;
-}
-
-.moodleoverflowpost .row:before,
-.moodleoverflowpost .row:after {
-    content: none;
 }
 
 .moodleoverflowpost .topic .author {
@@ -531,8 +437,23 @@ span.unread {
     border-color: #900000;
 }
 
+.moodleoverflowpost.pendingreview > :first-child {
+    opacity: 0.6;
+    transition: opacity 200ms linear;
+}
+
+.moodleoverflowpost.pendingreview:hover > :first-child {
+    opacity: 1;
+}
+
 @media (max-width: 600px) {
     .hide-600 {
         display: none;
     }
+}
+
+.icon.moodleoverflow-icon-big {
+    font-size: 2em;
+    width: 32px;
+    height: 32px;
 }

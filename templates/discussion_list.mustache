@@ -40,6 +40,11 @@
         {{! Print the heading row of the table. }}
         <thead>
             <tr>
+                {{# canreview }}
+                <th class="header replies">
+                    {{#str}} review, moodleoverflow {{/str}}
+                </th>
+                {{/ canreview }}
 
                 <th class="header replies" scope="col">
                     {{#str}} headerstatus, moodleoverflow {{/str}}
@@ -97,43 +102,41 @@
         {{#discussions}}
             <tr class="discussion">
 
+                {{# canreview }}
+                    <td class="replies ">
+                        {{# needreview }}
+                            <a href="{{{reviewlink}}}" class="text-danger bold"
+                               title="{{#str}}amount_waiting_for_review, mod_moodleoverflow, {{needreview}}{{/str}}">
+                                {{#pix}}i/commenting, mod_moodleoverflow{{/pix}}{{ needreview }}
+                            </a>
+                        {{/ needreview }}
+                    </td>
+                {{/ canreview }}
+
                 {{! The status of the discussion. }}
                 <td class="topic replies">
-                    {{#statusboth}}
-                        <a href="{{starterlink}}">
-                            {{# pix}} status/c_circle, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}}{{/ pix}}
-                            {{# pix}} status/b_box, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}}{{/ pix}}
-                        </a>
-                    {{/statusboth}}
-                    {{^statusboth}}
+                    {{# questionunderreview }}
+                        {{#pix}}i/duration, moodle, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
+                    {{/ questionunderreview }}
+                    {{^ questionunderreview }}
+                        {{#statusteacher}}
+                            <a href="{{teacherlink}}">
+                                {{# pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/ pix}}
+                            </a>
+                        {{/statusteacher}}
+                        {{^statusteacher}}
+                            {{# pix}} status/c_blank, moodleoverflow, {{#str}}marknotsolved, moodleoverflow{{/str}}{{/ pix}}
+                        {{/statusteacher}}
+
+                        {{#statusstarter}}
+                            <a href="{{starterlink}}">
+                                {{# pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/ pix}}
+                            </a>
+                        {{/statusstarter}}
                         {{^statusstarter}}
-                            {{^statusteacher}}
-                                {{# pix}} status/c_blank, moodleoverflow, {{#str}}marknotsolved, moodleoverflow{{/str}}{{/ pix}}
-                            {{/statusteacher}}
-                            {{#statusteacher}}
-                                <a href="{{teacherlink}}">
-                                    {{# pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/ pix}}
-                                </a>
-                            {{/statusteacher}}
                             {{# pix}} status/b_blank, moodleoverflow, {{#str}}marknothelpful, moodleoverflow{{/str}} {{/ pix}}
                         {{/statusstarter}}
-                        {{#statusstarter}}
-                            {{^statusteacher}}
-                                {{# pix}} status/c_blank, moodleoverflow, {{#str}}marknotsolved, moodleoverflow{{/str}} {{/ pix}}
-                                <a href="{{starterlink}}">
-                                    {{# pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/ pix}}
-                                </a>
-                            {{/statusteacher}}
-                            {{#statusteacher}}
-                                <a href="{{teacherlink}}">
-                                    {{# pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}}{{/ pix}}
-                                </a>
-                                <a href="{{starterlink}}">
-                                    {{# pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/ pix}}
-                                </a>
-                            {{/statusteacher}}
-                        {{/statusstarter}}
-                    {{/statusboth}}
+                    {{/ questionunderreview }}
                 </td>
 
                 {{! The votes of the discussion. }}

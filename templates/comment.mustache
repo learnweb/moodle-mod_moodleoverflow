@@ -30,63 +30,78 @@
     <a id="unread"></a>
 {{/ isfirstunread}}
 
-{{! Print the anchor to the post. }}
-<a id="p{{ postid }}"></a>
-
 {{! Start the post. Mark it read or unread. }}
-<div class="moodleoverflowpost moodleoverflowcomment border clearfix bg-light {{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}">
-    {{#showvotes}}
-        <div class="votecell">
-            <div class="votes">
-                {{> mod_moodleoverflow/postvoting }}
+<div id="p{{postid}}" class="moodleoverflowpost moodleoverflowcomment d-flex flex-column border clearfix bg-light {{#needsreview}}pendingreview{{/needsreview}}
+        {{ postclass }}{{# isfirstpost}} firstpost starter{{/isfirstpost}}" role="region"
+         aria-label="{{ discussionby }}" data-moodleoverflow-postid="{{postid}}">
+    <div class="d-flex p-2">
+        {{^needsreview}}
+            {{#showvotes}}
+                <div class="votecell">
+                    <div class="votes">
+                        {{> mod_moodleoverflow/postvoting }}
+                    </div>
+                </div>
+            {{/showvotes}}
+            {{^showvotes}}
+                <div class="novotecell"></div>
+            {{/showvotes}}
+        {{/needsreview}}
+        {{#needsreview}}
+            <div class="p-2">
+                {{#pix}}i/pending-big, mod_moodleoverflow, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
+            </div>
+        {{/needsreview}}
+        <div class="commentcell">
+            <div class="comment-text">
+                {{{ postcontent }}}
+            </div>
+            <div class="attachments">
+                {{#attachments}}
+                    {{#image}}
+                        <img src="{{filepath}}" alt=""/>
+                        <br>
+                    {{/image}}
+                    {{^image}}
+                        <a href="{{filepath}}">
+                            {{{icon}}}
+                        </a>
+                        <a href="{{filepath}}">
+                            {{filename}}
+                        </a>
+                    {{/image}}
+                    <br>
+                {{/attachments}}
+            </div>
+            {{! The displayed text. }}
+            {{#statusstarter}}
+                {{^statusteacher}}
+                    {{#pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
+                    {{#str}} helpfulanswer, moodleoverflow {{/str}}
+                {{/statusteacher}}
+                {{#statusteacher}}
+                    {{#pix}} status/c_circle, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
+                    {{#pix}} status/b_box, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
+                    {{#str}} bestanswer, moodleoverflow {{/str}}
+                {{/statusteacher}}
+            {{/statusstarter}}
+            {{^statusstarter}}
+                {{#statusteacher}}
+                    {{#pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
+                    {{#str}} solvedanswer, moodleoverflow {{/str}}
+                {{/statusteacher}}
+            {{/statusstarter}}
+            <div class="post-info">
+                <div class="leftbox {{ questioner }}"><span class="text-muted">{{{ byname }}} - {{ byshortdate }}</span></div>
+                <div class="rightbox">{{{ commands }}}</div>
             </div>
         </div>
-    {{/showvotes}}
-    {{^showvotes}}
-        <div class="novotecell"></div>
-    {{/showvotes}}
-    <div class="commentcell">
-        <div class="comment-text">
-            {{{ postcontent }}}
-        </div>
-        <div class="attachments">
-            {{#attachments}}
-                {{#image}}
-                    <img src="{{filepath}}" alt=""/>
-                    <br>
-                {{/image}}
-                {{^image}}
-                    <a href="{{filepath}}">
-                        {{{icon}}}
-                    </a>
-                    <a href="{{filepath}}">
-                        {{filename}}
-                    </a>
-                {{/image}}
-                <br>
-            {{/attachments}}
-        </div>
-        {{! The displayed text. }}
-        {{#statusstarter}}
-            {{^statusteacher}}
-                {{#pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
-                {{#str}} helpfulanswer, moodleoverflow {{/str}}
-            {{/statusteacher}}
-            {{#statusteacher}}
-                {{#pix}} status/c_circle, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
-                {{#pix}} status/b_box, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
-                {{#str}} bestanswer, moodleoverflow {{/str}}
-            {{/statusteacher}}
-        {{/statusstarter}}
-        {{^statusstarter}}
-            {{#statusteacher}}
-                {{#pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
-                {{#str}} solvedanswer, moodleoverflow {{/str}}
-            {{/statusteacher}}
-        {{/statusstarter}}
-        <div class="post-info">
-            <div class="leftbox {{questioner}}"><span class="text-muted">{{{ byname }}} - {{ byshortdate }}</span></div>
-            <div class="rightbox">{{{ commands }}}</div>
-        </div>
     </div>
+    {{# canreview }}
+        {{# needsreview }}
+            <div class="reviewrow p-2 text-center bg-gray">
+                {{> mod_moodleoverflow/review_buttons }}
+            </div>
+        {{/needsreview}}
+    {{/canreview}}
 </div>

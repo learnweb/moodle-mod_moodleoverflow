@@ -129,6 +129,8 @@ if ($node AND ($post->id != $discussion->firstpost)) {
     $node->add(format_string($post->subject), $PAGE->url);
 }
 
+$PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
+
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
@@ -158,6 +160,10 @@ if (!$canreply) {
 
 echo "<br>";
 
+echo '<div id="moodleoverflow-posts">';
+
 moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply);
+
+echo '</div>';
 
 echo $OUTPUT->footer();

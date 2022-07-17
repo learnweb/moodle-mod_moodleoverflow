@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
+
 // Include config and locallib.
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
@@ -360,7 +362,7 @@ if (!empty($moodleoverflow)) {
     }
 
     // Count all replies of this post.
-    $replycount = moodleoverflow_count_replies($post, has_capability('mod/moodleoverflow:reviewpost', $modulecontext));
+    $replycount = moodleoverflow_count_replies($post, false);
 
     // Has the user confirmed the deletion?
     if (!empty($confirm) AND confirm_sesskey()) {
@@ -396,7 +398,7 @@ if (!empty($moodleoverflow)) {
                 redirect("view.php?m=$discussion->moodleoverflow");
                 exit;
 
-            } else if (moodleoverflow_delete_post($post, $deleteanypost, $course, $cm, $moodleoverflow)) {
+            } else if (moodleoverflow_delete_post($post, $deleteanypost, $cm, $moodleoverflow)) {
                 // Delete a single post.
                 // Redirect back to the discussion.
                 $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id));
@@ -451,6 +453,7 @@ if (!empty($moodleoverflow)) {
     // Last posibility: the action is not known.
 
     throw new moodle_exception('unknownaction');
+    die();
 }
 
 // Second step: The user must be logged on properly. Must be enrolled to the course as well.
@@ -527,6 +530,7 @@ $postid = empty($post->id) ? null : $post->id;
 $postmessage = empty($post->message) ? null : $post->message;
 
 // Set data for the form.
+// TODO Refactor.
 $param1 = (isset($discussion->id) ? array($discussion->id) : array());
 $param2 = (isset($post->format) ? array('format' => $post->format) : array());
 $param3 = (isset($discussion->timestart) ? array('timestart' => $discussion->timestart) : array());
