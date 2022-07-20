@@ -829,7 +829,7 @@ function moodleoverflow_send_mails() {
                     $modulecontext = context_module::instance($cm->id);
 
                     // Check the users capabilities.
-                    $canpost = moodleoverflow_user_can_post($moodleoverflow, $userto, $cm, $course, $modulecontext);
+                    $canpost = moodleoverflow_user_can_post($modulecontext, $post, $userto->id);
                     $userto->canpost[$discussion->id] = $canpost;
                 }
 
@@ -863,7 +863,7 @@ function moodleoverflow_send_mails() {
 
                 // Cache the users capabilities.
                 if (!isset($userto->canpost[$discussion->id])) {
-                    $canreply = moodleoverflow_user_can_post($moodleoverflow, $userto, $cm, $course, $modulecontext);
+                    $canreply = moodleoverflow_user_can_post($modulecontext, $post, $userto->id);
                 } else {
                     $canreply = $userto->canpost[$discussion->id];
                 }

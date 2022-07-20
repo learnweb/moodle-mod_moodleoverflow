@@ -814,50 +814,19 @@ function moodleoverflow_go_back_to($default) {
  *
  * @return bool Whether the user can reply
  */
-function moodleoverflow_user_can_post($moodleoverflow, $user = null, $cm = null, $course = null, $modulecontext = null) {
-    global $USER, $DB;
+function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerreviewstatus = true, $userid = null) {
+    global $USER;
 
     // If not user is submitted, use the current one.
-    if (empty($user)) {
-        $user = $USER;
-    }
-
-    // Guests can not post.
-    if (isguestuser($user) OR empty($user->id)) {
-        return false;
-    }
-
-    // Fetch the coursemodule.
-    if (!$cm) {
-        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-            throw new moodle_exception('invalidcoursemodule');
-        }
-    }
-
-    // Fetch the related course.
-    if (!$course) {
-        if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
-            throw new moodle_exception('invalidcourseid');
-        }
-    }
-
-    // Fetch the related modulecontext.
-    if (!$modulecontext) {
-        $modulecontext = context_module::instance($cm->id);
-    }
-
-    // Users with temporary guest access can not post.
-    if (!is_viewing($modulecontext, $user->id) AND !is_enrolled($modulecontext, $user->id, '', true)) {
-        return false;
+    if (empty($userid)) {
+        $userid = $USER->id;
     }
 
     // Check the users capability.
-    if (has_capability('mod/moodleoverflow:replypost', $modulecontext, $user->id)) {
-        return true;
+    if (!has_capability('mod/moodleoverflow:replypost', $modulecontext, $userid)) {
+        return false;
     }
-
-    // The user does not have the capability.
-    return false;
+    return !$considerreviewstatus || $posttoreplyto->reviewed == 1;
 }
 
 /**
@@ -868,10 +837,9 @@ function moodleoverflow_user_can_post($moodleoverflow, $user = null, $cm = null,
  * @param stdClass $moodleoverflow The moodleoverflow object
  * @param stdClass $discussion     The discussion object
  * @param stdClass $post           The post object
- * @param boolean  $canreply       Whether the user can reply in this discussion
  */
-function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply) {
-    global $USER, $OUTPUT;
+function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post) {
+    global $USER;
 
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() AND ($USER->id == $post->userid));
@@ -924,7 +892,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Print the starting post.
     echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
-        $ownpost, $canreply, false, '', '', $postread, true, $istracked, 0, $usermapping);
+        $ownpost, false, '', '', $postread, true, $istracked, 0, $usermapping);
 
     // Print answer divider.
     if ($answercount == 1) {
@@ -937,7 +905,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     echo '<div id="moodleoverflow-posts">';
 
     // Print the other posts.
-    echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $canreply, $istracked, $posts, null, $usermapping);
+    echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $istracked, $posts, null, $usermapping);
 
     echo '</div>';
 }
@@ -1056,7 +1024,6 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
  * @param object   $cm
  * @param stdClass $course         The course object
  * @param bool     $ownpost        Whether the post was submitted by this user
- * @param bool     $canreply       Whether the user can reply to the post
  * @param bool     $link           Whether there is a link to this post
  * @param string   $footer         A default footer for posts
  * @param string   $highlight      A word to highlight in the post
@@ -1069,7 +1036,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
  * @return null The output
  */
 function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
-                                   $ownpost = false, $canreply = false, $link = false,
+                                   $ownpost = false, $link = false,
                                    $footer = '', $highlight = '', $postisread = null,
                                    $dummyifcantsee = true, $istracked = false,
                                    $iscomment = false, $usermapping = [], $level = 0) {
@@ -1196,10 +1163,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusstarter) {
             $commands[] = html_writer::tag('a', $str->marknothelpful,
-                    array('class' => 'markhelpful', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
         } else {
             $commands[] = html_writer::tag('a', $str->markhelpful,
-                    array('class' => 'markhelpful', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
         }
     }
 
@@ -1212,10 +1179,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusteacher) {
             $commands[] = html_writer::tag('a', $str->marknotsolved,
-                    array('class' => 'marksolved', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
         } else {
             $commands[] = html_writer::tag('a', $str->marksolved,
-                    array('class' => 'marksolved', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
         }
     }
 
@@ -1240,22 +1207,26 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // Give the option to reply to a post.
-    if ($canreply) {
+    if (moodleoverflow_user_can_post($modulecontext, $post, false)) {
+
+        $attributes = [
+                'class' => 'onlyifreviewed'
+        ];
 
         // Answer to the parent post.
         if (empty($post->parent)) {
             $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-            $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst);
+            $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);
 
             // If the post is a comment, answer to the parent post.
         } else if (!$iscomment) {
             $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-            $commands[] = array('url' => $replyurl, 'text' => $str->reply);
+            $commands[] = array('url' => $replyurl, 'text' => $str->reply, 'attributes' => $attributes);
 
             // Else simple respond to the answer.
         } else {
             $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $iscomment));
-            $commands[] = array('url' => $replyurl, 'text' => $str->reply);
+            $commands[] = array('url' => $replyurl, 'text' => $str->reply, 'attributes' => $attributes);
         }
     }
 
@@ -1403,12 +1374,12 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $commandhtml = array();
     foreach ($commands as $command) {
         if (is_array($command)) {
-            $commandhtml[] = html_writer::link($command['url'], $command['text']);
+            $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
         } else {
             $commandhtml[] = $command;
         }
     }
-    $mustachedata->commands = implode(' | ', $commandhtml);
+    $mustachedata->commands = implode('', $commandhtml);
 
     // Print a footer if requested.
     $mustachedata->footer = $footer;
@@ -1441,7 +1412,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
  * @param object $moodleoverflow The moodleoverflow object
  * @param object $discussion     The discussion object
  * @param object $parent         The object of the parent post
- * @param bool   $canreply       Whether the user has capabilities to reply
  * @param bool   $istracked      Whether the user tracks the discussion
  * @param array  $posts          Array of posts within the discussion
  * @param bool   $iscomment      Whether the current post is a comment
@@ -1449,7 +1419,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
  * @return string The html output.
  */
 function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent,
-                                           $canreply, $istracked, $posts, $iscomment = null, $usermapping = []) {
+        $istracked, $posts, $iscomment = null, $usermapping = []) {
     global $USER;
 
     // Prepare the output.
@@ -1491,11 +1461,11 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
 
             // Print the answer.
             $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
-                $ownpost, $canreply, false, '', '', $postread, true, $istracked, $parentid, $usermapping, $level);
+                $ownpost, false, '', '', $postread, true, $istracked, $parentid, $usermapping, $level);
 
             // Print its children.
             $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow,
-                $discussion, $post, $canreply, $istracked, $posts, $parentid, $usermapping);
+                $discussion, $post, $istracked, $posts, $parentid, $usermapping);
 
             // End the div.
             $output .= "</div>\n";

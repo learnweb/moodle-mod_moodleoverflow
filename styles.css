@@ -297,6 +297,12 @@ span.unread {
     color: grey;
 }
 
+.moodleoverflowpost .post-menu > :not(:last-child) {
+    border-right: 2px solid #bbb;
+    padding-right: 4px;
+    margin-right: 4px;
+}
+
 /*
  * The Answers.
  */
@@ -444,6 +450,14 @@ span.unread {
 
 .moodleoverflowpost.pendingreview:hover > :first-child {
     opacity: 1;
+}
+
+.moodleoverflowpost.pendingreview .onlyifreviewed {
+    display: none;
+}
+
+.moodleoverflowpost:not(.pendingreview) .onlyifnotreviewed {
+    display: none;
 }
 
 @media (max-width: 600px) {

@@ -148,21 +148,11 @@ if ((!is_guest($modulecontext, $USER) AND isloggedin() AND $canviewdiscussion)) 
     echo '';
 }
 
-// Check if the user can reply in this discussion.
-$canreply = moodleoverflow_user_can_post($moodleoverflow, $USER, $cm, $course, $modulecontext);
-
-// Link to the selfenrollment if not allowed.
-if (!$canreply) {
-    if (!is_enrolled($modulecontext) AND !is_viewing($modulecontext)) {
-        $canreply = enrol_selfenrol_available($course->id);
-    }
-}
-
 echo "<br>";
 
 echo '<div id="moodleoverflow-posts">';
 
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply);
+moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post);
 
 echo '</div>';
 

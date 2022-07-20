@@ -35,20 +35,18 @@
      {{# isfirstpost}}firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}"
     data-moodleoverflow-postid="{{postid}}">
     <div class="d-flex p-2">
-        {{^needsreview}}
-            {{#showvotes}}
-                <div class="votecell">
-                    <div class="votes">
-                        {{> mod_moodleoverflow/postvoting }}
-                    </div>
+        {{#showvotes}}
+            <div class="votecell onlyifreviewed">
+                <div class="votes">
+                    {{> mod_moodleoverflow/postvoting }}
                 </div>
-            {{/showvotes}}
-            {{^showvotes}}
-                <div class="novotecell"></div>
-            {{/showvotes}}
-        {{/needsreview}}
+            </div>
+        {{/showvotes}}
+        {{^showvotes}}
+            <div class="novotecell onlyifreviewed"></div>
+        {{/showvotes}}
         {{#needsreview}}
-            <div class="p-2">
+            <div class="p-2 onlyifnotreviewed">
                 {{#pix}}i/pending-big, mod_moodleoverflow, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
             </div>
         {{/needsreview}}

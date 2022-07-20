@@ -82,7 +82,7 @@ class ratings {
         $coursecontext = \context_course::instance($course->id);
 
         // Redirect the user if capabilities are missing.
-        $canrate = self::moodleoverflow_user_can_rate($moodleoverflow, $cm, $modulecontext, $userid);
+        $canrate = self::moodleoverflow_user_can_rate($post, $modulecontext, $userid);
         if (!$canrate) {
 
             // Catch unenrolled users.
@@ -784,13 +784,12 @@ class ratings {
      * Check if a user can rate the post.
      *
      * @param object $moodleoverflow
-     * @param null   $cm
-     * @param null   $modulecontext
+     * @param \context_module   $modulecontext
      * @param null|int $userid
      *
      * @return bool
      */
-    private static function moodleoverflow_user_can_rate($moodleoverflow, $cm = null, $modulecontext = null, $userid = null) {
+    private static function moodleoverflow_user_can_rate($post, $modulecontext, $userid = null) {
         global $USER;
         if (!$userid) {
             // Guests and non-logged-in users can not rate.
@@ -800,20 +799,8 @@ class ratings {
             $userid = $USER->id;
         }
 
-        // Retrieve the coursemodule.
-        if (!$cm) {
-            if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-                throw new moodle_exception('invalidcoursemodule');
-            }
-        }
-
-        // Get the context if not set in the parameters.
-        if (!$modulecontext) {
-            $modulecontext = context_module::instance($cm->id);
-        }
-
         // Check the capability.
-        return has_capability('mod/moodleoverflow:ratepost', $modulecontext, $userid);
+        return has_capability('mod/moodleoverflow:ratepost', $modulecontext, $userid) && $post->reviewed == 1;
     }
 
 }

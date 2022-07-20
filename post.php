@@ -22,10 +22,11 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
+// TODO refactor this. For more readability, and to avoid security issues.
 
 // Include config and locallib.
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
 require_once(dirname(__FILE__) . '/locallib.php');
 require_once($CFG->libdir . '/completionlib.php');
 
@@ -215,7 +216,7 @@ if (!empty($moodleoverflow)) {
     $coursecontext = context_course::instance($course->id);
 
     // Check whether the user is allowed to post.
-    if (!moodleoverflow_user_can_post($moodleoverflow, $USER, $cm, $course, $modulecontext)) {
+    if (!moodleoverflow_user_can_post($modulecontext, $parent)) {
 
         // Give the user the chance to enroll himself to the course.
         if (!isguestuser() AND !is_enrolled($coursecontext)) {

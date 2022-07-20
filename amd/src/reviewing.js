@@ -33,8 +33,6 @@ export function init() {
     Prefetch.prefetchStrings('mod_moodleoverflow',
         ['post_was_approved', 'jump_to_next_post_needing_review', 'there_are_no_posts_needing_review', 'post_was_rejected']);
 
-    window.console.log('INIT1!');
-
     const root = document.getElementById('moodleoverflow-posts');
     root.onclick = async(e) => {
         const action = e.target.getAttribute('data-moodleoverflow-action');
@@ -42,8 +40,6 @@ export function init() {
         if (!action) {
             return;
         }
-
-        window.console.log('INIT!');
 
         const post = e.target.closest('*[data-moodleoverflow-postid]');
         const reviewRow = e.target.closest('.reviewrow');
@@ -67,6 +63,7 @@ export function init() {
                 message += await getString('there_are_no_posts_needing_review', 'mod_moodleoverflow');
             }
             reviewRow.innerHTML = message;
+            post.classList.remove("pendingreview");
         } else if (action === 'reject') {
             reviewRow.innerHTML = '.';
             reviewRow.innerHTML = await Templates.render('mod_moodleoverflow/reject_post_form', {});

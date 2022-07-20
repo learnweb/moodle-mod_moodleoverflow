@@ -98,7 +98,7 @@ class review {
             $addwhere = ' AND id != :notpostid ';
             $params['notpostid'] = $afterpostid;
         }
-        $record =  $DB->get_record_sql(
+        $record = $DB->get_record_sql(
             'SELECT id as postid, discussion as discussionid FROM {moodleoverflow_posts} ' .
             "WHERE reviewed = 0 $addwhere " .
             "ORDER BY $orderby discussion, id " .
