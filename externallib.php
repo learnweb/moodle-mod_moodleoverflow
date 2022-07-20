@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\review;
+
 defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->libdir/externallib.php");
@@ -176,23 +178,34 @@ class mod_moodleoverflow_external extends external_api {
         $postid = $params['postid'];
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
-        $moodleoverflow = $DB->get_record_sql(
-            'SELECT m.* FROM {moodleoverflow} m ' .
-            'JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = m.id ' .
-            'WHERE d.id = :discussionid',
-            ['discussionid' => $post->discussion], MUST_EXIST
-        );
+        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion], '*', MUST_EXIST);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow], '*', MUST_EXIST);
+
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $context = context_module::instance($cm->id);
 
         require_capability('mod/moodleoverflow:reviewpost', $context);
+
+        if ($post->reviewed) {
+            throw new coding_exception('post was already approved!');
+        }
+
+        if (!review::is_post_in_review_period($post)) {
+            throw new coding_exception('post is not yet in review period!');
+        }
 
         $post->reviewed = 1;
         $post->timereviewed = time();
 
         $DB->update_record('moodleoverflow_posts', $post);
 
-        return \mod_moodleoverflow\review::get_first_review_post($post->id);
+        if ($post->modified > $discussion->timemodified) {
+            $discussion->timemodified = $post->modified;
+            $discussion->usermodified = $post->userid;
+            $DB->update_record('moodleoverflow_discussions', $discussion);
+        }
+
+        return review::get_first_review_post($post->id);
     }
 
     /**
@@ -239,8 +252,16 @@ class mod_moodleoverflow_external extends external_api {
 
         require_capability('mod/moodleoverflow:reviewpost', $context);
 
+        if ($post->reviewed) {
+            throw new coding_exception('post was already approved!');
+        }
+
+        if (!review::is_post_in_review_period($post)) {
+            throw new coding_exception('post is not yet in review period!');
+        }
+
         // Has to be done before deleting the post.
-        $url = \mod_moodleoverflow\review::get_first_review_post($post->id);
+        $url = review::get_first_review_post($post->id);
 
         moodleoverflow_delete_post($post, true, $cm, $moodleoverflow);
 

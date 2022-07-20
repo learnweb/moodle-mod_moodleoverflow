@@ -25,6 +25,8 @@
 // TODO refactor this. For more readability, and to avoid security issues.
 
 // Include config and locallib.
+use mod_moodleoverflow\review;
+
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
 require_once(dirname(__FILE__) . '/locallib.php');
@@ -298,11 +300,14 @@ if (!empty($moodleoverflow)) {
     $PAGE->set_cm($cm, $course, $moodleoverflow);
 
     // Check if the post can be edited.
-    $intime = ((time() - $post->created) > get_config('moodleoverflow', 'maxeditingtime'));
-    if ($intime AND !has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
+    $beyondtime = ((time() - $post->created) > get_config('moodleoverflow', 'maxeditingtime'));
+    $alreadyreviewed = review::should_post_be_reviewed($post, $moodleoverflow) && $post->reviewed;
+    if (($beyondtime || $alreadyreviewed) AND !has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
         throw new moodle_exception('maxtimehaspassed', 'moodleoverflow', '',
             format_time(get_config('moodleoverflow', 'maxeditingtime')));
     }
+
+
 
     // If the current user is not the one who posted this post.
     if ($post->userid <> $USER->id) {
@@ -603,7 +608,7 @@ if ($fromform = $mformpost->get_data()) {
         $replypost = has_capability('mod/moodleoverflow:replypost', $modulecontext);
         $startdiscussion = has_capability('mod/moodleoverflow:startdiscussion', $modulecontext);
         $ownpost = ($realpost->userid == $USER->id);
-        if (!((($ownpost AND $replypost OR $startdiscussion)) OR $editanypost)) {
+        if (!(($ownpost AND ($replypost OR $startdiscussion)) OR $editanypost)) {
             throw new moodle_exception('cannotupdatepost', 'moodleoverflow');
         }
 

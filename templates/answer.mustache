@@ -47,7 +47,14 @@
         {{/showvotes}}
         {{#needsreview}}
             <div class="p-2 onlyifnotreviewed">
-                {{#pix}}i/pending-big, mod_moodleoverflow, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
+                {{#pix}}i/pending-big, mod_moodleoverflow,
+                    {{#withinreviewperiod}}
+                        {{#str}}pending_review, mod_moodleoverflow{{/str}}
+                    {{/withinreviewperiod}}
+                    {{^withinreviewperiod}}
+                        {{#str}}pending_review_but_cannot_now, mod_moodleoverflow, {{reviewdelay}} {{/str}}
+                    {{/withinreviewperiod}}
+                {{/pix}}
             </div>
         {{/needsreview}}
         <div class="answercell">

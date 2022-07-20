@@ -114,5 +114,29 @@ class review {
         }
     }
 
+    /**
+     * Return if the post does need/needed a review with the current moodleoverflow settings.
+     * @param object $post
+     * @param object $moodleoverflow
+     * @return bool
+     */
+    public static function should_post_be_reviewed($post, $moodleoverflow): bool {
+        $reviewlevel = self::get_review_level($moodleoverflow);
+        if ($post->parent) {
+            return $reviewlevel == self::EVERYTHING;
+        } else {
+            return $reviewlevel >= self::QUESTIONS;
+        }
+    }
+
+    /**
+     * Returns whether a post is reviewable depending on its review state and review period.
+     * @param object $post
+     * @return bool
+     */
+    public static function is_post_in_review_period($post): bool {
+        return time() - $post->created > get_config('moodleoverflow', 'reviewpossibleaftertime');
+    }
+
 
 }

@@ -92,7 +92,7 @@ $string['maxattachments']            = 'Maximum number of attachments';
 $string['maxattachments_help']       = 'This setting specifies the maximum number of files that can be attached to a forum post.';
 $string['configmaxattachments']      = 'Default maximum number of attachments allowed per post.';
 $string['maxeditingtime']            = 'Maximum amount of time during which a post can be edited by its owner (sec)';
-$string['configmaxeditingtime']      = 'Default maximum seconds are 3600 (= one hour).';
+$string['configmaxeditingtime']      = 'Default maximum seconds are 3600 (= one hour). Regarding editing posts, please also consider the <a href="#admin-reviewpossibleaftertime">"Review possible after" setting</a> for moderated forums.';
 $string['configoldpostdays']         = 'Number of days old any post is considered read.';
 $string['oldpostdays']               = 'Read after days';
 $string['trackingoff']               = 'Off';
@@ -425,7 +425,7 @@ $string['review_help'] = 'Select what has to be approved by a teacher before bei
 $string['nothing'] = 'Nothing';
 $string['questions'] = 'Questions';
 $string['questions_and_posts'] = 'Questions and answers';
-$string['allowreview'] = 'Allow reviews';
+$string['allowreview'] = 'Allow moderated forums';
 $string['allowreview_desc'] = 'Allow teachers to enable that all posts (or only all questions) have to be reviewed by them in order to be published.';
 $string['amount_waiting_for_review'] = '{$a} post(s) need to be reviewed!';
 $string['pending_review'] = 'Pending review';
@@ -436,6 +436,9 @@ $string['there_are_no_posts_needing_review'] = 'There are no more posts needing 
 $string['give_a_reason'] = 'Give a reason (optional)';
 $string['approve'] = 'Approve';
 $string['reject'] = 'Reject';
+$string['reviewpossibleaftertime'] = 'Review possible after (secs)';
+$string['reviewpossibleaftertime_desc'] = 'A teacher can only reject or approve a post at least this amount of time (in seconds) after the creation of the post. After a teacher has approved a post, the post cannot be edited by it\'s author anymore, even if still within the maxeditingtime duration.';
+$string['pending_review_but_cannot_now'] = 'Pending review, but can only be approved at least {$a} after the creation of this post to allow the author a bit of time to edit it.';
 
 $string['rejected_email_subject'] = 'One of your posts in {$a->course} {$a->activity} has been rejected.';
 $string['rejected_email_content'] = 'This post has been rejected in {$a->course} {$a->activity}';

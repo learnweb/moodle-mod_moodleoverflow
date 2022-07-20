@@ -1191,8 +1191,9 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Calculate the age of the post.
     $age = time() - $post->created;
 
-    // Make a link to edit your own post within the given time.
-    if (($ownpost AND ($age < get_config('moodleoverflow', 'maxeditingtime')))
+    // Make a link to edit your own post within the given time and not already reviewed.
+    if (($ownpost AND ($age < get_config('moodleoverflow', 'maxeditingtime')) &&
+                    (!review::should_post_be_reviewed($post, $moodleoverflow) || !$post->reviewed))
         OR $cm->cache->caps['mod/moodleoverflow:editanypost']
     ) {
         $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
@@ -1363,8 +1364,12 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $options->trusted = false;
     $options->context = $modulecontext;
 
+    $reviewdelay = get_config('moodleoverflow', 'reviewpossibleaftertime');
+    $mustachedata->reviewdelay = format_time($reviewdelay);
     $mustachedata->needsreview = !$post->reviewed;
-    $mustachedata->canreview = $cm->cache->caps['mod/moodleoverflow:reviewpost'];
+    $reviewable = time() - $post->created > $reviewdelay;
+    $mustachedata->canreview = $cm->cache->caps['mod/moodleoverflow:reviewpost'] && $reviewable;
+    $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
     $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
@@ -1644,9 +1649,9 @@ function moodleoverflow_update_post($newpost) {
         }
     }
 
+    $post->modified = time();
     if ($newpost->reviewed ?? $post->reviewed) {
         // Update the date and the user of the post and the discussion.
-        $post->modified = time();
         $discussion->timemodified = $post->modified;
         $discussion->usermodified = $post->userid;
     }
