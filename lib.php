@@ -1013,7 +1013,8 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
     $sql = "SELECT p.*, d.course, d.moodleoverflow
             FROM {moodleoverflow_posts} p
             JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-            WHERE p.mailed = :mailed AND p.created >= :ptimestart AND p.created < :ptimeend AND p.reviewed = 1
+            WHERE p.mailed = :mailed AND p.reviewed = 1
+            AND COALESCE(p.timereview, p.created) >= :ptimestart AND COALESCE(p.timereview, p.created) < :ptimeend
             ORDER BY p.modified ASC";
 
     return $DB->get_records_sql($sql, $params);
@@ -1039,12 +1040,10 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
     $params['endtime']       = $endtime;
     $params['mailedpending'] = MOODLEOVERFLOW_MAILED_PENDING;
 
-    // TODO do something about this. Add field timereviewed to post? / Make reviewed contain either null or timestamp?
-
     // Define the sql query.
     $sql = "UPDATE {moodleoverflow_posts}
             SET mailed = :mailedsuccess
-            WHERE (created < :endtime) AND mailed = :mailedpending";
+            WHERE (created < :endtime) AND mailed = :mailedpending AND reviewed = 1";
 
     return $DB->execute($sql, $params);
 
@@ -1096,7 +1095,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
  * Check if the user can create attachments in moodleoverflow.
  *
  * @param  stdClass $moodleoverflow moodleoverflow object
- * @param  stdClass $context        context object
+ * @param  context_module $context        context object
  *
  * @return bool true if the user can create attachments, false otherwise
  * @since  Moodle 3.3

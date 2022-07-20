@@ -163,6 +163,12 @@ class mod_moodleoverflow_external extends external_api {
         return new external_value(PARAM_TEXT, 'the url of the next post to review');
     }
 
+    /**
+     * Approve a post.
+     *
+     * @param int $postid ID of post to approve.
+     * @return string|null Url of next post to review.
+     */
     public static function review_approve_post($postid) {
         global $DB;
 
@@ -182,6 +188,7 @@ class mod_moodleoverflow_external extends external_api {
         require_capability('mod/moodleoverflow:reviewpost', $context);
 
         $post->reviewed = 1;
+        $post->timereviewed = time();
 
         $DB->update_record('moodleoverflow_posts', $post);
 
@@ -207,10 +214,17 @@ class mod_moodleoverflow_external extends external_api {
         return new external_value(PARAM_TEXT, 'the url of the next post to review');
     }
 
-    public static function review_reject_post($postid) {
+    /**
+     * Rejects a post.
+     *
+     * @param int $postid ID of post to reject.
+     * @param string|null $reason The reason for rejection.
+     * @return string|null Url of next post to review.
+     */
+    public static function review_reject_post($postid, $reason = null) {
         global $DB;
 
-        $params = self::validate_parameters(self::review_reject_post_parameters(), ['postid' => $postid]);
+        $params = self::validate_parameters(self::review_reject_post_parameters(), ['postid' => $postid, 'reason' => $reason]);
         $postid = $params['postid'];
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);

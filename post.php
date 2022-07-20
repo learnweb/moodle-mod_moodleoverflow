@@ -659,7 +659,7 @@ if ($fromform = $mformpost->get_data()) {
         $addpost->moodleoverflow = $moodleoverflow->id;
 
         // Create the new post.
-        if ($fromform->id = moodleoverflow_add_new_post($addpost)) {
+        if ($fromform->id = moodleoverflow_add_new_post($addpost, $modulecontext)) {
 
             // Subscribe to this thread.
             $discussion = new \stdClass();

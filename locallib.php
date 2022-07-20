@@ -696,7 +696,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
  * Creates a new moodleoverflow discussion.
  *
  * @param stdClass $discussion The discussion object
- * @param object   $modulecontext
+ * @param context_module $modulecontext
  * @param int      $userid     The user ID
  *
  * @return bool|int The id of the created discussion
@@ -737,7 +737,9 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     $post->moodleoverflow = $moodleoverflow->id;
     $post->course = $moodleoverflow->course;
 
-    if (review::get_review_level($moodleoverflow) > review::QUESTIONS) {
+    // Set to not reviewed, if questions should be reviewed, and user is not a reviewer themselves.
+    if (review::get_review_level($moodleoverflow) > review::QUESTIONS &&
+            !has_capability('mod/moodleoverflow:reviewpost', $modulecontext, $userid)) {
         $post->reviewed = 0;
     }
 
@@ -1562,10 +1564,11 @@ function moodleoverflow_add_attachment($post, $forum, $cm) {
  * Adds a new post in an existing discussion.
  *
  * @param object $post The post object
+ * @param context_module $modulecontext
  *
  * @return bool|int The Id of the post if operation was successful
  */
-function moodleoverflow_add_new_post($post) {
+function moodleoverflow_add_new_post($post, $modulecontext) {
     global $USER, $DB;
 
     // We do not check if these variables exist because this function
@@ -1581,8 +1584,12 @@ function moodleoverflow_add_new_post($post) {
         $post->totalscore = 0;
     }
 
-    if (review::get_review_level($moodleoverflow) == review::EVERYTHING) {
+    // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
+    if (review::get_review_level($moodleoverflow) == review::EVERYTHING &&
+            !has_capability('mod/moodleoverflow:reviewpost', $modulecontext)) {
         $post->reviewed = 0;
+    } else {
+        $post->reviewed = 1;
     }
 
     // Add the post to the database.
@@ -1590,9 +1597,11 @@ function moodleoverflow_add_new_post($post) {
     $DB->set_field('moodleoverflow_posts', 'message', $post->message, array('id' => $post->id)); // ??
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
-    // Update the discussion.
-    $DB->set_field('moodleoverflow_discussions', 'timemodified', $post->modified, array('id' => $post->discussion));
-    $DB->set_field('moodleoverflow_discussions', 'usermodified', $post->userid, array('id' => $post->discussion));
+    if ($post->reviewed) {
+        // Update the discussion.
+        $DB->set_field('moodleoverflow_discussions', 'timemodified', $post->modified, array('id' => $post->discussion));
+        $DB->set_field('moodleoverflow_discussions', 'usermodified', $post->userid, array('id' => $post->discussion));
+    }
 
     // Mark the created post as read if the user is tracking the discussion.
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
@@ -1635,7 +1644,7 @@ function moodleoverflow_update_post($newpost) {
         }
     }
 
-    if (isset($newpost->reviewed) ? $newpost->reviewed : $post->reviewed) {
+    if ($newpost->reviewed ?? $post->reviewed) {
         // Update the date and the user of the post and the discussion.
         $post->modified = time();
         $discussion->timemodified = $post->modified;
