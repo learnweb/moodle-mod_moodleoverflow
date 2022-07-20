@@ -470,18 +470,29 @@ class readtracking {
      *
      * @return int|mixed
      */
-    public static function moodleoverflow_count_unread_posts_moodleoverflow($cm, $course) {
+    public static function moodleoverflow_count_unread_posts_moodleoverflow($cm) {
         global $DB, $USER;
 
-        // Get the moodleoverflow ids.
-        $moodleoverflowid = $cm->instance;
+        $moodleoverflow = $DB->get_record_sql("SELECT m.*, tm.id as hasdisabledtracking " .
+                "FROM {moodleoverflow} m " .
+                "LEFT JOIN {moodleoverflow_tracking} tm ON m.id = tm.moodleoverflowid AND tm.userid = :userid " .
+                "WHERE m.id = :moodleoverflowid", ['userid' => $USER->id, 'moodleoverflowid' => $cm->instance]);
 
+        // Return if tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
+        if ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OFF || (
+                        ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL || (
+                                        $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED &&
+                                        !get_config('moodleoverflow', 'allowforcedreadtracking')
+                                )
+                        ) && $moodleoverflow->hasdisabledtracking)) {
+            return 0;
+        }
         // Get the current timestamp and the cutoffdate.
-        $now        = round(time(), -2);
+        $now = round(time(), -2);
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Define a sql-query.
-        $params = array($USER->id, $moodleoverflowid, $cutoffdate);
+        $params = array($USER->id, $cm->instance, $cutoffdate);
         $sql    = "SELECT COUNT(p.id)
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id

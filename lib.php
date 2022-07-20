@@ -1078,8 +1078,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
 
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows();
     if ($cantrack) {
-        $unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm,
-            $cm->get_course());
+        $unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm);
         if ($unread) {
             $out = '<span class="unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {
