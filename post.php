@@ -34,6 +34,16 @@ $edit = optional_param('edit', 0, PARAM_INT);
 $delete = optional_param('delete', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
+$count = 0;
+$count += $moodleoverflow ? 1 : 0;
+$count += $reply ? 1 : 0;
+$count += $edit ? 1 : 0;
+$count += $delete ? 1 : 0;
+
+if ($count !== 1) {
+    throw new coding_exception('Exactly one parameter should be specified!');
+}
+
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/post.php', array(
     'moodleoverflow' => $moodleoverflow,
