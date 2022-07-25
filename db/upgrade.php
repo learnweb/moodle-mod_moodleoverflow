@@ -222,6 +222,10 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
+        $field = new xmldb_field('mailed', XMLDB_TYPE_INTEGER, '2', null, null, null, '0', 'attachment');
+        // Launch change of precision for field mailed.
+        $dbman->change_field_precision($table, $field);
+
         // Moodleoverflow savepoint reached.
         upgrade_mod_savepoint(true, 2022072000, 'moodleoverflow');
     }

@@ -432,7 +432,7 @@ $string['pending_review'] = 'Pending review';
 $string['post_was_approved'] = 'The post was approved.';
 $string['post_was_rejected'] = 'The post was rejected.';
 $string['jump_to_next_post_needing_review'] = 'Jump to next post needing to be reviewed.';
-$string['there_are_no_posts_needing_review'] = 'There are no more posts needing to be reviewed.';
+$string['there_are_no_posts_needing_review'] = 'There are no more posts in this forum that need to be reviewed.';
 $string['give_a_reason'] = 'Give a reason (optional)';
 $string['approve'] = 'Approve';
 $string['reject'] = 'Reject';
@@ -440,5 +440,8 @@ $string['reviewpossibleaftertime'] = 'Review possible after (secs)';
 $string['reviewpossibleaftertime_desc'] = 'A teacher can only reject or approve a post at least this amount of time (in seconds) after the creation of the post. After a teacher has approved a post, the post cannot be edited by it\'s author anymore, even if still within the maxeditingtime duration.';
 $string['pending_review_but_cannot_now'] = 'Pending review, but can only be approved at least {$a} after the creation of this post to allow the author a bit of time to edit it.';
 
-$string['rejected_email_subject'] = 'One of your posts in {$a->course} {$a->activity} has been rejected.';
-$string['rejected_email_content'] = 'This post has been rejected in {$a->course} {$a->activity}';
+$string['review_needed'] = 'Review needed!';
+
+$string['email_review_needed_subject'] = 'Review needed in {$a->coursename}: {$a->subject}';
+
+$string['email_rejected_subject'] = '{$a->coursename}: One of your posts has been rejected.';

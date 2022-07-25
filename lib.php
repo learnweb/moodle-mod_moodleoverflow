@@ -48,6 +48,7 @@ define('MOODLEOVERFLOW_DISALLOWSUBSCRIBE', 3);
 define('MOODLEOVERFLOW_MAILED_PENDING', 0);
 define('MOODLEOVERFLOW_MAILED_SUCCESS', 1);
 define('MOODLEOVERFLOW_MAILED_ERROR', 2);
+define('MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS', 3);
 
 // Constants for the post rating.
 define('MOODLEOVERFLOW_PREFERENCE_STARTER', 0);
@@ -1005,16 +1006,18 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
 
     // Set params for the sql query.
     $params               = array();
-    $params['mailed']     = MOODLEOVERFLOW_MAILED_PENDING;
     $params['ptimestart'] = $starttime;
     $params['ptimeend']   = $endtime;
+
+    $pendingmail = MOODLEOVERFLOW_MAILED_PENDING;
+    $reviewsent = MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
 
     // Retrieve the records.
     $sql = "SELECT p.*, d.course, d.moodleoverflow
             FROM {moodleoverflow_posts} p
             JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-            WHERE p.mailed = :mailed AND p.reviewed = 1
-            AND COALESCE(p.timereview, p.created) >= :ptimestart AND COALESCE(p.timereview, p.created) < :ptimeend
+            WHERE p.mailed IN ($pendingmail, $reviewsent) AND p.reviewed = 1
+            AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
             ORDER BY p.modified ASC";
 
     return $DB->get_records_sql($sql, $params);
@@ -1036,6 +1039,7 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
     // Define variables for the sql query.
     $params                  = array();
     $params['mailedsuccess'] = MOODLEOVERFLOW_MAILED_SUCCESS;
+    $params['mailedreviewsent'] = MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
     $params['now']           = $now;
     $params['endtime']       = $endtime;
     $params['mailedpending'] = MOODLEOVERFLOW_MAILED_PENDING;
@@ -1043,7 +1047,7 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
     // Define the sql query.
     $sql = "UPDATE {moodleoverflow_posts}
             SET mailed = :mailedsuccess
-            WHERE (created < :endtime) AND mailed = :mailedpending AND reviewed = 1";
+            WHERE (created < :endtime) AND mailed IN (:mailedpending, :mailedreviewsent) AND reviewed = 1";
 
     return $DB->execute($sql, $params);
 

@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template mod_moodleoverflow/email_html
+    @template mod_moodleoverflow/email_reject_text
 
     Template which defines a moodleoverflow post for sending in a single-post HTML email.
 
@@ -77,12 +77,15 @@
         "unsubscribediscussionlink": "https://example.com/mod/discussion/subscribe.php?id=2&d=2"
     }
 }}
-<div class="navbar">
-    <a target="_blank" href="{{{ courselink }}}">{{{ coursename }}}</a>
-    &raquo;
-    <a target="_blank" href="{{{ moodleoverflowviewlink }}}">{{{ moodleoverflowname }}}</a>
-    {{# showdiscussionname }}
-        &raquo;
-        <a target="_blank" href="{{{ discussionlink }}}">{{{ discussionname }}}</a>
-    {{/ showdiscussionname }}
-</div>
+{{{ coursename }}} -> {{{ moodleoverflowname }}}{{# showdiscussionname }} -> {{{ discussionname }}} {{/ showdiscussionname }}
+
+{{# str }}review_needed, mod_moodleoverflow {{/str}}: {{ permalink }}
+
+{{{ subject }}}
+{{# str }} bynameondate, mod_moodleoverflow, {
+"name": {{# quote }}{{{ authorfullname }}}{{/ quote }},
+"date": {{# quote}}{{ postdate }}{{/ quote }}
+} {{/ str }}
+---------------------------------------------------------------------
+{{{ message }}}
+---------------------------------------------------------------------
