@@ -738,7 +738,7 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     $post->course = $moodleoverflow->course;
 
     // Set to not reviewed, if questions should be reviewed, and user is not a reviewer themselves.
-    if (review::get_review_level($moodleoverflow) > review::QUESTIONS &&
+    if (review::get_review_level($moodleoverflow) >= review::QUESTIONS &&
             !has_capability('mod/moodleoverflow:reviewpost', $modulecontext, $userid)) {
         $post->reviewed = 0;
     }
@@ -1573,7 +1573,7 @@ function moodleoverflow_add_attachment($post, $forum, $cm) {
  *
  * @return bool|int The Id of the post if operation was successful
  */
-function moodleoverflow_add_new_post($post, $modulecontext) {
+function moodleoverflow_add_new_post($post) {
     global $USER, $DB;
 
     // We do not check if these variables exist because this function
@@ -1591,7 +1591,7 @@ function moodleoverflow_add_new_post($post, $modulecontext) {
 
     // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
     if (review::get_review_level($moodleoverflow) == review::EVERYTHING &&
-            !has_capability('mod/moodleoverflow:reviewpost', $modulecontext)) {
+            !has_capability('mod/moodleoverflow:reviewpost', context_module::instance($cm->id))) {
         $post->reviewed = 0;
     } else {
         $post->reviewed = 1;

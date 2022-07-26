@@ -27,6 +27,7 @@ namespace mod_moodleoverflow\output\email;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../../renderer.php');
+require_once($CFG->libdir . '/filelib.php');
 
 /**
  * Moodleoverflow post renderable.
@@ -55,9 +56,6 @@ class renderer extends \mod_moodleoverflow_renderer {
      * @return string
      */
     public function format_message_text($cm, $post) {
-        global $CFG;
-        include_once($CFG->libdir . '/filelib.php');
-
         // Convert the message.
         $message = file_rewrite_pluginfile_urls(
             $post->message, 'pluginfile.php',

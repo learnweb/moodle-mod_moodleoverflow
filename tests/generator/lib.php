@@ -193,7 +193,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      *
      * @return stdClass the post object
      */
-    public function create_post($record = null) {
+    public function create_post($record = null, $straighttodb = true) {
         global $DB;
         // Increment the forum post count.
         $this->postcount++;
@@ -230,8 +230,11 @@ class mod_moodleoverflow_generator extends testing_module_generator {
 
         $record = (object) $record;
         // Add the post.
-        $record->id = $DB->insert_record('moodleoverflow_posts', $record);
-
+        if ($straighttodb) {
+            $record->id = $DB->insert_record('moodleoverflow_posts', $record);
+        } else {
+            $record->id = moodleoverflow_add_new_post($record, );
+        }
         // Update the last post.
         moodleoverflow_discussion_update_last_post($record->discussion);
 
@@ -294,17 +297,20 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      *
      * @param stdClass $forum   The moodleoverflow to post in
      * @param stdClass $author  The author to post as
+     * @param stdClass|null $record Fields for the discussion
      *
      * @return array The discussion and the post record.
      */
-    public function post_to_forum($forum, $author) {
+    public function post_to_forum($forum, $author, $record = null) {
         global $DB;
         // Create a discussion in the forum, and then add a post to that discussion.
-        $record = new stdClass();
+        if (!$record) {
+            $record = new stdClass();
+        }
         $record->course = $forum->course;
         $record->userid = $author->id;
         $record->moodleoverflow = $forum->id;
-        $discussion = $this->create_discussion($record, $forum);
+        $discussion = $this->create_discussion($record, $forum, $record);
         // Retrieve the post which was created by create_discussion.
         $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
 
@@ -373,7 +379,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             'parent'     => $parent->id,
             'userid'     => $author->id
         ];
-        $post = $this->create_post($record);
+        $post = $this->create_post($record, false);
 
         return $post;
     }

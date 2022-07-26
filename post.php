@@ -459,7 +459,6 @@ if (!empty($moodleoverflow)) {
     // Last posibility: the action is not known.
 
     throw new moodle_exception('unknownaction');
-    die();
 }
 
 // Second step: The user must be logged on properly. Must be enrolled to the course as well.
@@ -664,7 +663,7 @@ if ($fromform = $mformpost->get_data()) {
         $addpost->moodleoverflow = $moodleoverflow->id;
 
         // Create the new post.
-        if ($fromform->id = moodleoverflow_add_new_post($addpost, $modulecontext)) {
+        if ($fromform->id = moodleoverflow_add_new_post($addpost)) {
 
             // Subscribe to this thread.
             $discussion = new \stdClass();

@@ -71,11 +71,9 @@ export function init() {
             const rejectMessage = post.querySelector('textarea.reject-reason').value.toString().trim();
             reviewRow.innerHTML = '.';
             const args = {
-                postid: postID
+                postid: postID,
+                reason: rejectMessage ? rejectMessage : null
             };
-            if (rejectMessage) {
-                args.reason = rejectMessage;
-            }
             const nextPostURL = await Ajax.call([{
                 methodname: 'mod_moodleoverflow_review_reject_post',
                 args: args

@@ -216,7 +216,7 @@ class mod_moodleoverflow_external extends external_api {
     public static function review_reject_post_parameters() {
         return new external_function_parameters([
             'postid' => new external_value(PARAM_INT, 'id of post'),
-            'reason' => new external_value(PARAM_RAW, 'reason of rejection', VALUE_OPTIONAL)
+            'reason' => new external_value(PARAM_RAW, 'reason of rejection')
         ]);
     }
 
@@ -280,8 +280,8 @@ class mod_moodleoverflow_external extends external_api {
         $textcontext = $maildata->export_for_template($renderertext, true);
         $htmlcontext = $maildata->export_for_template($rendererhtml, false);
 
-        if ($reason) {
-            $htmlcontext['reason'] = format_text_email($reason, FORMAT_PLAIN);
+        if ($params['reason'] ?? null) {
+            $htmlcontext['reason'] = format_text_email($params['reason'], FORMAT_PLAIN);
             $textcontext['reason'] = $htmlcontext['reason'];
         }
 
