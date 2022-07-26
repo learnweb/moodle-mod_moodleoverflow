@@ -443,5 +443,7 @@ $string['pending_review_but_cannot_now'] = 'Pending review, but can only be appr
 $string['review_needed'] = 'Review needed!';
 
 $string['email_review_needed_subject'] = 'Review needed in {$a->coursename}: {$a->subject}';
-
 $string['email_rejected_subject'] = '{$a->coursename}: One of your posts has been rejected.';
+$string['your_post_was_rejected'] = 'Your post was rejected.';
+$string['your_post_was_rejected_with_reason'] = 'Your post was rejected with the following reason:';
+$string['original_post'] = 'Original post';

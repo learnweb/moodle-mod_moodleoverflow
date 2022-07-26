@@ -55,6 +55,8 @@ class renderer extends \mod_moodleoverflow_renderer {
      * @return string
      */
     public function format_message_text($cm, $post) {
+        global $CFG;
+        include_once($CFG->libdir . '/filelib.php');
 
         // Convert the message.
         $message = file_rewrite_pluginfile_urls(

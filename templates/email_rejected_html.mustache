@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template mod_moodleoverflow/email_review_needed_html
+    @template mod_moodleoverflow/email_rejected_html
 
     Template which defines a moodleoverflow post for sending in a single-post HTML email.
 
@@ -87,7 +87,19 @@
     {{/ showdiscussionname }}
 </div>
 
-<a href="{{{permalink}}}"><h3>{{#str}}review_needed, mod_moodleoverflow{{/str}}</h3></a>
+{{^reason}}
+    {{#str}} your_post_was_rejected, mod_moodleoverflow {{/str}}
+{{/reason}}
+{{#reason}}
+    {{#str}} your_post_was_rejected_with_reason, mod_moodleoverflow {{/str}}<br>
+    <i>{{reason}}</i>
+{{/reason}}
+
+<br>
+<br>
+{{#str}}original_post, mod_moodleoverflow{{/str}}
+<hr/>
+<br>
 
 <table border="0" cellpadding="3" cellspacing="0" class="moodleoverflowpost">
     <tr class="header">
@@ -119,11 +131,6 @@
         </td>
         <td class="content">
             {{{ message }}}
-            <div class="link">
-                <a target="_blank" href="{{{ permalink }}}">
-                    {{# str }} review, mod_moodleoverflow {{/ str }}
-                </a>
-            </div>
         </td>
     </tr>
 </table>

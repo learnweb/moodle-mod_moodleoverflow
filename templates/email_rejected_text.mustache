@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template mod_moodleoverflow/email_review_needed_html
+    @template mod_moodleoverflow/email_rejected_text
 
     Template which defines a moodleoverflow post for sending in a single-post HTML email.
 
@@ -77,53 +77,25 @@
         "unsubscribediscussionlink": "https://example.com/mod/discussion/subscribe.php?id=2&d=2"
     }
 }}
-<div class="navbar">
-    <a target="_blank" href="{{{ courselink }}}">{{{ coursename }}}</a>
-    &raquo;
-    <a target="_blank" href="{{{ moodleoverflowviewlink }}}">{{{ moodleoverflowname }}}</a>
-    {{# showdiscussionname }}
-        &raquo;
-        <a target="_blank" href="{{{ discussionlink }}}">{{{ discussionname }}}</a>
-    {{/ showdiscussionname }}
-</div>
+{{{ coursename }}} -> {{{ moodleoverflowname }}}{{# showdiscussionname }} -> {{{ discussionname }}} {{/ showdiscussionname }}
 
-<a href="{{{permalink}}}"><h3>{{#str}}review_needed, mod_moodleoverflow{{/str}}</h3></a>
+{{^reason}}
+    {{#str}} your_post_was_rejected, mod_moodleoverflow {{/str}}
+{{/reason}}
+{{#reason}}
+    {{#str}} your_post_was_rejected_with_reason, mod_moodleoverflow {{/str}}: {{reason}}
+{{/reason}}
 
-<table border="0" cellpadding="3" cellspacing="0" class="moodleoverflowpost">
-    <tr class="header">
-        <td width="35" valign="top" class="picture left">
-            {{{ authorpicture }}}
-        </td>
-        <td class="topic {{# firstpost }}starter{{/ firstpost }}">
-            <div class="subject">
-                {{{ subject }}}
-            </div>
-            <div class="author">
-                {{# str }} bynameondatenorating, moodleoverflow, {
-                    "name":
-                    {{# authorlink }}{{# quote }} <a target='_blank' href='{{{ authorlink }}}'>{{ authorfullname }}</a>{{/ quote }}{{/authorlink}}
-                    {{^ authorlink }}{{# quote }} {{ authorfullname }} {{/ quote }}{{/ authorlink }} ,
-                    "date": {{# quote }}{{ postdate }}{{/ quote }}
-                    } {{/ str }}
-            </div>
-        </td>
-    </tr>
-    <tr>
-        <td class="left side" valign="top">
-            {{# grouppicture }}
-                {{{ grouppicture }}}
-            {{/ grouppicture }}
-            {{^ grouppicture }}
-                &nbsp;
-            {{/ grouppicture }}
-        </td>
-        <td class="content">
-            {{{ message }}}
-            <div class="link">
-                <a target="_blank" href="{{{ permalink }}}">
-                    {{# str }} review, mod_moodleoverflow {{/ str }}
-                </a>
-            </div>
-        </td>
-    </tr>
-</table>
+
+{{#str}}original_post, mod_moodleoverflow{{/str}}
+=====================================================================
+
+
+{{{ subject }}}
+{{# str }} bynameondate, mod_moodleoverflow, {
+"name": {{# quote }}{{{ authorfullname }}}{{/ quote }},
+"date": {{# quote}}{{ postdate }}{{/ quote }}
+} {{/ str }}
+---------------------------------------------------------------------
+{{{ message }}}
+---------------------------------------------------------------------
