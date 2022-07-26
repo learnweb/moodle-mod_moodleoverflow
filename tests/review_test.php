@@ -125,8 +125,8 @@ class review_test extends \advanced_testcase {
 
         $this->messagesink->clear();
 
-        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student);
-        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student);
+        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student, false);
+        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student, false);
 
         $this->run_send_mails();
         $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
@@ -200,8 +200,8 @@ class review_test extends \advanced_testcase {
 
         $this->messagesink->clear();
 
-        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student);
-        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student);
+        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student, false);
+        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student, false);
 
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
             $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer1->id]));
@@ -254,8 +254,8 @@ class review_test extends \advanced_testcase {
         $this->mailsink->clear();
         $this->messagesink->clear();
 
-        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student);
-        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student);
+        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student, false);
+        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student, false);
 
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
             $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer1->id]));

@@ -233,7 +233,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         if ($straighttodb) {
             $record->id = $DB->insert_record('moodleoverflow_posts', $record);
         } else {
-            $record->id = moodleoverflow_add_new_post($record, );
+            $record->id = moodleoverflow_add_new_post($record);
         }
         // Update the last post.
         moodleoverflow_discussion_update_last_post($record->discussion);
@@ -369,18 +369,17 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      *
      * @param stdClass $parent  The parent post
      * @param stdClass $author  The author to post as
+     * @param bool $straighttodb
      *
      * @return stdClass The new moodleoverflow post
      */
-    public function reply_to_post($parent, $author) {
+    public function reply_to_post($parent, $author, $straighttodb = true) {
         // Add a post to the discussion.
         $record = (object) [
             'discussion' => $parent->discussion,
             'parent'     => $parent->id,
             'userid'     => $author->id
         ];
-        $post = $this->create_post($record, false);
-
-        return $post;
+        return $this->create_post($record, $straighttodb);
     }
 }
