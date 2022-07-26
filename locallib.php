@@ -1368,7 +1368,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->reviewdelay = format_time($reviewdelay);
     $mustachedata->needsreview = !$post->reviewed;
     $reviewable = time() - $post->created > $reviewdelay;
-    $mustachedata->canreview = $cm->cache->caps['mod/moodleoverflow:reviewpost'] && $reviewable;
+    $mustachedata->canreview = $cm->cache->caps['mod/moodleoverflow:reviewpost'];
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.

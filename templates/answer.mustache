@@ -135,7 +135,12 @@
     {{# canreview }}
         {{# needsreview }}
             <div class="reviewrow p-2 text-center bg-gray">
-                {{> mod_moodleoverflow/review_buttons }}
+                {{# withinreviewperiod }}
+                    {{> mod_moodleoverflow/review_buttons }}
+                {{/withinreviewperiod}}
+                {{^ withinreviewperiod }}
+                    {{#str}}pending_review_but_cannot_now, mod_moodleoverflow, {{reviewdelay}} {{/str}}
+                {{/withinreviewperiod}}
             </div>
         {{/ needsreview }}
     {{/ canreview }}
