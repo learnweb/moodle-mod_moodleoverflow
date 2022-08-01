@@ -233,8 +233,8 @@
 }
 
 .moodleoverflowpost.unread .row.header,
-span.unread {
-    background-color: #ffd;
+.mod_moodleoverflow-label-unread {
+    background-color: #fff38a;
 }
 
 .moodleoverflowpost.unread .row.header {
@@ -470,4 +470,14 @@ span.unread {
     font-size: 2em;
     width: 32px;
     height: 32px;
+}
+
+.mod_moodleoverflow-label-review,
+.mod_moodleoverflow-label-unread {
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.mod_moodleoverflow-label-review {
+    background-color: #ffd3d3;
 }

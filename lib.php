@@ -1080,18 +1080,29 @@ function moodleoverflow_minimise_user_record(stdClass $user) {
 function moodleoverflow_cm_info_view(cm_info $cm) {
 
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows();
+    $out = "";
+    if (has_capability('mod/moodleoverflow:reviewpost', $cm->context)) {
+        $reviewcount = \mod_moodleoverflow\review::count_outstanding_reviews_in_moodleoverflow($cm->instance);
+        if ($reviewcount) {
+            $out .= '<span class="mod_moodleoverflow-label-review"><a href="' . $cm->url . '">';
+            $out .= get_string('amount_waiting_for_review', 'mod_moodleoverflow', $reviewcount);
+            $out .= '</a></span> ';
+        }
+    }
     if ($cantrack) {
         $unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm);
         if ($unread) {
-            $out = '<span class="unread"> <a href="' . $cm->url . '">';
+            $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {
                 $out .= get_string('unreadpostsone', 'moodleoverflow');
             } else {
                 $out .= get_string('unreadpostsnumber', 'moodleoverflow', $unread);
             }
             $out .= '</a></span>';
-            $cm->set_after_link($out);
         }
+    }
+    if ($out) {
+        $cm->set_after_link($out);
     }
 }
 

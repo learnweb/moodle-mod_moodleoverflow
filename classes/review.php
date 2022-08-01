@@ -68,10 +68,12 @@ class review {
         global $DB;
 
         return $DB->get_record_sql(
-            'SELECT COUNT(*) as count, MIN(id) AS first ' .
+                'SELECT COUNT(*) as count, MIN(id) AS first ' .
                 'FROM {moodleoverflow_posts} ' .
-                'WHERE discussion = :discussionid AND reviewed = 0',
-            ['discussionid' => $discussionid]
+                'WHERE discussion = :discussionid AND reviewed = 0 AND created < :cutofftime', [
+                        'discussionid' => $discussionid,
+                        'cutofftime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime')
+                ]
         );
     }
 
@@ -136,6 +138,25 @@ class review {
      */
     public static function is_post_in_review_period($post): bool {
         return time() - $post->created > get_config('moodleoverflow', 'reviewpossibleaftertime');
+    }
+
+    /**
+     * Count outstanding reviews in the moodleoverflow.
+     *
+     * @param $moodleoverflowid
+     * @return int
+     */
+    public static function count_outstanding_reviews_in_moodleoverflow($moodleoverflowid): int {
+        global $DB;
+        return $DB->count_records_sql(
+                'SELECT COUNT(*) ' .
+                'FROM {moodleoverflow_posts} p ' .
+                'JOIN {moodleoverflow_discussions} d ON d.id = p.discussion ' .
+                'WHERE d.moodleoverflow = :moodleoverflowid AND p.created < :cutofftime AND reviewed = 0', [
+                        'moodleoverflowid' => $moodleoverflowid,
+                        'cutofftime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime')
+                ]
+        );
     }
 
 
