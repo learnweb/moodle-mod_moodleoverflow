@@ -283,7 +283,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             }
         } else {
             // Get his picture, his name and the link to his profile.
-            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course));
+            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course, 'link' => false));
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
             $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;

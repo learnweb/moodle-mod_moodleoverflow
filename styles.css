@@ -96,6 +96,49 @@
     margin-left: 0;
 }
 
+.moodleoverflowdiscussion {
+    padding: 8px;
+    display: block;
+}
+
+.moodleoverflowdiscussion .leftbox {
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.moodleoverflowdiscussion .reply-correction {
+    display: inline-block;
+    transform: translateY(1px);
+}
+
+.moodleoverflowdiscussion .unread-bubble {
+    background: #c30909;
+    padding: 3px 4px 4px 4px;
+    color: white;
+    font-weight: bold;
+    line-height: 1;
+    display: inline-block;
+    border-radius: 12px;
+    transform: translate(-8px, -10px);
+}
+
+.moodleoverflow-icon-no-margin .icon {
+    margin: 0;
+}
+
+.moodleoverflowdiscussion .status .icon {
+    margin: 0;
+}
+
+.moodleoverflowdiscussion .votes .votecount {
+    line-height: 0.75;
+    font-size: 1.25em;
+}
+
+.moodleoverflowdiscussion .subject {
+    font-size: 1.25em;
+}
+
 /*
  * The form to post new messages.
  */
@@ -268,13 +311,15 @@
     flex-shrink: 0;
 }
 
-.moodleoverflowpost .votecell .votes {
+.moodleoverflowpost .votecell .votes,
+.moodleeoverflowdiscussion .votes {
     display: block;
     margin: 0 8px 0 0;
     text-align: center;
 }
 
-.moodleoverflowpost .votecell .votes p {
+.moodleoverflowpost .votecell .votes p,
+.moodleeoverflowdiscussion .votes  p {
     margin-bottom: 0;
     margin-top: 0;
 }
@@ -284,7 +329,8 @@
     margin-top: -10px;
 }
 
-.moodleoverflowpost .votecell .votes .icon {
+.moodleoverflowpost .votecell .votes .icon,
+.moodleoverflowdiscussion .votes .icon {
     color: #0a0;
     height: 24px;
     margin: 0;
@@ -365,7 +411,8 @@
     padding: 0 4px;
 }
 
-.moodleoverflowpost .answercell .post-info .leftbox .user-info {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info,
+.moodleoverflowdiscussion div.user-info {
     color: #848d95;
 }
 
@@ -418,7 +465,8 @@
     flex-grow: 1;
 }
 
-.moodleoverflowpost .questioner {
+.moodleoverflowpost .questioner,
+.moodleoverflowdiscussion .questioner {
     background-color: rgba(80, 168, 255, .1);
 }
 
@@ -466,10 +514,30 @@
     }
 }
 
-.icon.moodleoverflow-icon-big {
+.icon.moodleoverflow-icon-2x,
+.moodleoverflow-icon-1_5x {
     font-size: 2em;
     width: 32px;
     height: 32px;
+}
+
+.icon.moodleoverflow-icon-1_5x,
+.moodleoverflow-icon-1_5x {
+    font-size: 1.5em;
+    width: 24px;
+    height: 24px;
+}
+
+.icon.moodleoverflow-text-orange {
+    color: rgb(234, 133, 22);
+}
+
+.icon.moodleoverflow-text-green {
+    color: rgb(112, 160, 52);
+}
+
+.mod_moodleoverflow-no-wrap {
+    white-space: nowrap;
 }
 
 .mod_moodleoverflow-label-review,
@@ -480,4 +548,8 @@
 
 .mod_moodleoverflow-label-review {
     background-color: #ffd3d3;
+}
+
+.moodleoverflow-gap-small {
+    gap: 8px;
 }

@@ -1050,12 +1050,12 @@ class subscriptions {
 
             // Create the icon.
             $string = get_string('clicktounsubscribe', 'moodleoverflow');
-            $output = $OUTPUT->pix_icon('subscribed', $string, 'mod_moodleoverflow');
+            $output = $OUTPUT->pix_icon('i/subscribed', $string, 'mod_moodleoverflow');
 
             // Return the link.
             $array = array(
                 'title'                 => get_string('clicktounsubscribe', 'moodleoverflow'),
-                'class'                 => 'discussiontoggle iconsmall',
+                'class'                 => 'discussiontoggle text-muted',
                 'data-moodleoverflowid' => $moodleoverflow->id,
                 'data-discussionid'     => $discussionid,
                 'data-includetext'      => false,
@@ -1066,12 +1066,12 @@ class subscriptions {
 
         // Create an icon to subscribe.
         $string = get_string('clicktosubscribe', 'moodleoverflow');
-        $output = $OUTPUT->pix_icon('unsubscribed', $string, 'mod_moodleoverflow');
+        $output = $OUTPUT->pix_icon('i/unsubscribed', $string, 'mod_moodleoverflow');
 
         // Return the link.
         $array = array(
             'title'                 => get_string('clicktosubscribe', 'moodleoverflow'),
-            'class'                 => 'discussiontoggle iconsmall',
+            'class'                 => 'discussiontoggle  text-muted',
             'data-moodleoverflowid' => $moodleoverflow->id,
             'data-discussionid'     => $discussionid,
             'data-includetext'      => false,
