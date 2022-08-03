@@ -26,6 +26,7 @@
  */
 
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
@@ -48,7 +49,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
 
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
-    if (!has_capability('mod/moodleoverflow:viewdiscussion', $modcontext)) {
+    if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modcontext)) {
         return array();
     }
 
@@ -86,7 +87,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     $params = [$cm->instance];
     $whereconditions = ['d.moodleoverflow = ?', 'p.parent = 0'];
 
-    if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
+    if (!capabilities::has(capabilities::REVIEW_POST, $modcontext)) {
         $whereconditions[] = '(p.reviewed = 1 OR p.userid = ?)';
         $params[] = $USER->id;
     }
@@ -633,39 +634,18 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
         }
     }
 
-    // Make sure a user is set.
-    if (empty($user) || empty($user->id)) {
-        $user = $USER;
-    }
-
     // Check if the user can view the discussion.
-    $canviewdiscussion = !empty($cm->cache->caps['mod/moodleoverflow:viewdiscussion']) ||
-        has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext, $user);
-    if (!$canviewdiscussion &&
-        !has_all_capabilities(array('moodle/user:viewdetails', 'moodle/user:readuserposts'),
-            context_user::instance($post->userid))
-    ) {
+    if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modulecontext)) {
         return false;
     }
 
-    if (!($post->reviewed == 1 || $post->userid == $user->id ||
-            has_capability('mod/moodleoverflow:reviewpost', $modulecontext, $user))) {
+    if (!($post->reviewed == 1 || $post->userid == $USER->id ||
+        capabilities::has(capabilities::REVIEW_POST, $modulecontext))) {
         return false;
-    }
-
-    // Check the coursemodule settings.
-    if (isset($cm->uservisible)) {
-        if (!$cm->uservisible) {
-            return false;
-        }
-    } else {
-        if (!\core_availability\info_module::is_user_visible($cm, $user->id, false)) {
-            return false;
-        }
     }
 
     // The user has the capability to see the discussion.
-    return true;
+    return \core_availability\info_module::is_user_visible($cm, $USER->id, false);
 
 }
 
@@ -674,7 +654,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
  *
  * @param object $moodleoverflow
  * @param object $discussion
- * @param object $context
+ * @param context $context
  *
  * @return bool
  */
@@ -702,13 +682,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
         throw new moodle_exception('invalidcoursemodule');
     }
 
-    // Check the users capability.
-    if (!has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
-        return false;
-    }
-
-    // Allow the user to see the discussion.
-    return true;
+    return capabilities::has(capabilities::VIEW_DISCUSSION, $context);
 }
 
 /**
@@ -758,7 +732,7 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
 
     // Set to not reviewed, if questions should be reviewed, and user is not a reviewer themselves.
     if (review::get_review_level($moodleoverflow) >= review::QUESTIONS &&
-            !has_capability('mod/moodleoverflow:reviewpost', $modulecontext, $userid)) {
+            !capabilities::has(capabilities::REVIEW_POST, $modulecontext, $userid)) {
         $post->reviewed = 0;
     }
 
@@ -1086,24 +1060,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mcid = $modulecontext->id;
     $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow', 'post', $post->id);
 
-    // Caching.
-    if (!isset($cm->cache)) {
-        $cm->cache = new stdClass();
-    }
-
-    // Check the cached capabilities.
-    if (!isset($cm->cache->caps)) {
-        $cm->cache->caps = array();
-        $cm->cache->caps['mod/moodleoverflow:viewdiscussion'] = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:editanypost'] = has_capability('mod/moodleoverflow:editanypost', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:deleteownpost'] = has_capability('mod/moodleoverflow:deleteownpost', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:deleteanypost'] = has_capability('mod/moodleoverflow:deleteanypost', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:viewanyrating'] = has_capability('mod/moodleoverflow:viewanyrating', $modulecontext);
-        $cm->cache->caps['moodle/site:viewfullnames'] = has_capability('moodle/site:viewfullnames', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:marksolved'] = has_capability('mod/moodleoverflow:marksolved', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:reviewpost'] = has_capability('mod/moodleoverflow:reviewpost', $modulecontext);
-    }
-
     // Check if the user has the capability to see posts.
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
 
@@ -1163,7 +1119,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
             $postinguser->profilelink = null;
         }
     } else {
-        $postinguser->fullname = fullname($postinguser, $cm->cache->caps['moodle/site:viewfullnames']);
+        $postinguser->fullname = fullname($postinguser, capabilities::has('moodle/site:viewfullnames', $modulecontext));
         $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
         $postinguser->id = $post->userid;
     }
@@ -1192,8 +1148,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // A teacher can mark an answer as solved.
-    $cap = $cm->cache->caps['mod/moodleoverflow:marksolved'];
-    $canmarksolved = (($iscomment != $post->parent) AND !empty($post->parent) AND $cap);
+    $canmarksolved = (($iscomment != $post->parent) AND !empty($post->parent) AND capabilities::has(capabilities::MARK_SOLVED, $modulecontext));
     if ($canmarksolved) {
 
         // When the post is already marked, remove the mark instead.
@@ -1211,19 +1166,18 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $age = time() - $post->created;
 
     // Make a link to edit your own post within the given time and not already reviewed.
-    if (($ownpost AND ($age < get_config('moodleoverflow', 'maxeditingtime')) &&
+    if (($ownpost && ($age < get_config('moodleoverflow', 'maxeditingtime')) &&
                     (!review::should_post_be_reviewed($post, $moodleoverflow) || !$post->reviewed))
-        OR $cm->cache->caps['mod/moodleoverflow:editanypost']
+        || capabilities::has(capabilities::EDIT_ANY_POST, $modulecontext)
     ) {
         $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
         $commands[] = array('url' => $editurl, 'text' => $str->edit);
     }
 
     // Give the option to delete a post.
-    $old = ($age < get_config('moodleoverflow', 'maxeditingtime'));
-    $capone = $cm->cache->caps['mod/moodleoverflow:deleteownpost'];
-    $captwo = $cm->cache->caps['mod/moodleoverflow:deleteanypost'];
-    if (($ownpost AND $old AND $capone) OR $captwo) {
+    $notold = ($age < get_config('moodleoverflow', 'maxeditingtime'));
+    if (($ownpost && $notold && capabilities::has(capabilities::DELETE_OWN_POST, $modulecontext)) ||
+        capabilities::has(capabilities::DELETE_ANY_POST, $modulecontext)) {
         $link = '/mod/moodleoverflow/post.php';
         $commands[] = array('url' => new moodle_url($link, array('delete' => $post->id)), 'text' => $str->delete);
     }
@@ -1381,7 +1335,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->reviewdelay = format_time($reviewdelay);
     $mustachedata->needsreview = !$post->reviewed;
     $reviewable = time() - $post->created > $reviewdelay;
-    $mustachedata->canreview = $cm->cache->caps['mod/moodleoverflow:reviewpost'];
+    $mustachedata->canreview = capabilities::has(capabilities::REVIEW_POST, $modulecontext);
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
