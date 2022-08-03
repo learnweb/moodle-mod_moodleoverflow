@@ -59,15 +59,6 @@ $capabilities = array(
         'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ),
 
-    'mod/moodleoverflow:view' => array(
-        'captype'      => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes'   => array(
-            'guest' => CAP_ALLOW,
-            'user'  => CAP_ALLOW,
-        )
-    ),
-
     'mod/moodleoverflow:viewdiscussion' => array(
         'captype'              => 'read',
         'contextlevel'         => CONTEXT_MODULE,
@@ -128,7 +119,7 @@ $capabilities = array(
 
     'mod/moodleoverflow:deleteownpost' => array(
 
-        'captype'              => 'read',
+        'captype'              => 'write',
         'contextlevel'         => CONTEXT_MODULE,
         'archetypes'           => array(
             'student'        => CAP_ALLOW,
@@ -141,7 +132,7 @@ $capabilities = array(
 
     'mod/moodleoverflow:deleteanypost' => array(
 
-        'captype'              => 'read',
+        'captype'              => 'write',
         'contextlevel'         => CONTEXT_MODULE,
         'archetypes'           => array(
             'teacher'        => CAP_ALLOW,
@@ -149,19 +140,6 @@ $capabilities = array(
             'manager'        => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:deleteanypost'
-    ),
-
-    'mod/moodleoverflow:viewanyrating' => array(
-
-        'riskbitmask'          => RISK_PERSONAL,
-        'captype'              => 'read',
-        'contextlevel'         => CONTEXT_MODULE,
-        'archetypes'           => array(
-            'teacher'        => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
-        ),
-        'clonepermissionsfrom' => 'mod/forum:viewanyrating'
     ),
 
     'mod/moodleoverflow:ratepost' => array(
@@ -196,7 +174,7 @@ $capabilities = array(
 
         'riskbitmask' => RISK_SPAM,
 
-        'captype'              => 'read',
+        'captype'              => 'write',
         'contextlevel'         => CONTEXT_MODULE,
         'archetypes'           => array(
             'teacher'        => CAP_ALLOW,
@@ -242,7 +220,6 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager'        => CAP_ALLOW
         ),
-        'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ),
 
 );

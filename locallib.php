@@ -148,22 +148,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         echo $OUTPUT->render($button);
     }
 
-    // Get all the recent discussions the user is allowed to see.
-    $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
-
-    // If we want paging.
-    if ($page != -1) {
-
-        // Get the number of discussions.
-        $numberofdiscussions = moodleoverflow_get_discussions_count($cm);
-
-        // Show the paging bar.
-        echo $OUTPUT->paging_bar($numberofdiscussions, $page, $perpage, "view.php?id=$cm->id");
-    }
-
-    // Get the number of replies for each discussion.
-    $replies = moodleoverflow_count_discussion_replies($cm);
-
     // Check whether the moodleoverflow instance can be tracked and is tracked.
     if ($cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
         $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
@@ -179,6 +163,29 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $unreads = array();
         $markallread = null;
     }
+
+    if ($markallread && $unreads) {
+        echo html_writer::link(new moodle_url($markallread),
+            get_string('markallread_forum', 'mod_moodleoverflow'),
+            ['class' => 'btn btn-secondary float-right']
+        );
+    }
+
+    // Get all the recent discussions the user is allowed to see.
+    $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
+
+    // If we want paging.
+    if ($page != -1) {
+
+        // Get the number of discussions.
+        $numberofdiscussions = moodleoverflow_get_discussions_count($cm);
+
+        // Show the paging bar.
+        echo $OUTPUT->paging_bar($numberofdiscussions, $page, $perpage, "view.php?id=$cm->id");
+    }
+
+    // Get the number of replies for each discussion.
+    $replies = moodleoverflow_count_discussion_replies($cm);
 
     // Check whether the user can subscribe to the discussion.
     $cansubtodiscussion = false;
@@ -358,9 +365,11 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         // Did the user rated this post?
         $rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($discussion->firstpost);
 
+        $firstpost = moodleoverflow_get_post_full($discussion->firstpost);
+
         $preparedarray[$i]['userupvoted'] = ($rating->rating ?? null) == RATING_UPVOTE;
         $preparedarray[$i]['userdownvoted'] = ($rating->rating ?? null) == RATING_DOWNVOTE;
-        $preparedarray[$i]['canchange'] = $USER->id != $discussion->userid;
+        $preparedarray[$i]['canchange'] = \mod_moodleoverflow\ratings::moodleoverflow_user_can_rate($firstpost, $context);
         $preparedarray[$i]['postid'] = $discussion->firstpost;
 
         // Go to the next discussion.

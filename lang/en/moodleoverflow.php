@@ -69,8 +69,8 @@ $string['headerlastpost']       = 'Last published post';
 $string['headerunread']         = 'Unread';
 $string['headervotes']          = 'Votes';
 $string['headerstatus']         = 'Status';
-$string['markallread']          = 'Mark read';
-$string['markallread']          = 'Mark all posts in this discussion read.';
+$string['markallread_forum']    = 'Mark all posts as read';
+$string['markallread']          = 'Mark all posts in this discussion as read';
 $string['delete']               = 'Delete';
 $string['parent']               = 'Show parent';
 $string['markread']             = 'Mark read';
@@ -81,6 +81,7 @@ $string['bynameondate']         = 'by {$a->name} ({$a->rating}) - {$a->date}';
 $string['bynameondatenorating'] = 'by {$a->name} - {$a->date}';
 $string['deletesure']           = 'Are you sure you want to delete this post?';
 $string['deletesureplural']     = 'Are you sure you want to delete this post and all replies? ({$a} posts)';
+$string['amount_unread_posts_in_discussion'] = 'There are {$a} unread posts in this discussion.';
 
 // Strings for the settings.php.
 $string['configmanydiscussions']     = 'Maximum number of discussions shown in a Moodleoverflow instance per page';

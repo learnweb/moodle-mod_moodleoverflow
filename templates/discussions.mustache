@@ -85,8 +85,13 @@
                         {{/cansubtodiscussion}}
 
                         {{#unread}}
-                            <div class="mod_moodleoverflow-no-wrap">
-                                <a class="d-inline-block mt-3" href="{{ unreadlink }}">
+                            <div class="mod_moodleoverflow-no-wrap unread-part d-flex align-items-baseline">
+                                <a class="mark-read" href="{{markreadlink}}"
+                                   title="{{#str}}markallread, moodleoverflow{{/str}}">
+                                    {{#pix}}i/delete, core {{/pix}}
+                                </a>
+                                <a class="d-inline-block mt-3" href="{{ unreadlink }}"
+                                   title="{{#str}}amount_unread_posts_in_discussion, mod_moodleoverflow, {{unreadamount}} {{/str}}">
                                     <span class="fa fa-envelope icon mr-0 moodleoverflow-icon-1_5x text-muted">
                                     </span><span class="unread-bubble">
                                         {{ unreadamount }}

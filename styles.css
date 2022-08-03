@@ -346,10 +346,10 @@
     color: grey;
 }
 
-.moodleoverflowpost .post-menu > :not(:last-child) {
-    border-right: 2px solid #bbb;
-    padding-right: 4px;
-    margin-right: 4px;
+.moodleoverflowpost .post-menu > :not(:first-child) {
+    border-left: 2px solid #bbb;
+    padding-left: 4px;
+    margin-left: 4px;
 }
 
 /*

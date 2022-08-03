@@ -497,7 +497,7 @@ class readtracking {
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
              LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = ?)
-                 WHERE d.moodleoverflow = ? AND p.modified >= ? AND r.id IS NULL AND p.reviewed = 1";
+                 WHERE d.moodleoverflow = ? AND p.modified >= ? AND r.id IS NULL";
 
         // Return the number of unread posts per moodleoverflow.
         return $DB->get_field_sql($sql, $params);
