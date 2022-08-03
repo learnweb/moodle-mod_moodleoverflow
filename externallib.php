@@ -46,10 +46,8 @@ class mod_moodleoverflow_external extends external_api {
     public static function record_vote_parameters() {
         return new external_function_parameters(
             array(
-                'discussionid' => new external_value(PARAM_INT, 'id of discussion'),
                 'postid'       => new external_value(PARAM_INT, 'id of post'),
-                'ratingid'     => new external_value(PARAM_INT, 'rating'),
-                'sesskey'      => new external_value(PARAM_TEXT, 'session key'),
+                'ratingid'     => new external_value(PARAM_INT, 'rating')
             )
         );
     }
@@ -72,27 +70,25 @@ class mod_moodleoverflow_external extends external_api {
     /**
      * Records upvotes and downvotes.
      *
-     * @param int $discussionid ID of discussion
      * @param int $postid ID of post
      * @param int $ratingid Rating value
-     * @param int $sesskey Session key
      * @return array with updated information about rating /reputation
      */
-    public static function record_vote($discussionid, $postid, $ratingid, $sesskey) {
+    public static function record_vote($postid, $ratingid) {
         global $DB, $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::record_vote_parameters(), array(
-            'discussionid' => $discussionid,
             'postid'       => $postid,
             'ratingid'     => $ratingid,
-            'sesskey'      => $sesskey,
         ));
 
         $transaction = $DB->start_delegated_transaction();
 
+        $post = $DB->get_record('moodleoverflow_posts', array('id' => $params['postid']), '*', MUST_EXIST);
+
         // Check if the discussion is valid.
-        if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $params['discussionid']))) {
+        if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
             throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
         }
 
@@ -115,9 +111,6 @@ class mod_moodleoverflow_external extends external_api {
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('mod/moodleoverflow:ratepost', $context);
-        if (!confirm_sesskey($sesskey)) {
-            throw new moodle_exception('invalidsesskey');
-        }
 
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,

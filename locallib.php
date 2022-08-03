@@ -44,6 +44,8 @@ require_once(dirname(__FILE__) . '/lib.php');
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     global $DB, $CFG, $USER;
 
+    // TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
+
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
     if (!has_capability('mod/moodleoverflow:viewdiscussion', $modcontext)) {
@@ -69,7 +71,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
         $allnames = get_all_user_name_fields(true, 'u');
     }
     $postdata = 'p.id, p.modified, p.discussion, p.userid, p.reviewed';
-    $discussiondata = 'd.name, d.timemodified, d.timestart, d.usermodified';
+    $discussiondata = 'd.name, d.timemodified, d.timestart, d.usermodified, d.firstpost';
     $userdata = 'u.email, u.picture, u.imagealt';
 
     if ($CFG->branch >= 311) {
@@ -352,6 +354,14 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $preparedarray[$i]['statusteacher'] = $statusteacher;
         $preparedarray[$i]['statusboth'] = $statusboth;
         $preparedarray[$i]['votes'] = $votes;
+
+        // Did the user rated this post?
+        $rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($discussion->firstpost);
+
+        $preparedarray[$i]['userupvoted'] = ($rating->rating ?? null) == RATING_UPVOTE;
+        $preparedarray[$i]['userdownvoted'] = ($rating->rating ?? null) == RATING_DOWNVOTE;
+        $preparedarray[$i]['canchange'] = $USER->id != $discussion->userid;
+        $preparedarray[$i]['postid'] = $discussion->firstpost;
 
         // Go to the next discussion.
         $i++;
@@ -1132,10 +1142,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $postinguserfields = explode(',', user_picture::fields());
     }
     $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
-    $postinguser->id = $post->userid;
 
     // Post was anonymized.
     if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
+        $postinguser->id = null;
         if ($post->userid == $USER->id) {
             $postinguser->fullname = get_string('anonym_you', 'mod_moodleoverflow');
             $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
@@ -1146,6 +1156,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     } else {
         $postinguser->fullname = fullname($postinguser, $cm->cache->caps['moodle/site:viewfullnames']);
         $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
+        $postinguser->id = $post->userid;
     }
 
     // Prepare an array of commands.
@@ -1154,7 +1165,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Create a permalink.
     $permalink = new moodle_url($discussionlink);
     $permalink->set_anchor('p' . $post->id);
-    $commands[] = array('url' => $permalink, 'text' => get_string('permalink', 'moodleoverflow'));
 
     // If the user has started the discussion, he can mark the answer as helpful.
     $canmarkhelpful = (($USER->id == $discussion->userid) && ($USER->id != $post->userid) &&
@@ -1240,6 +1250,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->isfirstunread = false;
     $mustachedata->isfirstpost = false;
     $mustachedata->iscomment = (!empty($post->parent) AND ($iscomment == $post->parent));
+    $mustachedata->permalink = $permalink;
 
     // Get the ratings.
     $mustachedata->votes = $post->upvotes - $post->downvotes;
@@ -1254,29 +1265,21 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Initiate the variables.
     $mustachedata->userupvoted = false;
     $mustachedata->userdownvoted = false;
-    $mustachedata->canchange = true;
+    $mustachedata->canchange = $USER->id != $post->userid;
 
     // Check the actual rating.
     if ($rating) {
 
         // Convert the object.
-        $ratingtime = $rating->firstrated;
         $rating = $rating->rating;
 
         // Did the user upvoted or downvoted this post?
         // The user upvoted the post.
         if ($rating == 1) {
             $mustachedata->userdownvoted = true;
-            $mustachedata->canchange = ((time() - $ratingtime) < get_config('moodleoverflow', 'maxeditingtime'));
         } else if ($rating == 2) {
             $mustachedata->userupvoted = true;
-            $mustachedata->canchange = ((time() - $ratingtime) < get_config('moodleoverflow', 'maxeditingtime'));
         }
-    }
-
-    // Users cannot rate their own posts.
-    if ($USER->id === $post->userid) {
-        $mustachedata->canchange = false;
     }
 
     // Check the reading status of the post.
@@ -1348,6 +1351,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         html_writer::link($postinguser->profilelink, $postinguser->fullname)
         : $postinguser->fullname;
     $mustachedata->byrating = $postuserrating;
+    $mustachedata->byuserid = $postinguser->id;
     $mustachedata->showrating = $postuserrating !== null;
     if (get_config('moodleoverflow', 'allowdisablerating') == 1) {
         $mustachedata->showvotes = $moodleoverflow->allowrating;

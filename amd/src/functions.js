@@ -95,34 +95,6 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
          * @param {int} userid
          */
         clickevent: function(discussionid, userid) {
-            $(".upvote").on("click", function(event) {
-                if ($(event.target).is('a')) {
-                    event.target = $(event.target).children();
-                }
-
-                if ($(event.target).parent().attr('class').indexOf('active') >= 0) {
-                    t.recordvote(discussionid, 20, userid, event);
-                } else {
-                    t.recordvote(discussionid, 2, userid, event);
-                }
-                $(event.target).parent().toggleClass('active');
-                $(event.target).parent().nextAll('a').removeClass('active');
-            });
-
-            $(".downvote").on("click", function(event) {
-                if ($(event.target).is('a')) {
-                    event.target = $(event.target).children();
-                }
-
-                if ($(event.target).parent().attr('class').indexOf('active') >= 0) {
-                    t.recordvote(discussionid, 10, userid, event);
-                } else {
-                    t.recordvote(discussionid, 1, userid, event);
-                }
-                $(event.target).parent().toggleClass('active');
-                $(event.target).parent().prevAll('a').removeClass('active');
-            });
-
             $(".marksolved").on("click", function(event) {
                 var post = $(event.target).parents('.moodleoverflowpost');
 
@@ -243,13 +215,13 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                     {key: 'bestanswer', component: 'mod_moodleoverflow'}
                 ];
                 str.get_strings(statusBothRequest).then(function(results) {
-                    var circle = templates.renderPix('status/c_circle', 'mod_moodleoverflow', results[0]);
-                    var box = templates.renderPix('status/b_box', 'mod_moodleoverflow', results[1]);
-                    $.when(box, circle).done(function(boxImg, circleImg) {
+                    var solved = templates.renderPix('i/status-solved', 'mod_moodleoverflow', results[0]);
+                    var helpful = templates.renderPix('i/status-helpful', 'mod_moodleoverflow', results[1]);
+                    $.when(solved, helpful).done(function(solvedImg, helpfulImg) {
                         if (screen.width > 600) {
-                            post.find('.status').html(boxImg + circleImg + results[2]);
+                            post.find('.status').html(solvedImg + helpfulImg + results[2]);
                         } else {
-                            post.find('.status').html(boxImg + circleImg);
+                            post.find('.status').html(solvedImg + helpfulImg);
                         }
                     });
                     return results;
@@ -260,7 +232,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                     {key: 'solvedanswer', component: 'mod_moodleoverflow'}
                 ];
                 str.get_strings(statusTeacherRequest).then(function(results) {
-                    var circle = templates.renderPix('status/c_outline', 'mod_moodleoverflow', results[0]);
+                    var circle = templates.renderPix('i/status-solved', 'mod_moodleoverflow', results[0]);
                     $.when(circle).done(function(circleImg) {
                         if (screen.width > 600) {
                             post.find('.status').html(circleImg + results[1]);
@@ -277,7 +249,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                     {key: 'helpfulanswer', component: 'mod_moodleoverflow'}
                 ];
                 str.get_strings(statusStarterRequest).then(function(results) {
-                    var box = templates.renderPix('status/b_outline', 'mod_moodleoverflow', results[0]);
+                    var box = templates.renderPix('i/status-helpful', 'mod_moodleoverflow', results[0]);
                     $.when(box).done(function(boxImg) {
                         if (screen.width > 600) {
                             post.find('.status').html(boxImg + results[1]);

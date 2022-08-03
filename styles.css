@@ -122,7 +122,8 @@
     transform: translate(-8px, -10px);
 }
 
-.moodleoverflow-icon-no-margin .icon {
+.moodleoverflow-icon-no-margin .icon,
+.icon.moodleoverflow-icon-no-margin {
     margin: 0;
 }
 
@@ -133,6 +134,7 @@
 .moodleoverflowdiscussion .votes .votecount {
     line-height: 0.75;
     font-size: 1.25em;
+    margin: 0;
 }
 
 .moodleoverflowdiscussion .subject {
@@ -177,6 +179,16 @@
     position: relative;
     border-radius: 0;
     display: flex;
+}
+
+.moodleoverflowpost .anchor {
+    opacity: 0.4;
+    transition: opacity 200ms;
+    float: right;
+}
+
+.moodleoverflowpost .anchor:hover {
+    opacity: 0.8;
 }
 
 .moodleoverflowpost .picture img {
@@ -314,7 +326,6 @@
 .moodleoverflowpost .votecell .votes,
 .moodleeoverflowdiscussion .votes {
     display: block;
-    margin: 0 8px 0 0;
     text-align: center;
 }
 
@@ -327,14 +338,6 @@
 .moodleoverflowpost.moodleoverflowcomment .votecell .votes p {
     margin-bottom: -10px;
     margin-top: -10px;
-}
-
-.moodleoverflowpost .votecell .votes .icon,
-.moodleoverflowdiscussion .votes .icon {
-    color: #0a0;
-    height: 24px;
-    margin: 0;
-    width: 24px;
 }
 
 .moodleoverflowpost.moodleoverflowcomment .votecell .votes p {
@@ -552,4 +555,20 @@
 
 .moodleoverflow-gap-small {
     gap: 8px;
+}
+
+#moodleoverflow-root .vote.icon[data-moodleoverflow-state="clicked"] {
+    color: #ea8516;
+}
+
+#moodleoverflow-root .vote.icon[data-moodleoverflow-state="notclicked"] {
+    color: #515151;
+}
+
+#moodleoverflow-root .vote.icon[data-moodleoverflow-state="disabled"] {
+    color: rgba(70, 70, 70, 0.4);
+}
+
+#moodleoverflow-root .vote.icon[data-moodleoverflow-action] {
+    cursor: pointer;
 }

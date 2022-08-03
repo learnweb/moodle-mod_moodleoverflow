@@ -131,6 +131,8 @@ if ($node AND ($post->id != $discussion->firstpost)) {
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id]);
+
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
@@ -149,10 +151,10 @@ if ((!is_guest($modulecontext, $USER) AND isloggedin() AND $canviewdiscussion)) 
 
 echo "<br>";
 
-echo '<div id="moodleoverflow-posts">';
+echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
 
 moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post);
 
-echo '</div>';
+echo '</div></div>';
 
 echo $OUTPUT->footer();

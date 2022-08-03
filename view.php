@@ -27,7 +27,7 @@
 
 // Include config and locallib.
 require_once(__DIR__.'/../../config.php');
-global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
+global $CFG, $PAGE, $DB, $OUTPUT, $SESSION, $USER;
 require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
@@ -86,6 +86,8 @@ $PAGE->set_url('/mod/moodleoverflow/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($moodleoverflow->name));
 $PAGE->set_heading(format_string($course->fullname));
 
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id]);
+
 // Output starts here.
 echo $OUTPUT->header();
 
@@ -117,8 +119,12 @@ if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
 // Return here after posting, etc.
 $SESSION->fromdiscussion = qualified_me();
 
+echo '<div id="moodleoverflow-root">';
+
 // Print the discussions.
 moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, get_config('moodleoverflow', 'manydiscussions'));
+
+echo '</div>';
 
 // Finish the page.
 echo $OUTPUT->footer();

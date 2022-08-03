@@ -26,50 +26,19 @@
 }}
 
 {{! Did the current user upvoted this post? }}
-{{#userupvoted}}
-{{! Can the user change the vote? }}
-    {{#canchange}}
-        <a class="upvote active" href="javascript:void(0)">
-            {{# pix}} vote/upvoted, moodleoverflow, {{#str}}upvote, moodleoverflow{{/str}}{{/ pix}}
-        </a>
-    {{/canchange}}
-    {{^canchange}}
-        {{# pix}} vote/upvotedfinal, moodleoverflow, {{#str}}upvotenotchangeable, moodleoverflow{{/str}}{{/ pix}}
-    {{/canchange}}
-{{/userupvoted}}
-{{^userupvoted}}
-    {{#canchange}}
-        <a class="upvote" href="javascript:void(0)">
-            {{# pix}} vote/upvote, moodleoverflow, {{#str}}noupvote, moodleoverflow{{/str}}{{/ pix}}
-        </a>
-    {{/canchange}}
-    {{^canchange}}
-        {{# pix}} vote/upvote, moodleoverflow, {{#str}}noupvote, moodleoverflow{{/str}}{{/ pix}}
-    {{/canchange}}
-{{/userupvoted}}
+<div class="vote icon fa fa-chevron-up moodleoverflow-icon-1_5x m-0" {{#canchange}}data-moodleoverflow-action="upvote"{{/canchange}} data-moodleoverflow-state="{{#userupvoted}}clicked{{/userupvoted}}{{!
+}}{{^userupvoted}}{{#canchange}}notclicked{{/canchange}}{{^canchange}}disabled{{/canchange}}{{/userupvoted}}"
+        title="{{#userupvoted}}{{!
+    }}{{#canchange}}{{#str}}upvote, moodleoverflow{{/str}}{{/canchange}}{{!
+    }}{{^canchange}}{{#str}}upvotenotchangeable, moodleoverflow{{/str}}{{/canchange}}{{/userupvoted}}{{!
+}}{{^userupvoted}}{{#str}}noupvote, moodleoverflow{{/str}}{{/userupvoted}}"></div>
 
 {{! Display the amount of votes. }}
-<div class="votecount">{{ votes }}</div>
+<p class="votecount line-height-3" data-moodleoverflow-postreputation="{{postid}}">{{ votes }}</p>
 
-{{! Did the current user upvoted this post? }}
-{{#userdownvoted}}
-{{! Can the user change its vote? }}
-    {{#canchange}}
-        <a class="downvote active" href="javascript:void(0)">
-            {{# pix}} vote/downvoted, moodleoverflow, {{#str}}downvote, moodleoverflow{{/str}}{{/ pix}}
-        </a>
-    {{/canchange}}
-    {{^canchange}}
-        {{# pix}} vote/downvotedfinal, moodleoverflow, {{#str}}downvotenotchangeable, moodleoverflow{{/str}}{{/ pix}}
-    {{/canchange}}
-{{/userdownvoted}}
-{{^userdownvoted}}
-    {{#canchange}}
-        <a class="downvote" href="javascript:void(0)">
-            {{# pix}} vote/downvote, moodleoverflow, {{#str}}nodownvote, moodleoverflow{{/str}}{{/ pix}}
-        </a>
-    {{/canchange}}
-    {{^canchange}}
-        {{# pix}} vote/downvote, moodleoverflow, {{#str}}nodownvote, moodleoverflow{{/str}}{{/ pix}}
-    {{/canchange}}
-{{/userdownvoted}}
+<div class="vote icon fa fa-chevron-down moodleoverflow-icon-1_5x m-0" {{#canchange}}data-moodleoverflow-action="downvote"{{/canchange}} data-moodleoverflow-state="{{#userdownvoted}}clicked{{/userdownvoted}}{{!
+    }}{{^userdownvoted}}{{#canchange}}notclicked{{/canchange}}{{^canchange}}disabled{{/canchange}}{{/userdownvoted}}"
+     title="{{#userdownvoted}}{{!
+         }}{{#canchange}}{{#str}}downvote, moodleoverflow{{/str}}{{/canchange}}{{!
+         }}{{^canchange}}{{#str}}downvotenotchangeable, moodleoverflow{{/str}}{{/canchange}}{{/userdownvoted}}{{!
+         }}{{^userdownvoted}}{{#str}}nodownvote, moodleoverflow{{/str}}{{/userdownvoted}}"></div>

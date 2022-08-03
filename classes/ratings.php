@@ -800,7 +800,7 @@ class ratings {
         }
 
         // Check the capability.
-        return has_capability('mod/moodleoverflow:ratepost', $modulecontext, $userid) && $post->reviewed == 1;
+        return $userid != $post->userid && has_capability('mod/moodleoverflow:ratepost', $modulecontext, $userid) && $post->reviewed == 1;
     }
 
 }

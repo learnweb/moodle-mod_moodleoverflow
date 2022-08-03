@@ -1237,6 +1237,8 @@ function moodleoverflow_get_fontawesome_icon_map() {
         'mod_moodleoverflow:i/status-solved' => 'fa-check moodleoverflow-icon-1_5x moodleoverflow-text-green',
         'mod_moodleoverflow:i/reply' => 'fa-reply',
         'mod_moodleoverflow:i/subscribed' => 'fa-bell moodleoverflow-icon-1_5x',
-        'mod_moodleoverflow:i/unsubscribed' => 'fa-bell-slash-o moodleoverflow-icon-1_5x'
+        'mod_moodleoverflow:i/unsubscribed' => 'fa-bell-slash-o moodleoverflow-icon-1_5x',
+        'mod_moodleoverflow:i/vote-up' => 'fa-chevron-up moodleoverflow-icon-2x moodleoverflow-icon-no-margin',
+        'mod_moodleoverflow:i/vote-down' => 'fa-chevron-down moodleoverflow-icon-2x moodleoverflow-icon-no-margin'
     ];
 }

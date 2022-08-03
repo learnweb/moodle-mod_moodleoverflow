@@ -36,9 +36,9 @@
 {{#hasdiscussions}}
 
     {{#discussions}}
-        <div class="moodleoverflowdiscussion d-flex border p-2 mb-3">
+        <div class="moodleoverflowdiscussion d-flex border p-2 mb-3" data-moodleoverflow-postid="{{postid}}">
             <div class="leftbox text-center mr-2">
-                <div class="votes text-center my-1">
+                <div class="votes text-center mb-1">
                     {{> mod_moodleoverflow/postvoting }}
                 </div>
                 <div class="status moodleoverflow-icon-no-margin">
