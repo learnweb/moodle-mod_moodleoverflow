@@ -105,6 +105,14 @@ if (!empty($moodleoverflow->intro)) {
     echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
 }
 
+if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
+    $reviewpost = \mod_moodleoverflow\review::get_first_review_post($moodleoverflow->id);
+
+    if ($reviewpost) {
+        echo html_writer::link($reviewpost, get_string('review_needed', 'mod_moodleoverflow'), ['class' => 'btn btn-danger']);
+    }
+}
+
 // Return here after posting, etc.
 $SESSION->fromdiscussion = qualified_me();
 

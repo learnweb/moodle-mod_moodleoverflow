@@ -141,7 +141,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $buttontext = get_string('addanewdiscussion', 'moodleoverflow');
         $buttonurl = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverflow->id]);
         $button = new single_button($buttonurl, $buttontext, 'get');
-        $button->class = 'singlebutton moodleoverflowaddnew';
+        $button->class = 'singlebutton align-middle m-2';
         $button->formid = 'newdiscussionform';
         echo $OUTPUT->render($button);
     }

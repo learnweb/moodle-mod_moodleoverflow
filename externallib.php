@@ -206,7 +206,7 @@ class mod_moodleoverflow_external extends external_api {
             $DB->update_record('moodleoverflow_discussions', $discussion);
         }
 
-        return review::get_first_review_post($post->id);
+        return review::get_first_review_post($moodleoverflow->id, $post->id);
     }
 
     /**
@@ -293,7 +293,7 @@ class mod_moodleoverflow_external extends external_api {
                 $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_html', $htmlcontext)
         );
 
-        $url = review::get_first_review_post($post->id);
+        $url = review::get_first_review_post($moodleoverflow->id, $post->id);
 
         if (!$post->parent) {
             // Delete discussion, if this is the question.

@@ -78,13 +78,14 @@ class review {
     }
 
     /**
-     * @param $afterpostid
+     * @param int $moodleoverflowid ID of moodleoverflow to look in.
+     * @param int $afterpostid ID of post after which to look for the first post to review.
      * @return string|null
      */
-    public static function get_first_review_post($afterpostid = null) {
+    public static function get_first_review_post($moodleoverflowid, $afterpostid = null) {
         global $DB;
 
-        $params = [];
+        $params = ['moodleoverflowid' => $moodleoverflowid];
         $orderby = '';
         $addwhere = '';
 
@@ -92,18 +93,19 @@ class review {
             $afterdiscussionid = $DB->get_field('moodleoverflow_posts', 'discussion', ['id' => $afterpostid],
                 MUST_EXIST);
 
-            $orderby = 'CASE WHEN (discussion > :afterdiscussionid OR (discussion = :afterdiscussionid2 AND id > :afterpostid)) THEN 0 ELSE 1 END, ';
+            $orderby = 'CASE WHEN (p.discussion > :afterdiscussionid OR (p.discussion = :afterdiscussionid2 AND p.id > :afterpostid)) THEN 0 ELSE 1 END, ';
             $params['afterdiscussionid'] = $afterdiscussionid;
             $params['afterdiscussionid2'] = $afterdiscussionid;
             $params['afterpostid'] = $afterpostid;
 
-            $addwhere = ' AND id != :notpostid ';
+            $addwhere = ' AND p.id != :notpostid ';
             $params['notpostid'] = $afterpostid;
         }
         $record = $DB->get_record_sql(
-            'SELECT id as postid, discussion as discussionid FROM {moodleoverflow_posts} ' .
-            "WHERE reviewed = 0 $addwhere " .
-            "ORDER BY $orderby discussion, id " .
+            'SELECT p.id as postid, p.discussion as discussionid FROM {moodleoverflow_posts} p ' .
+            'JOIN {moodleoverflow_discussions} d ON d.id = p.discussion ' .
+            "WHERE p.reviewed = 0 AND d.moodleoverflow = :moodleoverflowid $addwhere " .
+            "ORDER BY $orderby p.discussion, p.id " .
             'LIMIT 1',
             $params
         );
