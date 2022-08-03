@@ -108,6 +108,8 @@ if ($reviewlevel > 0) {
     echo html_writer::tag('p', get_string($strkeys[$reviewlevel], 'moodleoverflow'));
 }
 
+echo '<div id="moodleoverflow-root">';
+
 if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
     $reviewpost = \mod_moodleoverflow\review::get_first_review_post($moodleoverflow->id);
 
@@ -118,8 +120,6 @@ if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
 
 // Return here after posting, etc.
 $SESSION->fromdiscussion = qualified_me();
-
-echo '<div id="moodleoverflow-root">';
 
 // Print the discussions.
 moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, get_config('moodleoverflow', 'manydiscussions'));
