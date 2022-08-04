@@ -44,14 +44,12 @@ $string['moodleoverflow:createattachment']    = 'Create attachments';
 $string['moodleoverflow:managesubscriptions'] = 'Manage subscriptions';
 $string['moodleoverflow:ratehelpful']         = 'Mark a post as helpful';
 $string['moodleoverflow:ratepost']            = 'Rate a post';
-$string['moodleoverflow:viewanyrating']       = 'View ratings';
 $string['moodleoverflow:deleteanypost']       = 'Delete posts';
 $string['moodleoverflow:deleteownpost']       = 'Delete own posts';
 $string['moodleoverflow:editanypost']         = 'Edit posts';
 $string['moodleoverflow:startdiscussion']     = 'Start a discussion';
 $string['moodleoverflow:replypost']           = 'Reply in discussion';
 $string['moodleoverflow:viewdiscussion']      = 'View discussion';
-$string['moodleoverflow:view']                = 'View discussionlist';
 $string['moodleoverflow:marksolved']          = 'Mark a post as solution';
 $string['nowallsubscribed']                   = 'All forums in {$a} are subscribed.';
 $string['nowallunsubscribed']                 = 'All forums in {$a} are unsubscribed.';
@@ -62,13 +60,6 @@ $string['noviewdiscussionspermission'] = 'You do not have the permission to view
 // Strings for the locallib.php.
 $string['addanewdiscussion']    = 'Add a new discussion topic';
 $string['nodiscussions']        = 'There are no discussion topics yet in this forum.';
-$string['headerdiscussion']     = 'Discussion';
-$string['headerstartedby']      = 'Started by';
-$string['headerreplies']        = 'Replies';
-$string['headerlastpost']       = 'Last published post';
-$string['headerunread']         = 'Unread';
-$string['headervotes']          = 'Votes';
-$string['headerstatus']         = 'Status';
 $string['markallread_forum']    = 'Mark all posts as read';
 $string['markallread']          = 'Mark all posts in this discussion as read';
 $string['delete']               = 'Delete';
@@ -192,9 +183,9 @@ $string['addanewreply']                = 'Add a new answer';
 $string['ratingfailed']                = 'Rating failed. Try again.';
 $string['rateownpost']                 = 'You cannot rate your own post.';
 $string['marksolved']                  = 'Mark as solution';
-$string['marknotsolved']               = 'Remove solution mark';
-$string['markhelpful']                 = 'Mark as Helpful';
-$string['marknothelpful']              = 'Not Helpful';
+$string['marknotsolved']               = 'Don\'t mark as solution';
+$string['markhelpful']                 = 'Mark as helpful';
+$string['marknothelpful']              = 'Don\'t mark as helpful';
 $string['answer']                      = '{$a} Answer';
 $string['answers']                     = '{$a} Answers';
 
@@ -306,6 +297,10 @@ If \'Allow forced read tracking\' is enabled in the site administration, then a 
 $string['ratingheading']                = 'Rating and reputation';
 $string['starterrating']                = 'Helpful';
 $string['teacherrating']                = 'Solution';
+$string['ratedbystarter'] = 'This post was marked as the most helpful by the questioner';
+$string['ratedbyteacher'] = 'This post was marked as the solution by a teacher';
+$string['containsstarterrating'] = 'Contains a post marked as the most helpful by the questioner';
+$string['containsteacherrating'] = 'Contains a post marked as the solution by a teacher';
 $string['ratingpreference']             = 'Display first';
 $string['ratingpreference_help']        = 'Answers can be marked as solution and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
 
@@ -326,16 +321,13 @@ $string['attachments']                  = 'Attachments';
 $string['attachment_help']              = 'You can optionally attach one or more files to a forum post. If you attach an image, it will be displayed after the message.';
 
 // Templates.
-$string['helpfulanswer'] = 'The question owner accepted this as the best answer.';
-$string['solvedanswer']  = 'This post is marked as solution.';
-$string['bestanswer']    = 'The question owner and a course owner accepted this as the best answer.';
 $string['reputation'] = 'Reputation';
-$string['upvote'] = 'Upvote';
-$string['upvotenotchangeable'] = 'Upvote (not changeable)';
-$string['noupvote'] = 'No upvote';
-$string['downvote'] = 'Downvote';
-$string['downvotenotchangeable'] = 'Downvote (not changeable)';
-$string['nodownvote'] = 'No downvote';
+$string['action_remove_upvote'] = 'Click to remove upvote';
+$string['upvotenotchangeable'] = 'Cannot upvote';
+$string['action_upvote'] = 'Click to upvote';
+$string['action_remove_downvote'] = 'Click to remove downvote';
+$string['downvotenotchangeable'] = 'Cannot downvote';
+$string['action_downvote'] = 'Click to downvote';
 
 // Privacy.
 $string['privacy:metadata:core_files'] = 'Moodleoverflow stores files which have been uploaded by the user to form part of a forum post.';

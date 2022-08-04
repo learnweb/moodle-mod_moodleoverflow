@@ -1140,10 +1140,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusstarter) {
             $commands[] = html_writer::tag('a', $str->marknothelpful,
-                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
         } else {
             $commands[] = html_writer::tag('a', $str->markhelpful,
-                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
         }
     }
 
@@ -1155,10 +1155,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusteacher) {
             $commands[] = html_writer::tag('a', $str->marknotsolved,
-                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved'));
         } else {
             $commands[] = html_writer::tag('a', $str->marksolved,
-                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved'));
         }
     }
 
@@ -1249,10 +1249,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $postclass = '';
     if ($istracked) {
         if ($postisread) {
-            $postclass = ' read';
+            $postclass .= ' read';
             $mustachedata->isread = true;
         } else {
-            $postclass = ' unread';
+            $postclass .= ' unread';
 
             // Anchor the first unread post of a discussion.
             if (!$firstunreadanchorprinted) {
@@ -1262,17 +1262,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         }
     }
     if ($post->statusstarter) {
-
-        if ($post->statusteacher) {
-            $postclass = ' statusboth';
-        } else {
-            $postclass = ' statusstarter';
-        }
+        $postclass .= ' statusstarter';
     }
     if ($post->statusteacher) {
-        if (!$post->statusstarter) {
-            $postclass = ' statusteacher';
-        }
+        $postclass .= ' statusteacher';
     }
     $mustachedata->postclass = $postclass;
 
@@ -1363,19 +1356,13 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
+    $mustachedata->iscomment = $level == 2;
+
     // Include the renderer to display the dummy content.
     $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 
     // Render the different elements.
-    if ($level == 0) {
-        return $renderer->render_question($mustachedata);
-    } else if ($level == 1) {
-        return $renderer->render_answer($mustachedata);
-    } else if ($level == 2) {
-        return $renderer->render_comment($mustachedata);
-    } else {
-        return null;
-    }
+    return $renderer->render_post($mustachedata);
 }
 
 /**

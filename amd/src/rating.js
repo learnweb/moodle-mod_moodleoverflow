@@ -21,19 +21,20 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import Ajax from 'core/ajax';
-// Import Prefetch from 'core/prefetch';
-// import Templates from 'core/templates';
-// import {get_string as getString} from 'core/str';
+import Prefetch from 'core/prefetch';
+import {get_string as getString} from 'core/str';
 
 const RATING_DOWNVOTE = 1;
 const RATING_UPVOTE = 2;
 const RATING_REMOVE_DOWNVOTE = 10;
 const RATING_REMOVE_UPVOTE = 20;
+const RATING_SOLVED = 3;
+const RATING_HELPFUL = 4;
 
 const root = document.getElementById('moodleoverflow-root');
 
 /**
- * Send a vote via AJAX
+ * Send a vote via AJAX, then updates post and user ratings.
  * @param {int} postid
  * @param {int} rating
  * @param {int} userid
@@ -48,7 +49,7 @@ async function sendVote(postid, rating, userid) {
         }
     }])[0];
     root.querySelectorAll(`[data-moodleoverflow-userreputation="${userid}"]`).forEach((i) => {
-        i.textContent = response.raterrepuation;
+        i.textContent = response.raterreputation;
     });
     root.querySelectorAll(`[data-moodleoverflow-userreputation="${response.ownerid}"]`).forEach((i) => {
         i.textContent = response.ownerreputation;
@@ -66,7 +67,11 @@ async function sendVote(postid, rating, userid) {
  * @param {int} userid
  */
 export function init(userid) {
-    root.onclick = (event) => {
+    Prefetch.prefetchStrings('mod_moodleoverflow',
+        ['marksolved', 'marknotsolved', 'markhelpful', 'marknothelpful',
+            'action_remove_upvote', 'action_upvote', 'action_remove_downvote', 'action_downvote']);
+
+    root.onclick = async(event) => {
         const actionElement = event.target.closest('[data-moodleoverflow-action]');
         if (!actionElement) {
             return;
@@ -81,14 +86,37 @@ export function init(userid) {
             case 'downvote': {
                 const isupvote = action === 'upvote';
                 if (actionElement.getAttribute('data-moodleoverflow-state') === 'clicked') {
-                    sendVote(postid, isupvote ? RATING_REMOVE_UPVOTE : RATING_REMOVE_DOWNVOTE, userid);
+                    await sendVote(postid, isupvote ? RATING_REMOVE_UPVOTE : RATING_REMOVE_DOWNVOTE, userid);
                     actionElement.setAttribute('data-moodleoverflow-state', 'notclicked');
+                    actionElement.title = await getString('action_' + action, 'mod_moodleoverflow');
                 } else {
-                    sendVote(postid, isupvote ? RATING_UPVOTE : RATING_DOWNVOTE, userid);
+                    const otherAction = isupvote ? 'downvote' : 'upvote';
+                    await sendVote(postid, isupvote ? RATING_UPVOTE : RATING_DOWNVOTE, userid);
                     actionElement.setAttribute('data-moodleoverflow-state', 'clicked');
                     const otherElement = postElement.querySelector(
-                        `[data-moodleoverflow-action="${(isupvote ? 'downvote' : 'upvote')}"]`);
+                        `[data-moodleoverflow-action="${otherAction}"]`);
                     otherElement.setAttribute('data-moodleoverflow-state', 'notclicked');
+                    actionElement.title = await getString('action_remove_' + action, 'mod_moodleoverflow');
+                    otherElement.title = await getString('action_' + otherAction, 'mod_moodleoverflow');
+                }
+            }
+            break;
+            case 'helpful':
+            case 'solved': {
+                const isHelpful = action === 'helpful';
+                const htmlclass = isHelpful ? 'statusstarter' : 'statusteacher';
+                const shouldRemove = postElement.classList.contains(htmlclass);
+                const baseRating = isHelpful ? RATING_HELPFUL : RATING_SOLVED;
+                const rating = shouldRemove ? baseRating * 10 : baseRating;
+                await sendVote(postid, rating, userid);
+                for (const el of root.querySelectorAll('.moodleoverflowpost.' + htmlclass)) {
+                    el.classList.remove(htmlclass);
+                    el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
+                        await getString(`mark${action}`, 'mod_moodleoverflow');
+                }
+                if (!shouldRemove) {
+                    postElement.classList.add(htmlclass);
+                    actionElement.textContent = await getString(`marknot${action}`, 'mod_moodleoverflow');
                 }
             }
         }

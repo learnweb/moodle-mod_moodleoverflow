@@ -177,8 +177,14 @@
     margin: 0 0 1em 0;
     max-width: 100%;
     position: relative;
-    border-radius: 0;
-    display: flex;
+}
+
+.moodleoverflowpost .left-info {
+    min-width: 70px;
+}
+
+.moodleoverflowpost.moodleoverflowcomment .left-info {
+    min-width: 50px;
 }
 
 .moodleoverflowpost .anchor {
@@ -216,7 +222,7 @@
     width: 4px;
 }
 
-.moodleoverflowpost.statusboth:before {
+.moodleoverflowpost.statusteacher.statusstarter:before {
     background: linear-gradient(80deg, rgba(234, 133, 22, 1) 50%, rgba(112, 160, 52, 1) 50%);
     bottom: -1px;
     content: "";
@@ -247,6 +253,19 @@
     position: absolute;
     top: -1px;
     width: 4px;
+}
+
+.moodleoverflowpost .onlyifsolved,
+.moodleoverflowpost .onlyifhelpful {
+    display: none;
+}
+
+.moodleoverflowpost.statusstarter .onlyifhelpful {
+    display: initial;
+}
+
+.moodleoverflowpost.statusteacher .onlyifsolved {
+    display: initial;
 }
 
 .moodleoverflowpost > .list-group:first-child .list-group-item:first-child {
@@ -316,13 +335,6 @@
     width: 10px;
 }
 
-.moodleoverflowpost .votecell {
-    vertical-align: top;
-    overflow: hidden;
-    width: 43px;
-    flex-shrink: 0;
-}
-
 .moodleoverflowpost .votecell .votes,
 .moodleeoverflowdiscussion .votes {
     display: block;
@@ -336,14 +348,8 @@
 }
 
 .moodleoverflowpost.moodleoverflowcomment .votecell .votes p {
-    margin-bottom: -10px;
-    margin-top: -10px;
-}
-
-.moodleoverflowpost.moodleoverflowcomment .votecell .votes p {
     margin-bottom: -6px;
     margin-top: -6px;
-    color: grey;
 }
 
 .moodleoverflowpost .post-menu > :not(:first-child) {

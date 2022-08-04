@@ -48,12 +48,12 @@
                     {{^ questionunderreview }}
                         {{#statusteacher}}
                             <a href="{{teacherlink}}">{{! avoid whitespace
-                                !}}{{# pix}} i/status-solved, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/ pix}}{{!
+                                !}}{{# pix}} i/status-solved, moodleoverflow, {{#str}}containsteacherrating, moodleoverflow{{/str}} {{/ pix}}{{!
                             !}}</a>
                         {{/statusteacher}}
                         {{#statusstarter}}
                             <a href="{{starterlink}}">{{! avoid whitespace
-                                !}}{{# pix}} i/status-helpful, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/ pix}}{{!
+                                !}}{{# pix}} i/status-helpful, moodleoverflow, {{#str}}containsstarterrating, moodleoverflow{{/str}} {{/ pix}}{{!
                             !}}</a>
                         {{/ statusstarter }}
                     {{/ questionunderreview }}
@@ -69,7 +69,7 @@
                             </div>
                         {{/ needreview }}
                     {{/ canreview }}
-                    <div class="replies my-1" title="">
+                    <div class="replies my-1" title="{{#str}}answers, mod_moodleoverflow, {{replyamount}}{{/str}}">
                         <span><span class="reply-correction">{{#pix}}i/reply, mod_moodleoverflow {{/pix}}</span>{{ replyamount }}</span>
                     </div>
                 </div>

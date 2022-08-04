@@ -28,17 +28,17 @@
 {{! Did the current user upvoted this post? }}
 <div class="vote icon fa fa-chevron-up moodleoverflow-icon-1_5x m-0" {{#canchange}}data-moodleoverflow-action="upvote"{{/canchange}} data-moodleoverflow-state="{{#userupvoted}}clicked{{/userupvoted}}{{!
 }}{{^userupvoted}}{{#canchange}}notclicked{{/canchange}}{{^canchange}}disabled{{/canchange}}{{/userupvoted}}"
-        title="{{#userupvoted}}{{!
-    }}{{#canchange}}{{#str}}upvote, moodleoverflow{{/str}}{{/canchange}}{{!
-    }}{{^canchange}}{{#str}}upvotenotchangeable, moodleoverflow{{/str}}{{/canchange}}{{/userupvoted}}{{!
-}}{{^userupvoted}}{{#str}}noupvote, moodleoverflow{{/str}}{{/userupvoted}}"></div>
+    title="{{#canchange}}{{!
+    }}{{#userupvoted}}{{#str}}action_remove_upvote, moodleoverflow{{/str}}{{/userupvoted}}{{!
+    }}{{^userupvoted}}{{#str}}action_upvote, moodleoverflow{{/str}}{{/userupvoted}}{{/canchange}}{{!
+    }}{{^canchange}}{{#str}}upvotenotchangeable, moodleoverflow{{/str}}{{/canchange}}"></div>
 
 {{! Display the amount of votes. }}
 <p class="votecount line-height-3" data-moodleoverflow-postreputation="{{postid}}">{{ votes }}</p>
 
 <div class="vote icon fa fa-chevron-down moodleoverflow-icon-1_5x m-0" {{#canchange}}data-moodleoverflow-action="downvote"{{/canchange}} data-moodleoverflow-state="{{#userdownvoted}}clicked{{/userdownvoted}}{{!
     }}{{^userdownvoted}}{{#canchange}}notclicked{{/canchange}}{{^canchange}}disabled{{/canchange}}{{/userdownvoted}}"
-     title="{{#userdownvoted}}{{!
-         }}{{#canchange}}{{#str}}downvote, moodleoverflow{{/str}}{{/canchange}}{{!
-         }}{{^canchange}}{{#str}}downvotenotchangeable, moodleoverflow{{/str}}{{/canchange}}{{/userdownvoted}}{{!
-         }}{{^userdownvoted}}{{#str}}nodownvote, moodleoverflow{{/str}}{{/userdownvoted}}"></div>
+     title="{{#canchange}}{{!
+    }}{{#userdownvoted}}{{#str}}action_remove_downvote, moodleoverflow{{/str}}{{/userdownvoted}}{{!
+    }}{{^userdownvoted}}{{#str}}action_downvote, moodleoverflow{{/str}}{{/userdownvoted}}{{/canchange}}{{!
+    }}{{^canchange}}{{#str}}downvotenotchangeable, moodleoverflow{{/str}}{{/canchange}}"></div>

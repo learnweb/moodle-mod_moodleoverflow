@@ -15,10 +15,10 @@
   along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-  @template mod_moodleoverflow/answer
+  @template mod_moodleoverflow/post
 
-  Moodleoverflow answer template.
-  The purpose of this template is to render an answer in the discussion.
+  Moodleoverflow post template.
+  The purpose of this template is to render a post in the discussion.
 
    Example context (json):
    {
@@ -31,11 +31,12 @@
 {{/ isfirstunread}}
 
 {{! Start the post. Mark it read or unread. }}
-<div id="p{{postid}}" class="moodleoverflowpost d-flex flex-column border clearfix{{ postclass }} {{#needsreview}}pendingreview{{/needsreview}}
-     {{# isfirstpost}}firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}"
+<div id="p{{postid}}" class="moodleoverflowpost {{#iscomment}}bg-light moodleoverflowcomment{{/iscomment}}
+    border {{postclass}} {{#needsreview}}pendingreview{{/needsreview}}
+    {{#isfirstpost}}firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ discussionby }}"
     data-moodleoverflow-postid="{{postid}}">
-    <div class="d-flex p-2">
-        <div class="d-flex flex-column align-content-center">
+    <div class="d-flex p-2 w-100">
+        <div class="left-info text-center">
         {{#showvotes}}
             <div class="votecell onlyifreviewed">
                 <div class="votes">
@@ -58,14 +59,18 @@
                 {{/pix}}
             </div>
         {{/needsreview}}
+            <div class="status moodleoverflow-icon-no-margin">
+                    <span class="onlyifsolved">{{#pix}} i/status-solved, moodleoverflow, {{#str}}ratedbyteacher, moodleoverflow{{/str}} {{/pix}}</span>
+                    <span class="onlyifhelpful">{{#pix}} i/status-helpful, moodleoverflow, {{#str}}ratedbystarter, moodleoverflow{{/str}} {{/pix}}</span>
+            </div>
         </div>
-        <div class="answercell">
+        <div class="answercell d-flex flex-column">
             <div class="post-text">
                 <a href="{{{permalink}}}" class="anchor" title="{{#str}}permalink, mod_moodleoverflow{{/str}}">
                     <i class="fa fa-hashtag text-muted icon moodleoverflow-icon-1_5x moodleoverflow-icon-no-margin"></i></a>
                 {{{ postcontent }}}
             </div>
-            <div class="attachments">
+            <div class="attachments flex-grow-1">
                 {{#attachments}}
                     {{#image}}
                         <img src="{{filepath}}" alt=""/>
@@ -84,51 +89,29 @@
             </div>
             <div class="post-info">
                 <div class="leftbox {{questioner}}">
-                    <div class="user-info">
-                        {{# picture }}
-                        <div class="user-avatar">
-                            {{{ picture }}}
-                        </div>
-                        {{/picture}}
-                        <div class="user-details">
-                            {{{ byname }}} {{#showreputation}}{{#showrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span data-moodleoverflow-userreputation="{{byuserid}}">{{ byrating }}</span>){{/showrating}}{{/showreputation}}
-                            <div class="user-action-time">
-                                {{ bydate }}
+                    {{^iscomment}}
+                        <div class="user-info">
+                            {{# picture }}
+                            <div class="user-avatar">
+                                {{{ picture }}}
                             </div>
-                            <div class="user-action-shorttime">
-                                {{byshortdate}}
+                            {{/picture}}
+                            <div class="user-details">
+                                {{{ byname }}} {{#showreputation}}{{#showrating}}({{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span data-moodleoverflow-userreputation="{{byuserid}}">{{ byrating }}</span>){{/showrating}}{{/showreputation}}
+                                <div class="user-action-time">
+                                    {{ bydate }}
+                                </div>
+                                <div class="user-action-shorttime">
+                                    {{byshortdate}}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {{/iscomment}}
+                    {{#iscomment}}
+                        <span class="text-muted">{{{ byname }}} - {{ byshortdate }}</span>
+                    {{/iscomment}}
                 </div>
                 <div class="rightbox">
-                    <div class="status">
-
-                        {{! The displayed text. }}
-                        {{#statusstarter}}
-                            {{^statusteacher}}
-                                {{#pix}} i/status-helpful, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
-                                <span class="hide-600">
-                                    {{#str}} helpfulanswer, moodleoverflow {{/str}}
-                                </span>
-                            {{/statusteacher}}
-                            {{#statusteacher}}
-                                {{#pix}} i/status-solved, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
-                                {{#pix}} i/status-helpful, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
-                                <span class="hide-600">
-                                    {{#str}} bestanswer, moodleoverflow {{/str}}
-                                </span>
-                            {{/statusteacher}}
-                        {{/statusstarter}}
-                        {{^statusstarter}}
-                            {{#statusteacher}}
-                                {{#pix}} i/status-solved, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
-                                <span class="hide-600">
-                                    {{#str}} solvedanswer, moodleoverflow {{/str}}
-                                </span>
-                            {{/statusteacher}}
-                        {{/statusstarter}}
-                    </div>
                     <div class="post-menu">
                         {{{ commands }}}
                     </div>
@@ -146,6 +129,6 @@
                     {{#str}}pending_review_but_cannot_now, mod_moodleoverflow, {{reviewdelay}} {{/str}}
                 {{/withinreviewperiod}}
             </div>
-        {{/ needsreview }}
-    {{/ canreview }}
+        {{/needsreview}}
+    {{/canreview}}
 </div>

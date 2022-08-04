@@ -59,36 +59,14 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     }
 
     /**
-     * Renders the starting post of a discussion.
+     * Renders any post.
      *
      * @param object $data The submitted variables.
      *
      * @return bool|string
      */
-    public function render_question($data) {
-        return $this->render_from_template('mod_moodleoverflow/answer', $data);
-    }
-
-    /**
-     * Renders all answers of a discussion.
-     *
-     * @param object $data The submitted variables.
-     *
-     * @return bool|string
-     */
-    public function render_answer($data) {
-        return $this->render_from_template('mod_moodleoverflow/answer', $data);
-    }
-
-    /**
-     * Renders all comments of a discussion.
-     *
-     * @param object $data The submitted variables.
-     *
-     * @return bool|string
-     */
-    public function render_comment($data) {
-        return $this->render_from_template('mod_moodleoverflow/comment', $data);
+    public function render_post($data) {
+        return $this->render_from_template('mod_moodleoverflow/post', $data);
     }
 
     /**
