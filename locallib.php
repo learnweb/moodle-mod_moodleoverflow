@@ -168,7 +168,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     if ($markallread && $unreads) {
         echo html_writer::link(new moodle_url($markallread),
             get_string('markallread_forum', 'mod_moodleoverflow'),
-            ['class' => 'btn btn-secondary float-right']
+            ['class' => 'btn btn-secondary my-2']
         );
     }
 
