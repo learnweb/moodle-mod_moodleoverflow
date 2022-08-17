@@ -35,33 +35,33 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     And I am on "Course 1" course homepage
     And I follow "Test moodleoverflow name"
     Then I should see "Subscribe to this forum"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" "table_row"
-    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" "table_row"
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
+    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" moodleoverflow discussion card
     And I should see "Student One will be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name'"
     And I should see "Subscribe to this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" "table_row"
-    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" "table_row"
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
+    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" moodleoverflow discussion card
     And I should see "Student One will NOT be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name'"
     And I should see "Subscribe to this forum"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" "table_row"
-    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" "table_row"
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
+    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" moodleoverflow discussion card
     And I should see "Student One will be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name'"
     And I should see "Subscribe to this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" "table_row"
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
     And I follow "Subscribe to this forum"
     And I should see "Student One will be notified of new posts in 'Test moodleoverflow name'"
     And I should see "Unsubscribe from this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" "table_row"
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
     And I follow "Unsubscribe from this forum"
     And I should see "Student One will NOT be notified of new posts in 'Test moodleoverflow name'"
     And I should see "Subscribe to this forum"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" "table_row"
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
 
   Scenario: An automatic subscription moodleoverflow can have discussions unsubscribed from
     Given the following "activities" exist:
@@ -79,30 +79,30 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     And I am on "Course 1" course homepage
     And I follow "Test moodleoverflow name"
     Then I should see "Unsubscribe from this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" "table_row"
-    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" "table_row"
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
+    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" moodleoverflow discussion card
     And I should see "Student One will NOT be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name'"
     And I should see "Unsubscribe from this forum"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" "table_row"
-    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" "table_row"
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
+    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" moodleoverflow discussion card
     And I should see "Student One will be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name'"
     And I should see "Unsubscribe from this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" "table_row"
-    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" "table_row"
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
+    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" moodleoverflow discussion card
     And I should see "Student One will NOT be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name'"
     And I should see "Unsubscribe from this forum"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" "table_row"
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
     And I follow "Unsubscribe from this forum"
     And I should see "Student One will NOT be notified of new posts in 'Test moodleoverflow name'"
     And I should see "Subscribe to this forum"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" "table_row"
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
     And I follow "Subscribe to this forum"
     And I should see "Student One will be notified of new posts in 'Test moodleoverflow name'"
     And I should see "Unsubscribe from this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" "table_row"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" "table_row"
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject one" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should exist in the "Test post subject two" moodleoverflow discussion card
