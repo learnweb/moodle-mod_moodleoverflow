@@ -100,6 +100,15 @@ if ($moodleoverflow->anonymous > 0) {
     echo html_writer::tag('p', get_string($strkeys[$moodleoverflow->anonymous], 'moodleoverflow'));
 }
 
+$reviewlevel = \mod_moodleoverflow\review::get_review_level($moodleoverflow);
+if ($reviewlevel > 0) {
+    $strkeys = [
+        \mod_moodleoverflow\review::QUESTIONS => 'desc:review_questions',
+        \mod_moodleoverflow\review::EVERYTHING => 'desc:review_everything'
+    ];
+    echo html_writer::tag('p', get_string($strkeys[$reviewlevel], 'moodleoverflow'));
+}
+
 // Show the description of the instance.
 if (!empty($moodleoverflow->intro)) {
     echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
