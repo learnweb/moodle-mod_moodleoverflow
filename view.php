@@ -27,6 +27,7 @@
 
 // Include config and locallib.
 require_once(__DIR__.'/../../config.php');
+global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
 require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
@@ -99,9 +100,26 @@ if ($moodleoverflow->anonymous > 0) {
     echo html_writer::tag('p', get_string($strkeys[$moodleoverflow->anonymous], 'moodleoverflow'));
 }
 
+$reviewlevel = \mod_moodleoverflow\review::get_review_level($moodleoverflow);
+if ($reviewlevel > 0) {
+    $strkeys = [
+        \mod_moodleoverflow\review::QUESTIONS => 'desc:review_questions',
+        \mod_moodleoverflow\review::EVERYTHING => 'desc:review_everything'
+    ];
+    echo html_writer::tag('p', get_string($strkeys[$reviewlevel], 'moodleoverflow'));
+}
+
 // Show the description of the instance.
 if (!empty($moodleoverflow->intro)) {
     echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
+}
+
+if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
+    $reviewpost = \mod_moodleoverflow\review::get_first_review_post($moodleoverflow->id);
+
+    if ($reviewpost) {
+        echo html_writer::link($reviewpost, get_string('review_needed', 'mod_moodleoverflow'), ['class' => 'btn btn-danger']);
+    }
 }
 
 // Return here after posting, etc.

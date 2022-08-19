@@ -22,9 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\output\moodleoverflow_email;
+use mod_moodleoverflow\review;
+
 defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->libdir/externallib.php");
+require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
  * Class implementing the external API, esp. for AJAX functions.
@@ -142,5 +146,162 @@ class mod_moodleoverflow_external extends external_api {
         moodleoverflow_update_user_grade($moodleoverflow, $raterrating, $USER->id);
 
         return $params;
+    }
+
+    /**
+     * Returns description of method parameters.
+     * @return external_function_parameters
+     */
+    public static function review_approve_post_parameters() {
+        return new external_function_parameters([
+            'postid' => new external_value(PARAM_INT, 'id of post')
+        ]);
+    }
+
+    /**
+     * Returns description of return value.
+     * @return external_value
+     */
+    public static function review_approve_post_returns() {
+        return new external_value(PARAM_TEXT, 'the url of the next post to review');
+    }
+
+    /**
+     * Approve a post.
+     *
+     * @param int $postid ID of post to approve.
+     * @return string|null Url of next post to review.
+     */
+    public static function review_approve_post($postid) {
+        global $DB;
+
+        $params = self::validate_parameters(self::review_approve_post_parameters(), ['postid' => $postid]);
+        $postid = $params['postid'];
+
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
+        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion], '*', MUST_EXIST);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow], '*', MUST_EXIST);
+
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $context = context_module::instance($cm->id);
+
+        require_capability('mod/moodleoverflow:reviewpost', $context);
+
+        if ($post->reviewed) {
+            throw new coding_exception('post was already approved!');
+        }
+
+        if (!review::is_post_in_review_period($post)) {
+            throw new coding_exception('post is not yet in review period!');
+        }
+
+        $post->reviewed = 1;
+        $post->timereviewed = time();
+
+        $DB->update_record('moodleoverflow_posts', $post);
+
+        if ($post->modified > $discussion->timemodified) {
+            $discussion->timemodified = $post->modified;
+            $discussion->usermodified = $post->userid;
+            $DB->update_record('moodleoverflow_discussions', $discussion);
+        }
+
+        return review::get_first_review_post($moodleoverflow->id, $post->id);
+    }
+
+    /**
+     * Returns description of method parameters.
+     * @return external_function_parameters
+     */
+    public static function review_reject_post_parameters() {
+        return new external_function_parameters([
+            'postid' => new external_value(PARAM_INT, 'id of post'),
+            'reason' => new external_value(PARAM_RAW, 'reason of rejection')
+        ]);
+    }
+
+    /**
+     * Returns description of return value.
+     * @return external_value
+     */
+    public static function review_reject_post_returns() {
+        return new external_value(PARAM_TEXT, 'the url of the next post to review');
+    }
+
+    /**
+     * Rejects a post.
+     *
+     * @param int $postid ID of post to reject.
+     * @param string|null $reason The reason for rejection.
+     * @return string|null Url of next post to review.
+     */
+    public static function review_reject_post($postid, $reason = null) {
+        global $DB, $PAGE, $OUTPUT;
+
+        $params = self::validate_parameters(self::review_reject_post_parameters(), ['postid' => $postid, 'reason' => $reason]);
+        $postid = $params['postid'];
+
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
+        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion], '*', MUST_EXIST);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow], '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        $course = get_course($cm->course);
+        $context = context_module::instance($cm->id);
+
+        $PAGE->set_context($context);
+
+        require_capability('mod/moodleoverflow:reviewpost', $context);
+
+        if ($post->reviewed) {
+            throw new coding_exception('post was already approved!');
+        }
+
+        if (!review::is_post_in_review_period($post)) {
+            throw new coding_exception('post is not yet in review period!');
+        }
+
+        // Has to be done before deleting the post.
+        $rendererhtml = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
+        $renderertext = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
+
+        $userto = core_user::get_user($post->userid);
+
+        $maildata = new moodleoverflow_email(
+                $course,
+                $cm,
+                $moodleoverflow,
+                $discussion,
+                $post,
+                $userto,
+                $userto,
+                false
+        );
+
+        $textcontext = $maildata->export_for_template($renderertext, true);
+        $htmlcontext = $maildata->export_for_template($rendererhtml, false);
+
+        if ($params['reason'] ?? null) {
+            $htmlcontext['reason'] = format_text_email($params['reason'], FORMAT_PLAIN);
+            $textcontext['reason'] = $htmlcontext['reason'];
+        }
+
+        email_to_user(
+                $userto,
+                \core_user::get_noreply_user(),
+                get_string('email_rejected_subject', 'moodleoverflow', $textcontext),
+                $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_text', $textcontext),
+                $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_html', $htmlcontext)
+        );
+
+        $url = review::get_first_review_post($moodleoverflow->id, $post->id);
+
+        if (!$post->parent) {
+            // Delete discussion, if this is the question.
+            moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleoverflow);
+        } else {
+            moodleoverflow_delete_post($post, true, $cm, $moodleoverflow);
+        }
+
+        return $url;
     }
 }

@@ -26,6 +26,7 @@
  */
 
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -86,6 +87,18 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $mform->addElement('select', 'anonymous', get_string('anonymous', 'moodleoverflow'), $possiblesettings);
             $mform->addHelpButton('anonymous', 'anonymous', 'moodleoverflow');
             $mform->setDefault('anonymous', anonymous::NOT_ANONYMOUS);
+        }
+
+        if (get_config('moodleoverflow', 'allowreview') == 1) {
+            $possiblesettings = [
+                    review::NOTHING => get_string('nothing', 'moodleoverflow'),
+                    review::QUESTIONS => get_string('questions', 'moodleoverflow'),
+                    review::EVERYTHING => get_string('questions_and_posts', 'moodleoverflow')
+            ];
+
+            $mform->addElement('select', 'needsreview', get_string('review', 'moodleoverflow'), $possiblesettings);
+            $mform->addHelpButton('needsreview', 'review', 'moodleoverflow');
+            $mform->setDefault('needsreview', review::NOTHING);
         }
 
         // Attachments.

@@ -33,5 +33,21 @@ $functions = array(
         'type'         => 'write',
         'ajax'         => true,
         'capabilities' => 'mod/moodleoverflow:ratepost'
-    )
+    ),
+    'mod_moodleoverflow_review_approve_post' => array(
+        'classname'    => 'mod_moodleoverflow_external',
+        'methodname'   => 'review_approve_post',
+        'classpath'    => 'mod/moodleoverflow/externallib.php',
+        'description'  => 'Approves a post',
+        'type'         => 'write',
+        'ajax'         => true,
+    ),
+    'mod_moodleoverflow_review_reject_post' => array(
+        'classname'    => 'mod_moodleoverflow_external',
+        'methodname'   => 'review_reject_post',
+        'classpath'    => 'mod/moodleoverflow/externallib.php',
+        'description'  => 'Rejects a post',
+        'type'         => 'write',
+        'ajax'         => true,
+    ),
 );

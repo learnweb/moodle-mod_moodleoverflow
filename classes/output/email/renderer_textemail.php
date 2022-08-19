@@ -24,6 +24,10 @@
 
 namespace mod_moodleoverflow\output\email;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->libdir . '/filelib.php');
+
 /**
  * Moodleoverflow post renderable.
  *
@@ -51,7 +55,6 @@ class renderer_textemail extends renderer {
      * @return string
      */
     public function format_message_text($cm, $post) {
-
         // Format the text.
         $message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php',
             \context_module::instance($cm->id)->id,

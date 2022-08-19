@@ -69,6 +69,7 @@ jobs:
       - name: PHP Copy/Paste Detector
         if: ${{ always() }}
         run: moodle-plugin-ci phpcpd
+        continue-on-error: true
 
       - name: PHP Mess Detector
         if: ${{ always() }}

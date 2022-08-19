@@ -65,7 +65,7 @@ $string['nodiscussions']        = 'There are no discussion topics yet in this fo
 $string['headerdiscussion']     = 'Discussion';
 $string['headerstartedby']      = 'Started by';
 $string['headerreplies']        = 'Replies';
-$string['headerlastpost']       = 'Last post';
+$string['headerlastpost']       = 'Last published post';
 $string['headerunread']         = 'Unread';
 $string['headervotes']          = 'Votes';
 $string['headerstatus']         = 'Status';
@@ -92,7 +92,7 @@ $string['maxattachments']            = 'Maximum number of attachments';
 $string['maxattachments_help']       = 'This setting specifies the maximum number of files that can be attached to a forum post.';
 $string['configmaxattachments']      = 'Default maximum number of attachments allowed per post.';
 $string['maxeditingtime']            = 'Maximum amount of time during which a post can be edited by its owner (sec)';
-$string['configmaxeditingtime']      = 'Default maximum seconds are 3600 (= one hour).';
+$string['configmaxeditingtime']      = 'Default maximum seconds are 3600 (= one hour). Regarding editing posts, please also consider the <a href="#admin-reviewpossibleaftertime">"Review possible after" setting</a> for moderated forums.';
 $string['configoldpostdays']         = 'Number of days old any post is considered read.';
 $string['oldpostdays']               = 'Read after days';
 $string['trackingoff']               = 'Off';
@@ -418,3 +418,34 @@ $string['answerer'] = 'Answerer #{$a}';
 $string['desc:only_questions'] = 'The name of questioners will not be displayed in their question and comments.';
 $string['desc:anonymous'] = 'No names will be displayed.';
 $string['resetanonymous_warning'] = 'Are you sure? If you are in production, <b>this is most certainly a bad decision</b> because your students and teachers posted their questions and answers, believing they would remain anonymous. <br><br><b>{$a->fullanoncount}</b> forums are currently fully anonymized, and in <b>{$a->questionanoncount}</b> additional forums the questioners are anonymized.<br><br><b>In all these forums, the real names of posters will be displayed again, even in already existing posts!</b><br><br>There is no way of reverting those changes!</br>';
+
+// Review feature
+$string['review'] = 'Review';
+$string['review_help'] = 'Select what has to be approved by a teacher before being shown to students.';
+$string['nothing'] = 'Nothing';
+$string['questions'] = 'Questions';
+$string['questions_and_posts'] = 'Questions and answers';
+$string['desc:review_questions'] = 'All questions are going to be reviewed by a teacher before being published.';
+$string['desc:review_everything'] = 'All questions and answers are going to be reviewed by a teacher before being published.';
+$string['allowreview'] = 'Allow moderated forums';
+$string['allowreview_desc'] = 'Allow teachers to enable that all posts (or only all questions) have to be reviewed by them in order to be published.';
+$string['amount_waiting_for_review'] = '{$a} post(s) need to be reviewed!';
+$string['pending_review'] = 'Pending review';
+$string['post_was_approved'] = 'The post was approved.';
+$string['post_was_rejected'] = 'The post was rejected.';
+$string['jump_to_next_post_needing_review'] = 'Jump to next post needing to be reviewed.';
+$string['there_are_no_posts_needing_review'] = 'There are no more posts in this forum that need to be reviewed.';
+$string['give_a_reason'] = 'Give a reason (optional)';
+$string['approve'] = 'Approve';
+$string['reject'] = 'Reject';
+$string['reviewpossibleaftertime'] = 'Review possible after (secs)';
+$string['reviewpossibleaftertime_desc'] = 'A teacher can only reject or approve a post at least this amount of time (in seconds) after the creation of the post. After a teacher has approved a post, the post cannot be edited by it\'s author anymore, even if still within the maxeditingtime duration.';
+$string['pending_review_but_cannot_now'] = 'Pending review, but can only be approved at least {$a} after the creation of this post to allow the author a bit of time to edit it.';
+
+$string['review_needed'] = 'Review needed!';
+
+$string['email_review_needed_subject'] = 'Review needed in {$a->coursename}: {$a->subject}';
+$string['email_rejected_subject'] = '{$a->coursename}: One of your posts has been rejected.';
+$string['your_post_was_rejected'] = 'Your post was rejected.';
+$string['your_post_was_rejected_with_reason'] = 'Your post was rejected with the following reason:';
+$string['original_post'] = 'Original post';

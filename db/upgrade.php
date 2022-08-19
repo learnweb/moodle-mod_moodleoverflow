@@ -195,5 +195,40 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2021111700, 'moodleoverflow');
     }
 
+    if ($oldversion < 2022072000) {
+
+        // Define field needsreview to be added to moodleoverflow.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('needsreview', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'anonymous');
+
+        // Conditionally launch add field needsreview.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field reviewed and timereviewed to be added to moodleoverflow_posts.
+        $table = new xmldb_table('moodleoverflow_posts');
+        $field = new xmldb_field('reviewed', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'mailed');
+
+        // Conditionally launch add field reviewed.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('timereviewed', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'reviewed');
+
+        // Conditionally launch add field timereviewed.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('mailed', XMLDB_TYPE_INTEGER, '2', null, null, null, '0', 'attachment');
+        // Launch change of precision for field mailed.
+        $dbman->change_field_precision($table, $field);
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2022072000, 'moodleoverflow');
+    }
+
     return true;
 }

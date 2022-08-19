@@ -106,7 +106,7 @@ if (!empty($discussionid)) {
     }
 
     // Mark all the discussions read.
-    if (!\mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read($discussionid, $user->id)) {
+    if (!\mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $user->id)) {
 
         // Display an error, if something failes.
         $message = get_string('markreadfailed', 'moodleoverflow');

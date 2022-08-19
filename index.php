@@ -251,8 +251,7 @@ if ($generalmoodleoverflows) {
                 if (isset($untracked[$moodleoverflow->id])) {
                     $unreadlink = '-';
 
-                } else if ($unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm,
-                    $course)
+                } else if ($unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm)
                 ) {
                     // There are unread posts in the moodleoverflow instance.
 

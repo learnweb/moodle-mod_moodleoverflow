@@ -234,4 +234,15 @@ $capabilities = array(
         'clonepermissionsfrom' => 'mod/forum:createattachment'
     ),
 
+    'mod/moodleoverflow:reviewpost' => array(
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'teacher'        => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager'        => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ),
+
 );

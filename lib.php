@@ -48,6 +48,7 @@ define('MOODLEOVERFLOW_DISALLOWSUBSCRIBE', 3);
 define('MOODLEOVERFLOW_MAILED_PENDING', 0);
 define('MOODLEOVERFLOW_MAILED_SUCCESS', 1);
 define('MOODLEOVERFLOW_MAILED_ERROR', 2);
+define('MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS', 3);
 
 // Constants for the post rating.
 define('MOODLEOVERFLOW_PREFERENCE_STARTER', 0);
@@ -829,7 +830,7 @@ function moodleoverflow_send_mails() {
                     $modulecontext = context_module::instance($cm->id);
 
                     // Check the users capabilities.
-                    $canpost = moodleoverflow_user_can_post($moodleoverflow, $userto, $cm, $course, $modulecontext);
+                    $canpost = moodleoverflow_user_can_post($modulecontext, $post, $userto->id);
                     $userto->canpost[$discussion->id] = $canpost;
                 }
 
@@ -863,7 +864,7 @@ function moodleoverflow_send_mails() {
 
                 // Cache the users capabilities.
                 if (!isset($userto->canpost[$discussion->id])) {
-                    $canreply = moodleoverflow_user_can_post($moodleoverflow, $userto, $cm, $course, $modulecontext);
+                    $canreply = moodleoverflow_user_can_post($modulecontext, $post, $userto->id);
                 } else {
                     $canreply = $userto->canpost[$discussion->id];
                 }
@@ -1005,15 +1006,18 @@ function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
 
     // Set params for the sql query.
     $params               = array();
-    $params['mailed']     = MOODLEOVERFLOW_MAILED_PENDING;
     $params['ptimestart'] = $starttime;
     $params['ptimeend']   = $endtime;
+
+    $pendingmail = MOODLEOVERFLOW_MAILED_PENDING;
+    $reviewsent = MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
 
     // Retrieve the records.
     $sql = "SELECT p.*, d.course, d.moodleoverflow
             FROM {moodleoverflow_posts} p
             JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-            WHERE p.mailed = :mailed AND p.created >= :ptimestart AND p.created < :ptimeend
+            WHERE p.mailed IN ($pendingmail, $reviewsent) AND p.reviewed = 1
+            AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
             ORDER BY p.modified ASC";
 
     return $DB->get_records_sql($sql, $params);
@@ -1035,6 +1039,7 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
     // Define variables for the sql query.
     $params                  = array();
     $params['mailedsuccess'] = MOODLEOVERFLOW_MAILED_SUCCESS;
+    $params['mailedreviewsent'] = MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
     $params['now']           = $now;
     $params['endtime']       = $endtime;
     $params['mailedpending'] = MOODLEOVERFLOW_MAILED_PENDING;
@@ -1042,7 +1047,7 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
     // Define the sql query.
     $sql = "UPDATE {moodleoverflow_posts}
             SET mailed = :mailedsuccess
-            WHERE (created < :endtime) AND mailed = :mailedpending";
+            WHERE (created < :endtime) AND mailed IN (:mailedpending, :mailedreviewsent) AND reviewed = 1";
 
     return $DB->execute($sql, $params);
 
@@ -1075,19 +1080,29 @@ function moodleoverflow_minimise_user_record(stdClass $user) {
 function moodleoverflow_cm_info_view(cm_info $cm) {
 
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows();
+    $out = "";
+    if (has_capability('mod/moodleoverflow:reviewpost', $cm->context)) {
+        $reviewcount = \mod_moodleoverflow\review::count_outstanding_reviews_in_moodleoverflow($cm->instance);
+        if ($reviewcount) {
+            $out .= '<span class="mod_moodleoverflow-label-review"><a href="' . $cm->url . '">';
+            $out .= get_string('amount_waiting_for_review', 'mod_moodleoverflow', $reviewcount);
+            $out .= '</a></span> ';
+        }
+    }
     if ($cantrack) {
-        $unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm,
-            $cm->get_course());
+        $unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm);
         if ($unread) {
-            $out = '<span class="unread"> <a href="' . $cm->url . '">';
+            $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {
                 $out .= get_string('unreadpostsone', 'moodleoverflow');
             } else {
                 $out .= get_string('unreadpostsnumber', 'moodleoverflow', $unread);
             }
             $out .= '</a></span>';
-            $cm->set_after_link($out);
         }
+    }
+    if ($out) {
+        $cm->set_after_link($out);
     }
 }
 
@@ -1095,7 +1110,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
  * Check if the user can create attachments in moodleoverflow.
  *
  * @param  stdClass $moodleoverflow moodleoverflow object
- * @param  stdClass $context        context object
+ * @param  context_module $context        context object
  *
  * @return bool true if the user can create attachments, false otherwise
  * @since  Moodle 3.3
@@ -1209,4 +1224,14 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades=null) {
     }
 
     return $gradeupdate;
+}
+
+/**
+ * Map icons for font-awesome themes.
+ */
+function moodleoverflow_get_fontawesome_icon_map() {
+    return [
+        'mod_moodleoverflow:i/commenting' => 'fa-commenting',
+        'mod_moodleoverflow:i/pending-big' => 'fa-clock-o text-danger moodleoverflow-icon-big'
+    ];
 }

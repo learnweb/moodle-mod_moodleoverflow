@@ -24,6 +24,7 @@
 
 namespace mod_moodleoverflow;
 
+use context_module;
 use moodle_exception;
 
 /**
@@ -136,7 +137,7 @@ class readtracking {
         foreach ($discussions as $discussionid => $amount) {
 
             // Mark the discussion as read.
-            if (!self::moodleoverflow_mark_discussion_read($discussionid, $userid)) {
+            if (!self::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $userid)) {
                 throw new moodle_exception('markreadfailed', 'moodleoverflow');
 
                 return false;
@@ -150,13 +151,14 @@ class readtracking {
      * Marks a specific discussion as read by a specific user.
      *
      * @param int  $discussionid
+     * @param context_module $modcontext
      * @param null $userid
      */
-    public static function moodleoverflow_mark_discussion_read($discussionid, $userid = null) {
+    public static function moodleoverflow_mark_discussion_read($discussionid, $modcontext, $userid = null) {
         global $USER;
 
         // Get all posts.
-        $posts = moodleoverflow_get_all_discussion_posts($discussionid, true);
+        $posts = moodleoverflow_get_all_discussion_posts($discussionid, true, $modcontext);
 
         // If no user is submitted, use the current one.
         if (!isset($userid)) {
@@ -468,101 +470,36 @@ class readtracking {
      *
      * @return int|mixed
      */
-    public static function moodleoverflow_count_unread_posts_moodleoverflow($cm, $course) {
-        global $CFG, $DB, $USER;
+    public static function moodleoverflow_count_unread_posts_moodleoverflow($cm) {
+        global $DB, $USER;
 
-        // Create a cache.
-        static $readcache = array();
+        $moodleoverflow = $DB->get_record_sql("SELECT m.*, tm.id as hasdisabledtracking " .
+                "FROM {moodleoverflow} m " .
+                "LEFT JOIN {moodleoverflow_tracking} tm ON m.id = tm.moodleoverflowid AND tm.userid = :userid " .
+                "WHERE m.id = :moodleoverflowid", ['userid' => $USER->id, 'moodleoverflowid' => $cm->instance]);
 
-        // Get the moodleoverflow ids.
-        $moodleoverflowid = $cm->instance;
-
-        // Check whether the cache is already set.
-        if (!isset($readcache[$course->id])) {
-
-            // Create a cache for the course.
-            $readcache[$course->id] = array();
-
-            // Count the unread posts in the course.
-            $counts = self::moodleoverflow_count_unread_posts_course($USER->id, $course->id);
-            if ($counts) {
-
-                // Loop through all unread posts.
-                foreach ($counts as $count) {
-                    $readcache[$course->id][$count->id] = $count->unread;
-                }
-            }
-        }
-
-        // Check whether there are no unread post for this moodleoverflow.
-        if (empty($readcache[$course->id][$moodleoverflowid])) {
+        // Return if tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
+        if ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OFF || (
+                        ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL || (
+                                        $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED &&
+                                        !get_config('moodleoverflow', 'allowforcedreadtracking')
+                                )
+                        ) && $moodleoverflow->hasdisabledtracking)) {
             return 0;
         }
-
-        // Require the course library.
-        require_once($CFG->dirroot . '/course/lib.php');
-
         // Get the current timestamp and the cutoffdate.
-        $now        = round(time(), -2);
+        $now = round(time(), -2);
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Define a sql-query.
-        $params = array($USER->id, $moodleoverflowid, $cutoffdate);
+        $params = array($USER->id, $cm->instance, $cutoffdate);
         $sql    = "SELECT COUNT(p.id)
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
              LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = ?)
-                 WHERE d.moodleoverflow = ? AND p.modified >= ? AND r.id IS NULL";
+                 WHERE d.moodleoverflow = ? AND p.modified >= ? AND r.id IS NULL AND p.reviewed = 1";
 
         // Return the number of unread posts per moodleoverflow.
         return $DB->get_field_sql($sql, $params);
-    }
-
-    /**
-     * Get an array of unread posts within a course.
-     *
-     * @param int $userid   The user ID
-     * @param int $courseid The course ID
-     *
-     * @return array Array of unread posts within a course
-     */
-    public static function moodleoverflow_count_unread_posts_course($userid, $courseid) {
-        global $DB;
-
-        // Get the current timestamp and calculate the cutoffdate.
-        $now        = round(time(), -2);
-        $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
-
-        // Set parameters for the sql-query.
-        $params = array($userid, $userid, $courseid, $cutoffdate, $userid);
-
-        // Check if forced readtracking is allowed.
-        if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
-            $trackingsql = "AND (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_FORCED .
-                " OR (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL . " AND tm.id IS NULL))";
-        } else {
-            $trackingsql = "AND ((m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL . " OR m.trackingtype = " .
-                MOODLEOVERFLOW_TRACKING_FORCED . ") AND tm.id IS NULL)";
-        }
-
-        // Define the sql-query.
-        $sql = "SELECT m.id, COUNT(p.id) AS unread
-                  FROM {moodleoverflow_posts} p
-                  JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-                  JOIN {moodleoverflow} m ON m.id = d.moodleoverflow
-                  JOIN {course} c ON c.id = m.course
-             LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = ?)
-             LEFT JOIN {moodleoverflow_tracking} tm ON (tm.userid = ? AND tm.moodleoverflowid = m.id)
-                 WHERE m.course = ? AND p.modified >= ? AND r.id IS NULL $trackingsql
-              GROUP BY m.id";
-
-        // Get the amount of unread post within a course.
-        $return = $DB->get_records_sql($sql, $params);
-        if ($return) {
-            return $return;
-        }
-
-        // Else return nothing.
-        return array();
     }
 }

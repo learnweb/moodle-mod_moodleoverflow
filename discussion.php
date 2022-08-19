@@ -129,6 +129,8 @@ if ($node AND ($post->id != $discussion->firstpost)) {
     $node->add(format_string($post->subject), $PAGE->url);
 }
 
+$PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
+
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
@@ -146,18 +148,12 @@ if ((!is_guest($modulecontext, $USER) AND isloggedin() AND $canviewdiscussion)) 
     echo '';
 }
 
-// Check if the user can reply in this discussion.
-$canreply = moodleoverflow_user_can_post($moodleoverflow, $USER, $cm, $course, $modulecontext);
-
-// Link to the selfenrollment if not allowed.
-if (!$canreply) {
-    if (!is_enrolled($modulecontext) AND !is_viewing($modulecontext)) {
-        $canreply = enrol_selfenrol_available($course->id);
-    }
-}
-
 echo "<br>";
 
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $canreply);
+echo '<div id="moodleoverflow-posts">';
+
+moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post);
+
+echo '</div>';
 
 echo $OUTPUT->footer();

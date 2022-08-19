@@ -22,8 +22,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// TODO refactor this. For more readability, and to avoid security issues.
+
 // Include config and locallib.
+use mod_moodleoverflow\review;
+
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
 require_once(dirname(__FILE__) . '/locallib.php');
 require_once($CFG->libdir . '/completionlib.php');
 
@@ -213,7 +218,7 @@ if (!empty($moodleoverflow)) {
     $coursecontext = context_course::instance($course->id);
 
     // Check whether the user is allowed to post.
-    if (!moodleoverflow_user_can_post($moodleoverflow, $USER, $cm, $course, $modulecontext)) {
+    if (!moodleoverflow_user_can_post($modulecontext, $parent)) {
 
         // Give the user the chance to enroll himself to the course.
         if (!isguestuser() AND !is_enrolled($coursecontext)) {
@@ -295,11 +300,14 @@ if (!empty($moodleoverflow)) {
     $PAGE->set_cm($cm, $course, $moodleoverflow);
 
     // Check if the post can be edited.
-    $intime = ((time() - $post->created) > get_config('moodleoverflow', 'maxeditingtime'));
-    if ($intime AND !has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
+    $beyondtime = ((time() - $post->created) > get_config('moodleoverflow', 'maxeditingtime'));
+    $alreadyreviewed = review::should_post_be_reviewed($post, $moodleoverflow) && $post->reviewed;
+    if (($beyondtime || $alreadyreviewed) AND !has_capability('mod/moodleoverflow:editanypost', $modulecontext)) {
         throw new moodle_exception('maxtimehaspassed', 'moodleoverflow', '',
             format_time(get_config('moodleoverflow', 'maxeditingtime')));
     }
+
+
 
     // If the current user is not the one who posted this post.
     if ($post->userid <> $USER->id) {
@@ -360,7 +368,7 @@ if (!empty($moodleoverflow)) {
     }
 
     // Count all replies of this post.
-    $replycount = moodleoverflow_count_replies($post);
+    $replycount = moodleoverflow_count_replies($post, false);
 
     // Has the user confirmed the deletion?
     if (!empty($confirm) AND confirm_sesskey()) {
@@ -396,7 +404,7 @@ if (!empty($moodleoverflow)) {
                 redirect("view.php?m=$discussion->moodleoverflow");
                 exit;
 
-            } else if (moodleoverflow_delete_post($post, $deleteanypost, $course, $cm, $moodleoverflow)) {
+            } else if (moodleoverflow_delete_post($post, $deleteanypost, $cm, $moodleoverflow)) {
                 // Delete a single post.
                 // Redirect back to the discussion.
                 $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id));
@@ -527,6 +535,7 @@ $postid = empty($post->id) ? null : $post->id;
 $postmessage = empty($post->message) ? null : $post->message;
 
 // Set data for the form.
+// TODO Refactor.
 $param1 = (isset($discussion->id) ? array($discussion->id) : array());
 $param2 = (isset($post->format) ? array('format' => $post->format) : array());
 $param3 = (isset($discussion->timestart) ? array('timestart' => $discussion->timestart) : array());
@@ -598,7 +607,7 @@ if ($fromform = $mformpost->get_data()) {
         $replypost = has_capability('mod/moodleoverflow:replypost', $modulecontext);
         $startdiscussion = has_capability('mod/moodleoverflow:startdiscussion', $modulecontext);
         $ownpost = ($realpost->userid == $USER->id);
-        if (!((($ownpost AND $replypost OR $startdiscussion)) OR $editanypost)) {
+        if (!(($ownpost AND ($replypost OR $startdiscussion)) OR $editanypost)) {
             throw new moodle_exception('cannotupdatepost', 'moodleoverflow');
         }
 
