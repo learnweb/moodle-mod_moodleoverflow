@@ -89,9 +89,6 @@ $PAGE->set_heading(format_string($course->fullname));
 // Output starts here.
 echo $OUTPUT->header();
 
-// Show the name of the instance.
-echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
-
 if ($moodleoverflow->anonymous > 0) {
     $strkeys = [
             \mod_moodleoverflow\anonymous::QUESTION_ANONYMOUS => 'desc:only_questions',
@@ -107,11 +104,6 @@ if ($reviewlevel > 0) {
         \mod_moodleoverflow\review::EVERYTHING => 'desc:review_everything'
     ];
     echo html_writer::tag('p', get_string($strkeys[$reviewlevel], 'moodleoverflow'));
-}
-
-// Show the description of the instance.
-if (!empty($moodleoverflow->intro)) {
-    echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
 }
 
 if (has_capability('mod/moodleoverflow:reviewpost', $context)) {

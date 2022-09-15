@@ -140,7 +140,6 @@ $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 
 // Start the side-output.
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($moodleoverflow->name), 3);
 echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
 
 // Guests and users can not subscribe to a discussion.
