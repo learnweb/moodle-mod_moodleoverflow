@@ -51,6 +51,7 @@ $string['moodleoverflow:startdiscussion']     = 'Start a discussion';
 $string['moodleoverflow:replypost']           = 'Reply in discussion';
 $string['moodleoverflow:viewdiscussion']      = 'View discussion';
 $string['moodleoverflow:marksolved']          = 'Mark a post as solution';
+$string['moodleoverflow:reviewpost']          = 'Review a post';
 $string['nowallsubscribed']                   = 'All forums in {$a} are subscribed.';
 $string['nowallunsubscribed']                 = 'All forums in {$a} are unsubscribed.';
 

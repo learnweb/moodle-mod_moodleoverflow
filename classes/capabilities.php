@@ -36,7 +36,6 @@ use context;
 class capabilities {
 
     const ADD_INSTANCE = 'mod/moodleoverflow:addinstance';
-    const VIEW = 'mod/moodleoverflow:view';
     const VIEW_DISCUSSION = 'mod/moodleoverflow:viewdiscussion';
     const REPLY_POST = 'mod/moodleoverflow:replypost';
     const START_DISCUSSION = 'mod/moodleoverflow:startdiscussion';
