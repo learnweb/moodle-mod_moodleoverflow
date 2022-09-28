@@ -622,8 +622,13 @@ if ($fromform = $mformpost->get_data()) {
         if ($realpost->userid == $USER->id) {
             $message .= get_string('postupdated', 'moodleoverflow');
         } else {
-            $realuser = $DB->get_record('user', array('id' => $realpost->userid));
-            $message .= get_string('editedpostupdated', 'moodleoverflow', fullname($realuser));
+            if (\mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $realpost->userid)) {
+                $name = get_string('anonymous', 'moodleoverflow');
+            } else {
+                $realuser = $DB->get_record('user', array('id' => $realpost->userid));
+                $name = fullname($realuser);
+            }
+            $message .= get_string('editedpostupdated', 'moodleoverflow', $name);
         }
 
         // Create a link to go back to the discussion.
