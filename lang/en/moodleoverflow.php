@@ -421,6 +421,7 @@ $string['resetanonymous_warning'] = 'Are you sure? If you are in production, <b>
 
 // Review feature
 $string['review'] = 'Review';
+$string['reviewpost'] = 'Review a post';
 $string['review_help'] = 'Select what has to be approved by a teacher before being shown to students.';
 $string['nothing'] = 'Nothing';
 $string['questions'] = 'Questions';
