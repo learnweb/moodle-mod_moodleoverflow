@@ -98,7 +98,7 @@ if ($ADMIN->fulltree) {
         get_string('allowreview', 'moodleoverflow'), get_string('allowreview_desc', 'moodleoverflow'), 1));
 
     $settings->add(new admin_setting_configtext('moodleoverflow/reviewpossibleaftertime', get_string('reviewpossibleaftertime', 'moodleoverflow'),
-            get_string('reviewpossibleaftertime_desc', 'moodleoverflow'), 3600, PARAM_INT));
+            get_string('reviewpossibleaftertime_desc', 'moodleoverflow'), 1800, PARAM_INT));
 
     // Set scales for the reputation.
     $votesettings = [];
