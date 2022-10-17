@@ -93,7 +93,8 @@ class review {
             $afterdiscussionid = $DB->get_field('moodleoverflow_posts', 'discussion', ['id' => $afterpostid],
                 MUST_EXIST);
 
-            $orderby = 'CASE WHEN (p.discussion > :afterdiscussionid OR (p.discussion = :afterdiscussionid2 AND p.id > :afterpostid)) THEN 0 ELSE 1 END, ';
+            $orderby = 'CASE WHEN (p.discussion > :afterdiscussionid OR (p.discussion = :afterdiscussionid2 AND p.id
+             > :afterpostid)) THEN 0 ELSE 1 END, ';
             $params['afterdiscussionid'] = $afterdiscussionid;
             $params['afterdiscussionid2'] = $afterdiscussionid;
             $params['afterpostid'] = $afterpostid;

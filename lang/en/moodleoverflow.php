@@ -405,7 +405,7 @@ $string['gradesreport'] = 'Grades report';
 $string['gradesupdated'] = 'Grades updated';
 $string['taskupdategrades'] = 'Moodleoverflow maintenance job to update grades';
 
-// Anonymous Feature
+// Anonymous Feature.
 $string['anonymous'] = 'Anonymous';
 $string['anonymous_help'] = 'This will hide username from all question (and answers).<br>WARNING: Once the questions (and answers) are anonymized, this cannot be reversed.<br>The setting can only be changed to a higher degree of anonymity.';
 $string['anonymous:only_questions'] = 'Only questioners (Irreversible!)';
@@ -419,7 +419,7 @@ $string['desc:only_questions'] = 'The name of questioners will not be displayed 
 $string['desc:anonymous'] = 'No names will be displayed.';
 $string['resetanonymous_warning'] = 'Are you sure? If you are in production, <b>this is most certainly a bad decision</b> because your students and teachers posted their questions and answers, believing they would remain anonymous. <br><br><b>{$a->fullanoncount}</b> forums are currently fully anonymized, and in <b>{$a->questionanoncount}</b> additional forums the questioners are anonymized.<br><br><b>In all these forums, the real names of posters will be displayed again, even in already existing posts!</b><br><br>There is no way of reverting those changes!</br>';
 
-// Review feature
+// Review feature.
 $string['review'] = 'Review';
 $string['reviewpost'] = 'Review a post';
 $string['review_help'] = 'Select what has to be approved by a teacher before being shown to students.';
