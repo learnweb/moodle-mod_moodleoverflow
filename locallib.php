@@ -907,7 +907,8 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     echo '<div id="moodleoverflow-posts">';
 
     // Print the other posts.
-    echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $istracked, $posts, null, $usermapping);
+    echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $istracked, $posts,
+        null, $usermapping);
 
     echo '</div>';
 }
@@ -1599,7 +1600,7 @@ function moodleoverflow_add_new_post($post) {
 
     // Add the post to the database.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
-    $DB->set_field('moodleoverflow_posts', 'message', $post->message, array('id' => $post->id)); // ??
+    $DB->set_field('moodleoverflow_posts', 'message', $post->message, array('id' => $post->id));
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
     if ($post->reviewed) {
@@ -1819,7 +1820,7 @@ function moodleoverflow_discussion_update_last_post($discussionid) {
         return false;
     }
 
-    // Find the last reviewed post of the discussion. (even if user has review capability, because it is written to DB)
+    // Find the last reviewed post of the discussion. (even if user has review capability, because it is written to DB).
     $sql = "SELECT id, userid, modified
               FROM {moodleoverflow_posts}
              WHERE discussion = ?
