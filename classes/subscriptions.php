@@ -462,7 +462,7 @@ class subscriptions {
         global $DB;
 
         // Only enrolled users can subscribe.
-        list($esql, $params) = get_enrolled_sql($context);
+        list($esql, $params) = get_enrolled_sql($context, 'mod/moodleoverflow:allowforcesubscribe');
 
         // Default ordering of the list.
         if (!$sort) {
@@ -545,6 +545,8 @@ class subscriptions {
             // Find the list of potential subscribers.
             $results = self::get_potential_subscribers($context, $fields, 'u.email ASC');
 
+        } else if (self::subscription_disabled($moodleoverflow)) {
+            $results = [];
         } else {
 
             // Only enrolled users can subscribe to a moodleoverflow.
