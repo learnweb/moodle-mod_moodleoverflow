@@ -230,5 +230,21 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022072000, 'moodleoverflow');
     }
 
+    if ($oldversion < 2022110700) {
+
+        foreach (get_archetype_roles('manager') as $role) {
+            unassign_capability('mod/moodleoverflow:reviewpost', $role->id);
+        }
+
+        foreach (get_archetype_roles('teacher') as $role) {
+            assign_capability(
+                    'mod/moodleoverflow:reviewpost', CAP_ALLOW, $role->id, context_system::instance()
+            );
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2022110700, 'moodleoverflow');
+    }
+
     return true;
 }
