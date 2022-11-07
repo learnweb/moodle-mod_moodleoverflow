@@ -45,10 +45,15 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      * Defines forms elements.
      */
     public function definition() {
-        global $CFG, $COURSE;
+        global $CFG, $COURSE, $PAGE;
 
         // Define the modform.
         $mform = $this->_form;
+
+        if ($this->get_instance()) {
+            $PAGE->requires->js_call_amd('mod_moodleoverflow/warnmodechange', 'init',
+                [$this->get_current()->forcesubscribe]);
+        }
 
         // Adding the "general" fieldset, where all the common settings are showed.
         $mform->addElement('header', 'general', get_string('general', 'form'));
