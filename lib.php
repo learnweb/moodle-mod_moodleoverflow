@@ -489,7 +489,8 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $canmanage       = has_capability('mod/moodleoverflow:managesubscriptions', $PAGE->cm->context);
     $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
     $subscdisabled   = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
-    $cansubscribe    = ($activeenrolled AND !$forcesubscribed AND (!$subscdisabled OR $canmanage));
+    $cansubscribe    = $activeenrolled && (!$subscdisabled || $canmanage) &&
+        !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $PAGE->cm->context));
     $cantrack        = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
 
     // Display a link to the index.
@@ -511,7 +512,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     if ($cansubscribe) {
 
         // Choose the linktext depending on the current state of subscription.
-        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, null);
+        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $PAGE->cm->context);
         if ($issubscribed) {
             $linktext = get_string('unsubscribe', 'moodleoverflow');
         } else {
@@ -779,7 +780,7 @@ function moodleoverflow_send_mails() {
                 $iscm         = $coursemodules[$moodleoverflow->id];
                 $uid          = $userto->id;
                 $did          = $post->discussion;
-                $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($uid, $moodleoverflow, $did);
+                $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($uid, $moodleoverflow, $modulecontext, $did);
                 if (!$issubscribed) {
                     continue;
                 }
