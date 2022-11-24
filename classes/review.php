@@ -85,7 +85,10 @@ class review {
     public static function get_first_review_post($moodleoverflowid, $afterpostid = null) {
         global $DB;
 
-        $params = ['moodleoverflowid' => $moodleoverflowid];
+        $params = [
+                'moodleoverflowid' => $moodleoverflowid,
+                'reviewtime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime')
+        ];
         $orderby = '';
         $addwhere = '';
 
@@ -105,7 +108,7 @@ class review {
         $record = $DB->get_record_sql(
             'SELECT p.id as postid, p.discussion as discussionid FROM {moodleoverflow_posts} p ' .
             'JOIN {moodleoverflow_discussions} d ON d.id = p.discussion ' .
-            "WHERE p.reviewed = 0 AND d.moodleoverflow = :moodleoverflowid $addwhere " .
+            "WHERE p.reviewed = 0 AND d.moodleoverflow = :moodleoverflowid AND p.created < :reviewtime $addwhere " .
             "ORDER BY $orderby p.discussion, p.id " .
             'LIMIT 1',
             $params
