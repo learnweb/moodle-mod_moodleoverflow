@@ -139,7 +139,7 @@ foreach ($modinfo->get_instances_of('moodleoverflow') as $moodleoverflowid => $c
     }
 
     // Get information about the subscription state.
-    $cansubscribe                 = \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow);
+    $cansubscribe                 = \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext);
     $moodleoverflow->cansubscribe = $cansubscribe || has_capability('mod/moodleoverflow:managesubscriptions', $modulecontext);
     $moodleoverflow->issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $modulecontext);
     $showsubscriptioncolumns      = $showsubscriptioncolumns || $moodleoverflow->issubscribed || $moodleoverflow->cansubscribe;
@@ -192,12 +192,13 @@ if (!is_null($subscribe)) {
         }
 
         // Check the subscription state.
-        $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
+        $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow) &&
+                has_capability('mod/moodleoverflow:allowforcesubscribe', $modulecontext);
         if (!$forcesubscribed) {
 
             // Check the current state.
             $subscribed   = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $modulecontext);
-            $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow);
+            $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext);
 
             // Check whether to subscribe or unsubscribe the user.
             if ($cap['manageactivities'] OR $subscribable AND $subscribe AND !$subscribed AND $cansub) {

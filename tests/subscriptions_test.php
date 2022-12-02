@@ -116,6 +116,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $options = array('course' => $course->id);
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+        $modulecontext = context_module::instance($moodleoverflow->cmid);
 
         // Create a user enrolled in the course as a student.
         list ($user) = $this->helper_create_users($course, 1);
@@ -129,27 +130,27 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertEquals(MOODLEOVERFLOW_FORCESUBSCRIBE,
             \mod_moodleoverflow\subscriptions::get_subscription_mode($moodleoverflow));
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow));
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow));
 
         // Test the disallowed subscription.
         \mod_moodleoverflow\subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_DISALLOWSUBSCRIBE);
         $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id));
         $this->assertTrue(\mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow));
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow));
 
         // Test the initial subscription.
         \mod_moodleoverflow\subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_INITIALSUBSCRIBE);
         $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id));
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow));
 
         // Test the choose subscription.
         \mod_moodleoverflow\subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_CHOOSESUBSCRIBE);
         $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id));
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow));
     }
@@ -1376,7 +1377,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $options['course'] = $course->id;
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow,
+                context_module::instance($moodleoverflow->cmid)));
     }
 
     /**
@@ -1399,7 +1401,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $options['course'] = $course->id;
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow,
+                context_module::instance($moodleoverflow->cmid)));
     }
 
     /**
@@ -1449,6 +1452,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($user->id, $course->id);
         $this->setUser($user);
 
-        $this->assertEquals($expect, \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow));
+        $this->assertEquals($expect, \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow,
+                context_module::instance($moodleoverflow->cmid)));
     }
 }

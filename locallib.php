@@ -332,7 +332,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $preparedarray[$i]['discussionsubicon'] = false;
         if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
             // Discussion subscription.
-            if (\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow)) {
+            if (\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $context)) {
                 $preparedarray[$i]['discussionsubicon'] = \mod_moodleoverflow\subscriptions::get_discussion_subscription_icon(
                     $moodleoverflow, $context, $discussion->discussion);
             }

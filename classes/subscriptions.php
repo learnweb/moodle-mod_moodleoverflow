@@ -355,10 +355,11 @@ class subscriptions {
      * Checks wheter the specified moodleoverflow can be subscribed to.
      *
      * @param object $moodleoverflow The moodleoverflow ID
+     * @param \context_module $context The module context.
      *
      * @return boolean
      */
-    public static function is_subscribable($moodleoverflow) {
+    public static function is_subscribable($moodleoverflow, $context) {
 
         // Check if the user is an authenticated user.
         $authenticated = (isloggedin() AND !isguestuser());
@@ -367,7 +368,8 @@ class subscriptions {
         $disabled = self::subscription_disabled($moodleoverflow);
 
         // Check if the moodleoverflow forces the user to be subscribed.
-        $forced = self::is_forcesubscribed($moodleoverflow);
+        $forced = self::is_forcesubscribed($moodleoverflow) &&
+                has_capability('mod/moodleoverflow:allowforcesubscribe', $context);
 
         // Return the result.
         return ($authenticated AND !$forced AND !$disabled);
@@ -938,7 +940,7 @@ class subscriptions {
         $messages = $messages + $defaultmessages;
 
         // Check whether the user is forced to be subscribed to the moodleoverflow.
-        $isforced   = self::is_forcesubscribed($moodleoverflow);
+        $isforced   = self::is_forcesubscribed($moodleoverflow) && has_capability('mod/moodleoverflow:allowforcesubscribe', $context);
         $isdisabled = self::subscription_disabled($moodleoverflow);
 
         // Return messages depending on the subscription state.
