@@ -443,8 +443,8 @@ $string['give_a_reason'] = 'Give a reason (optional)';
 $string['approve'] = 'Approve';
 $string['reject'] = 'Reject';
 $string['reviewpossibleaftertime'] = 'Review possible after (secs)';
-$string['reviewpossibleaftertime_desc'] = 'A teacher can only reject or approve a post at least this amount of time (in seconds) after the creation of the post. After a teacher has approved a post, the post cannot be edited by it\'s author anymore, even if still within the maxeditingtime duration.';
-$string['pending_review_but_cannot_now'] = 'Pending review, but can only be approved at least {$a} after the creation of this post to allow the author a bit of time to edit it.';
+$string['reviewpossibleaftertime_desc'] = 'A teacher cannot reject or approve a post until this amount of time (in seconds) after the creation of the post. After a teacher has approved a post, the post cannot be edited by it\'s author anymore, even if still within the maxeditingtime duration.';
+$string['pending_review_but_cannot_now'] = 'Pending review, but cannot be approved until {$a} after the creation of this post to allow the author a bit of time to edit it.';
 
 $string['review_needed'] = 'Review needed!';
 
