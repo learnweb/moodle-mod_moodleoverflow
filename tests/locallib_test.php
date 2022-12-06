@@ -71,7 +71,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
         $this->assertEquals($usercount, count($result));
         foreach ($users as $user) {
-            $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo));
+            $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo, $context));
         }
     }
 
@@ -103,7 +103,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
         $this->assertEquals($usercount, count($result));
         foreach ($users as $user) {
-            $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo));
+            $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo, $context));
         }
     }
 
@@ -134,7 +134,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
         $this->assertEquals(0, count($result));
         foreach ($users as $user) {
-            $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo));
+            $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo, $context));
         }
     }
 
@@ -165,7 +165,7 @@ class mod_moodleoverflow_locallib_testcase extends advanced_testcase {
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
         $this->assertEquals(0, count($result));
         foreach ($users as $user) {
-            $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo));
+            $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo, $context));
         }
     }
 

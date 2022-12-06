@@ -98,10 +98,11 @@ class subscriptions {
      *
      * @return bool
      */
-    public static function is_subscribed($userid, $moodleoverflow, $discussionid = null) {
+    public static function is_subscribed($userid, $moodleoverflow, $context, $discussionid = null) {
 
         // Is the user forced to be subscribed to the moodleoverflow?
-        if (self::is_forcesubscribed($moodleoverflow)) {
+        if (self::is_forcesubscribed($moodleoverflow) &&
+            has_capability('mod/moodleoverflow:allowforcesubscribe', $context, $userid)) {
             return true;
         }
 
@@ -354,10 +355,11 @@ class subscriptions {
      * Checks wheter the specified moodleoverflow can be subscribed to.
      *
      * @param object $moodleoverflow The moodleoverflow ID
+     * @param \context_module $context The module context.
      *
      * @return boolean
      */
-    public static function is_subscribable($moodleoverflow) {
+    public static function is_subscribable($moodleoverflow, $context) {
 
         // Check if the user is an authenticated user.
         $authenticated = (isloggedin() AND !isguestuser());
@@ -366,7 +368,8 @@ class subscriptions {
         $disabled = self::subscription_disabled($moodleoverflow);
 
         // Check if the moodleoverflow forces the user to be subscribed.
-        $forced = self::is_forcesubscribed($moodleoverflow);
+        $forced = self::is_forcesubscribed($moodleoverflow) &&
+                has_capability('mod/moodleoverflow:allowforcesubscribe', $context);
 
         // Return the result.
         return ($authenticated AND !$forced AND !$disabled);
@@ -462,7 +465,7 @@ class subscriptions {
         global $DB;
 
         // Only enrolled users can subscribe.
-        list($esql, $params) = get_enrolled_sql($context);
+        list($esql, $params) = get_enrolled_sql($context, 'mod/moodleoverflow:allowforcesubscribe');
 
         // Default ordering of the list.
         if (!$sort) {
@@ -539,12 +542,8 @@ class subscriptions {
                 u.picture, u.timezone, u.theme, u.lang, u.trackforums, u.mnethostid";
         }
 
-        // Check if the user is forced to e subscribed to a moodleoverflow.
-        if (self::is_forcesubscribed($moodleoverflow)) {
-
-            // Find the list of potential subscribers.
-            $results = self::get_potential_subscribers($context, $fields, 'u.email ASC');
-
+        if (self::subscription_disabled($moodleoverflow)) {
+            $results = [];
         } else {
 
             // Only enrolled users can subscribe to a moodleoverflow.
@@ -586,6 +585,12 @@ class subscriptions {
 
             // Fetch the data.
             $results = $DB->get_records_sql($sql, $params);
+
+            if (self::is_forcesubscribed($moodleoverflow)) {
+                foreach (self::get_potential_subscribers($context, $fields, 'u.email ASC') as $id => $user) {
+                    $results[$id] = $user;
+                }
+            }
         }
 
         // Remove all guest users from the results. They should never be subscribed to a moodleoverflow.
@@ -645,7 +650,7 @@ class subscriptions {
         global $DB;
 
         // Check if the user is already subscribed.
-        if (self::is_subscribed($userid, $moodleoverflow)) {
+        if (self::is_subscribed($userid, $moodleoverflow, $context)) {
             return true;
         }
 
@@ -912,7 +917,7 @@ class subscriptions {
      * Generate and return the subscribe or unsubscribe link for a moodleoverflow.
      *
      * @param object $moodleoverflow the moodleoverflow. Fields used are $moodleoverflow->id and $moodleoverflow->forcesubscribe.
-     * @param object $context        the context object for this moodleoverflow.
+     * @param \context $context        the context object for this moodleoverflow.
      * @param array  $messages       text used for the link in its various states
      *                               (subscribed, unsubscribed, forcesubscribed or cantsubscribe).
      *                               Any strings not passed in are taken from the $defaultmessages array
@@ -935,7 +940,7 @@ class subscriptions {
         $messages = $messages + $defaultmessages;
 
         // Check whether the user is forced to be subscribed to the moodleoverflow.
-        $isforced   = self::is_forcesubscribed($moodleoverflow);
+        $isforced   = self::is_forcesubscribed($moodleoverflow) && has_capability('mod/moodleoverflow:allowforcesubscribe', $context);
         $isdisabled = self::subscription_disabled($moodleoverflow);
 
         // Return messages depending on the subscription state.
@@ -951,7 +956,7 @@ class subscriptions {
             }
 
             // Check whether the user is subscribed.
-            $issubscribed = self::is_subscribed($USER->id, $moodleoverflow);
+            $issubscribed = self::is_subscribed($USER->id, $moodleoverflow, $context);
 
             // Define the text of the link depending on the subscription state.
             if ($issubscribed) {
@@ -982,7 +987,7 @@ class subscriptions {
      * @param object $fromform       The submitted form
      * @param \stdClass       $moodleoverflow The moodleoverflow record
      * @param \stdClass       $discussion     The discussion record
-     * @param \context_course $modulecontext  The context of the module
+     * @param \context_module $modulecontext  The context of the module
      *
      * @return bool
      */
@@ -994,7 +999,7 @@ class subscriptions {
         $disabled = self::subscription_disabled($moodleoverflow);
 
         // Do not continue if the user is already forced to be subscribed.
-        if ($force) {
+        if ($force && has_capability('mod/moodleoverflow:allowforcesubscribe', $modulecontext)) {
             return false;
         }
 
@@ -1002,7 +1007,7 @@ class subscriptions {
         if ($disabled) {
 
             // If the user is subscribed, unsubscribe him.
-            $subscribed    = self::is_subscribed($USER->id, $moodleoverflow);
+            $subscribed    = self::is_subscribed($USER->id, $moodleoverflow, $modulecontext);
             $coursecontext = \context_course::instance($moodleoverflow->course);
             $canmanage     = has_capability('moodle/course:manageactivities', $coursecontext, $USER->id);
             if ($subscribed AND !$canmanage) {
@@ -1023,18 +1028,19 @@ class subscriptions {
      * Return the markup for the discussion subscription toggling icon.
      *
      * @param object $moodleoverflow The forum moodleoverflow.
+     * @param \context $context
      * @param int    $discussionid   The discussion to create an icon for.
      *
      * @return string The generated markup.
      */
-    public static function get_discussion_subscription_icon($moodleoverflow, $discussionid) {
+    public static function get_discussion_subscription_icon($moodleoverflow, $context, $discussionid) {
         global $OUTPUT, $PAGE, $USER;
 
         // Set the url to return to.
         $returnurl = $PAGE->url->out();
 
         // Check if the discussion is subscrived.
-        $status = self::is_subscribed($USER->id, $moodleoverflow, $discussionid);
+        $status = self::is_subscribed($USER->id, $moodleoverflow, $context, $discussionid);
 
         // Create a link to subscribe or unsubscribe to the discussion.
         $array            = array(

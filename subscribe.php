@@ -97,7 +97,7 @@ if ($user) {
 }
 
 // Check if the user is already subscribed.
-$issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($user->id, $moodleoverflow, $discussionid, $cm);
+$issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($user->id, $moodleoverflow, $context, $discussionid);
 
 // To subscribe to a moodleoverflow or a discussion, the user needs to be logged in.
 require_login($course, false, $cm);
@@ -184,7 +184,7 @@ if (!is_null($mode) AND has_capability('mod/moodleoverflow:managesubscriptions',
 
 // Redirect the user back if the user is forced to be subscribed.
 $isforced = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
-if ($isforced) {
+if ($isforced && has_capability('mod/moodleoverflow:allowforcesubscribe', $context)) {
     redirect($returnto, $strings['everyoneisnowsubscribed'], null, $notify['success']);
     exit;
 }

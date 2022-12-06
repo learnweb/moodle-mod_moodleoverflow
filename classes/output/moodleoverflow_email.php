@@ -251,7 +251,8 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_unsubscribediscussionlink() {
 
         // Check whether the moodleoverflow is subscribable.
-        $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow);
+        $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow,
+                \context_module::instance($this->cm->id));
         if (!$subscribable) {
             return null;
         }
@@ -431,7 +432,8 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_unsubscribemoodleoverflowlink() {
-        if (!\mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow)) {
+        if (!\mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow,
+                \context_module::instance($this->cm->id))) {
             return null;
         }
         $link = new \moodle_url(

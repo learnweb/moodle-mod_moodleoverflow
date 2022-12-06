@@ -53,6 +53,7 @@ $string['moodleoverflow:replypost']           = 'Reply in discussion';
 $string['moodleoverflow:viewdiscussion']      = 'View discussion';
 $string['moodleoverflow:view']                = 'View discussionlist';
 $string['moodleoverflow:marksolved']          = 'Mark a post as solution';
+$string['moodleoverflow:reviewpost']          = 'Review (approve or reject) posts';
 $string['nowallsubscribed']                   = 'All forums in {$a} are subscribed.';
 $string['nowallunsubscribed']                 = 'All forums in {$a} are unsubscribed.';
 
@@ -293,6 +294,8 @@ $string['subscriptionoptional']         = 'Optional subscription';
 $string['subscriptionforced']           = 'Forced subscription';
 $string['subscriptionauto']             = 'Auto subscription';
 $string['subscriptiondisabled']         = 'Subscription disabled';
+$string['switchtooptional']             = 'If you switch to the optional subscription, all currently subscribed users will be unsubscribed from this forum!';
+$string['switchtoauto']                 = 'If you switch to the auto subscription, all enrolled users will be subscribed to this forum!';
 $string['trackingoff']                  = 'Off';
 $string['trackingon']                   = 'Forced';
 $string['trackingoptional']             = 'Optional';

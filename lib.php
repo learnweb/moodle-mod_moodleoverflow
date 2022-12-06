@@ -189,16 +189,18 @@ function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleover
     $modulecontext = context_module::instance($moodleoverflow->coursemodule);
 
     // Check if the subscription state has changed.
-    $nowforced   = ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE);
-    $statechaged = ($moodleoverflow->forcesubscribe <> $oldmoodleoverflow->forcesubscribe);
-    if ($nowforced AND $statechaged) {
+    if ($moodleoverflow->forcesubscribe != $oldmoodleoverflow->forcesubscribe) {
+        if ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
+            // Get a list of potential subscribers.
+            $users = \mod_moodleoverflow\subscriptions::get_potential_subscribers($modulecontext, 'u.id, u.email', '');
 
-        // Get a list of potential subscribers.
-        $users = \mod_moodleoverflow\subscriptions::get_potential_subscribers($modulecontext, 'u.id, u.email', '');
-
-        // Subscribe all those users to the moodleoverflow instance.
-        foreach ($users as $user) {
-            \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $modulecontext);
+            // Subscribe all those users to the moodleoverflow instance.
+            foreach ($users as $user) {
+                \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $modulecontext);
+            }
+        } else if ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_CHOOSESUBSCRIBE) {
+            // Delete all current subscribers.
+            $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $moodleoverflow->id]);
         }
     }
 
@@ -487,7 +489,8 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $canmanage       = has_capability('mod/moodleoverflow:managesubscriptions', $PAGE->cm->context);
     $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
     $subscdisabled   = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
-    $cansubscribe    = ($activeenrolled AND !$forcesubscribed AND (!$subscdisabled OR $canmanage));
+    $cansubscribe    = $activeenrolled && (!$subscdisabled || $canmanage) &&
+        !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $PAGE->cm->context));
     $cantrack        = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
 
     // Display a link to the index.
@@ -509,7 +512,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     if ($cansubscribe) {
 
         // Choose the linktext depending on the current state of subscription.
-        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, null);
+        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $PAGE->cm->context);
         if ($issubscribed) {
             $linktext = get_string('unsubscribe', 'moodleoverflow');
         } else {
@@ -777,7 +780,7 @@ function moodleoverflow_send_mails() {
                 $iscm         = $coursemodules[$moodleoverflow->id];
                 $uid          = $userto->id;
                 $did          = $post->discussion;
-                $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($uid, $moodleoverflow, $did, $iscm);
+                $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($uid, $moodleoverflow, $modulecontext, $did);
                 if (!$issubscribed) {
                     continue;
                 }
