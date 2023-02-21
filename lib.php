@@ -735,17 +735,23 @@ function moodleoverflow_send_mails() {
     }
 
     // Send mails to the users with information about the posts.
-    if ($users AND $posts) {
+    if ($users && $posts) {
 
         // Send one mail to every user.
         foreach ($users as $userto) {
-
+            
             // Terminate if the process takes more time then two minutes.
             core_php_time_limit::raise(120);
 
             // Tracing information.
             mtrace('Processing user ' . $userto->id);
 
+            // Check if user wants a resume. 
+            $usermailsetting = $DB->get_record('user', array('id' => $userto->id), $fields = 'maildigest');
+            if($usermailsetting->maildigest != 0) {
+                mtrace('mailsetting ' . $usermailsetting->maildigest);
+                continue;
+            }
             // Initiate the user caches to save memory.
             $userto                = clone($userto);
             $userto->ciewfullnames = array();
