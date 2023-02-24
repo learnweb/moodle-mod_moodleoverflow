@@ -246,5 +246,31 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022110700, 'moodleoverflow');
     }
 
+    if($oldversion < 2023022400) {
+        //Table for information of digest mail.
+        $table = new xmldb_table('moodleoverflow_mail_info');
+
+        // Adding fields to table moodleoverflow_mail_info.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('forumid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('forumdiscussionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('numberofposts', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, array('userid'), 'user', array('id'));
+        $table->add_key('courseid', XMLDB_KEY_FOREIGN, array('courseid'), 'course', array('id'));
+        $table->add_key('forumid', XMLDB_KEY_FOREIGN, array('forumid'), 'moodleoverflow', array('id'));
+        $table->add_key('forumdiscussionid', XMLDB_KEY_FOREIGN, array('forumdiscussionid'), 'moodleoverflow_discussions', array('id'));
+
+        // Conditionally launch create table for moodleoverflow_mail_info.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2023022400, 'moodleoverflow');
+    }   
     return true;
 }

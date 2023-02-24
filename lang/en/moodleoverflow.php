@@ -210,6 +210,7 @@ $string['unknownerror']                 = 'This is not expected to happen.';
 $string['crontask']                     = 'Moodleoverflow maintenance jobs';
 $string['taskcleanreadrecords']         = 'Moodleoverflow maintenance job to clean old read records';
 $string['tasksendmails']                = 'Moodleoverflow maintenance job to send mails';
+$string['tasksenddailymail']            = 'Moodleoverflow job to send a daily mail of unread post';
 $string['nopermissiontosubscribe']      = 'You do not have the permission to view subscribers';
 $string['subscribeenrolledonly']        = 'Sorry, only enrolled users are allowed to subscribe to post notifications.';
 $string['everyonecannowchoose']         = 'Everyone can now choose to be subscribed';
@@ -453,3 +454,8 @@ $string['email_rejected_subject'] = '{$a->coursename}: One of your posts has bee
 $string['your_post_was_rejected'] = 'Your post was rejected.';
 $string['your_post_was_rejected_with_reason'] = 'Your post was rejected with the following reason:';
 $string['original_post'] = 'Original post';
+
+
+// Daily mail message.
+$string['digestunreadpost'] = 'Course: {$a->currentcourse} -> {$a->currentforum}, Topic: {$a->discussion} has {$a->unreadposts} unread posts.';
+
