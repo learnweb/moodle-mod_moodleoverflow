@@ -60,8 +60,8 @@ class data_export_helper {
         ";
         $params = [
             'discussionuserid' => $userid,
-            'dmuserid'         => $userid,
-            'dsubuserid'       => $userid,
+            'dmuserid' => $userid,
+            'dsubuserid' => $userid,
         ];
         $params += $forumparams;
 
@@ -75,9 +75,9 @@ class data_export_helper {
             // Store related metadata for this discussion.
             static::export_discussion_subscription_data($context, $discussion);
             $discussiondata = (object) [
-                'name'                  => format_string($discussion->name, true),
-                'timemodified'          => transform::datetime($discussion->timemodified),
-                'creator_was_you'       => transform::yesno($discussion->userid == $userid),
+                'name' => format_string($discussion->name, true),
+                'timemodified' => transform::datetime($discussion->timemodified),
+                'creator_was_you' => transform::yesno($discussion->userid == $userid),
                 'last_modifier_was_you' => transform::yesno($discussion->usermodified == $userid)
             ];
             // Store the discussion content.
@@ -122,8 +122,8 @@ class data_export_helper {
               GROUP BY mof.id, p.discussion, d.name
         ";
         $params = [
-            'postuserid'   => $userid,
-            'readuserid'   => $userid,
+            'postuserid' => $userid,
+            'readuserid' => $userid,
             'ratinguserid' => $userid,
         ];
         $params += $forumparams;
@@ -163,7 +163,7 @@ class data_export_helper {
         ";
         $params = [
             'discussionid' => $discussionid,
-            'readuserid'   => $userid,
+            'readuserid' => $userid,
             'ratinguserid' => $userid
         ];
 
@@ -235,15 +235,15 @@ class data_export_helper {
         // Store related metadata.
         static::export_read_data($context, $postarea, $post);
         $postdata = (object) [
-            'created'        => transform::datetime($post->created),
-            'modified'       => transform::datetime($post->modified),
+            'created' => transform::datetime($post->created),
+            'modified' => transform::datetime($post->modified),
             'author_was_you' => transform::yesno($post->userid == $userid)
         ];
         $postdata->message = writer::with_context($context)->rewrite_pluginfile_urls(
             $postarea, 'mod_moodleoverflow', 'attachment', $post->id, $post->message);
 
         $postdata->message = format_text($postdata->message, $post->messageformat, (object) [
-            'para'    => false,
+            'para' => false,
             'context' => $context,
         ]);
 
@@ -289,16 +289,16 @@ class data_export_helper {
         foreach ($ownratings as $rating) {
             $userratings[] = (object) [
                 'firstrated' => $rating->firstrated,
-                'rating'     => $rating->rating
+                'rating' => $rating->rating
             ];
         }
 
         if (!$onlyuser) {
             $ratingdata = [
-                'downvotes'            => $ratingpost->downvotes,
-                'upvotes'              => $ratingpost->upvotes,
+                'downvotes' => $ratingpost->downvotes,
+                'upvotes' => $ratingpost->upvotes,
                 'was_rated_as_helpful' => transform::yesno($ratingpost->ishelpful),
-                'was_rated_as_solved'  => transform::yesno($ratingpost->issolved)
+                'was_rated_as_solved' => transform::yesno($ratingpost->issolved)
             ];
         }
         $ratingdata['your_rating'] = (object) $userratings;
@@ -412,14 +412,14 @@ class data_export_helper {
         if (null !== $post->firstread) {
             $a = (object) [
                 'firstread' => $post->firstread,
-                'lastread'  => $post->lastread,
+                'lastread' => $post->lastread,
             ];
             writer::with_context($context)->export_metadata(
                     $postarea,
                     'postread',
                     (object) [
                         'firstread' => $post->firstread,
-                        'lastread'  => $post->lastread,
+                        'lastread' => $post->lastread,
                     ],
                     get_string('privacy:postwasread', 'mod_moodleoverflow', $a)
                 );

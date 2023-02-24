@@ -31,9 +31,9 @@ global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
 require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
-$id      = optional_param('id', 0, PARAM_INT);       // Course Module ID.
-$m       = optional_param('m', 0, PARAM_INT);        // MoodleOverflow ID.
-$page    = optional_param('page', 0, PARAM_INT);     // Which page to show.
+$id = optional_param('id', 0, PARAM_INT);       // Course Module ID.
+$m = optional_param('m', 0, PARAM_INT);        // MoodleOverflow ID.
+$page = optional_param('page', 0, PARAM_INT);     // Which page to show.
 
 // Set the parameters.
 $params = array();
@@ -49,13 +49,13 @@ $PAGE->set_url('/mod/moodleoverflow/view.php', $params);
 
 // Check for the course and module.
 if ($id) {
-    $cm              = get_coursemodule_from_id('moodleoverflow', $id, 0, false, MUST_EXIST);
-    $course          = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-    $moodleoverflow  = $DB->get_record('moodleoverflow', array('id' => $cm->instance), '*', MUST_EXIST);
+    $cm = get_coursemodule_from_id('moodleoverflow', $id, 0, false, MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $cm->instance), '*', MUST_EXIST);
 } else if ($m) {
-    $moodleoverflow  = $DB->get_record('moodleoverflow', array('id' => $m), '*', MUST_EXIST);
-    $course          = $DB->get_record('course', array('id' => $moodleoverflow->course), '*', MUST_EXIST);
-    $cm              = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
+    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $m), '*', MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => $moodleoverflow->course), '*', MUST_EXIST);
+    $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
 } else {
     throw new moodle_exception('missingparameter');
 }

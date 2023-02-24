@@ -44,12 +44,31 @@ class review_test extends \advanced_testcase {
 
     /** @var \mod_moodleoverflow_generator $generator */
     private $generator;
+    /**
+     * @var \stdClass
+     */
     private $teacher;
+    /**
+     * @var \stdClass
+     */
     private $student;
+    /**
+     * @var \stdClass
+     */
     private $course;
+    /**
+     * @var \phpunit_message_sink
+     */
     private $mailsink;
+    /**
+     * @var \phpunit_message_sink
+     */
     private $messagesink;
 
+    /**
+     * set Up testing data.
+     * @return void
+     */
     protected function setUp(): void {
         $this->resetAfterTest();
 
@@ -70,6 +89,10 @@ class review_test extends \advanced_testcase {
         $this->messagesink = $this->redirectMessages();
     }
 
+    /**
+     * Closing mailing links.
+     * @return void
+     */
     protected function tearDown(): void {
         $this->mailsink->clear();
         $this->mailsink->close();
@@ -102,8 +125,8 @@ class review_test extends \advanced_testcase {
 
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1, 'timereviewed' => null],
             $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS, 'reviewed' => 0, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS, 'reviewed' => 0,
+            'timereviewed' => null], $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
 
         $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
         $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
@@ -177,8 +200,8 @@ class review_test extends \advanced_testcase {
 
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1, 'timereviewed' => null],
             $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS, 'reviewed' => 0, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS, 'reviewed' => 0,
+            'timereviewed' => null], $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
 
         $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
         $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
@@ -275,6 +298,10 @@ class review_test extends \advanced_testcase {
             $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer2->id]));
     }
 
+    /**
+     * Run the send mails task.
+     * @return false|string
+     */
     private function run_send_mails() {
         $mailtask = new send_mails();
         ob_start();
@@ -285,6 +312,7 @@ class review_test extends \advanced_testcase {
     }
 
     /**
+     * Write own function to check if objects match.
      * @param object|array $expected
      * @param object|array $actual
      */

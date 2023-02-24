@@ -50,10 +50,10 @@ if ($ADMIN->fulltree) {
 
 
     // Default read tracking settings.
-    $options                                   = array();
+    $options = array();
     $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
-    $options[MOODLEOVERFLOW_TRACKING_OFF]      = get_string('trackingoff', 'moodleoverflow');
-    $options[MOODLEOVERFLOW_TRACKING_FORCED]   = get_string('trackingon', 'moodleoverflow');
+    $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
+    $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
     $settings->add(new admin_setting_configselect('moodleoverflow/trackingtype', get_string('trackingtype', 'moodleoverflow'),
         get_string('configtrackingtype', 'moodleoverflow'), MOODLEOVERFLOW_TRACKING_OPTIONAL, $options));
 

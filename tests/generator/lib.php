@@ -190,6 +190,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * Function to create a dummy post.
      *
      * @param array|stdClass $record
+     * @param bool $straighttodb
      *
      * @return stdClass the post object
      */
@@ -377,8 +378,8 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         // Add a post to the discussion.
         $record = (object) [
             'discussion' => $parent->discussion,
-            'parent'     => $parent->id,
-            'userid'     => $author->id
+            'parent' => $parent->id,
+            'userid' => $author->id
         ];
         return $this->create_post($record, $straighttodb);
     }

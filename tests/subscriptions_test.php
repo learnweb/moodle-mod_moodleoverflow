@@ -21,6 +21,9 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace mod_moodleoverflow;
+
+use advanced_testcase;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,7 +37,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
+class subscriptions_test extends advanced_testcase {
 
     /**
      * Test setUp.
@@ -232,10 +235,12 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $discussion->moodleoverflow = $moodleoverflow->id;
 
         // Check that the user is currently not subscribed to the moodleoverflow.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow,
+            $modulecontext));
 
         // Check that the user is unsubscribed from the discussion too.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow,
+            $modulecontext, $discussion->id));
 
         // Check thast we have no records in either on the subscription tables.
         $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
@@ -340,7 +345,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
         $count = $DB->count_records('moodleoverflow_discuss_subs', array(
-            'userid'     => $author->id,
+            'userid' => $author->id,
             'discussion' => $discussion->id,
         ));
         $this->assertEquals(0, $count);
@@ -351,7 +356,7 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
         $count = $DB->count_records('moodleoverflow_discuss_subs', array(
-            'userid'     => $author->id,
+            'userid' => $author->id,
             'discussion' => $discussion->id,
         ));
         $this->assertEquals(1, $count);
@@ -398,7 +403,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         unset($post);
 
         // Check that the user is unsubscribed from the discussion too.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $moodleoverflow, $discussion));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow,
+            $moodleoverflow, $discussion));
     }
 
     /**
@@ -436,7 +442,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         unset($post);
 
         // Check that the user is subscribed to the discussion too.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion));
     }
 
     /**
@@ -479,7 +486,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $moodleoverflow));
 
         // But subscribed to the discussion.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
     }
 
     /**
@@ -520,7 +528,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // But unsubscribed from the discussion.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
     }
 
     /**
@@ -556,7 +565,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // Check that the user is initially subscribed to that discussion.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // An attempt to subscribe again should result in a falsey return to indicate that no change was made.
         $this->assertFalse(\mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($author->id,
@@ -589,7 +599,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertEquals(1, $count);
 
         // But unsubscribed from the discussion.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // There should be a record in the discussion subscription tracking table.
         $options = array('userid' => $author->id, 'discussion' => $discussion->id);
@@ -608,7 +619,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // And is subscribed to the discussion again.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // And one in the moodleoverflow subscription tracking table.
         $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
@@ -627,7 +639,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // But unsubscribed from the discussion.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // And one in the moodleoverflow subscription tracking table.
         $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
@@ -647,7 +660,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // And is subscribed to the discussion again.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // There should be no record in the discussion subscription tracking table.
         $options = array('userid' => $author->id, 'discussion' => $discussion->id);
@@ -663,7 +677,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         \mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($author->id, $discussion, $modulecontext);
 
         // But unsubscribed from the discussion.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // Check that the user is still subscribed to the moodleoverflow.
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
@@ -679,7 +694,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertEquals(1, $count);
 
         // Now unsubscribe the user from the moodleoverflow.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::unsubscribe_user($author->id, $moodleoverflow, $modulecontext, true));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::unsubscribe_user($author->id, $moodleoverflow, $modulecontext,
+            true));
 
         // This removes both the moodleoverflow, and the moodleoverflow records.
         $options = array('userid' => $author->id, 'discussion' => $discussion->id);
@@ -726,7 +742,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $discussion->moodleoverflow = $moodleoverflow->id;
 
         // Check that the user is initially unsubscribed to that discussion.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // Then subscribe them to the discussion.
         $this->assertTrue(\mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($author->id,
@@ -740,7 +757,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // But subscribed to the discussion.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // There should be a record in the discussion subscription tracking table.
         $options = array('userid' => $author->id, 'discussion' => $discussion->id);
@@ -754,7 +772,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // And is unsubscribed from the discussion again.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // There should be no record in the discussion subscription tracking table.
         $options = array('userid' => $author->id, 'discussion' => $discussion->id);
@@ -765,7 +784,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($author->id, $discussion, $modulecontext);
 
         // And is subscribed to the discussion again.
-        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // Check that the user is still unsubscribed from the moodleoverflow.
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
@@ -779,7 +799,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         \mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($author->id, $discussion, $modulecontext);
 
         // But unsubscribed from the discussion.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // Check that the user is still unsubscribed from the moodleoverflow.
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
@@ -890,7 +911,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // All users should be subscribed.
         $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext);
         $this->assertEquals($usercount, count($subscribers));
-        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null, true);
+        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null,
+            true);
         $this->assertEquals($usercount, count($subscribers));
 
         \mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($users[0]->id, $discussion, $modulecontext);
@@ -900,7 +922,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertEquals($usercount, count($subscribers));
 
         // All users should be subscribed.
-        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null, true);
+        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null,
+            true);
         $this->assertEquals($usercount, count($subscribers));
 
         // Manually insert an extra subscription for one of the users.
@@ -914,7 +937,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // The discussion count should not have changed.
         $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext);
         $this->assertEquals($usercount, count($subscribers));
-        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null, true);
+        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null,
+            true);
         $this->assertEquals($usercount, count($subscribers));
 
         // Unsubscribe 2 users.
@@ -926,7 +950,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // The subscription count should now take into account those users who have been unsubscribed.
         $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext);
         $this->assertEquals($usercount - $unsubscribedcount, count($subscribers));
-        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null, true);
+        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null,
+            true);
         $this->assertEquals($usercount - $unsubscribedcount, count($subscribers));
 
         // Now subscribe one of those users back to the discussion.
@@ -936,7 +961,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         }
         $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext);
         $this->assertEquals($usercount - $unsubscribedcount, count($subscribers));
-        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null, true);
+        $subscribers = \mod_moodleoverflow\subscriptions::get_subscribed_users($moodleoverflow, $modulecontext, null,
+            true);
         $this->assertEquals($usercount - $unsubscribedcount + $subedusers, count($subscribers));
     }
 
@@ -967,7 +993,8 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // Check that the user is currently subscribed to the moodleoverflow.
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $moodleoverflow, $context));
 
-        assign_capability('mod/moodleoverflow:allowforcesubscribe', CAP_PROHIBIT, $roleids['student'], $context);
+        assign_capability('mod/moodleoverflow:allowforcesubscribe', CAP_PROHIBIT, $roleids['student'],
+            $context);
         $context->mark_dirty();
         $this->assertFalse(has_capability('mod/moodleoverflow:allowforcesubscribe', $context, $user->id));
     }
@@ -1262,15 +1289,16 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $moodleoverflow, $modulecontext));
 
         // Confirm that the user is unsubscribed from the discussion too.
-        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $moodleoverflow, $modulecontext, $discussion->id));
+        $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $moodleoverflow, $modulecontext,
+            $discussion->id));
 
         // Confirm that we have no records in either of the subscription tables.
         $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', array(
-            'userid'         => $user->id,
+            'userid' => $user->id,
             'moodleoverflow' => $moodleoverflow->id,
         )));
         $this->assertEquals(0, $DB->count_records('moodleoverflow_discuss_subs', array(
-            'userid'     => $user->id,
+            'userid' => $user->id,
             'discussion' => $discussion->id,
         )));
 
@@ -1278,11 +1306,11 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         // but not the moodleoverflow discussion subscriptions table.
         \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $modulecontext);
         $this->assertEquals(1, $DB->count_records('moodleoverflow_subscriptions', array(
-            'userid'         => $user->id,
+            'userid' => $user->id,
             'moodleoverflow' => $moodleoverflow->id,
         )));
         $this->assertEquals(0, $DB->count_records('moodleoverflow_discuss_subs', array(
-            'userid'     => $user->id,
+            'userid' => $user->id,
             'discussion' => $discussion->id,
         )));
 
@@ -1306,22 +1334,22 @@ class mod_moodleoverflow_subscriptions_testcase extends advanced_testcase {
         \mod_moodleoverflow\subscriptions::unsubscribe_user($user->id, $moodleoverflow, $modulecontext);
 
         $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', array(
-            'userid'         => $user->id,
+            'userid' => $user->id,
             'moodleoverflow' => $moodleoverflow->id,
         )));
         $this->assertEquals(1, $DB->count_records('moodleoverflow_discuss_subs', array(
-            'userid'     => $user->id,
+            'userid' => $user->id,
             'discussion' => $discussion->id,
         )));
 
         // Subscribing to the discussion should return truthfully because a change was made.
         $this->assertTrue(\mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($user->id, $discussion, $modulecontext));
         $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', array(
-            'userid'         => $user->id,
+            'userid' => $user->id,
             'moodleoverflow' => $moodleoverflow->id,
         )));
         $this->assertEquals(1, $DB->count_records('moodleoverflow_discuss_subs', array(
-            'userid'     => $user->id,
+            'userid' => $user->id,
             'discussion' => $discussion->id,
         )));
     }
