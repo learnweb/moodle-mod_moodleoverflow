@@ -20,10 +20,11 @@
  * @copyright  2018 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-
 namespace mod_moodleoverflow;
+
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
 
 use core_privacy\local\request\approved_contextlist;
 use \core_privacy\local\request\userlist;
@@ -898,7 +899,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
      * course.
      * Users are enrolled as students.
      *
-     * @param stdClass $course The course object
+     * @param  \stdClass $course The course object
      * @param integer  $count  The number of users to create
      *
      * @return array The users created
@@ -917,7 +918,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Creates and enrols users.
      *
-     * @param stdClass $course The course to enrol users.
+     * @param  \stdClass $course The course to enrol users.
      * @param int $count The number of users to create.
      *
      * @return array The users created
@@ -1430,7 +1431,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
                 'gradescalefactor' => 2
         ]);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
-        $context = context_module::instance($cm->id);
+        $context = \context_module::instance($cm->id);
 
         list($user, $user2) = $this->create_and_enrol_users($course, 2);
         list( , $post) = $this->generator->post_to_forum($forum, $user);

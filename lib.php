@@ -86,7 +86,7 @@ define('RATING_REMOVE_HELPFUL', 40);
 /**
  * Returns the information on whether the module supports a feature.
  *
- * See {@link plugin_supports()} for more info.
+ * See {plugin_supports()} for more info.
  *
  * @param string $feature FEATURE_xx constant for requested feature
  *
@@ -359,7 +359,7 @@ function moodleoverflow_get_extra_capabilities() {
  * Returns the lists of all browsable file areas within the given module context.
  *
  * The file area 'intro' for the activity introduction field is added automatically
- * by {@link file_browser::get_file_info_context_module()}
+ * by { file_browser::get_file_info_context_module()}
  *
  * @param stdClass $course
  * @param stdClass $cm

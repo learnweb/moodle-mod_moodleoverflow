@@ -61,7 +61,7 @@ class subscriptions_test extends advanced_testcase {
      * Helper to create the required number of users in the specified course.
      * Users are enrolled as students.
      *
-     * @param stdClass $course The course object
+     * @param  \stdClass $course The course object
      * @param int      $count  The number of users to create
      *
      * @return array The users created
@@ -81,8 +81,8 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Crate a new discussion and post within the moodleoverflow.
      *
-     * @param stdClass $moodleoverflow The moodleoverflow to post in
-     * @param stdClass $author         The author to post as
+     * @param  \stdClass $moodleoverflow The moodleoverflow to post in
+     * @param  \stdClass $author         The author to post as
      *
      * @return array Array containing the discussion object and the post object.
      */
@@ -93,7 +93,7 @@ class subscriptions_test extends advanced_testcase {
         $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
 
         // Create a discussion in the moodleoverflow, add a post to that discussion.
-        $record = new stdClass();
+        $record = new  \stdClass();
         $record->course = $moodleoverflow->course;
         $record->userid = $author->id;
         $record->moodleoverflow = $moodleoverflow->id;
@@ -119,7 +119,7 @@ class subscriptions_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $options = array('course' => $course->id);
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $modulecontext = context_module::instance($moodleoverflow->cmid);
+        $modulecontext = \context_module::instance($moodleoverflow->cmid);
 
         // Create a user enrolled in the course as a student.
         list ($user) = $this->helper_create_users($course, 1);
@@ -927,7 +927,7 @@ class subscriptions_test extends advanced_testcase {
         $this->assertEquals($usercount, count($subscribers));
 
         // Manually insert an extra subscription for one of the users.
-        $record = new stdClass();
+        $record = new  \stdClass();
         $record->userid = $users[2]->id;
         $record->moodleoverflow = $moodleoverflow->id;
         $record->discussion = $discussion->id;
@@ -1406,7 +1406,7 @@ class subscriptions_test extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow,
-                context_module::instance($moodleoverflow->cmid)));
+                \context_module::instance($moodleoverflow->cmid)));
     }
 
     /**
@@ -1430,7 +1430,7 @@ class subscriptions_test extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow,
-                context_module::instance($moodleoverflow->cmid)));
+                \context_module::instance($moodleoverflow->cmid)));
     }
 
     /**
@@ -1481,6 +1481,6 @@ class subscriptions_test extends advanced_testcase {
         $this->setUser($user);
 
         $this->assertEquals($expect, \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow,
-                context_module::instance($moodleoverflow->cmid)));
+                \context_module::instance($moodleoverflow->cmid)));
     }
 }

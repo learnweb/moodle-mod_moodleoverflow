@@ -45,15 +45,15 @@ class review_test extends \advanced_testcase {
     /** @var \mod_moodleoverflow_generator $generator */
     private $generator;
     /**
-     * @var \stdClass
+     * @var  \stdClass
      */
     private $teacher;
     /**
-     * @var \stdClass
+     * @var  \stdClass
      */
     private $student;
     /**
-     * @var \stdClass
+     * @var  \stdClass
      */
     private $course;
     /**
