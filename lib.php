@@ -733,13 +733,11 @@ function moodleoverflow_send_mails() {
             $errorcount[$postid] = 0;
         }
     }
-
+    
     // Send mails to the users with information about the posts.
     if ($users && $posts) {
-
         // Send one mail to every user.
         foreach ($users as $userto) {
-            
             // Terminate if the process takes more time then two minutes.
             core_php_time_limit::raise(120);
 
@@ -764,7 +762,6 @@ function moodleoverflow_send_mails() {
 
             // Loop through all posts of this users.
             foreach ($posts as $postid => $post) {
-
                 
 
                 // Initiate variables for the post.

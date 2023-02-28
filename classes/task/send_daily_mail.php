@@ -42,8 +42,12 @@ class send_daily_mail extends \core\task\scheduled_task {
      */
     public function execute() {
         global $DB;
-        // Call your own api
+        // Call your own api.
         $users = $DB->get_records_sql('SELECT DISTINCT userid FROM {moodleoverflow_mail_info}');
+        if (empty($users)) {
+            mtrace('No daily mail to send.');
+            return;
+        }
         foreach($users as $user) {
             $userdata = $DB->get_records('moodleoverflow_mail_info', array('userid' => $user->userid), 'courseid, forumid'); //order by courseid
             $mail = array();
@@ -59,8 +63,8 @@ class send_daily_mail extends \core\task\scheduled_task {
                 array_push($mail,$string);
             }
             $message = implode('<br>', $mail);
-            mtrace($message);
-            //send message to user
+            // mtrace($message);.
+            // send message to user.
             $userto = $DB->get_record('user', array('id' => $user->userid));
             $from = \core_user::get_noreply_user();
             $subject = get_string('tasksenddailymail', 'mod_moodleoverflow');
