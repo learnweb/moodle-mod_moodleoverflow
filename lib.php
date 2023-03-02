@@ -733,19 +733,17 @@ function moodleoverflow_send_mails() {
             $errorcount[$postid] = 0;
         }
     }
-
+    
     // Send mails to the users with information about the posts.
     if ($users && $posts) {
-
         // Send one mail to every user.
         foreach ($users as $userto) {
-
             // Terminate if the process takes more time then two minutes.
             core_php_time_limit::raise(120);
 
             // Tracing information.
             mtrace('Processing user ' . $userto->id);
-
+            mtrace('Mail setting of user: ' . $userto->maildigest);
             // Initiate the user caches to save memory.
             $userto = clone($userto);
             $userto->ciewfullnames = array();
@@ -764,12 +762,42 @@ function moodleoverflow_send_mails() {
 
             // Loop through all posts of this users.
             foreach ($posts as $postid => $post) {
+                
 
                 // Initiate variables for the post.
                 $discussion = $discussions[$post->discussion];
                 $moodleoverflow = $moodleoverflows[$discussion->moodleoverflow];
                 $course = $courses[$moodleoverflow->course];
                 $cm             =& $coursemodules[$moodleoverflow->id];
+
+                /**
+                 * Check if user wants a resume
+                 * in this case: make a new dataset in "moodleoverflow_mail_info" to save the posts data
+                 * Dataset from moodleoverflow_mail_info will be send later in a mail
+                 */
+                $usermailsetting = $userto->maildigest;
+                if($usermailsetting != 0) {
+                    $dataobject = new stdClass();
+                    $dataobject->userid = $userto->id;
+                    $dataobject->courseid = $course->id;
+                    $dataobject->forumid = $moodleoverflow->id;
+                    $dataobject->forumdiscussionid = $discussion->id;
+                    $record = $DB->get_record('moodleoverflow_mail_info', array(   'userid' => $dataobject->userid,
+                                                                                   'courseid' => $dataobject->courseid,
+                                                                                   'forumid' => $dataobject->forumid,
+                                                                                   'forumdiscussionid' => $dataobject->forumdiscussionid), 'numberofposts, id');
+                    if(is_object($record)) {
+                        $dataset = $record;
+                        $dataobject->numberofposts = $dataset->numberofposts + 1;
+                        $dataobject->id = $dataset->id;
+                        $DB->update_record('moodleoverflow_mail_info', $dataobject);
+                    }
+                    else {
+                        $dataobject->numberofposts = 1;
+                        $DB->insert_record('moodleoverflow_mail_info', $dataobject);
+                    }
+                    continue;
+                }
 
                 // Check whether the user is subscribed.
                 if (!isset($subscribedusers[$moodleoverflow->id][$userto->id])) {
