@@ -48,10 +48,10 @@ class send_daily_mail extends \core\task\scheduled_task {
             mtrace('No daily mail to send.');
             return;
         }
-        foreach($users as $user) {
-            $userdata = $DB->get_records('moodleoverflow_mail_info', array('userid' => $user->userid), 'courseid, forumid'); //order by courseid
+        foreach ($users as $user) {
+            $userdata = $DB->get_records('moodleoverflow_mail_info', array('userid' => $user->userid), 'courseid, forumid'); // order by courseid
             $mail = array();
-            foreach($userdata as $row) {
+            foreach ($userdata as $row) {
                 $currentcourse = $DB->get_record('course', array('id' => $row->courseid), 'fullname');
                 $currentforum = $DB->get_record('moodleoverflow', array('id' => $row->forumid), 'name');
                 $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $row->forumdiscussionid), 'name');
@@ -60,7 +60,7 @@ class send_daily_mail extends \core\task\scheduled_task {
                                                                                      'currentforum' => $currentforum->name,
                                                                                      'discussion' => $discussion->name,
                                                                                      'unreadposts' => $unreadposts));
-                array_push($mail,$string);
+                array_push($mail, $string);
             }
             $message = implode('<br>', $mail);
             // mtrace($message);.
@@ -68,8 +68,8 @@ class send_daily_mail extends \core\task\scheduled_task {
             $userto = $DB->get_record('user', array('id' => $user->userid));
             $from = \core_user::get_noreply_user();
             $subject = get_string('tasksenddailymail', 'mod_moodleoverflow');
-            
-            email_to_user($userto,$from, $subject,$message);
+
+            email_to_user($userto, $from, $subject, $message);
         }
     }
 }

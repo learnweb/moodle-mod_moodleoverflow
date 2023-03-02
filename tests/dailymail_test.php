@@ -31,15 +31,15 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
-class mod_moodleoverflow_dailymail_test extends \advanced_testcase { 
-    
+class dailymail_test extends \advanced_testcase {
+
     private $sink;
     private $messagesink;
     private $course;
     private $user;
     private $moodleoverflow;
     private $discussion;
-    
+
     /**
      * Test setUp.
      */
@@ -55,8 +55,8 @@ class mod_moodleoverflow_dailymail_test extends \advanced_testcase {
 
         // Create a new course with a moodleoverflow forum.
         $this->course = $this->getDataGenerator()->create_course();
-        $location = array('course' => $this->course->id,'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
-        $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow',$location);
+        $location = array('course' => $this->course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
 
     }
 
@@ -77,7 +77,7 @@ class mod_moodleoverflow_dailymail_test extends \advanced_testcase {
         $this->user = $this->getDataGenerator()->create_user(array('firstname' => 'Tamaro', 'maildigest' => $maildigest));
         $this->getDataGenerator()->enrol_user($this->user->id, $this->course->id, 'student');
 
-        //Create a new discussion and post within the moodleoverflow.
+        // Create a new discussion and post within the moodleoverflow.
         $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
         $this->discussion = $generator->post_to_forum($this->moodleoverflow, $this->user);
     }
@@ -94,7 +94,7 @@ class mod_moodleoverflow_dailymail_test extends \advanced_testcase {
         ob_end_clean();
         return $output;
     }
-    
+
     /**
      * Run the send mails task.
      * @return false|string
@@ -118,11 +118,11 @@ class mod_moodleoverflow_dailymail_test extends \advanced_testcase {
         $this->helper_create_user_and_discussion('1');
 
         // Send a mail and test if the mail was sent.
-        
-        $this->run_send_mails();       //content2
-        $this->run_send_daily_mail();  //content
+
+        $this->run_send_mails();       // content2
+        $this->run_send_daily_mail();  // content
         $messages = $this->sink->count();
-        
+
         $this->assertEquals(1, $messages);
     }
 
@@ -132,22 +132,22 @@ class mod_moodleoverflow_dailymail_test extends \advanced_testcase {
         // Creat Users with maildigest = on.
         $this->helper_create_user_and_discussion('1');
 
-        //send the mails and count the messages.
+        // send the mails and count the messages.
         $this->run_send_mails();
         $content = $this->run_send_daily_mail();
         $messages = $this->sink->count();
-        
-        //Build the text that the mail should have.
-        //Text structure: $string['digestunreadpost'] = 'Course: {$a->currentcourse} -> {$a->currentforum}, Topic: {$a->discussion} has {$a->unreadposts} unread posts.';.
+
+        // Build the text that the mail should have.
+        // Text structure: $string['digestunreadpost'] = 'Course: {$a->currentcourse} -> {$a->currentforum}, Topic: {$a->discussion} has {$a->unreadposts} unread posts.';.
         $currentcourse = $this->course->fullname;
         $currentforum = $this->moodleoverflow->name;
         $currentdiscussion = $this->discussion[0]->name;
-        $text = 'Course: ' . $currentcourse . ' -> ' . $currentforum . ', Topic: ' . $currentdiscussion . ' has ' . $messages . ' unread posts.'; 
-        $content = str_replace("\r\n","",$content);
-        $text = str_replace("\r\n","",$text);
-        
-        //$this->assertisInt(0, strcmp($text, $content));   //strcmp compares 2 strings and retuns 0 if equal
-        //$this->assertEquals($text, $content);
+        $text = 'Course: ' . $currentcourse . ' -> ' . $currentforum . ', Topic: ' . $currentdiscussion . ' has ' . $messages . ' unread posts.';
+        $content = str_replace("\r\n", "", $content);
+        $text = str_replace("\r\n", "", $text);
+
+        // $this->assertisInt(0, strcmp($text, $content));   //strcmp compares 2 strings and retuns 0 if equal
+        // $this->assertEquals($text, $content);
         $this->assertStringContainsString($text, $content);
     }
 
@@ -160,7 +160,7 @@ class mod_moodleoverflow_dailymail_test extends \advanced_testcase {
         $this->run_send_mails();
         $this->run_send_daily_mail();
         $messages = $this->sink->count();
-        
-        $this->assertEquals(0,$messages);
+
+        $this->assertEquals(0, $messages);
     }
 }

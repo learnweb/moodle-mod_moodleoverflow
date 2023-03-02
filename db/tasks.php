@@ -51,11 +51,11 @@ $tasks = array(
     // Clean old read records.
     array(
         'classname' => 'mod_moodleoverflow\task\send_daily_mail',
-        'blocking'  => 0,
-        'minute'    => '0',
-        'hour'      => '17',
-        'day'       => '*',
-        'month'     => '*',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '17',
+        'day' => '*',
+        'month' => '*',
         'dayofweek' => '*'
     )
 );
