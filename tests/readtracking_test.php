@@ -21,6 +21,9 @@
  * @copyright  2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace mod_moodleoverflow;
+
+use advanced_testcase;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,7 +37,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_moodleoverflow_readtracking_testcase extends advanced_testcase {
+class readtracking_test extends advanced_testcase {
 
     /**
      * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.

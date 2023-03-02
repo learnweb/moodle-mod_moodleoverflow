@@ -20,7 +20,10 @@
  * @copyright  2018 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace mod_moodleoverflow;
+
 defined('MOODLE_INTERNAL') || die();
+
 global $CFG;
 
 use core_privacy\local\request\approved_contextlist;
@@ -32,11 +35,12 @@ use mod_moodleoverflow\privacy\data_export_helper;
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
  *
  * @copyright  2018 Tamara Gunkel
+ * @package   mod_moodleoverflow
  * @group mod_moodleoverflow
  * @group mod_moodleoverflow_privacy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
+class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * @var \mod_moodleoverflow_generator Plugin generator
      */
@@ -105,10 +109,14 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         );
     }
 
+
     /**
      * Test that a user who is enrolled in a course, but who has never
      * posted and has no other metadata stored will not have any link to
      * that context.
+     *
+     * @return void
+     * @throws \coding_exception
      */
     public function test_user_has_never_posted() {
         // Create a course with moodleoverflow forums.
@@ -291,7 +299,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $course = $this->getDataGenerator()->create_course();
         $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
             'course' => $course->id,
-            'scale'  => 100,
+            'scale' => 100,
         ]);
         list($user, $otheruser) = $this->create_users($course, 2);
         list($discussion, $post) = $this->generator->post_to_forum($forum, $otheruser);
@@ -334,7 +342,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $course = $this->getDataGenerator()->create_course();
         $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
             'course' => $course->id,
-            'scale'  => 100,
+            'scale' => 100,
         ]);
         list($user, $otheruser, $anotheruser) = $this->create_users($course, 3);
         list($discussion, $post) = $this->generator->post_to_forum($forum, $user);
@@ -532,7 +540,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         list($author, $otheruser) = $this->create_users($course, 2);
         $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
             'course' => $course->id,
-            'scale'  => 100,
+            'scale' => 100,
         ]);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
@@ -548,10 +556,10 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $createdfile = $fs->create_file_from_string([
             'contextid' => $context->id,
             'component' => 'mod_moodleoverflow',
-            'filearea'  => 'attachment',
-            'itemid'    => $post->id,
-            'filepath'  => '/',
-            'filename'  => 'example.jpg',
+            'filearea' => 'attachment',
+            'itemid' => $post->id,
+            'filepath' => '/',
+            'filename' => 'example.jpg',
         ],
             'image contents (not really)');
 
@@ -588,7 +596,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         for ($i = 0; $i < 2; $i++) {
             $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
                 'course' => $course->id,
-                'scale'  => 100,
+                'scale' => 100,
             ]);
             $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
             $context = \context_module::instance($cm->id);
@@ -616,10 +624,10 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
                 $fs->create_file_from_string([
                     'contextid' => $context->id,
                     'component' => 'mod_moodleoverflow',
-                    'filearea'  => 'attachment',
-                    'itemid'    => $post->id,
-                    'filepath'  => '/',
-                    'filename'  => 'example.jpg',
+                    'filearea' => 'attachment',
+                    'itemid' => $post->id,
+                    'filepath' => '/',
+                    'filename' => 'example.jpg',
                 ], 'image contents (not really)');
             }
         }
@@ -725,7 +733,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         for ($i = 0; $i < 2; $i++) {
             $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
                 'course' => $course->id,
-                'scale'  => 100,
+                'scale' => 100,
             ]);
             $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
             $context = \context_module::instance($cm->id);
@@ -761,10 +769,10 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
                 $fs->create_file_from_string([
                     'contextid' => $context->id,
                     'component' => 'mod_moodleoverflow',
-                    'filearea'  => 'attachment',
-                    'itemid'    => $post->id,
-                    'filepath'  => '/',
-                    'filename'  => 'example.jpg',
+                    'filearea' => 'attachment',
+                    'itemid' => $post->id,
+                    'filepath' => '/',
+                    'filename' => 'example.jpg',
                 ], 'image contents (not really)');
             }
         }
@@ -838,7 +846,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $this->assertCount(4, $DB->get_records_select('moodleoverflow_posts', "userid = :userid"
             . " AND " . $DB->sql_compare_text('message') . " = " . $DB->sql_compare_text(':message')
             , [
-                'userid'  => 0,
+                'userid' => 0,
                 'message' => '',
             ]));
 
@@ -891,7 +899,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
      * course.
      * Users are enrolled as students.
      *
-     * @param stdClass $course The course object
+     * @param  \stdClass $course The course object
      * @param integer  $count  The number of users to create
      *
      * @return array The users created
@@ -910,7 +918,7 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
     /**
      * Creates and enrols users.
      *
-     * @param stdClass $course The course to enrol users.
+     * @param  \stdClass $course The course to enrol users.
      * @param int $count The number of users to create.
      *
      * @return array The users created
@@ -990,19 +998,19 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
                 $fs->create_file_from_string([
                     'contextid' => $context->id,
                     'component' => 'mod_moodleoverflow',
-                    'filearea'  => 'post',
-                    'itemid'    => $post->id,
-                    'filepath'  => '/',
-                    'filename'  => 'example.jpg',
+                    'filearea' => 'post',
+                    'itemid' => $post->id,
+                    'filepath' => '/',
+                    'filename' => 'example.jpg',
                 ], 'image contents (not really)');
                 // And a fake attachment.
                 $fs->create_file_from_string([
                     'contextid' => $context->id,
                     'component' => 'mod_moodleoverflow',
-                    'filearea'  => 'attachment',
-                    'itemid'    => $post->id,
-                    'filepath'  => '/',
-                    'filename'  => 'example.jpg',
+                    'filearea' => 'attachment',
+                    'itemid' => $post->id,
+                    'filepath' => '/',
+                    'filename' => 'example.jpg',
                 ], 'image contents (not really)');
             }
         }
@@ -1418,12 +1426,12 @@ class mod_moodleoverflow_privacy_provider_testcase extends \core_privacy\tests\p
         $course = self::getDataGenerator()->create_course();
         $forum = self::getDataGenerator()->create_module('moodleoverflow', [
                 'course' => $course->id,
-                'scale'  => 100,
+                'scale' => 100,
                 'grademaxgrade' => 50,
                 'gradescalefactor' => 2
         ]);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
-        $context = context_module::instance($cm->id);
+        $context = \context_module::instance($cm->id);
 
         list($user, $user2) = $this->create_and_enrol_users($course, 2);
         list( , $post) = $this->generator->post_to_forum($forum, $user);

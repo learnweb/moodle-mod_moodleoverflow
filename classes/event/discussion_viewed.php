@@ -39,8 +39,8 @@ class discussion_viewed extends \core\event\base {
      * @return void
      */
     protected function init() {
-        $this->data['crud']        = 'r';
-        $this->data['edulevel']    = self::LEVEL_PARTICIPATING;
+        $this->data['crud'] = 'r';
+        $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
         $this->data['objecttable'] = 'moodleoverflow_discussions';
     }
 

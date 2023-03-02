@@ -63,7 +63,7 @@ class renderer extends \mod_moodleoverflow_renderer {
             'mod_moodleoverflow', 'post', $post->id);
 
         // Initiate some options.
-        $options       = new \stdClass();
+        $options = new \stdClass();
         $options->para = true;
 
         // Return the message in html.

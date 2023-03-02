@@ -39,8 +39,8 @@ class rating_updated extends \core\event\base {
      * @return void
      */
     protected function init() {
-        $this->data['crud']        = 'u';
-        $this->data['edulevel']    = self::LEVEL_OTHER;
+        $this->data['crud'] = 'u';
+        $this->data['edulevel'] = self::LEVEL_OTHER;
         $this->data['objecttable'] = 'moodleoverflow_ratings';
     }
 

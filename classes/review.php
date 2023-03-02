@@ -78,6 +78,8 @@ class review {
     }
 
     /**
+     * Get a review post to review.
+     *
      * @param int $moodleoverflowid ID of moodleoverflow to look in.
      * @param int $afterpostid ID of post after which to look for the first post to review.
      * @return string|null
@@ -149,7 +151,7 @@ class review {
     /**
      * Count outstanding reviews in the moodleoverflow.
      *
-     * @param $moodleoverflowid
+     * @param int $moodleoverflowid
      * @return int
      */
     public static function count_outstanding_reviews_in_moodleoverflow($moodleoverflowid): int {
