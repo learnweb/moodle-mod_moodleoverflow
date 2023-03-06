@@ -457,5 +457,5 @@ $string['original_post'] = 'Original post';
 
 
 // Daily mail message.
-$string['digestunreadpost'] = 'Course: {$a->currentcourse} -> {$a->currentforum}, Topic: {$a->discussion} has {$a->unreadposts} unread posts.';
+$string['digestunreadpost'] = 'Course: {$a->linktocourse} -> {$a->linktoforum}, Topic: {$a->linktodiscussion} has {$a->unreadposts} unread posts.';
 
