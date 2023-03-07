@@ -178,6 +178,12 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $markallread = null;
     }
 
+    // Check wether the user can move a topic
+    $canmovetopic = false;
+    if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:movetopic', $context)) {
+        $canmovetopic = true;
+    }
+
     // Check whether the user can subscribe to the discussion.
     $cansubtodiscussion = false;
     if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
@@ -346,6 +352,9 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             ], 'p' . $reviewinfo->first))->out(false);
         }
 
+        // build linktopopup to move a topic
+        $linktopopup = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup=' . $discussion->discussion;
+        $preparedarray[$i]['linktopopup'] = $linktopopup;
         // Add all created data to an array.
 
         $preparedarray[$i]['statusstarter'] = $statusstarter;
@@ -370,6 +379,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $mustachedata->istracked = $istracked;
     $mustachedata->markallread = $markallread;
     $mustachedata->cansubtodiscussion = $cansubtodiscussion;
+    $mustachedata->canmovetopic = $canmovetopic;
 
     // Print the template.
     echo $renderer->render_discussion_list($mustachedata);

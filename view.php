@@ -34,7 +34,7 @@ require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
 $id = optional_param('id', 0, PARAM_INT);       // Course Module ID.
 $m = optional_param('m', 0, PARAM_INT);        // MoodleOverflow ID.
 $page = optional_param('page', 0, PARAM_INT);     // Which page to show.
-
+$movetopopup = optional_param('movetopopup', 0, PARAM_INT);
 // Set the parameters.
 $params = array();
 if ($id) {
@@ -114,6 +114,23 @@ if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
     }
 }
 
+if ($movetopopup) {
+    // make a list of all moodleoverflows in the course.
+    $forumarray = array();
+    $currentforum = $DB->get_record('moodleoverflow_discussions', array('id' => $movetopopup), 'moodleoverflow');
+    $forums = $DB->get_records('moodleoverflow', array('course' => $course->id));
+    // write the moodleoverflow-names in an array.
+    foreach ($forums as $forum) {
+        if ($forum->id == $currentforum->moodleoverflow) {
+            continue;
+        } else {
+            array_push($forumarray, $forum->name);
+        }
+    }
+    // build popup
+
+
+}
 // Return here after posting, etc.
 $SESSION->fromdiscussion = qualified_me();
 

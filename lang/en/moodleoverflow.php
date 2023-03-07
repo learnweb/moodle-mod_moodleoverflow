@@ -56,6 +56,7 @@ $string['moodleoverflow:marksolved'] = 'Mark a post as solution';
 $string['moodleoverflow:reviewpost'] = 'Review (approve or reject) posts';
 $string['nowallsubscribed'] = 'All forums in {$a} are subscribed.';
 $string['nowallunsubscribed'] = 'All forums in {$a} are unsubscribed.';
+$string['moodleoverflow:movetopic'] = 'Move Topic to another Moddleoverflow Forum';
 
 // Strings for the view.php.
 $string['noviewdiscussionspermission'] = 'You do not have the permission to view discussions in this forum';
@@ -339,6 +340,7 @@ $string['noupvote'] = 'No upvote';
 $string['downvote'] = 'Downvote';
 $string['downvotenotchangeable'] = 'Downvote (not changeable)';
 $string['nodownvote'] = 'No downvote';
+$string['movetopicicon'] = 'The icon to move a topic';
 
 // Privacy.
 $string['privacy:metadata:core_files'] = 'Moodleoverflow stores files which have been uploaded by the user to form part of a forum post.';
