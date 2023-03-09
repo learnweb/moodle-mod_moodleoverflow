@@ -355,7 +355,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         // build linktopopup to move a topic
         $linktopopup = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup=' . $discussion->discussion;
         $preparedarray[$i]['linktopopup'] = $linktopopup;
-        
+
         // Add all created data to an array.
         $preparedarray[$i]['statusstarter'] = $statusstarter;
         $preparedarray[$i]['statusteacher'] = $statusteacher;
@@ -402,7 +402,7 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     $forums = $DB->get_records('moodleoverflow', array('course' => $course->id));
     $amountforums = count($forums);
 
-    if($amountforums > 1) {
+    if ($amountforums > 1) {
         // write the moodleoverflow-names in an array.
         $i = 0;
         foreach ($forums as $forum) {
@@ -419,7 +419,6 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     } else {
         $amountforums = false;
     }
-    
 
     // build popup
     $renderer = $PAGE->get_renderer('mod_moodleoverflow');
