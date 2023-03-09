@@ -355,8 +355,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         // build linktopopup to move a topic
         $linktopopup = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup=' . $discussion->discussion;
         $preparedarray[$i]['linktopopup'] = $linktopopup;
+        
         // Add all created data to an array.
-
         $preparedarray[$i]['statusstarter'] = $statusstarter;
         $preparedarray[$i]['statusteacher'] = $statusteacher;
         $preparedarray[$i]['statusboth'] = $statusboth;
@@ -388,6 +388,46 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     if ($page != -1) {
         echo $OUTPUT->paging_bar($numberofdiscussions, $page, $perpage, "view.php?id=$cm->id");
     }
+}
+
+/**
+ * Prints a popup with a menu of other moodleoverflow in the course.
+ * Menu to move a topic to another moodleoverflow forum.
+ */
+function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
+    global $CFG, $DB, $PAGE;
+    $forumarray = array(array());
+    $currentforum = $DB->get_record('moodleoverflow_discussions', array('id' => $movetopopup), 'moodleoverflow');
+    $currentdiscussion = $DB->get_record('moodleoverflow_discussions', array('id' => $movetopopup), 'name');
+    $forums = $DB->get_records('moodleoverflow', array('course' => $course->id));
+    $amountforums = count($forums);
+
+    if($amountforums > 1) {
+        // write the moodleoverflow-names in an array.
+        $i = 0;
+        foreach ($forums as $forum) {
+            if ($forum->id == $currentforum->moodleoverflow) {
+                continue;
+            } else {
+                $forumarray[$i]['name'] = $forum->name;
+                $movetoforum = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup=' . $movetopopup . '&movetoforum=' . $forum->id;
+                $forumarray[$i]['movetoforum'] = $movetoforum;
+            }
+            $i++;
+        }
+        $amountforums = true;
+    } else {
+        $amountforums = false;
+    }
+    
+
+    // build popup
+    $renderer = $PAGE->get_renderer('mod_moodleoverflow');
+    $mustachedata = new stdClass();
+    $mustachedata->hasforums = $amountforums;
+    $mustachedata->forums = $forumarray;
+    $mustachedata->currentdiscussion = $currentdiscussion->name;
+    echo $renderer->render_forum_list($mustachedata);
 }
 
 /**

@@ -341,6 +341,7 @@ $string['downvote'] = 'Downvote';
 $string['downvotenotchangeable'] = 'Downvote (not changeable)';
 $string['nodownvote'] = 'No downvote';
 $string['movetopicicon'] = 'The icon to move a topic';
+$string['movetopictoforum'] = 'The icon to move a selected topic to another forum';
 
 // Privacy.
 $string['privacy:metadata:core_files'] = 'Moodleoverflow stores files which have been uploaded by the user to form part of a forum post.';
