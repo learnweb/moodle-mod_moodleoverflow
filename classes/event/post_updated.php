@@ -38,8 +38,8 @@ class post_updated extends \core\event\base {
      * @return void
      */
     protected function init() {
-        $this->data['crud']        = 'u';
-        $this->data['edulevel']    = self::LEVEL_PARTICIPATING;
+        $this->data['crud'] = 'u';
+        $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
         $this->data['objecttable'] = 'moodleoverflow_posts';
     }
 

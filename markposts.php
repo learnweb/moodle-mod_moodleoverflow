@@ -28,7 +28,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Define the parameters.
 $moodleoverflowid = required_param('m', PARAM_INT);         // The moodleoverflowinstance to mark.
-$discussionid     = optional_param('d', 0, PARAM_INT);      // The discussion to mark.
+$discussionid = optional_param('d', 0, PARAM_INT);      // The discussion to mark.
 $returndiscussion = optional_param('return', 0, PARAM_INT); // The page to return to.
 
 // Prepare the array that should be used to return to this page.
@@ -99,7 +99,7 @@ if (isguestuser()) {
 if (!empty($discussionid)) {
 
     // Check if the discussion exists.
-    $options    = array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id);
+    $options = array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id);
     $discussion = $DB->get_record('moodleoverflow_discussions', $options);
     if (!$discussion) {
         throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
@@ -111,13 +111,13 @@ if (!empty($discussionid)) {
 
         // Display an error, if something failes.
         $message = get_string('markreadfailed', 'moodleoverflow');
-        $status  = \core\output\notification::NOTIFY_ERROR;
+        $status = \core\output\notification::NOTIFY_ERROR;
 
     } else {
 
         // The discussion is successfully marked as read.
         $message = get_string('markmoodleoverflowreadsuccessful', 'moodleoverflow');
-        $status  = \core\output\notification::NOTIFY_SUCCESS;
+        $status = \core\output\notification::NOTIFY_SUCCESS;
     }
 
     // Redirect the user.
@@ -131,13 +131,13 @@ if (!empty($discussionid)) {
 
         // Display an error, if something fails.
         $message = get_string('markreadfailed', 'moodleoverflow');
-        $status  = \core\output\notification::NOTIFY_ERROR;
+        $status = \core\output\notification::NOTIFY_ERROR;
 
     } else {
 
         // All posts of the instance have been marked as read.
         $message = get_string('markdiscussionreadsuccessful', 'moodleoverflow');
-        $status  = \core\output\notification::NOTIFY_SUCCESS;
+        $status = \core\output\notification::NOTIFY_SUCCESS;
     }
 
     // Redirect the user back to the view.php.

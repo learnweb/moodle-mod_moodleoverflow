@@ -27,7 +27,7 @@ require_once("../../config.php");
 require_once("locallib.php");
 
 // Get submitted parameters.
-$id         = required_param('id', PARAM_INT);                       // The moodleoverflow to track or untrack.
+$id = required_param('id', PARAM_INT);                       // The moodleoverflow to track or untrack.
 $returnpage = optional_param('returnpage', 'index.php', PARAM_FILE); // The page to return to.
 
 // A session key is needed to change the tracking options.
@@ -52,10 +52,10 @@ if (!$cm = get_coursemodule_from_instance("moodleoverflow", $moodleoverflow->id,
 require_login($course, false, $cm);
 
 // Set the page to return to.
-$url           = '/mod/moodleoverflow/' . $returnpage;
-$params        = array('id' => $course->id, 'm' => $moodleoverflow->id);
+$url = '/mod/moodleoverflow/' . $returnpage;
+$params = array('id' => $course->id, 'm' => $moodleoverflow->id);
 $returnpageurl = new moodle_url($url, $params);
-$returnto      = moodleoverflow_go_back_to($returnpageurl);
+$returnto = moodleoverflow_go_back_to($returnpageurl);
 
 // Check whether the user can track the moodleoverflow instance.
 $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
@@ -67,15 +67,15 @@ if (!$cantrack) {
 }
 
 // Create an info object.
-$info                 = new stdClass();
-$info->name           = fullname($USER);
+$info = new stdClass();
+$info->name = fullname($USER);
 $info->moodleoverflow = format_string($moodleoverflow->name);
 
 // Set parameters for an event.
 $eventparams = array(
-    'context'       => context_module::instance($cm->id),
+    'context' => context_module::instance($cm->id),
     'relateduserid' => $USER->id,
-    'other'         => array('moodleoverflowid' => $moodleoverflow->id),
+    'other' => array('moodleoverflowid' => $moodleoverflow->id),
 );
 
 // Check whether the moodleoverflow is tracked.

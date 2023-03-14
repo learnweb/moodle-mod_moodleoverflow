@@ -202,10 +202,20 @@
                     {{^ lastpostusername }}-{{/ lastpostusername }}<br />
                     <a href="{{ lastpostlink }}">{{ lastpostdate }}</a>
                 </td>
+                
+                {{^cannormoveorsub}}
+                    <td class="discussionsubscription"> 
+                        {{#cansubtodiscussion}}
+                            {{{discussionsubicon}}} <br/>
+                        {{/cansubtodiscussion}}
+                        {{#canmovetopic}}
+                            <a href='{{ linktopopup }}'>{{#pix}} i/arrow-right, core, {{#str}}movetopicicon, moodleoverflow{{/str}} {{/pix}}</a>
+                        {{/canmovetopic}}
+                    </td>
+                {{/cannormoveorsub}}
 
-                {{#cansubtodiscussion}}
-                    <td class="discussionsubscription">{{{discussionsubicon}}}</td>
-                {{/cansubtodiscussion}}
+                
+
 
             </tr>
 
