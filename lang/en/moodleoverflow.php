@@ -63,6 +63,7 @@ $string['noviewdiscussionspermission'] = 'You do not have the permission to view
 
 // Strings for the locallib.php.
 $string['addanewdiscussion'] = 'Add a new discussion topic';
+$string['seeuserstats'] = 'View user statistics';
 $string['nodiscussions'] = 'There are no discussion topics yet in this forum.';
 $string['headerdiscussion'] = 'Discussion';
 $string['headerstartedby'] = 'Started by';

@@ -134,6 +134,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $canstartdiscussion = moodleoverflow_user_can_post_discussion($moodleoverflow, $cm, $context);
     $canviewdiscussions = has_capability('mod/moodleoverflow:viewdiscussion', $context);
     $canreviewposts = has_capability('mod/moodleoverflow:reviewpost', $context);
+    $canseeuserstats = has_capability('mod/moodleoverflow:viewanyrating', $context);
 
     // Print a button if the user is capable of starting
     // a new discussion or if the selfenrol is aviable.
@@ -144,6 +145,15 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $button->class = 'singlebutton align-middle m-2';
         $button->formid = 'newdiscussionform';
         echo $OUTPUT->render($button);
+    }
+
+    // Print a button if the user is capable of seeing the user stats.
+    if ($canseeuserstats) {
+        $buttontext2 = get_string('seeuserstats', 'moodleoverflow');
+        $buttonurl2 = new moodle_url('/mod/moodleoverflow/userstats.php');
+        $button2 = new single_button($buttonurl2, $buttontext2, 'get');
+        $button2->class = 'singlebutton align-middle m-2';
+        echo $OUTPUT->render($button2);
     }
 
     // Get all the recent discussions the user is allowed to see.
