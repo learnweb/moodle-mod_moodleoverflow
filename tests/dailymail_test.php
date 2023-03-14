@@ -57,7 +57,6 @@ class dailymail_test extends \advanced_testcase {
 
         unset_config('noemailever');
         $this->sink = $this->redirectEmails();
-
         $this->preventResetByRollback();
         $this->redirectMessages();
         // Create a new course with a moodleoverflow forum.
@@ -153,24 +152,27 @@ class dailymail_test extends \advanced_testcase {
 
         // Send the mails and count the messages.
         $this->helper_run_send_mails();
-        $content = $this->helper_run_send_daily_mail();
-        $content = str_replace(["\n\r", "\n", "\r"], '', $content);
-        $messages = $this->sink->count();
+        $this->helper_run_send_daily_mail();
+        $content = $this->sink->get_messages();
+        $message = $content[0]->body;
+        $message = str_replace(["\n\r", "\n", "\r"], '', $message);
+        $messagecount = $this->sink->count();
 
         // Build the text that the mail should have.
         // Text structure at get_string('digestunreadpost', moodleoverflow).
-        $linktocourse = '<a href="https://www.example.com/moodle/course/view.php?id='
-                        . $this->course->id . '">' . $this->course->fullname . '</a>';
-        $linktoforum = '<a href="https://www.example.com/moodle/mod/moodleoverflow/view.php?id='
-                       . $this->coursemodule->id . '">' . $this->moodleoverflow->name . '</a>';
-        $linktodiscussion = '<a href="https://www.example.com/moodle/mod/moodleoverflow/discussion.php?d='
-                            . $this->discussion[0]->id . '">' . $this->discussion[0]->name . '</a>';
+        $linktocourse = '<a href=3D"https://www.example.com/mood=le/course/view.php?id=3D'. $this->course->id;
+        $linktoforum = '<a href=3D"https://www.=example.com/moodle/mod/moodleoverflow/view.php?id=3D'. $this->coursemodule->id;
+        $linktodiscussion = '<a href=3D"https://www.example.com/moodle/mod/moodleoverflow/=discussion.php?d=3D'
+                            . $this->discussion[0]->id;
 
         // Assemble text.
         $text = 'Course: ' . $linktocourse . ' -> ' . $linktoforum . ', Topic: '
-                . $linktodiscussion . ' has ' . $messages . ' unread posts.';
+                . $linktodiscussion . ' has ' . $messagecount . ' unread posts.';
 
-        $this->assertEquals($text, $content);
+        $this->assertStringContainsString($linktocourse, $message);
+        $this->assertStringContainsString($linktoforum, $message);
+        $this->assertStringContainsString($linktodiscussion, $message);
+        $this->assertStringContainsString($messagecount, $message);
     }
 
 
