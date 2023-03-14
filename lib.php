@@ -743,7 +743,6 @@ function moodleoverflow_send_mails() {
 
             // Tracing information.
             mtrace('Processing user ' . $userto->id);
-            mtrace('Mail setting of user: ' . $userto->maildigest);
             // Initiate the user caches to save memory.
             $userto = clone($userto);
             $userto->ciewfullnames = array();
@@ -779,11 +778,12 @@ function moodleoverflow_send_mails() {
                     $dataobject->courseid = $course->id;
                     $dataobject->forumid = $moodleoverflow->id;
                     $dataobject->forumdiscussionid = $discussion->id;
-                    $record = $DB->get_record('moodleoverflow_mail_info', array('userid' => $dataobject->userid,
-                                                                                'courseid' => $dataobject->courseid,
-                                                                                'forumid' => $dataobject->forumid,
-                                                                                'forumdiscussionid' => $dataobject->forumdiscussionid),
-                                                                                'numberofposts, id');
+                    $record = $DB->get_record('moodleoverflow_mail_info',
+                                                array('userid' => $dataobject->userid,
+                                                      'courseid' => $dataobject->courseid,
+                                                      'forumid' => $dataobject->forumid,
+                                                      'forumdiscussionid' => $dataobject->forumdiscussionid),
+                                                      'numberofposts, id');
                     if (is_object($record)) {
                         $dataset = $record;
                         $dataobject->numberofposts = $dataset->numberofposts + 1;

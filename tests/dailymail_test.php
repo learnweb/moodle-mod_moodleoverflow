@@ -130,13 +130,12 @@ class dailymail_test extends \advanced_testcase {
     public function test_mail_delivery() {
         global $DB;
 
-        // Create user with maildigest = on
+        // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
 
         // Send a mail and test if the mail was sent.
-
-        $this->helper_run_send_mails();       // content2
-        $this->helper_run_send_daily_mail();  // content
+        $this->helper_run_send_mails();
+        $this->helper_run_send_daily_mail();
         $messages = $this->sink->count();
 
         $this->assertEquals(1, $messages);
@@ -144,28 +143,32 @@ class dailymail_test extends \advanced_testcase {
 
 
     /**
-     * Test if the content of the mail matches the supposed content
+     * Test if the content of the mail matches the supposed content.
      */
     public function test_content_of_mail_delivery() {
         global $DB;
 
-        // Creat user with maildigest = on.
+        // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
 
-        // send the mails and count the messages.
+        // Send the mails and count the messages.
         $this->helper_run_send_mails();
         $content = $this->helper_run_send_daily_mail();
         $content = str_replace(["\n\r", "\n", "\r"], '', $content);
         $messages = $this->sink->count();
 
         // Build the text that the mail should have.
-        // Text structure: $string['digestunreadpost'] = 'Course: {$a->linktocourse}-> {$a->linktoforum}, Topic: {$a->linktodiscussion} has {$a->unreadposts} unread posts.';.
-        $linktocourse = '<a href="https://www.example.com/moodle/course/view.php?id=' . $this->course->id . '">' . $this->course->fullname . '</a>';
-        $linktoforum = '<a href="https://www.example.com/moodle/mod/moodleoverflow/view.php?id=' . $this->coursemodule->id . '">' . $this->moodleoverflow->name . '</a>';
-        $linktodiscussion = '<a href="https://www.example.com/moodle/mod/moodleoverflow/discussion.php?d=' . $this->discussion[0]->id . '">' . $this->discussion[0]->name . '</a>';
+        // Text structure at get_string('digestunreadpost', moodleoverflow).
+        $linktocourse = '<a href="https://www.example.com/moodle/course/view.php?id='
+                        . $this->course->id . '">' . $this->course->fullname . '</a>';
+        $linktoforum = '<a href="https://www.example.com/moodle/mod/moodleoverflow/view.php?id='
+                       . $this->coursemodule->id . '">' . $this->moodleoverflow->name . '</a>';
+        $linktodiscussion = '<a href="https://www.example.com/moodle/mod/moodleoverflow/discussion.php?d='
+                            . $this->discussion[0]->id . '">' . $this->discussion[0]->name . '</a>';
 
-        // assemble text
-        $text = 'Course: ' . $linktocourse . ' -> ' . $linktoforum . ', Topic: ' . $linktodiscussion . ' has ' . $messages . ' unread posts.';
+        // Assemble text.
+        $text = 'Course: ' . $linktocourse . ' -> ' . $linktoforum . ', Topic: '
+                . $linktodiscussion . ' has ' . $messages . ' unread posts.';
 
         $this->assertEquals($text, $content);
     }

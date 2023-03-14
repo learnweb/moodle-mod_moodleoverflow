@@ -178,7 +178,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $markallread = null;
     }
 
-    // Check wether the user can move a topic
+    // Check wether the user can move a topic.
     $canmovetopic = false;
     if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:movetopic', $context)) {
         $canmovetopic = true;
@@ -186,7 +186,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
     // Check whether the user can subscribe to the discussion.
     $cansubtodiscussion = false;
-    if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
+    if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)
+                                    && \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $context)) {
         $cansubtodiscussion = true;
     }
 
@@ -352,7 +353,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             ], 'p' . $reviewinfo->first))->out(false);
         }
 
-        // build linktopopup to move a topic
+        // Build linktopopup to move a topic.
         $linktopopup = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup=' . $discussion->discussion;
         $preparedarray[$i]['linktopopup'] = $linktopopup;
 
@@ -380,7 +381,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $mustachedata->markallread = $markallread;
     $mustachedata->cansubtodiscussion = $cansubtodiscussion;
     $mustachedata->canmovetopic = $canmovetopic;
-
+    $mustachedata->cannormoveorsub = ((!$canmovetopic) && (!$cansubtodiscussion));
     // Print the template.
     echo $renderer->render_discussion_list($mustachedata);
 
@@ -403,14 +404,15 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     $amountforums = count($forums);
 
     if ($amountforums > 1) {
-        // write the moodleoverflow-names in an array.
+        // Write the moodleoverflow-names in an array.
         $i = 0;
         foreach ($forums as $forum) {
             if ($forum->id == $currentforum->moodleoverflow) {
                 continue;
             } else {
                 $forumarray[$i]['name'] = $forum->name;
-                $movetoforum = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup=' . $movetopopup . '&movetoforum=' . $forum->id;
+                $movetoforum = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup='
+                                             . $movetopopup . '&movetoforum=' . $forum->id;
                 $forumarray[$i]['movetoforum'] = $movetoforum;
             }
             $i++;
@@ -420,7 +422,7 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
         $amountforums = false;
     }
 
-    // build popup
+    // Build popup.
     $renderer = $PAGE->get_renderer('mod_moodleoverflow');
     $mustachedata = new stdClass();
     $mustachedata->hasforums = $amountforums;

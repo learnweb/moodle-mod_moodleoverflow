@@ -120,7 +120,7 @@ if ($movetopopup && has_capability('mod/moodleoverflow:movetopic', $context)) {
 }
 
 if ($linktoforum && $movetopopup && has_capability('mod/moodleoverflow:movetopic', $context)) {
-    // Take the $movetopopup-id and the $linktoforum-id and move the discussion to the forum
+    // Take the $movetopopup-id and the $linktoforum-id and move the discussion to the forum.
     $topic = $DB->get_record('moodleoverflow_discussions', array('id' => $movetopopup));
     $topic->moodleoverflow = $linktoforum;
     $DB->update_record('moodleoverflow_discussions', $topic);
