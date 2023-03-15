@@ -150,7 +150,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     // Print a button if the user is capable of seeing the user stats.
     if ($canseeuserstats) {
         $buttontext2 = get_string('seeuserstats', 'moodleoverflow');
-        $buttonurl2 = new moodle_url('/mod/moodleoverflow/userstats.php');
+        $buttonurl2 = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id, 'courseid' => $moodleoverflow->course]);
         $button2 = new single_button($buttonurl2, $buttontext2, 'get');
         $button2->class = 'singlebutton align-middle m-2';
         echo $OUTPUT->render($button2);

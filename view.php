@@ -36,6 +36,7 @@ $m = optional_param('m', 0, PARAM_INT);        // MoodleOverflow ID.
 $page = optional_param('page', 0, PARAM_INT);     // Which page to show.
 $movetopopup = optional_param('movetopopup', 0, PARAM_INT);     // Which Topic to move.
 $linktoforum = optional_param('movetoforum', 0, PARAM_INT);     // Forum to which it is moved.
+
 // Set the parameters.
 $params = array();
 if ($id) {
@@ -60,8 +61,6 @@ if ($id) {
 } else {
     throw new moodle_exception('missingparameter');
 }
-
-
 
 // Require a login.
 require_login($course, true, $cm);

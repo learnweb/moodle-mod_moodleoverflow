@@ -29,15 +29,35 @@
 require_once(__DIR__.'/../../config.php');
 global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
 require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
-// Require a login
+
+use mod_moodleoverflow\tables\userstats_table;
 // Declare optional parameters.
-$id = optional_param('id', 0, PARAM_INT);   // Course Module ID.
+$cmid = optional_param('id', 0, PARAM_INT);             // Course Module ID.
+$courseid = optional_param('courseid', 0, PARAM_INT);   // Course ID.
+
+// Define important variables.
+if ($courseid) {
+    $course = $DB->get_record('course', array('id' => $courseid), '*');
+}
+if ($cmid) {
+    $cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
+}
+// Require a login.
+require_login();
+
+// Set the context.
+$context = context_course::instance($course->id);
+$PAGE->set_context($context);
 
 // Print the page header.
 $PAGE->set_url('/mod/moodleoverflow/userstats.php');
 $PAGE->set_title('User statistics');
-$PAGE->set_heading('moodleoverflow');
+$PAGE->set_heading('User statistics of course: ' . $course->fullname);
+
 
 // Output starts here.
 echo $OUTPUT->header();
+$table = new userstats_table('statisticstable' , $course->id, $context);
+echo $table->out();
 echo $OUTPUT->footer();
+
