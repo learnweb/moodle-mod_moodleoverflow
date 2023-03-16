@@ -28,6 +28,7 @@ namespace mod_moodleoverflow\tables;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 require_once($CFG->libdir . '/tablelib.php');
 require_login();
 
@@ -41,7 +42,7 @@ require_login();
 class userstats_table extends \flexible_table {
 
 
-    private $cid;
+    private $courseid;   // Course ID.
     private $context;
     /**
      * Constructor for workflow_table.
@@ -50,13 +51,13 @@ class userstats_table extends \flexible_table {
     public function __construct($uniqueid, $courseid, $coursecontext) {
         parent::__construct($uniqueid);
         global $PAGE;
-        $this->cid = $courseid;
+        $this->courseid = $courseid;
         $this->context = $coursecontext;
         $this->set_attribute('class', 'statistics-table');
         $this->set_attribute('id', $uniqueid);
-        $this->define_columns(['username', 'getrating', 'activity', 'reputation', 'score']);
+        $this->define_columns(['username', 'upvotes', 'downvotes', 'activity', 'reputation']);
         $this->define_baseurl($PAGE->url);
-        $this->define_headers(['user', 'received votes', 'user reputation', 'amount of activity', 'user score']);
+        $this->define_headers(['user', 'received upvotes', 'received downvotes', 'amount of activity', 'user reputation']);
         $this->sortable(false);
         $this->setup();
     }
@@ -70,22 +71,22 @@ class userstats_table extends \flexible_table {
         $this->start_output();
         $arr = array(array());
         $arr[0]['username'] = 'Tamaro';
-        $arr[0]['getrating'] = 1;
+        $arr[0]['upvotes'] = 1;
         $arr[0]['activity'] = 4;
         $arr[0]['reputation'] = 50;
-        $arr[0]['score'] = 30;
+        $arr[0]['downvotes'] = 30;
 
         $arr[1]['username'] = 'Telica';
-        $arr[1]['getrating'] = 3;
+        $arr[1]['upvotes'] = 3;
         $arr[1]['activity'] = 25;
         $arr[1]['reputation'] = 400;
-        $arr[1]['score'] = -10;
+        $arr[1]['downvotes'] = -10;
 
         $arr[2]['username'] = 'Walter';
-        $arr[2]['getrating'] = 4;
+        $arr[2]['upvotes'] = 4;
         $arr[2]['activity'] = 23;
         $arr[2]['reputation'] = 40;
-        $arr[2]['score'] = -50;
+        $arr[2]['downvotes'] = -50;
         // DB aufruf: $records = $DB->get_records('course', array('id' => $id), 'id, fullname, shortname');.
         $this->format_and_add_array_of_rows($arr, true);
         $this->get_table_data($this->context);
@@ -100,14 +101,58 @@ class userstats_table extends \flexible_table {
      */
     public function get_table_data($context) {
         global $DB;
+        // Get all userdata from a course.
+        $users = get_enrolled_users($context , '',  0, $userfields = 'u.id, u.firstname, u.lastname');
 
-        /*$users = $DB->get_records_sql('SELECT u.lastname FROM mdl_role_assignments AS asg
-                                       JOIN mdl_context AS context ON asg.contextid = context.id AND context.contextlevel = 50
-                                       JOIN mdl_user AS u ON u.id = asg.userid
-                                       JOIN mdl_course AS course ON context.instanceid = course.id
-                                       WHERE asg.roleid = 5 AND course.id = :courseid', array('courseid' => $courseid));*/
-        $users = get_enrolled_users($context , '',  0, $userfields = 'u.username');
-        var_dump($users);
+        $usertable = array(); // Usertable will have objects with every user and his statistics.
+
+        // Step 1.0: Build the datatable with all relevant Informations.
+        $sqlquery = 'SELECT discuss.id AS discussid,
+                             discuss.userid AS discussuserid,
+                             posts.id AS postid,
+                             posts.userid AS postuserid,
+                             posts.discussion AS postdiscussid,
+                             ratings.id AS rateid,
+                             ratings.rating AS rating,
+                             ratings.userid AS rateuserid,
+                             ratings.postid AS ratepostid,
+                             ratings.discussionid AS ratediscussid
+                      FROM {moodleoverflow_discussions} discuss
+                      JOIN {moodleoverflow_posts} posts ON discuss.id = posts.discussion
+                      LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid OR
+                                                                       discuss.id = ratings.discussionid
+                      WHERE discuss.course = ' . $this->courseid . ';';
+        $ratingdata = $DB->get_records_sql($sqlquery);
+
+        // Step 2.0: Now collect the data for every user in the course.
+        foreach ($users as $user) {
+            $student = new \stdClass();
+            $student->id = $user->id;
+            $student->name = $user->firstname . ' ' . $user->lastname;
+            $student->submittedposts = array();
+            $student->receivedupvotes = 0;
+            $student->receiveddownvotes = 0;
+            $student->activity = 0;
+            $student->reputation = 0;
+            foreach ($ratingdata as $row) {
+                if ($row->postuserid == $student->id && $row->rating == RATING_UPVOTE) {
+                    $student->receivedupvotes += 1;
+                }
+                if ($row->postuserid == $student->id && $row->rating == RATING_DOWNVOTE) {
+                    $student->receiveddownvotes += 1;
+                }
+                if ($row->rateuserid == $student->id) {
+                    $student->activity += 1;
+                }
+                if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts)) {
+                    $student->activity += 1;
+                    $student->submittedposts[$row->postid] = $row->postid;
+                }
+                // Reputation.
+            }
+
+            array_push($usertable, $student);
+        }
     }
 
 
@@ -117,8 +162,8 @@ class userstats_table extends \flexible_table {
         return $row->username;
     }
 
-    public function col_getrating($row) {
-        return $row->getrating;
+    public function col_upvotes($row) {
+        return $row->upvotes;
     }
 
     public function col_activity($row) {
@@ -129,8 +174,8 @@ class userstats_table extends \flexible_table {
         return $row->reputation;
     }
 
-    public function col_score($row) {
-        return $row->score;
+    public function col_downvotes($row) {
+        return $row->downvotes;
     }
 
     public function other_cols($colname, $attempt) {
