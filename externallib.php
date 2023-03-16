@@ -59,10 +59,10 @@ class mod_moodleoverflow_external extends external_api {
     public static function record_vote_returns() {
         return new external_single_structure(
             array(
-                'postrating'      => new external_value(PARAM_INT, 'new post rating'),
+                'postrating' => new external_value(PARAM_INT, 'new post rating'),
                 'ownerreputation' => new external_value(PARAM_INT, 'new reputation of post owner'),
                 'raterreputation' => new external_value(PARAM_INT, 'new reputation of rater'),
-                'ownerid'         => new external_value(PARAM_INT, 'user id of post owner'),
+                'ownerid' => new external_value(PARAM_INT, 'user id of post owner'),
             )
         );
     }
@@ -120,7 +120,7 @@ class mod_moodleoverflow_external extends external_api {
 
         $post = moodleoverflow_get_post_full($params['postid']);
         $postownerid = $post->userid;
-        $rating      = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id,
+        $rating = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id,
             $params['postid']);
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
@@ -128,10 +128,10 @@ class mod_moodleoverflow_external extends external_api {
         $cannotseeowner = \mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) &&
             $USER->id != $postownerid;
 
-        $params['postrating']      = $rating->upvotes - $rating->downvotes;
+        $params['postrating'] = $rating->upvotes - $rating->downvotes;
         $params['ownerreputation'] = $cannotseeowner ? null : $ownerrating;
         $params['raterreputation'] = $raterrating;
-        $params['ownerid']         = $cannotseeowner ? null : $postownerid;
+        $params['ownerid'] = $cannotseeowner ? null : $postownerid;
 
         $transaction->allow_commit();
 

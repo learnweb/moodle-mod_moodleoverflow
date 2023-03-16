@@ -86,11 +86,11 @@ class ratings {
         if (!$canrate) {
 
             // Catch unenrolled users.
-            if (!isguestuser() AND !is_enrolled($coursecontext)) {
+            if (!isguestuser() && !is_enrolled($coursecontext)) {
                 $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
                 redirect(new \moodle_url('/enrol/index.php', array(
-                    'id'        => $course->id,
+                    'id' => $course->id,
                     'returnurl' => '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id
                 )), get_string('youneedtoenrol'));
             }
@@ -248,7 +248,7 @@ class ratings {
         $statusteacher = self::moodleoverflow_discussion_is_solved($discussionid, true);
 
         // The answer that is marked as correct by both is displayed first.
-        if ($statusteacher AND $statusstarter) {
+        if ($statusteacher && $statusstarter) {
 
             // Is the same answer correct for both?
             if ($statusstarter->postid == $statusteacher->postid) {
@@ -265,7 +265,7 @@ class ratings {
 
         // If the answers the teacher marks are preferred, and only
         // the teacher marked an answer as solved, display it first.
-        if ($preferteacher AND $statusteacher) {
+        if ($preferteacher && $statusteacher) {
 
             // Add the post to the new order and delete it from the posts array.
             $neworder[] = (int) $statusteacher->postid;
@@ -534,7 +534,7 @@ class ratings {
         $reputation += get_config('moodleoverflow', 'votescalevote') * $votes->amount;
 
         // Can the reputation of a user be negative?
-        if (!$moodleoverflow->allownegativereputation AND $reputation <= 0) {
+        if (!$moodleoverflow->allownegativereputation && $reputation <= 0) {
             $reputation = 0;
         }
 
@@ -608,7 +608,7 @@ class ratings {
         $rating['normal'] = $DB->get_record_sql($sql, [ $userid, $postid ]);
 
         // Return the rating if it is requested.
-        if ($oldrating == RATING_DOWNVOTE OR $oldrating == RATING_UPVOTE) {
+        if ($oldrating == RATING_DOWNVOTE || $oldrating == RATING_UPVOTE) {
             return $rating['normal'];
         }
 
@@ -683,7 +683,7 @@ class ratings {
         // Trigger an event.
         $params = array(
             'objectid' => $oldrecord->id,
-            'context'  => $modulecontext,
+            'context' => $modulecontext,
         );
         $event = \mod_moodleoverflow\event\rating_deleted::create($params);
         $event->add_record_snapshot('moodleoverflow_ratings', $oldrecord);
@@ -724,7 +724,7 @@ class ratings {
         // Trigger an event.
         $params = array(
             'objectid' => $recordid,
-            'context'  => $mod,
+            'context' => $mod,
         );
         $event = \mod_moodleoverflow\event\rating_created::create($params);
         $event->trigger();
@@ -755,7 +755,7 @@ class ratings {
         // Trigger an event.
         $params = array(
             'objectid' => $ratingid,
-            'context'  => $modulecontext,
+            'context' => $modulecontext,
         );
         $event = \mod_moodleoverflow\event\rating_updated::create($params);
         $event->trigger();
@@ -766,7 +766,7 @@ class ratings {
     /**
      * Check if a user can rate the post.
      *
-     * @param object $moodleoverflow
+     * @param object $post
      * @param \context_module   $modulecontext
      * @param null|int $userid
      *
@@ -776,7 +776,7 @@ class ratings {
         global $USER;
         if (!$userid) {
             // Guests and non-logged-in users can not rate.
-            if (isguestuser() OR !isloggedin()) {
+            if (isguestuser() || !isloggedin()) {
                 return false;
             }
             $userid = $USER->id;

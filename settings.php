@@ -50,10 +50,10 @@ if ($ADMIN->fulltree) {
 
 
     // Default read tracking settings.
-    $options                                   = array();
+    $options = array();
     $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
-    $options[MOODLEOVERFLOW_TRACKING_OFF]      = get_string('trackingoff', 'moodleoverflow');
-    $options[MOODLEOVERFLOW_TRACKING_FORCED]   = get_string('trackingon', 'moodleoverflow');
+    $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
+    $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
     $settings->add(new admin_setting_configselect('moodleoverflow/trackingtype', get_string('trackingtype', 'moodleoverflow'),
         get_string('configtrackingtype', 'moodleoverflow'), MOODLEOVERFLOW_TRACKING_OPTIONAL, $options));
 
@@ -97,8 +97,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowreview',
         get_string('allowreview', 'moodleoverflow'), get_string('allowreview_desc', 'moodleoverflow'), 1));
 
-    $settings->add(new admin_setting_configtext('moodleoverflow/reviewpossibleaftertime', get_string('reviewpossibleaftertime', 'moodleoverflow'),
-            get_string('reviewpossibleaftertime_desc', 'moodleoverflow'), 3600, PARAM_INT));
+    $settings->add(new admin_setting_configtext('moodleoverflow/reviewpossibleaftertime',
+        get_string('reviewpossibleaftertime', 'moodleoverflow'),
+        get_string('reviewpossibleaftertime_desc', 'moodleoverflow'), 1800, PARAM_INT));
 
     // Set scales for the reputation.
     $votesettings = [];

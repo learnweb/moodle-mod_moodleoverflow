@@ -49,177 +49,166 @@ defined('MOODLE_INTERNAL') || die();
 // Modify capabilities as needed and remove this comment.
 $capabilities = array(
     'mod/moodleoverflow:addinstance' => array(
-        'riskbitmask'          => RISK_XSS,
-        'captype'              => 'write',
-        'contextlevel'         => CONTEXT_COURSE,
-        'archetypes'           => array(
+        'riskbitmask' => RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ),
-
     'mod/moodleoverflow:viewdiscussion' => array(
-        'captype'              => 'read',
-        'contextlevel'         => CONTEXT_MODULE,
-        'archetypes'           => array(
-            'frontpage'      => CAP_ALLOW,
-            'guest'          => CAP_ALLOW,
-            'student'        => CAP_ALLOW,
-            'teacher'        => CAP_ALLOW,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'frontpage' => CAP_ALLOW,
+            'guest' => CAP_ALLOW,
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:viewdiscussion'
     ),
 
     'mod/moodleoverflow:replypost' => array(
-
         'riskbitmask' => RISK_SPAM,
-
-        'captype'              => 'write',
-        'contextlevel'         => CONTEXT_MODULE,
-        'archetypes'           => array(
-            'student'        => CAP_ALLOW,
-            'teacher'        => CAP_ALLOW,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:replypost'
     ),
 
     'mod/moodleoverflow:startdiscussion' => array(
-
         'riskbitmask' => RISK_SPAM,
-
-        'captype'              => 'write',
-        'contextlevel'         => CONTEXT_MODULE,
-        'archetypes'           => array(
-            'student'        => CAP_ALLOW,
-            'teacher'        => CAP_ALLOW,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:startdiscussion'
     ),
 
     'mod/moodleoverflow:editanypost' => array(
-
         'riskbitmask' => RISK_SPAM,
-
-        'captype'              => 'write',
-        'contextlevel'         => CONTEXT_MODULE,
-        'archetypes'           => array(
-            'teacher'        => CAP_ALLOW,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:editanypost'
     ),
 
     'mod/moodleoverflow:deleteownpost' => array(
-
         'captype'              => 'write',
         'contextlevel'         => CONTEXT_MODULE,
         'archetypes'           => array(
             'student'        => CAP_ALLOW,
             'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:deleteownpost'
     ),
 
     'mod/moodleoverflow:deleteanypost' => array(
-
         'captype'              => 'write',
         'contextlevel'         => CONTEXT_MODULE,
         'archetypes'           => array(
             'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:deleteanypost'
     ),
-
     'mod/moodleoverflow:ratepost' => array(
-
         'riskbitmask' => RISK_SPAM,
-
-        'captype'      => 'write',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes'   => array(
-            'student'        => CAP_ALLOW,
-            'teacher'        => CAP_ALLOW,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     ),
 
     'mod/moodleoverflow:marksolved' => array(
-
         'riskbitmask' => RISK_SPAM,
-
-        'captype'      => 'write',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes'   => array(
-            'student'        => CAP_PROHIBIT,
-            'teacher'        => CAP_ALLOW,
+        'archetypes' => array(
+            'student' => CAP_PROHIBIT,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     ),
 
     'mod/moodleoverflow:managesubscriptions' => array(
-
         'riskbitmask' => RISK_SPAM,
-
         'captype'              => 'write',
         'contextlevel'         => CONTEXT_MODULE,
         'archetypes'           => array(
             'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:managesubscriptions'
     ),
 
     'mod/moodleoverflow:allowforcesubscribe' => array(
-
-        'captype'              => 'read',
-        'contextlevel'         => CONTEXT_MODULE,
-        'archetypes'           => array(
-            'student'        => CAP_ALLOW,
-            'teacher'        => CAP_ALLOW,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'frontpage'      => CAP_ALLOW
+            'frontpage' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:allowforcesubscribe'
     ),
 
     'mod/moodleoverflow:createattachment' => array(
-
         'riskbitmask' => RISK_SPAM,
-
-        'captype'              => 'write',
-        'contextlevel'         => CONTEXT_MODULE,
-        'archetypes'           => array(
-            'student'        => CAP_ALLOW,
-            'teacher'        => CAP_ALLOW,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:createattachment'
     ),
 
     'mod/moodleoverflow:reviewpost' => array(
-        'captype'              => 'write',
-        'contextlevel'         => CONTEXT_MODULE,
-        'archetypes'           => array(
-            'teacher'        => CAP_ALLOW,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW
         ),
     ),
 
+    'mod/moodleoverflow:movetopic' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+    ),
 );

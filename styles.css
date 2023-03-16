@@ -34,41 +34,10 @@
     white-space: nowrap;
 }
 
-.moodleoverflowheaderlist .replies,
-.moodleoverflowheaderlist .discussion .author {
-    white-space: nowrap;
-}
-
-.moodleoverflowheaderlist thead .discussionsubscription {
-    text-align: center;
-}
-
-.moodleoverflowheaderlist thead .header,
-.moodleoverflowheaderlist tbody .discussion td {
-    padding-left: .5em;
-    padding-right: .5em;
-    vertical-align: top;
-    white-space: normal;
-}
-
-.moodleoverflowheaderlist thead .header {
-    vertical-align: top;
-    white-space: normal;
-}
-
-.moodleoverflowheaderlist thead .header.replies {
-    text-align: center;
-}
-
-.moodleoverflowheaderlist thead .header.lastpost {
-    text-align: right;
-}
-
-.moodleoverflowheaderlist thead .header th.discussionsubscription,
-.moodleoverflowheaderlist tbody .discussion td.discussionsubscription {
-    padding-left: .5em;
-    padding-right: .5em;
-    width: 16px;
+.moodleoverflowdiscussion .discussionmove .icon {
+    width: 24px;
+    height: 24px;
+    color: #848d95;
 }
 
 .moodleoverflowheaderlist .discussion .author,

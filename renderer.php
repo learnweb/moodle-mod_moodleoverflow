@@ -48,6 +48,13 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Display the forum list in the view.php if a discussion needs to be moved to another forum.
+     */
+    public function render_forum_list($data) {
+        return $this->render_from_template('mod_moodleoverflow/forum_list', $data);
+    }
+
+    /**
      * Renders a dummy post for users that cannot see the post.
      *
      * @param object $data The submitted variables.

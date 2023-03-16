@@ -78,6 +78,8 @@ class review {
     }
 
     /**
+     * Get a review post to review.
+     *
      * @param int $moodleoverflowid ID of moodleoverflow to look in.
      * @param int $afterpostid ID of post after which to look for the first post to review.
      * @return string|null
@@ -85,7 +87,10 @@ class review {
     public static function get_first_review_post($moodleoverflowid, $afterpostid = null) {
         global $DB;
 
-        $params = ['moodleoverflowid' => $moodleoverflowid];
+        $params = [
+                'moodleoverflowid' => $moodleoverflowid,
+                'reviewtime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime')
+        ];
         $orderby = '';
         $addwhere = '';
 
@@ -93,7 +98,8 @@ class review {
             $afterdiscussionid = $DB->get_field('moodleoverflow_posts', 'discussion', ['id' => $afterpostid],
                 MUST_EXIST);
 
-            $orderby = 'CASE WHEN (p.discussion > :afterdiscussionid OR (p.discussion = :afterdiscussionid2 AND p.id > :afterpostid)) THEN 0 ELSE 1 END, ';
+            $orderby = 'CASE WHEN (p.discussion > :afterdiscussionid OR (p.discussion = :afterdiscussionid2 AND p.id
+             > :afterpostid)) THEN 0 ELSE 1 END, ';
             $params['afterdiscussionid'] = $afterdiscussionid;
             $params['afterdiscussionid2'] = $afterdiscussionid;
             $params['afterpostid'] = $afterpostid;
@@ -104,7 +110,7 @@ class review {
         $record = $DB->get_record_sql(
             'SELECT p.id as postid, p.discussion as discussionid FROM {moodleoverflow_posts} p ' .
             'JOIN {moodleoverflow_discussions} d ON d.id = p.discussion ' .
-            "WHERE p.reviewed = 0 AND d.moodleoverflow = :moodleoverflowid $addwhere " .
+            "WHERE p.reviewed = 0 AND d.moodleoverflow = :moodleoverflowid AND p.created < :reviewtime $addwhere " .
             "ORDER BY $orderby p.discussion, p.id " .
             'LIMIT 1',
             $params
@@ -145,7 +151,7 @@ class review {
     /**
      * Count outstanding reviews in the moodleoverflow.
      *
-     * @param $moodleoverflowid
+     * @param int $moodleoverflowid
      * @return int
      */
     public static function count_outstanding_reviews_in_moodleoverflow($moodleoverflowid): int {

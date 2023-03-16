@@ -53,7 +53,7 @@ class readtracking {
         }
 
         // Guests are not allowed to track moodleoverflows.
-        if (isguestuser($USER) OR empty($USER->id)) {
+        if (isguestuser($USER) || empty($USER->id)) {
             return false;
         }
 
@@ -69,7 +69,7 @@ class readtracking {
         }
         // Check the settings of the moodleoverflow instance.
         $allowed = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
-        $forced  = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
+        $forced = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
 
         return ($allowed || $forced);
     }
@@ -91,7 +91,7 @@ class readtracking {
         }
 
         // Guests cannot track a moodleoverflow.
-        if (isguestuser($USER) OR empty($USER->id)) {
+        if (isguestuser($USER) || empty($USER->id)) {
             return false;
         }
 
@@ -102,7 +102,7 @@ class readtracking {
 
         // Check the settings of the moodleoverflow instance.
         $allowed = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
-        $forced  = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
+        $forced = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
 
         // Check the preferences of the user.
         $userpreference = $DB->get_record('moodleoverflow_tracking',
@@ -238,7 +238,7 @@ class readtracking {
         global $DB;
 
         // Get the current time and the cutoffdate.
-        $now        = time();
+        $now = time();
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600);
 
         // Check for read records for this user an this post.
@@ -286,28 +286,28 @@ class readtracking {
             if ($select != '') {
                 $select .= ' AND ';
             }
-            $select   .= 'userid = ?';
+            $select .= 'userid = ?';
             $params[] = $userid;
         }
         if ($postid > -1) {
             if ($select != '') {
                 $select .= ' AND ';
             }
-            $select   .= 'postid = ?';
+            $select .= 'postid = ?';
             $params[] = $postid;
         }
         if ($discussionid > -1) {
             if ($select != '') {
                 $select .= ' AND ';
             }
-            $select   .= 'discussionid = ?';
+            $select .= 'discussionid = ?';
             $params[] = $discussionid;
         }
         if ($overflowid > -1) {
             if ($select != '') {
                 $select .= ' AND ';
             }
-            $select   .= 'moodleoverflowid = ?';
+            $select .= 'moodleoverflowid = ?';
             $params[] = $overflowid;
         }
 
@@ -371,15 +371,15 @@ class readtracking {
         }
 
         // Check if the user already stopped to track the moodleoverflow.
-        $params    = array('userid' => $userid, 'moodleoverflowid' => $moodleoverflowid);
+        $params = array('userid' => $userid, 'moodleoverflowid' => $moodleoverflowid);
         $isstopped = $DB->record_exists('moodleoverflow_tracking', $params);
 
         // Stop tracking the moodleoverflow if not already stopped.
         if (!$isstopped) {
 
             // Create the tracking object.
-            $tracking                   = new \stdClass();
-            $tracking->userid           = $userid;
+            $tracking = new \stdClass();
+            $tracking->userid = $userid;
             $tracking->moodleoverflowid = $moodleoverflowid;
 
             // Insert into the database.
@@ -466,7 +466,6 @@ class readtracking {
      * Get number of unread posts in a moodleoverflow instance.
      *
      * @param object    $cm
-     * @param \stdClass $course The course the moodleoverflow is in
      *
      * @return int|mixed
      */
@@ -493,7 +492,7 @@ class readtracking {
 
         // Define a sql-query.
         $params = array($USER->id, $cm->instance, $cutoffdate);
-        $sql    = "SELECT COUNT(p.id)
+        $sql = "SELECT COUNT(p.id)
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
              LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = ?)

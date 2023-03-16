@@ -83,6 +83,9 @@
                         {{#cansubtodiscussion}}
                             <div class="discussionsubscription">{{{discussionsubicon}}}</div>
                         {{/cansubtodiscussion}}
+                        {{#canmovetopic}}
+                        <div class="discussionmove"><a href='{{ linktopopup }}'>{{#pix}} i/arrow-right, core, {{#str}}movetopicicon, moodleoverflow{{/str}} {{/pix}}</a></div>
+                        {{/canmovetopic}}
 
                         {{#unread}}
                             <div class="mod_moodleoverflow-no-wrap unread-part d-flex align-items-baseline">

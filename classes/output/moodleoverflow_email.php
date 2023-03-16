@@ -119,14 +119,14 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @param bool   $canreply       whether the user can reply to the post
      */
     public function __construct($course, $cm, $moodleoverflow, $discussion, $post, $author, $recipient, $canreply) {
-        $this->course         = $course;
-        $this->cm             = $cm;
+        $this->course = $course;
+        $this->cm = $cm;
         $this->moodleoverflow = $moodleoverflow;
-        $this->discussion     = $discussion;
-        $this->post           = $post;
-        $this->author         = $author;
-        $this->userto         = $recipient;
-        $this->canreply       = $canreply;
+        $this->discussion = $discussion;
+        $this->post = $post;
+        $this->author = $author;
+        $this->userto = $recipient;
+        $this->canreply = $canreply;
     }
 
     /**
@@ -155,31 +155,31 @@ class moodleoverflow_email implements \renderable, \templatable {
     protected function export_for_template_text(\mod_moodleoverflow_renderer $renderer) {
 
         return array(
-            'id'                            => html_entity_decode($this->post->id),
-            'coursename'                    => html_entity_decode($this->get_coursename()),
-            'courselink'                    => html_entity_decode($this->get_courselink()),
-            'moodleoverflowname'            => html_entity_decode($this->get_moodleoverflowname()),
-            'showdiscussionname'            => html_entity_decode($this->has_showdiscussionname()),
-            'discussionname'                => html_entity_decode($this->get_discussionname()),
-            'subject'                       => html_entity_decode($this->get_subject()),
-            'authorfullname'                => html_entity_decode($this->get_author_fullname()),
-            'postdate'                      => html_entity_decode($this->get_postdate()),
-            'firstpost'                     => $this->is_firstpost(),
-            'canreply'                      => $this->canreply,
-            'permalink'                     => $this->get_permalink(),
-            'moodleoverflowindexlink'       => $this->get_moodleoverflowindexlink(),
-            'replylink'                     => $this->get_replylink(),
-            'authorpicture'                 => $this->get_author_picture(),
+            'id' => html_entity_decode($this->post->id),
+            'coursename' => html_entity_decode($this->get_coursename()),
+            'courselink' => html_entity_decode($this->get_courselink()),
+            'moodleoverflowname' => html_entity_decode($this->get_moodleoverflowname()),
+            'showdiscussionname' => html_entity_decode($this->has_showdiscussionname()),
+            'discussionname' => html_entity_decode($this->get_discussionname()),
+            'subject' => html_entity_decode($this->get_subject()),
+            'authorfullname' => html_entity_decode($this->get_author_fullname()),
+            'postdate' => html_entity_decode($this->get_postdate()),
+            'firstpost' => $this->is_firstpost(),
+            'canreply' => $this->canreply,
+            'permalink' => $this->get_permalink(),
+            'moodleoverflowindexlink' => $this->get_moodleoverflowindexlink(),
+            'replylink' => $this->get_replylink(),
+            'authorpicture' => $this->get_author_picture(),
             'unsubscribemoodleoverflowlink' => $this->get_unsubscribemoodleoverflowlink(),
-            'parentpostlink'                => $this->get_parentpostlink(),
-            'unsubscribediscussionlink'     => $this->get_unsubscribediscussionlink(),
-            'moodleoverflowviewlink'        => $this->get_moodleoverflowviewlink(),
-            'discussionlink'                => $this->get_discussionlink(),
-            'authorlink'                    => $this->get_authorlink(),
-            'grouppicture'                  => $this->get_group_picture(),
+            'parentpostlink' => $this->get_parentpostlink(),
+            'unsubscribediscussionlink' => $this->get_unsubscribediscussionlink(),
+            'moodleoverflowviewlink' => $this->get_moodleoverflowviewlink(),
+            'discussionlink' => $this->get_discussionlink(),
+            'authorlink' => $this->get_authorlink(),
+            'grouppicture' => $this->get_group_picture(),
 
             // Format some components according to the renderer.
-            'message'                       => html_entity_decode($renderer->format_message_text($this->cm, $this->post)),
+            'message' => html_entity_decode($renderer->format_message_text($this->cm, $this->post)),
         );
     }
 
@@ -192,31 +192,31 @@ class moodleoverflow_email implements \renderable, \templatable {
      */
     protected function export_for_template_html(\mod_moodleoverflow_renderer $renderer) {
         return array(
-            'id'                            => $this->post->id,
-            'coursename'                    => $this->get_coursename(),
-            'courselink'                    => $this->get_courselink(),
-            'moodleoverflowname'            => $this->get_moodleoverflowname(),
-            'showdiscussionname'            => $this->has_showdiscussionname(),
-            'discussionname'                => $this->get_discussionname(),
-            'subject'                       => $this->get_subject(),
-            'authorfullname'                => $this->get_author_fullname(),
-            'postdate'                      => $this->get_postdate(),
-            'canreply'                      => $this->canreply,
-            'permalink'                     => $this->get_permalink(),
-            'firstpost'                     => $this->is_firstpost(),
-            'replylink'                     => $this->get_replylink(),
-            'unsubscribediscussionlink'     => $this->get_unsubscribediscussionlink(),
+            'id' => $this->post->id,
+            'coursename' => $this->get_coursename(),
+            'courselink' => $this->get_courselink(),
+            'moodleoverflowname' => $this->get_moodleoverflowname(),
+            'showdiscussionname' => $this->has_showdiscussionname(),
+            'discussionname' => $this->get_discussionname(),
+            'subject' => $this->get_subject(),
+            'authorfullname' => $this->get_author_fullname(),
+            'postdate' => $this->get_postdate(),
+            'canreply' => $this->canreply,
+            'permalink' => $this->get_permalink(),
+            'firstpost' => $this->is_firstpost(),
+            'replylink' => $this->get_replylink(),
+            'unsubscribediscussionlink' => $this->get_unsubscribediscussionlink(),
             'unsubscribemoodleoverflowlink' => $this->get_unsubscribemoodleoverflowlink(),
-            'parentpostlink'                => $this->get_parentpostlink(),
-            'moodleoverflowindexlink'       => $this->get_moodleoverflowindexlink(),
-            'moodleoverflowviewlink'        => $this->get_moodleoverflowviewlink(),
-            'discussionlink'                => $this->get_discussionlink(),
-            'authorlink'                    => $this->get_authorlink(),
-            'authorpicture'                 => $this->get_author_picture(),
-            'grouppicture'                  => $this->get_group_picture(),
+            'parentpostlink' => $this->get_parentpostlink(),
+            'moodleoverflowindexlink' => $this->get_moodleoverflowindexlink(),
+            'moodleoverflowviewlink' => $this->get_moodleoverflowviewlink(),
+            'discussionlink' => $this->get_discussionlink(),
+            'authorlink' => $this->get_authorlink(),
+            'authorpicture' => $this->get_author_picture(),
+            'grouppicture' => $this->get_group_picture(),
 
             // Format some components according to the renderer.
-            'message'                       => $renderer->format_message_text($this->cm, $this->post),
+            'message' => $renderer->format_message_text($this->cm, $this->post),
         );
     }
 
@@ -251,14 +251,15 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_unsubscribediscussionlink() {
 
         // Check whether the moodleoverflow is subscribable.
-        $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow);
+        $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow,
+                \context_module::instance($this->cm->id));
         if (!$subscribable) {
             return null;
         }
 
         // Prepare information.
-        $id  = $this->moodleoverflow->id;
-        $d   = $this->discussion->id;
+        $id = $this->moodleoverflow->id;
+        $d = $this->discussion->id;
         $url = '/mod/moodleoverflow/subscribe.php';
 
         // Generate a link to unsubscribe from the discussion.
@@ -431,7 +432,8 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_unsubscribemoodleoverflowlink() {
-        if (!\mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow)) {
+        if (!\mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow,
+                \context_module::instance($this->cm->id))) {
             return null;
         }
         $link = new \moodle_url(
@@ -525,7 +527,7 @@ class moodleoverflow_email implements \renderable, \templatable {
 
         $link = new \moodle_url(
             '/user/view.php', array(
-                'id'     => $this->post->userid,
+                'id' => $this->post->userid,
                 'course' => $this->course->id,
             )
         );

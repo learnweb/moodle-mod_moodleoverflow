@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once(__DIR__ . "/../../config.php");
-
+require_login();
 $id = required_param('id', PARAM_INT);
 
 $cm = get_coursemodule_from_id('moodleoverflow', $id, 0, false, MUST_EXIST);

@@ -45,10 +45,15 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      * Defines forms elements.
      */
     public function definition() {
-        global $CFG, $COURSE;
+        global $CFG, $COURSE, $PAGE;
 
         // Define the modform.
         $mform = $this->_form;
+
+        if ($this->get_instance()) {
+            $PAGE->requires->js_call_amd('mod_moodleoverflow/warnmodechange', 'init',
+                [$this->get_current()->forcesubscribe]);
+        }
 
         // Adding the "general" fieldset, where all the common settings are showed.
         $mform->addElement('header', 'general', get_string('general', 'form'));
@@ -111,19 +116,19 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->setDefault('maxbytes', get_config('moodleoverflow', 'maxbytes'));
 
         $choices = array(
-            0   => 0,
-            1   => 1,
-            2   => 2,
-            3   => 3,
-            4   => 4,
-            5   => 5,
-            6   => 6,
-            7   => 7,
-            8   => 8,
-            9   => 9,
-            10  => 10,
-            20  => 20,
-            50  => 50,
+            0 => 0,
+            1 => 1,
+            2 => 2,
+            3 => 3,
+            4 => 4,
+            5 => 5,
+            6 => 6,
+            7 => 7,
+            8 => 8,
+            9 => 9,
+            10 => 10,
+            20 => 20,
+            50 => 50,
             100 => 100
         );
         $mform->addElement('select', 'maxattachments', get_string('maxattachments', 'moodleoverflow'), $choices);
@@ -158,7 +163,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Choose the default tracking type.
         $default = get_config('moodleoverflow', 'trackingtype');
-        if ((!get_config('moodleoverflow', 'allowforcedreadtracking')) AND ($default == MOODLEOVERFLOW_TRACKING_FORCED)) {
+        if ((!get_config('moodleoverflow', 'allowforcedreadtracking')) && ($default == MOODLEOVERFLOW_TRACKING_FORCED)) {
             $default = MOODLEOVERFLOW_TRACKING_OPTIONAL;
         }
         $mform->setDefault('trackingtype', $default);

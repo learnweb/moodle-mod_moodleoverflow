@@ -87,13 +87,13 @@ class mod_moodleoverflow_observer {
         $userid = $event->relateduserid;
 
         // Retrieve all moodleoverflows in this course.
-        $sql             = "SELECT m.id, m.course as course, cm.id AS cmid, m.forcesubscribe
+        $sql = "SELECT m.id, m.course as course, cm.id AS cmid, m.forcesubscribe
                   FROM {moodleoverflow} m
                   JOIN {course_modules} cm ON (cm.instance = m.id)
                   JOIN {modules} mo ON (mo.id = cm.module)
              LEFT JOIN {moodleoverflow_subscriptions} ms ON (ms.moodleoverflow = m.id AND ms.userid = :userid)
                  WHERE m.course = :courseid AND m.forcesubscribe = :initial AND mo.name = 'moodleoverflow' AND ms.id IS NULL";
-        $params          = array('courseid' => $context->instanceid,
+        $params = array('courseid' => $context->instanceid,
                                  'userid' => $userid,
                                  'initial' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
         $moodleoverflows = $DB->get_records_sql($sql, $params);
