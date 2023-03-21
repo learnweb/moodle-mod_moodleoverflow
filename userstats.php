@@ -34,6 +34,7 @@ use mod_moodleoverflow\tables\userstats_table;
 // Declare optional parameters.
 $cmid = optional_param('id', 0, PARAM_INT);             // Course Module ID.
 $courseid = optional_param('courseid', 0, PARAM_INT);   // Course ID.
+$mid = optional_param('mid', 0, PARAM_INT);             // Moodleoveflow ID, Moodleoverflow that started the statistics.
 
 // Define important variables.
 if ($courseid) {
@@ -41,6 +42,9 @@ if ($courseid) {
 }
 if ($cmid) {
     $cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
+}
+if ($mid) {
+    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $mid), '*');
 }
 // Require a login.
 require_login();
@@ -50,14 +54,14 @@ $context = context_course::instance($course->id);
 $PAGE->set_context($context);
 
 // Print the page header.
-$PAGE->set_url('/mod/moodleoverflow/userstats.php');
+$PAGE->set_url('/mod/moodleoverflow/userstats.php', array('id' => $cm->id, 'courseid' => $course->id, 'mid' => $moodleoverflow->id));
 $PAGE->set_title('User statistics');
 $PAGE->set_heading('User statistics of course: ' . $course->fullname);
 
 
 // Output starts here.
 echo $OUTPUT->header();
-$table = new userstats_table('statisticstable' , $course->id, $context);
+$table = new userstats_table('statisticstable' , $course->id, $context, $moodleoverflow->id);
 echo $table->out();
 echo $OUTPUT->footer();
 
