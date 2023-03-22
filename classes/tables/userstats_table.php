@@ -26,16 +26,10 @@
  */
 namespace mod_moodleoverflow\tables;
 
-use context;
-use core_table\dynamic as dynamic_table;
-use core_table\local\filter\filterset;
-use core_user\output\status_field;
-use core_user\table\participants_search;
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 require_once($CFG->libdir . '/tablelib.php');
-require_login();
 
 /**
  * Table listing all user statistics of a course
@@ -51,6 +45,7 @@ class userstats_table extends \flexible_table {
     private $context;
     private $moodleoverflowid;    // Moodleoverflow that started the printing of statistics.
     private $usertable = array(); // Usertable will have objects with every user and his statistics.
+    
     /**
      * Constructor for workflow_table.
      * @param int $uniqueid Unique id of this table.
@@ -64,11 +59,14 @@ class userstats_table extends \flexible_table {
         $this->moodleoverflowid = $moodleoverflow;
         $this->set_attribute('class', 'statistics-table');
         $this->set_attribute('id', $uniqueid);
-        $this->define_columns(['id', 'username', 'upvotes', 'downvotes', 'activity', 'reputation']);
+        $this->define_columns(['id', 'username', 'receivedupvotes', 'receiveddownvotes', 'activity', 'reputation']);
         $this->define_baseurl($PAGE->url);
-        $this->define_headers(['User ID', 'User', 'Received upvotes', 'Received downvotes', 'Amount of activity', 'User reputation']);
+        $this->define_headers(['User ID', 'User', 'Received upvotes',
+                               'Received downvotes', 'Amount of activity', 'User reputation']);
         $this->get_table_data($this->context);
-        $this->sortable(true, 'id', SORT_ASC);
+        $this->sortable(true, 'reputation', SORT_DESC);
+        $this->no_sorting('id');
+        $this->no_sorting('username');
         $this->setup();
     }
 
@@ -79,8 +77,77 @@ class userstats_table extends \flexible_table {
     public function out() {
         global $DB;
         $this->start_output();
+        $this->sort_table_data($this->get_sort_order());
         $this->format_and_add_array_of_rows($this->usertable, true);
+        $this->text_sorting('username');
         $this->finish_output();
+    }
+
+    /**
+     * Method to sort the usertable.
+     */
+    private function sort_table_data($sortorder) {
+        $key = $sortorder['sortby'];
+        // The index of each object in usertable is it's value of $key.
+        $length = count($this->usertable);
+        if ($sortorder['sortorder'] == 4) {
+            // 4 means sort in ascending order.
+            $this->quick_usertable_sort(0, $length - 1, $key, 'asc');
+        } else if ($sortorder['sortorder'] == 3) {
+            // 3 means sort in descending order.
+            $this->quick_usertable_sort(0, $length - 1, $key, 'desc');
+        }
+    }
+
+    /**
+     * Sorts usertable with quicksort algorithm.
+     */
+    private function quick_usertable_sort($low, $high, $key, $order) {
+        if ($low >= $high) {
+            return;
+        }
+        $left = $low;
+        $right = $high;
+        $pivot = $this->usertable[intval(($low + $high) / 2)];
+        $pivot = $pivot->$key;
+        do {
+            if ($order == 'asc') {
+                while ($this->usertable[$left]->$key < $pivot) {
+                    $left++;
+                }
+                while ($this->usertable[$right]->$key > $pivot) {
+                    $right--;
+                }
+            } else if ($order == 'desc') {
+                while ($this->usertable[$left]->$key > $pivot) {
+                    $left++;
+                }
+                while ($this->usertable[$right]->$key < $pivot) {
+                    $right--;
+                }
+            }
+            if ($left <= $right) {
+                $temp = $this->usertable[$right];
+                $this->usertable[$right] = $this->usertable[$left];
+                $this->usertable[$left] = $temp;
+                $right--;
+                $left++;
+            }
+        } while ($left <= $right);
+        if ($low < $right) {
+            if ($order == 'asc') {
+                $this->quick_usertable_sort($low, $right, $key, 'asc');
+            } else if ($order == 'desc') {
+                $this->quick_usertable_sort($low, $right, $key, 'desc');
+            }
+        }
+        if ($high > $left) {
+            if ($order == 'asc') {
+                $this->quick_usertable_sort($left, $high, $key, 'desc');
+            } else if ($order == 'desc') {
+                $this->quick_usertable_sort($left, $high, $key, 'desc');
+            }
+        }
     }
 
     /**
@@ -92,7 +159,7 @@ class userstats_table extends \flexible_table {
     public function get_table_data($context) {
         global $DB;
         // Get all userdata from a course.
-        $users = get_enrolled_users($context , '',  0, $userfields = 'u.id, u.firstname, u.lastname'); 
+        $users = get_enrolled_users($context , '',  0, $userfields = 'u.id, u.firstname, u.lastname');
 
         // Step 1.0: Build the datatable with all relevant Informations.
         $sqlquery = 'SELECT  ratings.id AS rateid,
@@ -110,6 +177,7 @@ class userstats_table extends \flexible_table {
                       LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid
                       WHERE discuss.course = ' . $this->courseid . ';';
         $ratingdata = $DB->get_records_sql($sqlquery);
+
         // Step 2.0: Now collect the data for every user in the course.
         foreach ($users as $user) {
             $student = new \stdClass();
@@ -140,72 +208,67 @@ class userstats_table extends \flexible_table {
                 }
             }
             // Get the user reputation from the course.
-            $student->reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($this->moodleoverflowid, 
+            $student->reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($this->moodleoverflowid,
                                                                                               $student->id);
-
-
-            // add badges, and HEADINGS. => TODO
-            if($student->receivedupvotes > 0) {
-                $student->receivedupvotes = \html_writer::start_span('badge badge-success') . $student->receivedupvotes
-                                            . \html_writer::end_span();
-            }
-            else {
-                $student->receivedupvotes = \html_writer::start_span('badge badge-warning') . $student->receivedupvotes
-                                            . \html_writer::end_span();
-            }
-            if($student->receiveddownvotes > 0) {
-                $student->receiveddownvotes = \html_writer::start_span('badge badge-success') . $student->receiveddownvotes
-                                            . \html_writer::end_span();
-            }
-            else {
-                $student->receiveddownvotes = \html_writer::start_span('badge badge-warning') . $student->receiveddownvotes
-                                            . \html_writer::end_span();
-            }
-            if($student->activity > 0) {
-                $student->activity = \html_writer::start_span('badge badge-success') . $student->activity
-                                            . \html_writer::end_span();
-            }
-            else {
-                $student->activity = \html_writer::start_span('badge badge-warning') . $student->activity
-                                            . \html_writer::end_span();
-            }
-            if($student->reputation > 0) {
-                $student->reputation = \html_writer::start_span('badge badge-success') . $student->reputation
-                                            . \html_writer::end_span();
-            }
-            else {
-                $student->reputation = \html_writer::start_span('badge badge-warning') . $student->reputation
-                                            . \html_writer::end_span();
-            }
             array_push($this->usertable, $student);
         }
     }
 
-
+    /**
+     * Return the usertable.
+     */
+    public function get_usertable() {
+        return $this->usertable();
+    }
 
     // Functions that show the data.
     public function col_userid($row) {
         return $row->id;
     }
+
     public function col_username($row) {
         return $row->link;
     }
 
-    public function col_upvotes($row) {
-        return $row->receivedupvotes;
+    public function col_receivedupvotes($row) {
+        if ($row->receivedupvotes > 0) {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
+                   $row->receivedupvotes . \html_writer::end_span());
+        } else {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
+                   $row->receivedupvotes . \html_writer::end_span());
+        }
     }
 
-    public function col_downvotes($row) {
-        return $row->receiveddownvotes;
+    public function col_receiveddownvotes($row) {
+        if ($row->receiveddownvotes > 0) {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
+                    $row->receiveddownvotes . \html_writer::end_span());
+        } else {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
+                   $row->receiveddownvotes . \html_writer::end_span());
+        }
     }
 
     public function col_activity($row) {
-        return $row->activity;
+        if ($row->activity > 0) {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
+                   $row->activity . \html_writer::end_span());
+        } else {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
+                   $row->activity . \html_writer::end_span());
+        }
     }
 
     public function col_reputation($row) {
-        return $row->reputation;
-    }  
+        if ($row->reputation > 0) {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
+                   $row->reputation . \html_writer::end_span());
+        } else {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
+                   $row->reputation . \html_writer::end_span());
+        }
+    }
 
     public function other_cols($colname, $attempt) {
         return null;

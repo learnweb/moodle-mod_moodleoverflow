@@ -54,7 +54,8 @@ $context = context_course::instance($course->id);
 $PAGE->set_context($context);
 
 // Print the page header.
-$PAGE->set_url('/mod/moodleoverflow/userstats.php', array('id' => $cm->id, 'courseid' => $course->id, 'mid' => $moodleoverflow->id));
+$PAGE->set_url('/mod/moodleoverflow/userstats.php', array('id' => $cm->id,
+               'courseid' => $course->id, 'mid' => $moodleoverflow->id));
 $PAGE->set_title('User statistics');
 $PAGE->set_heading('User statistics of course: ' . $course->fullname);
 
