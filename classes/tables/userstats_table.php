@@ -41,29 +41,25 @@ require_once($CFG->libdir . '/tablelib.php');
 class userstats_table extends \flexible_table {
 
     private $courseid;            // Course ID.
-    private $course;
-    private $context;
     private $moodleoverflowid;    // Moodleoverflow that started the printing of statistics.
     private $usertable = array(); // Usertable will have objects with every user and his statistics.
-    
+
     /**
      * Constructor for workflow_table.
      * @param int $uniqueid Unique id of this table.
      */
-    public function __construct($uniqueid, $courseid, $coursecontext, $moodleoverflow) {
+    public function __construct($uniqueid, $courseid, $moodleoverflow, $url) {
         parent::__construct($uniqueid);
         global $PAGE;
         $this->courseid = $courseid;
-        $this->course = $this->courseid;
-        $this->context = $coursecontext;
         $this->moodleoverflowid = $moodleoverflow;
         $this->set_attribute('class', 'statistics-table');
         $this->set_attribute('id', $uniqueid);
         $this->define_columns(['id', 'username', 'receivedupvotes', 'receiveddownvotes', 'activity', 'reputation']);
-        $this->define_baseurl($PAGE->url);
+        $this->define_baseurl($url);
         $this->define_headers(['User ID', 'User', 'Received upvotes',
                                'Received downvotes', 'Amount of activity', 'User reputation']);
-        $this->get_table_data($this->context);
+        $this->get_table_data();
         $this->sortable(true, 'reputation', SORT_DESC);
         $this->no_sorting('id');
         $this->no_sorting('username');
@@ -156,22 +152,24 @@ class userstats_table extends \flexible_table {
      *
      * @return 2d-array with user statistic
      */
-    public function get_table_data($context) {
+    public function get_table_data() {
         global $DB;
         // Get all userdata from a course.
+        $context = \context_course::instance($this->courseid);
         $users = get_enrolled_users($context , '',  0, $userfields = 'u.id, u.firstname, u.lastname');
 
         // Step 1.0: Build the datatable with all relevant Informations.
-        $sqlquery = 'SELECT  ratings.id AS rateid,
-                             discuss.id AS discussid,
-                             discuss.userid AS discussuserid,
-                             posts.id AS postid,
-                             posts.userid AS postuserid,
-                             posts.discussion AS postdiscussid,
-                             ratings.rating AS rating,
-                             ratings.userid AS rateuserid,
-                             ratings.postid AS ratepostid,
-                             ratings.discussionid AS ratediscussid
+        $sqlquery = 'SELECT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,
+                            ratings.id AS rateid,
+                            discuss.userid AS discussuserid,
+                            posts.id AS postid,
+                            posts.userid AS postuserid,
+                            ratings.rating AS rating,
+                            ratings.userid AS rateuserid,
+                            ratings.postid AS ratepostid,
+                            discuss.id AS discussid,
+                            posts.discussion AS postdiscussid,
+                            ratings.discussionid AS ratediscussid
                       FROM {moodleoverflow_discussions} discuss
                       LEFT JOIN {moodleoverflow_posts} posts ON discuss.id = posts.discussion
                       LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid
@@ -186,7 +184,7 @@ class userstats_table extends \flexible_table {
             $linktostudent = new \moodle_url('/user/view.php', array('id' => $student->id, 'course' => $this->courseid));
             $student->link = \html_writer::link($linktostudent->out(), $student->name);
             $student->submittedposts = array(); // Key = postid, Value = postid.
-            $student->ratedposts = array();     // Key = rateod, Value = rateid.
+            $student->ratedposts = array();     // Key = rateid, Value = rateid.
             $student->receivedupvotes = 0;
             $student->receiveddownvotes = 0;
             $student->activity = 0;
@@ -218,7 +216,7 @@ class userstats_table extends \flexible_table {
      * Return the usertable.
      */
     public function get_usertable() {
-        return $this->usertable();
+        return $this->usertable;
     }
 
     // Functions that show the data.

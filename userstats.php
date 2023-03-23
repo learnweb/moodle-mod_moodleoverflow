@@ -32,37 +32,36 @@ require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
 
 use mod_moodleoverflow\tables\userstats_table;
 // Declare optional parameters.
-$cmid = optional_param('id', 0, PARAM_INT);             // Course Module ID.
-$courseid = optional_param('courseid', 0, PARAM_INT);   // Course ID.
-$mid = optional_param('mid', 0, PARAM_INT);             // Moodleoveflow ID, Moodleoverflow that started the statistics.
+$cmid = required_param('id', PARAM_INT);             // Course Module ID.
+$courseid = required_param('courseid', PARAM_INT);   // Course ID.
+$mid = required_param('mid', PARAM_INT);             // Moodleoveflow ID, Moodleoverflow that started the statistics.
 
 // Define important variables.
 if ($courseid) {
     $course = $DB->get_record('course', array('id' => $courseid), '*');
 }
 if ($cmid) {
-    $cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
+    $cm = get_coursemodule_from_id('moodleoverflow', $cmid, $course->id, false, MUST_EXIST);
 }
 if ($mid) {
     $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $mid), '*');
 }
 // Require a login.
-require_login();
+require_login($course, true, $cm);
 
 // Set the context.
-$context = context_course::instance($course->id);
+$context = context_module::instance($cm->id);
 $PAGE->set_context($context);
 
 // Print the page header.
 $PAGE->set_url('/mod/moodleoverflow/userstats.php', array('id' => $cm->id,
                'courseid' => $course->id, 'mid' => $moodleoverflow->id));
-$PAGE->set_title('User statistics');
-$PAGE->set_heading('User statistics of course: ' . $course->fullname);
-
+$PAGE->set_title(format_string('User statistics'));
+$PAGE->set_heading(format_string('User statistics of course: ' . $course->fullname));
 
 // Output starts here.
 echo $OUTPUT->header();
-$table = new userstats_table('statisticstable' , $course->id, $context, $moodleoverflow->id);
+$table = new userstats_table('statisticstable' , $course->id, $moodleoverflow->id, $PAGE->url);
 echo $table->out();
 echo $OUTPUT->footer();
 
