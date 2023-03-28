@@ -1350,7 +1350,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         }
     }
     if ($post->statusstarter) {
-
         if ($post->statusteacher) {
             $postclass = ' statusboth';
         } else {
