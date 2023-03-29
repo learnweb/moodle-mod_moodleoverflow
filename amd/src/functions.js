@@ -93,8 +93,9 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
          * Initializes the clickevent on upvotes / downvotes.
          * @param {int} discussionid
          * @param {int} userid
+         * @param {int} allowmultiplemarks
          */
-        clickevent: function(discussionid, userid) {
+        clickevent: function(discussionid, userid, allowmultiplemarks) {
             $(".upvote").on("click", function(event) {
                 if ($(event.target).is('a')) {
                     event.target = $(event.target).children();
@@ -134,6 +135,9 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 } else {
                     // Add solution mark.
                     t.recordvote(discussionid, RATING_SOLVED, userid, event)[0].then(function() {
+                        /* check if allowmultiplemarks is on.
+                            if false: remove other solution marks (false means allowmultiplemarks == 0)
+                            else: do nothing. */
                         // Remove other solution mark in dom.
                         t.removeOtherSolved(post.parent().parent());
                         if (post.hasClass('statusstarter')) {
@@ -156,7 +160,6 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
 
             $(".markhelpful").on("click", function(event) {
                 var post = $(event.target).parents('.moodleoverflowpost');
-
                 if (post.hasClass('statusstarter') || post.hasClass('statusboth')) {
                     // Remove helpful mark.
                     t.recordvote(discussionid, RATING_REMOVE_HELPFUL, userid, event)[0].then(function() {
@@ -165,6 +168,9 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/conf
                 } else {
                     // Add helpful mark.
                     t.recordvote(discussionid, RATING_HELPFUL, userid, event)[0].then(function() {
+                        /* check if allowmultiplemarks is on.
+                            if false: remove other helpful marks false means allowmultiplemarks == 0)
+                            else: do nothing. */
                         // Remove other helpful mark in dom.
                         t.removeOtherHelpful(post.parent().parent());
                         if (post.hasClass('statusteacher')) {

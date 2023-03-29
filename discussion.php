@@ -55,8 +55,10 @@ if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id,
     throw new moodle_exception('invalidcoursemodule');
 }
 
+$multiplemarks = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
+
 $PAGE->requires->js_call_amd('mod_moodleoverflow/functions',
-    'clickevent', array($d, $USER->id));
+    'clickevent', array($d, $USER->id, $multiplemarks->allowmultiplemarks));
 
 // Set the modulecontext.
 $modulecontext = context_module::instance($cm->id);

@@ -1214,7 +1214,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $canmarkhelpful = (($USER->id == $discussion->userid) && ($USER->id != $post->userid) &&
         ($iscomment != $post->parent) && !empty($post->parent));
     if ($canmarkhelpful) {
-
         // When the post is already marked, remove the mark instead.
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusstarter) {
@@ -1235,7 +1234,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusteacher) {
             $commands[] = html_writer::tag('a', $str->marknotsolved,
-                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0')); 
         } else {
             $commands[] = html_writer::tag('a', $str->marksolved,
                     array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
