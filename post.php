@@ -777,12 +777,8 @@ $PAGE->set_heading($course->fullname);
 
 // Display the header.
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
+echo $OUTPUT->heading('');
 
-// Show the description of the instance.
-if (!empty($moodleoverflow->intro)) {
-    echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
-}
 
 // Display the form.
 $mformpost->display();
