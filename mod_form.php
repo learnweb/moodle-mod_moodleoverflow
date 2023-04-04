@@ -224,6 +224,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('allownegativereputation', 'allownegativereputation', 'moodleoverflow');
         $mform->setDefault('allownegativereputation', MOODLEOVERFLOW_REPUTATION_NEGATIVE);
 
+        // Allow multiple marks of helpful/solved
+        $mform->addElement('checkbox', 'allowmultiplemarks', get_string('allowmultiplemarks', 'moodleoverflow'));
+        $mform->addHelpButton('allowmultiplemarks', 'allowmultiplemarks', 'moodleoverflow');
+        $mform->setDefault('allowmultiplemarks', 0);
+
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();
 

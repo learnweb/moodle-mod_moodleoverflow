@@ -326,6 +326,8 @@ $string['clicktosubscribe'] = 'You are not subscribed to this discussion. Click 
 $string['attachment'] = 'Attachment';
 $string['attachments'] = 'Attachments';
 $string['attachment_help'] = 'You can optionally attach one or more files to a forum post. If you attach an image, it will be displayed after the message.';
+$string['allowmultiplemarks'] = 'Multiple marks?';
+$string['allowmultiplemarks_help'] = 'A post can be marked as helpful or solved. Within a discussion, only one post can be marked as helpful/solved. Click the checkbox to mark multiple posts as helpful/solved.';
 
 // Templates.
 $string['reputation'] = 'Reputation';
