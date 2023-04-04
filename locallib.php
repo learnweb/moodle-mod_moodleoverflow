@@ -26,6 +26,7 @@
  */
 
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
@@ -44,9 +45,11 @@ require_once(dirname(__FILE__) . '/lib.php');
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     global $DB, $CFG, $USER;
 
+    // TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
+
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
-    if (!has_capability('mod/moodleoverflow:viewdiscussion', $modcontext)) {
+    if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modcontext)) {
         return array();
     }
 
@@ -69,7 +72,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
         $allnames = get_all_user_name_fields(true, 'u');
     }
     $postdata = 'p.id, p.modified, p.discussion, p.userid, p.reviewed';
-    $discussiondata = 'd.name, d.timemodified, d.timestart, d.usermodified';
+    $discussiondata = 'd.name, d.timemodified, d.timestart, d.usermodified, d.firstpost';
     $userdata = 'u.email, u.picture, u.imagealt';
 
     if ($CFG->branch >= 311) {
@@ -84,7 +87,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     $params = [$cm->instance];
     $whereconditions = ['d.moodleoverflow = ?', 'p.parent = 0'];
 
-    if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
+    if (!capabilities::has(capabilities::REVIEW_POST, $modcontext)) {
         $whereconditions[] = '(p.reviewed = 1 OR p.userid = ?)';
         $params[] = $USER->id;
     }
@@ -146,22 +149,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         echo $OUTPUT->render($button);
     }
 
-    // Get all the recent discussions the user is allowed to see.
-    $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
-
-    // If we want paging.
-    if ($page != -1) {
-
-        // Get the number of discussions.
-        $numberofdiscussions = moodleoverflow_get_discussions_count($cm);
-
-        // Show the paging bar.
-        echo $OUTPUT->paging_bar($numberofdiscussions, $page, $perpage, "view.php?id=$cm->id");
-    }
-
-    // Get the number of replies for each discussion.
-    $replies = moodleoverflow_count_discussion_replies($cm);
-
     // Check whether the moodleoverflow instance can be tracked and is tracked.
     if ($cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
         $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
@@ -178,17 +165,40 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $markallread = null;
     }
 
-    // Check wether the user can move a topic.
-    $canmovetopic = false;
-    if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:movetopic', $context)) {
-        $canmovetopic = true;
+    if ($markallread && $unreads) {
+        echo html_writer::link(new moodle_url($markallread),
+            get_string('markallread_forum', 'mod_moodleoverflow'),
+            ['class' => 'btn btn-secondary my-2']
+        );
     }
+
+    // Get all the recent discussions the user is allowed to see.
+    $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
+
+    // If we want paging.
+    if ($page != -1) {
+
+        // Get the number of discussions.
+        $numberofdiscussions = moodleoverflow_get_discussions_count($cm);
+
+        // Show the paging bar.
+        echo $OUTPUT->paging_bar($numberofdiscussions, $page, $perpage, "view.php?id=$cm->id");
+    }
+
+    // Get the number of replies for each discussion.
+    $replies = moodleoverflow_count_discussion_replies($cm);
 
     // Check whether the user can subscribe to the discussion.
     $cansubtodiscussion = false;
     if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)
                                     && \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $context)) {
         $cansubtodiscussion = true;
+    }
+
+    // Check wether the user can move a topic.
+    $canmovetopic = false;
+    if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:movetopic', $context)) {
+        $canmovetopic = true;
     }
 
     // Iterate through every visible discussion.
@@ -290,7 +300,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             }
         } else {
             // Get his picture, his name and the link to his profile.
-            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course));
+            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course, 'link' => false));
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
             $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;
@@ -362,6 +372,16 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $preparedarray[$i]['statusteacher'] = $statusteacher;
         $preparedarray[$i]['statusboth'] = $statusboth;
         $preparedarray[$i]['votes'] = $votes;
+
+        // Did the user rated this post?
+        $rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($discussion->firstpost);
+
+        $firstpost = moodleoverflow_get_post_full($discussion->firstpost);
+
+        $preparedarray[$i]['userupvoted'] = ($rating->rating ?? null) == RATING_UPVOTE;
+        $preparedarray[$i]['userdownvoted'] = ($rating->rating ?? null) == RATING_DOWNVOTE;
+        $preparedarray[$i]['canchange'] = \mod_moodleoverflow\ratings::moodleoverflow_user_can_rate($firstpost, $context);
+        $preparedarray[$i]['postid'] = $discussion->firstpost;
 
         // Go to the next discussion.
         $i++;
@@ -665,39 +685,18 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
         }
     }
 
-    // Make sure a user is set.
-    if (empty($user) || empty($user->id)) {
-        $user = $USER;
-    }
-
     // Check if the user can view the discussion.
-    $canviewdiscussion = !empty($cm->cache->caps['mod/moodleoverflow:viewdiscussion']) ||
-        has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext, $user);
-    if (!$canviewdiscussion &&
-        !has_all_capabilities(array('moodle/user:viewdetails', 'moodle/user:readuserposts'),
-            context_user::instance($post->userid))
-    ) {
+    if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modulecontext)) {
         return false;
     }
 
-    if (!($post->reviewed == 1 || $post->userid == $user->id ||
-            has_capability('mod/moodleoverflow:reviewpost', $modulecontext, $user))) {
+    if (!($post->reviewed == 1 || $post->userid == $USER->id ||
+        capabilities::has(capabilities::REVIEW_POST, $modulecontext))) {
         return false;
-    }
-
-    // Check the coursemodule settings.
-    if (isset($cm->uservisible)) {
-        if (!$cm->uservisible) {
-            return false;
-        }
-    } else {
-        if (!\core_availability\info_module::is_user_visible($cm, $user->id, false)) {
-            return false;
-        }
     }
 
     // The user has the capability to see the discussion.
-    return true;
+    return \core_availability\info_module::is_user_visible($cm, $USER->id, false);
 
 }
 
@@ -706,7 +705,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
  *
  * @param object $moodleoverflow
  * @param object $discussion
- * @param object $context
+ * @param context $context
  *
  * @return bool
  */
@@ -734,13 +733,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
         throw new moodle_exception('invalidcoursemodule');
     }
 
-    // Check the users capability.
-    if (!has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
-        return false;
-    }
-
-    // Allow the user to see the discussion.
-    return true;
+    return capabilities::has(capabilities::VIEW_DISCUSSION, $context);
 }
 
 /**
@@ -790,7 +783,7 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
 
     // Set to not reviewed, if questions should be reviewed, and user is not a reviewer themselves.
     if (review::get_review_level($moodleoverflow) >= review::QUESTIONS &&
-            !has_capability('mod/moodleoverflow:reviewpost', $modulecontext, $userid)) {
+            !capabilities::has(capabilities::REVIEW_POST, $modulecontext, $userid)) {
         $post->reviewed = 0;
     }
 
@@ -1121,24 +1114,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mcid = $modulecontext->id;
     $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow', 'post', $post->id);
 
-    // Caching.
-    if (!isset($cm->cache)) {
-        $cm->cache = new stdClass();
-    }
-
-    // Check the cached capabilities.
-    if (!isset($cm->cache->caps)) {
-        $cm->cache->caps = array();
-        $cm->cache->caps['mod/moodleoverflow:viewdiscussion'] = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:editanypost'] = has_capability('mod/moodleoverflow:editanypost', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:deleteownpost'] = has_capability('mod/moodleoverflow:deleteownpost', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:deleteanypost'] = has_capability('mod/moodleoverflow:deleteanypost', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:viewanyrating'] = has_capability('mod/moodleoverflow:viewanyrating', $modulecontext);
-        $cm->cache->caps['moodle/site:viewfullnames'] = has_capability('moodle/site:viewfullnames', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:marksolved'] = has_capability('mod/moodleoverflow:marksolved', $modulecontext);
-        $cm->cache->caps['mod/moodleoverflow:reviewpost'] = has_capability('mod/moodleoverflow:reviewpost', $modulecontext);
-    }
-
     // Check if the user has the capability to see posts.
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
 
@@ -1186,10 +1161,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $postinguserfields = explode(',', user_picture::fields());
     }
     $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
-    $postinguser->id = $post->userid;
 
     // Post was anonymized.
     if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
+        $postinguser->id = null;
         if ($post->userid == $USER->id) {
             $postinguser->fullname = get_string('anonym_you', 'mod_moodleoverflow');
             $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
@@ -1198,8 +1173,9 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
             $postinguser->profilelink = null;
         }
     } else {
-        $postinguser->fullname = fullname($postinguser, $cm->cache->caps['moodle/site:viewfullnames']);
+        $postinguser->fullname = fullname($postinguser, capabilities::has('moodle/site:viewfullnames', $modulecontext));
         $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
+        $postinguser->id = $post->userid;
     }
 
     // Prepare an array of commands.
@@ -1208,7 +1184,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Create a permalink.
     $permalink = new moodle_url($discussionlink);
     $permalink->set_anchor('p' . $post->id);
-    $commands[] = array('url' => $permalink, 'text' => get_string('permalink', 'moodleoverflow'));
 
     // If the user has started the discussion, he can mark the answer as helpful.
     $canmarkhelpful = (($USER->id == $discussion->userid) && ($USER->id != $post->userid) &&
@@ -1219,26 +1194,25 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusstarter) {
             $commands[] = html_writer::tag('a', $str->marknothelpful,
-                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
         } else {
             $commands[] = html_writer::tag('a', $str->markhelpful,
-                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
         }
     }
 
     // A teacher can mark an answer as solved.
-    $cap = $cm->cache->caps['mod/moodleoverflow:marksolved'];
-    $canmarksolved = (($iscomment != $post->parent)  && !empty($post->parent)  && $cap);
+    $canmarksolved = (($iscomment != $post->parent) AND !empty($post->parent) AND capabilities::has(capabilities::MARK_SOLVED, $modulecontext));
     if ($canmarksolved) {
 
         // When the post is already marked, remove the mark instead.
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->statusteacher) {
             $commands[] = html_writer::tag('a', $str->marknotsolved,
-                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved'));
         } else {
             $commands[] = html_writer::tag('a', $str->marksolved,
-                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'tabindex' => '0'));
+                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved'));
         }
     }
 
@@ -1246,19 +1220,19 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $age = time() - $post->created;
 
     // Make a link to edit your own post within the given time and not already reviewed.
-    if (($ownpost  && ($age < get_config('moodleoverflow', 'maxeditingtime')) &&
+    if (($ownpost && ($age < get_config('moodleoverflow', 'maxeditingtime')) &&
                     (!review::should_post_be_reviewed($post, $moodleoverflow) || !$post->reviewed))
-         || $cm->cache->caps['mod/moodleoverflow:editanypost']
+        || capabilities::has(capabilities::EDIT_ANY_POST, $modulecontext)
     ) {
         $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
         $commands[] = array('url' => $editurl, 'text' => $str->edit);
     }
 
     // Give the option to delete a post.
-    $old = ($age < get_config('moodleoverflow', 'maxeditingtime'));
-    $capone = $cm->cache->caps['mod/moodleoverflow:deleteownpost'];
-    $captwo = $cm->cache->caps['mod/moodleoverflow:deleteanypost'];
-    if (($ownpost  && $old  && $capone) || $captwo) {
+    $notold = ($age < get_config('moodleoverflow', 'maxeditingtime'));
+    if (($ownpost && $notold && capabilities::has(capabilities::DELETE_OWN_POST, $modulecontext)) ||
+        capabilities::has(capabilities::DELETE_ANY_POST, $modulecontext)) {
+
         $link = '/mod/moodleoverflow/post.php';
         $commands[] = array('url' => new moodle_url($link, array('delete' => $post->id)), 'text' => $str->delete);
     }
@@ -1293,7 +1267,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->isread = false;
     $mustachedata->isfirstunread = false;
     $mustachedata->isfirstpost = false;
-    $mustachedata->iscomment = (!empty($post->parent)  && ($iscomment == $post->parent));
+    $mustachedata->iscomment = (!empty($post->parent) AND ($iscomment == $post->parent));
+    $mustachedata->permalink = $permalink;
 
     // Get the ratings.
     $mustachedata->votes = $post->upvotes - $post->downvotes;
@@ -1308,39 +1283,31 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Initiate the variables.
     $mustachedata->userupvoted = false;
     $mustachedata->userdownvoted = false;
-    $mustachedata->canchange = true;
+    $mustachedata->canchange = $USER->id != $post->userid;
 
     // Check the actual rating.
     if ($rating) {
 
         // Convert the object.
-        $ratingtime = $rating->firstrated;
         $rating = $rating->rating;
 
         // Did the user upvoted or downvoted this post?
         // The user upvoted the post.
         if ($rating == 1) {
             $mustachedata->userdownvoted = true;
-            $mustachedata->canchange = ((time() - $ratingtime) < get_config('moodleoverflow', 'maxeditingtime'));
         } else if ($rating == 2) {
             $mustachedata->userupvoted = true;
-            $mustachedata->canchange = ((time() - $ratingtime) < get_config('moodleoverflow', 'maxeditingtime'));
         }
-    }
-
-    // Users cannot rate their own posts.
-    if ($USER->id === $post->userid) {
-        $mustachedata->canchange = false;
     }
 
     // Check the reading status of the post.
     $postclass = '';
     if ($istracked) {
         if ($postisread) {
-            $postclass = ' read';
+            $postclass .= ' read';
             $mustachedata->isread = true;
         } else {
-            $postclass = ' unread';
+            $postclass .= ' unread';
 
             // Anchor the first unread post of a discussion.
             if (!$firstunreadanchorprinted) {
@@ -1350,17 +1317,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         }
     }
     if ($post->statusstarter) {
-
-        if ($post->statusteacher) {
-            $postclass = ' statusboth';
-        } else {
-            $postclass = ' statusstarter';
-        }
+        $postclass .= ' statusstarter';
     }
     if ($post->statusteacher) {
-        if (!$post->statusstarter) {
-            $postclass = ' statusteacher';
-        }
+        $postclass .= ' statusteacher';
     }
     $mustachedata->postclass = $postclass;
 
@@ -1402,6 +1362,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         html_writer::link($postinguser->profilelink, $postinguser->fullname)
         : $postinguser->fullname;
     $mustachedata->byrating = $postuserrating;
+    $mustachedata->byuserid = $postinguser->id;
     $mustachedata->showrating = $postuserrating !== null;
     if (get_config('moodleoverflow', 'allowdisablerating') == 1) {
         $mustachedata->showvotes = $moodleoverflow->allowrating;
@@ -1422,7 +1383,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->reviewdelay = format_time($reviewdelay);
     $mustachedata->needsreview = !$post->reviewed;
     $reviewable = time() - $post->created > $reviewdelay;
-    $mustachedata->canreview = $cm->cache->caps['mod/moodleoverflow:reviewpost'];
+    $mustachedata->canreview = capabilities::has(capabilities::REVIEW_POST, $modulecontext);
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
@@ -1450,19 +1411,13 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
+    $mustachedata->iscomment = $level == 2;
+
     // Include the renderer to display the dummy content.
     $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 
     // Render the different elements.
-    if ($level == 0) {
-        return $renderer->render_question($mustachedata);
-    } else if ($level == 1) {
-        return $renderer->render_answer($mustachedata);
-    } else if ($level == 2) {
-        return $renderer->render_comment($mustachedata);
-    } else {
-        return null;
-    }
+    return $renderer->render_post($mustachedata);
 }
 
 

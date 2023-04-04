@@ -27,7 +27,7 @@
 
 // Include config and locallib.
 require_once(__DIR__.'/../../config.php');
-global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
+global $CFG, $PAGE, $DB, $OUTPUT, $SESSION, $USER;
 require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
@@ -87,6 +87,8 @@ $PAGE->set_url('/mod/moodleoverflow/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($moodleoverflow->name));
 $PAGE->set_heading(format_string($course->fullname));
 
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id]);
+
 // Output starts here.
 echo $OUTPUT->header();
 
@@ -107,11 +109,14 @@ if ($reviewlevel > 0) {
     echo html_writer::tag('p', get_string($strkeys[$reviewlevel], 'moodleoverflow'));
 }
 
+echo '<div id="moodleoverflow-root">';
+
 if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
     $reviewpost = \mod_moodleoverflow\review::get_first_review_post($moodleoverflow->id);
 
     if ($reviewpost) {
-        echo html_writer::link($reviewpost, get_string('review_needed', 'mod_moodleoverflow'), ['class' => 'btn btn-danger']);
+        echo html_writer::link($reviewpost, get_string('review_needed', 'mod_moodleoverflow'),
+                ['class' => 'btn btn-danger my-2']);
     }
 }
 
@@ -132,6 +137,8 @@ $SESSION->fromdiscussion = qualified_me();
 
 // Print the discussions.
 moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, get_config('moodleoverflow', 'manydiscussions'));
+
+echo '</div>';
 
 // Finish the page.
 echo $OUTPUT->footer();

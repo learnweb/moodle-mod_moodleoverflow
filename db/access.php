@@ -58,16 +58,6 @@ $capabilities = array(
         ),
         'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ),
-
-    'mod/moodleoverflow:view' => array(
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'guest' => CAP_ALLOW,
-            'user' => CAP_ALLOW,
-        )
-    ),
-
     'mod/moodleoverflow:viewdiscussion' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
@@ -83,9 +73,7 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:replypost' => array(
-
         'riskbitmask' => RISK_SPAM,
-
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -98,9 +86,7 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:startdiscussion' => array(
-
         'riskbitmask' => RISK_SPAM,
-
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -113,9 +99,7 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:editanypost' => array(
-
         'riskbitmask' => RISK_SPAM,
-
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -127,12 +111,11 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:deleteownpost' => array(
-
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'student' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'student'        => CAP_ALLOW,
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
@@ -140,34 +123,17 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:deleteanypost' => array(
-
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
         'clonepermissionsfrom' => 'mod/forum:deleteanypost'
     ),
-
-    'mod/moodleoverflow:viewanyrating' => array(
-
-        'riskbitmask' => RISK_PERSONAL,
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        ),
-        'clonepermissionsfrom' => 'mod/forum:viewanyrating'
-    ),
-
     'mod/moodleoverflow:ratepost' => array(
-
         'riskbitmask' => RISK_SPAM,
-
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -179,9 +145,7 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:marksolved' => array(
-
         'riskbitmask' => RISK_SPAM,
-
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -193,13 +157,11 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:managesubscriptions' => array(
-
         'riskbitmask' => RISK_SPAM,
-
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
+        'captype'              => 'write',
+        'contextlevel'         => CONTEXT_MODULE,
+        'archetypes'           => array(
+            'teacher'        => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         ),
@@ -207,7 +169,6 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:allowforcesubscribe' => array(
-
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -220,9 +181,7 @@ $capabilities = array(
     ),
 
     'mod/moodleoverflow:createattachment' => array(
-
         'riskbitmask' => RISK_SPAM,
-
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(

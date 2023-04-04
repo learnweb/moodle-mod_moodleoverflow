@@ -40,7 +40,7 @@ class ratings {
      *
      * @param object $moodleoverflow
      * @param int    $postid
-     * @param object $rating
+     * @param int    $rating
      * @param object $cm
      * @param null   $userid
      *
@@ -656,24 +656,7 @@ class ratings {
             return false;
         }
 
-        // Only normal votes needs to be changed.
-        $withtimerestriction = array(RATING_DOWNVOTE, RATING_UPVOTE, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE);
-        if (!in_array($rating, $withtimerestriction)) {
-            return true;
-        }
-
-        // Check for the age of the post.
-        $age = time() - $old->firstrated;
-
-        // Can the rating still be edited?
-        if ($age < $CFG->maxeditingtime) {
-            return true;
-        }
-
-        // Print an error message.
-        throw new moodle_exception('ratingtoold', 'moodleoverflow');
-
-        return false;
+        return true;
     }
 
     /**
@@ -789,7 +772,7 @@ class ratings {
      *
      * @return bool
      */
-    private static function moodleoverflow_user_can_rate($post, $modulecontext, $userid = null) {
+    public static function moodleoverflow_user_can_rate($post, $modulecontext, $userid = null) {
         global $USER;
         if (!$userid) {
             // Guests and non-logged-in users can not rate.
@@ -800,7 +783,8 @@ class ratings {
         }
 
         // Check the capability.
-        return has_capability('mod/moodleoverflow:ratepost', $modulecontext, $userid) && $post->reviewed == 1;
+        return $userid != $post->userid && capabilities::has(capabilities::RATE_POST, $modulecontext, $userid)
+            && $post->reviewed == 1;
     }
 
 }

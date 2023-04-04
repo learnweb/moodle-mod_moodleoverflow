@@ -33,8 +33,8 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     And I follow "Test moodleoverflow name"
     Then I should not see "Subscribe to this forum"
     And I should not see "Unsubscribe from this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should not exist in the "Test post subject" "table_row"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should not exist in the "Test post subject" "table_row"
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should not exist in the "Test post subject" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should not exist in the "Test post subject" moodleoverflow discussion card
 
   Scenario: A forced subscription moodleoverflow cannot be subscribed to
     Given the following "activities" exist:
@@ -50,8 +50,8 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     And I follow "Test moodleoverflow name"
     Then I should not see "Subscribe to this forum"
     And I should not see "Unsubscribe from this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should not exist in the "Test post subject" "table_row"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should not exist in the "Test post subject" "table_row"
+    And "You are subscribed to this discussion. Click to unsubscribe." "link" should not exist in the "Test post subject" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "link" should not exist in the "Test post subject" moodleoverflow discussion card
 
   Scenario: An optional moodleoverflow can be subscribed to
     Given the following "activities" exist:

@@ -34,41 +34,10 @@
     white-space: nowrap;
 }
 
-.moodleoverflowheaderlist .replies,
-.moodleoverflowheaderlist .discussion .author {
-    white-space: nowrap;
-}
-
-.moodleoverflowheaderlist thead .discussionsubscription {
-    text-align: center;
-}
-
-.moodleoverflowheaderlist thead .header,
-.moodleoverflowheaderlist tbody .discussion td {
-    padding-left: .5em;
-    padding-right: .5em;
-    vertical-align: top;
-    white-space: normal;
-}
-
-.moodleoverflowheaderlist thead .header {
-    vertical-align: top;
-    white-space: normal;
-}
-
-.moodleoverflowheaderlist thead .header.replies {
-    text-align: center;
-}
-
-.moodleoverflowheaderlist thead .header.lastpost {
-    text-align: right;
-}
-
-.moodleoverflowheaderlist thead .header th.discussionsubscription,
-.moodleoverflowheaderlist tbody .discussion td.discussionsubscription {
-    padding-left: .5em;
-    padding-right: .5em;
-    width: 16px;
+.moodleoverflowdiscussion .discussionmove .icon {
+    width: 24px;
+    height: 24px;
+    color: #848d95;
 }
 
 .moodleoverflowheaderlist .discussion .author,
@@ -94,6 +63,51 @@
 
 .moodleoverflowheaderlist .discussion .topic .icon {
     margin-left: 0;
+}
+
+.moodleoverflowdiscussion {
+    padding: 8px;
+    display: block;
+}
+
+.moodleoverflowdiscussion .leftbox {
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.moodleoverflowdiscussion .reply-correction {
+    display: inline-block;
+    transform: translateY(1px);
+}
+
+.moodleoverflowdiscussion .unread-bubble {
+    background: #c30909;
+    padding: 3px 4px 4px 4px;
+    color: white;
+    font-weight: bold;
+    line-height: 1;
+    display: inline-block;
+    border-radius: 12px;
+    transform: translate(-8px, -10px);
+}
+
+.moodleoverflow-icon-no-margin .icon,
+.icon.moodleoverflow-icon-no-margin {
+    margin: 0;
+}
+
+.moodleoverflowdiscussion .status .icon {
+    margin: 0;
+}
+
+.moodleoverflowdiscussion .votes .votecount {
+    line-height: 0.75;
+    font-size: 1.25em;
+    margin: 0;
+}
+
+.moodleoverflowdiscussion .subject {
+    font-size: 1.25em;
 }
 
 /*
@@ -132,8 +146,24 @@
     margin: 0 0 1em 0;
     max-width: 100%;
     position: relative;
-    border-radius: 0;
-    display: flex;
+}
+
+.moodleoverflowpost .left-info {
+    min-width: 70px;
+}
+
+.moodleoverflowpost.moodleoverflowcomment .left-info {
+    min-width: 50px;
+}
+
+.moodleoverflowpost .anchor {
+    opacity: 0.4;
+    transition: opacity 200ms;
+    float: right;
+}
+
+.moodleoverflowpost .anchor:hover {
+    opacity: 0.8;
 }
 
 .moodleoverflowpost .picture img {
@@ -161,7 +191,7 @@
     width: 4px;
 }
 
-.moodleoverflowpost.statusboth:before {
+.moodleoverflowpost.statusteacher.statusstarter:before {
     background: linear-gradient(80deg, rgba(234, 133, 22, 1) 50%, rgba(112, 160, 52, 1) 50%);
     bottom: -1px;
     content: "";
@@ -192,6 +222,19 @@
     position: absolute;
     top: -1px;
     width: 4px;
+}
+
+.moodleoverflowpost .onlyifsolved,
+.moodleoverflowpost .onlyifhelpful {
+    display: none;
+}
+
+.moodleoverflowpost.statusstarter .onlyifhelpful {
+    display: initial;
+}
+
+.moodleoverflowpost.statusteacher .onlyifsolved {
+    display: initial;
 }
 
 .moodleoverflowpost > .list-group:first-child .list-group-item:first-child {
@@ -261,46 +304,27 @@
     width: 10px;
 }
 
-.moodleoverflowpost .votecell {
-    vertical-align: top;
-    overflow: hidden;
-    width: 43px;
-    flex-shrink: 0;
-}
-
-.moodleoverflowpost .votecell .votes {
+.moodleoverflowpost .votecell .votes,
+.moodleeoverflowdiscussion .votes {
     display: block;
-    margin: 0 8px 0 0;
     text-align: center;
 }
 
-.moodleoverflowpost .votecell .votes p {
+.moodleoverflowpost .votecell .votes p,
+.moodleeoverflowdiscussion .votes  p {
     margin-bottom: 0;
     margin-top: 0;
 }
 
 .moodleoverflowpost.moodleoverflowcomment .votecell .votes p {
-    margin-bottom: -10px;
-    margin-top: -10px;
-}
-
-.moodleoverflowpost .votecell .votes .icon {
-    color: #0a0;
-    height: 24px;
-    margin: 0;
-    width: 24px;
-}
-
-.moodleoverflowpost.moodleoverflowcomment .votecell .votes p {
     margin-bottom: -6px;
     margin-top: -6px;
-    color: grey;
 }
 
-.moodleoverflowpost .post-menu > :not(:last-child) {
-    border-right: 2px solid #bbb;
-    padding-right: 4px;
-    margin-right: 4px;
+.moodleoverflowpost .post-menu > :not(:first-child) {
+    border-left: 2px solid #bbb;
+    padding-left: 4px;
+    margin-left: 4px;
 }
 
 /*
@@ -365,7 +389,8 @@
     padding: 0 4px;
 }
 
-.moodleoverflowpost .answercell .post-info .leftbox .user-info {
+.moodleoverflowpost .answercell .post-info .leftbox .user-info,
+.moodleoverflowdiscussion div.user-info {
     color: #848d95;
 }
 
@@ -418,7 +443,8 @@
     flex-grow: 1;
 }
 
-.moodleoverflowpost .questioner {
+.moodleoverflowpost .questioner,
+.moodleoverflowdiscussion .questioner {
     background-color: rgba(80, 168, 255, .1);
 }
 
@@ -466,10 +492,30 @@
     }
 }
 
-.icon.moodleoverflow-icon-big {
+.icon.moodleoverflow-icon-2x,
+.moodleoverflow-icon-1_5x {
     font-size: 2em;
     width: 32px;
     height: 32px;
+}
+
+.icon.moodleoverflow-icon-1_5x,
+.moodleoverflow-icon-1_5x {
+    font-size: 1.5em;
+    width: 24px;
+    height: 24px;
+}
+
+.icon.moodleoverflow-text-orange {
+    color: rgb(234, 133, 22);
+}
+
+.icon.moodleoverflow-text-green {
+    color: rgb(112, 160, 52);
+}
+
+.mod_moodleoverflow-no-wrap {
+    white-space: nowrap;
 }
 
 .mod_moodleoverflow-label-review,
@@ -480,4 +526,24 @@
 
 .mod_moodleoverflow-label-review {
     background-color: #ffd3d3;
+}
+
+.moodleoverflow-gap-small {
+    gap: 8px;
+}
+
+#moodleoverflow-root .vote.icon[data-moodleoverflow-state="clicked"] {
+    color: #ea8516;
+}
+
+#moodleoverflow-root .vote.icon[data-moodleoverflow-state="notclicked"] {
+    color: #515151;
+}
+
+#moodleoverflow-root .vote.icon[data-moodleoverflow-state="disabled"] {
+    color: rgba(70, 70, 70, 0.4);
+}
+
+#moodleoverflow-root .vote.icon[data-moodleoverflow-action] {
+    cursor: pointer;
 }

@@ -28,6 +28,8 @@
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 
 use Behat\Gherkin\Node\TableNode as TableNode;
+use Behat\Mink\Exception\ElementNotFoundException;
+use Behat\Mink\Exception\ExpectationException;
 
 /**
  * moodleoverflow-related steps definitions.
@@ -109,5 +111,88 @@ class behat_mod_moodleoverflow extends behat_base {
         $this->execute('behat_forms::press_button', get_string('posttomoodleoverflow',
             'moodleoverflow'));
         $this->execute('behat_general::i_wait_to_be_redirected');
+    }
+
+    protected function find_moodleoverflow_discussion_card(string $discussiontitle): \Behat\Mink\Element\Element {
+        return $this->find('xpath',
+            '//*[contains(concat(" ",normalize-space(@class)," ")," moodleoverflowdiscussion ")][.//*[text()="'.
+            $discussiontitle . '"]]');
+    }
+
+    /**
+     * Checks that an element and selector type exists in another element and selector type on the current page.
+     *
+     * This step is for advanced users, use it if you don't find anything else suitable for what you need.
+     *
+     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should exist in the "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
+     * @throws ElementNotFoundException Thrown by behat_base::find
+     * @param string $element The locator of the specified selector
+     * @param string $selectortype The selector type
+     * @param string $discussiontitle The discussion title
+     */
+    public function should_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // Get the container node.
+        $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
+
+        // Specific exception giving info about where can't we find the element.
+        $exception = new ElementNotFoundException($this->getSession(), $selectortype, null,
+        "$element in the moodleoverflow discussion card.");
+
+        // Looks for the requested node inside the container node.
+        $this->find($selectortype, $element, $exception, $containernode);
+    }
+
+    /**
+     * Click on the element of the specified type which is located inside the second element.
+     *
+     * @When /^I click on "(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" in the "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
+     * @param string $element Element we look for
+     * @param string $selectortype The type of what we look for
+     * @param string $discussiontitle The discussion title
+     */
+    public function i_click_on_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // Get the container node.
+        $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
+
+        // Specific exception giving info about where can't we find the element.
+        $exception = new ElementNotFoundException($this->getSession(), $selectortype, null,
+            "$element in the moodleoverflow discussion card.");
+
+        // Looks for the requested node inside the container node.
+        $node = $this->find($selectortype, $element, $exception, $containernode);
+        $this->ensure_node_is_visible($node);
+        $node->click();
+    }
+
+    /**
+     * Checks that an element and selector type does not exist in another element and selector type on the current page.
+     *
+     * This step is for advanced users, use it if you don't find anything else suitable for what you need.
+     *
+     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should not exist in the "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
+     * @throws ExpectationException
+     * @param string $element The locator of the specified selector
+     * @param string $selectortype The selector type
+     * @param string $discussiontitle The discussion title
+     */
+    public function should_not_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // Get the container node.
+        $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
+
+        // Will throw an ElementNotFoundException if it does not exist, but, actually it should not exist, so we try &
+        // catch it.
+        try {
+            // Looks for the requested node inside the container node.
+            $this->find($selectortype, $element, false, $containernode, behat_base::get_reduced_timeout());
+        } catch (ElementNotFoundException $e) {
+            // We expect the element to not be found.
+            return;
+        }
+
+        // The element was found and should not have been. Throw an exception.
+        throw new ExpectationException(
+            "The '{$element}' '{$selectortype}' exists in the '{$discussiontitle}' moodleoverflow discussion card",
+            $this->getSession()
+        );
     }
 }
