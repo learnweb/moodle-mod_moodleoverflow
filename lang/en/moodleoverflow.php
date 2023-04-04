@@ -206,6 +206,13 @@ $string['markdiscussionreadsuccessful'] = 'The discussion has been marked as rea
 $string['markmoodleoverflowreadsuccessful'] = 'All posts have been marked as read.';
 $string['noguesttracking'] = 'Sorry, guests are not allowed to set tracking options.';
 
+// Strings for the userstats_table.php.
+$string['userstatsname'] = 'User name';
+$string['userstatsupvotes'] = 'Received upvotes';
+$string['userstatsdownvotes'] = 'Received downvotes';
+$string['userstatsactivity'] = 'Amount of activity';
+$string['userstatsreputation'] = 'User reputation';
+
 // OTHER.
 $string['messageprovider:posts'] = 'Notification of new posts';
 $string['unknownerror'] = 'This is not expected to happen.';

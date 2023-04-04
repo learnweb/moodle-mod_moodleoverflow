@@ -28,7 +28,7 @@
 // Include config and locallib.
 require_once(__DIR__.'/../../config.php');
 global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
-require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
+require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 use mod_moodleoverflow\tables\userstats_table;
 // Declare optional parameters.
@@ -53,15 +53,18 @@ require_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 $PAGE->set_context($context);
 
-// Print the page header.
-$PAGE->set_url('/mod/moodleoverflow/userstats.php', array('id' => $cm->id,
-               'courseid' => $course->id, 'mid' => $moodleoverflow->id));
-$PAGE->set_title(format_string('User statistics'));
-$PAGE->set_heading(format_string('User statistics of course: ' . $course->fullname));
+// Do a capability check, in case a user iserts the userstats-url manually.
+if (has_capability('mod/moodleoverflow:viewanyrating', $context)) {
+    // Print the page header.
+    $PAGE->set_url('/mod/moodleoverflow/userstats.php', array('id' => $cm->id,
+    'courseid' => $course->id, 'mid' => $moodleoverflow->id));
+    $PAGE->set_title(format_string('User statistics'));
+    $PAGE->set_heading(format_string('User statistics of course: ' . $course->fullname));
 
-// Output starts here.
-echo $OUTPUT->header();
-$table = new userstats_table('statisticstable' , $course->id, $moodleoverflow->id, $PAGE->url);
-echo $table->out();
-echo $OUTPUT->footer();
-
+    // Output starts here.
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading('');
+    $table = new userstats_table('statisticstable' , $course->id, $moodleoverflow->id, $PAGE->url);
+    echo $table->out();
+    echo $OUTPUT->footer();
+}

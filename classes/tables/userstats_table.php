@@ -42,7 +42,7 @@ class userstats_table extends \flexible_table {
 
     private $courseid;            // Course ID.
     private $moodleoverflowid;    // Moodleoverflow that started the printing of statistics.
-    private $usertable = array(); // Usertable will have objects with every user and his statistics.
+    private $userstatsdata = array(); // Userstatsdata  is a table that will have objects with every user and his statistics.
 
     /**
      * Constructor for workflow_table.
@@ -53,12 +53,15 @@ class userstats_table extends \flexible_table {
         global $PAGE;
         $this->courseid = $courseid;
         $this->moodleoverflowid = $moodleoverflow;
-        $this->set_attribute('class', 'statistics-table');
+        $this->set_attribute('class', 'moodleoverflow-statistics-table');
         $this->set_attribute('id', $uniqueid);
-        $this->define_columns(['id', 'username', 'receivedupvotes', 'receiveddownvotes', 'activity', 'reputation']);
+        $this->define_columns(['username', 'receivedupvotes', 'receiveddownvotes', 'activity', 'reputation']);
         $this->define_baseurl($url);
-        $this->define_headers(['User ID', 'User', 'Received upvotes',
-                               'Received downvotes', 'Amount of activity', 'User reputation']);
+        $this->define_headers([get_string('userstatsname', 'moodleoverflow'),
+                               get_string('userstatsupvotes', 'moodleoverflow'),
+                               get_string('userstatsdownvotes', 'moodleoverflow'),
+                               get_string('userstatsactivity', 'moodleoverflow'),
+                               get_string('userstatsreputation', 'moodleoverflow')]);
         $this->get_table_data();
         $this->sortable(true, 'reputation', SORT_DESC);
         $this->no_sorting('id');
@@ -74,18 +77,18 @@ class userstats_table extends \flexible_table {
         global $DB;
         $this->start_output();
         $this->sort_table_data($this->get_sort_order());
-        $this->format_and_add_array_of_rows($this->usertable, true);
+        $this->format_and_add_array_of_rows($this->userstatsdata, true);
         $this->text_sorting('username');
         $this->finish_output();
     }
 
     /**
-     * Method to sort the usertable.
+     * Method to sort the userstatsdata-table.
      */
     private function sort_table_data($sortorder) {
         $key = $sortorder['sortby'];
         // The index of each object in usertable is it's value of $key.
-        $length = count($this->usertable);
+        $length = count($this->userstatsdata);
         if ($sortorder['sortorder'] == 4) {
             // 4 means sort in ascending order.
             $this->quick_usertable_sort(0, $length - 1, $key, 'asc');
@@ -96,7 +99,7 @@ class userstats_table extends \flexible_table {
     }
 
     /**
-     * Sorts usertable with quicksort algorithm.
+     * Sorts userstatsdata with quicksort algorithm.
      */
     private function quick_usertable_sort($low, $high, $key, $order) {
         if ($low >= $high) {
@@ -104,28 +107,28 @@ class userstats_table extends \flexible_table {
         }
         $left = $low;
         $right = $high;
-        $pivot = $this->usertable[intval(($low + $high) / 2)];
+        $pivot = $this->userstatsdata[intval(($low + $high) / 2)];
         $pivot = $pivot->$key;
         do {
             if ($order == 'asc') {
-                while ($this->usertable[$left]->$key < $pivot) {
+                while ($this->userstatsdata[$left]->$key < $pivot) {
                     $left++;
                 }
-                while ($this->usertable[$right]->$key > $pivot) {
+                while ($this->userstatsdata[$right]->$key > $pivot) {
                     $right--;
                 }
             } else if ($order == 'desc') {
-                while ($this->usertable[$left]->$key > $pivot) {
+                while ($this->userstatsdata[$left]->$key > $pivot) {
                     $left++;
                 }
-                while ($this->usertable[$right]->$key < $pivot) {
+                while ($this->userstatsdata[$right]->$key < $pivot) {
                     $right--;
                 }
             }
             if ($left <= $right) {
-                $temp = $this->usertable[$right];
-                $this->usertable[$right] = $this->usertable[$left];
-                $this->usertable[$left] = $temp;
+                $temp = $this->userstatsdata[$right];
+                $this->userstatsdata[$right] = $this->userstatsdata[$left];
+                $this->userstatsdata[$left] = $temp;
                 $right--;
                 $left++;
             }
@@ -190,6 +193,9 @@ class userstats_table extends \flexible_table {
             $student->activity = 0;
             $student->reputation = 0;
             foreach ($ratingdata as $row) {
+                if ($row->postuserid !== $student->id && $row->rateuserid !== $student->id) {
+                    break;
+                }
                 if ($row->postuserid == $student->id && $row->rating == RATING_UPVOTE) {
                     $student->receivedupvotes += 1;
                 }
@@ -208,22 +214,18 @@ class userstats_table extends \flexible_table {
             // Get the user reputation from the course.
             $student->reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($this->moodleoverflowid,
                                                                                               $student->id);
-            array_push($this->usertable, $student);
+            array_push($this->userstatsdata, $student);
         }
     }
 
     /**
-     * Return the usertable.
+     * Return the userstatsdata-table.
      */
     public function get_usertable() {
-        return $this->usertable;
+        return $this->userstatsdata;
     }
 
     // Functions that show the data.
-    public function col_userid($row) {
-        return $row->id;
-    }
-
     public function col_username($row) {
         return $row->link;
     }
