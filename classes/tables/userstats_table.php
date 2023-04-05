@@ -64,7 +64,6 @@ class userstats_table extends \flexible_table {
                                get_string('userstatsreputation', 'moodleoverflow')]);
         $this->get_table_data();
         $this->sortable(true, 'reputation', SORT_DESC);
-        $this->no_sorting('id');
         $this->no_sorting('username');
         $this->setup();
     }
@@ -194,7 +193,7 @@ class userstats_table extends \flexible_table {
             $student->reputation = 0;
             foreach ($ratingdata as $row) {
                 if ($row->postuserid !== $student->id && $row->rateuserid !== $student->id) {
-                    break;
+                    continue;
                 }
                 if ($row->postuserid == $student->id && $row->rating == RATING_UPVOTE) {
                     $student->receivedupvotes += 1;
