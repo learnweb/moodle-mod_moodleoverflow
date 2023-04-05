@@ -783,7 +783,7 @@ class ratings {
         }
 
         // Check the capability.
-        return $userid != $post->userid && capabilities::has(capabilities::RATE_POST, $modulecontext, $userid)
+        return capabilities::has(capabilities::RATE_POST, $modulecontext, $userid)
             && $post->reviewed == 1;
     }
 
