@@ -197,7 +197,7 @@ class dailymail_test extends \advanced_testcase {
      */
     public function test_records_removed() {
         global $DB;
-        // create user with maildigest = on.
+        // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
 
         // Now send the mails.

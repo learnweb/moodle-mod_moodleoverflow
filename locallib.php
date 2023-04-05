@@ -300,7 +300,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             }
         } else {
             // Get his picture, his name and the link to his profile.
-            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course, 'link' => false));
+            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course,
+                                                                                    'link' => false));
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
             $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;
@@ -1203,7 +1204,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // A teacher can mark an answer as solved.
-    $canmarksolved = (($iscomment != $post->parent) AND !empty($post->parent) AND capabilities::has(capabilities::MARK_SOLVED, $modulecontext));
+    $canmarksolved = (($iscomment != $post->parent) && !empty($post->parent)
+                                                    && capabilities::has(capabilities::MARK_SOLVED, $modulecontext));
     if ($canmarksolved) {
 
         // When the post is already marked, remove the mark instead.
@@ -1268,7 +1270,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->isread = false;
     $mustachedata->isfirstunread = false;
     $mustachedata->isfirstpost = false;
-    $mustachedata->iscomment = (!empty($post->parent) AND ($iscomment == $post->parent));
+    $mustachedata->iscomment = (!empty($post->parent) && ($iscomment == $post->parent));
     $mustachedata->permalink = $permalink;
 
     // Get the ratings.

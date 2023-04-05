@@ -50,6 +50,9 @@ if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
     throw new moodle_exception('invalidcourseid');
 }
 
+// Save the allowmultiplemarks setting.
+$marksetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
+
 // Get the related coursemodule and its context.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
     throw new moodle_exception('invalidcoursemodule');
@@ -128,7 +131,7 @@ if ($node && ($post->id != $discussion->firstpost)) {
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $marksetting->allowmultiplemarks]);
 
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));

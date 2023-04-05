@@ -65,8 +65,10 @@ async function sendVote(postid, rating, userid) {
  * Init function.
  *
  * @param {int} userid
+ * @param {int} allowmultiplemark   // 1 means allowed, 0 means not allowed.
+ *
  */
-export function init(userid) {
+export function init(userid, allowmultiplemark) {
     Prefetch.prefetchStrings('mod_moodleoverflow',
         ['marksolved', 'marknotsolved', 'markhelpful', 'marknothelpful',
             'action_remove_upvote', 'action_upvote', 'action_remove_downvote', 'action_downvote']);
@@ -109,11 +111,27 @@ export function init(userid) {
                 const baseRating = isHelpful ? RATING_HELPFUL : RATING_SOLVED;
                 const rating = shouldRemove ? baseRating * 10 : baseRating;
                 await sendVote(postid, rating, userid);
-                for (const el of root.querySelectorAll('.moodleoverflowpost.' + htmlclass)) {
-                    el.classList.remove(htmlclass);
-                    el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
-                        await getString(`mark${action}`, 'mod_moodleoverflow');
+
+                /* If multiplemarks are not allowed (that is the default mode): delete all marks.
+                   else: only delete the mark if the post is being unmarked.
+
+                   then add a mark, if the post is being marked.
+                */
+                if (allowmultiplemark == 0) {
+                    // Delete all marks in the discussion
+                    for (const el of root.querySelectorAll('.moodleoverflowpost.' + htmlclass)) {
+                        el.classList.remove(htmlclass);
+                        el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
+                            await getString(`mark${action}`, 'mod_moodleoverflow');
+                    }
+                } else {
+                    // Remove only the mark of the unmarked post.
+                    if (shouldRemove) {
+                        postElement.classList.remove(htmlclass);
+                        actionElement.textContent = await getString(`mark${action}`, 'mod_moodleoverflow');
+                    }
                 }
+                // If the post is being marked, mark it.
                 if (!shouldRemove) {
                     postElement.classList.add(htmlclass);
                     actionElement.textContent = await getString(`marknot${action}`, 'mod_moodleoverflow');
