@@ -380,7 +380,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         $preparedarray[$i]['userupvoted'] = ($rating->rating ?? null) == RATING_UPVOTE;
         $preparedarray[$i]['userdownvoted'] = ($rating->rating ?? null) == RATING_DOWNVOTE;
-        $preparedarray[$i]['canchange'] = \mod_moodleoverflow\ratings::moodleoverflow_user_can_rate($firstpost, $context);
+        $preparedarray[$i]['canchange'] = \mod_moodleoverflow\ratings::moodleoverflow_user_can_rate($firstpost, $context) &&
+                $startuser->id != $USER->id;
         $preparedarray[$i]['postid'] = $discussion->firstpost;
 
         // Go to the next discussion.
