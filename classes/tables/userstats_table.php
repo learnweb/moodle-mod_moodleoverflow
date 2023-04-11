@@ -40,9 +40,10 @@ require_once($CFG->libdir . '/tablelib.php');
  */
 class userstats_table extends \flexible_table {
 
-    private $courseid;            // Course ID.
-    private $moodleoverflowid;    // Moodleoverflow that started the printing of statistics.
+    private $courseid;                // Course ID.
+    private $moodleoverflowid;        // Moodleoverflow that started the printing of statistics.
     private $userstatsdata = array(); // Userstatsdata  is a table that will have objects with every user and his statistics.
+    private $helpactivity;            // Help icon for amountofactivity-column.
 
     /**
      * Constructor for workflow_table.
@@ -51,8 +52,12 @@ class userstats_table extends \flexible_table {
     public function __construct($uniqueid, $courseid, $moodleoverflow, $url) {
         parent::__construct($uniqueid);
         global $PAGE;
+        $PAGE->requires->js_call_amd('mod_moodleoverflow/activityhelp', 'init');
+
         $this->courseid = $courseid;
         $this->moodleoverflowid = $moodleoverflow;
+        $this->set_helpactivity();
+
         $this->set_attribute('class', 'moodleoverflow-statistics-table');
         $this->set_attribute('id', $uniqueid);
         $this->define_columns(['username', 'receivedupvotes', 'receiveddownvotes', 'activity', 'reputation']);
@@ -60,7 +65,7 @@ class userstats_table extends \flexible_table {
         $this->define_headers([get_string('userstatsname', 'moodleoverflow'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
                                get_string('userstatsdownvotes', 'moodleoverflow'),
-                               get_string('userstatsactivity', 'moodleoverflow'),
+                               (get_string('userstatsactivity', 'moodleoverflow') . '   ' . $this->helpactivity->object),
                                get_string('userstatsreputation', 'moodleoverflow')]);
         $this->get_table_data();
         $this->sortable(true, 'reputation', SORT_DESC);
@@ -77,7 +82,7 @@ class userstats_table extends \flexible_table {
         $this->start_output();
         $this->sort_table_data($this->get_sort_order());
         $this->format_and_add_array_of_rows($this->userstatsdata, true);
-        $this->text_sorting('username');
+        $this->text_sorting('reputation');
         $this->finish_output();
     }
 
@@ -222,6 +227,18 @@ class userstats_table extends \flexible_table {
      */
     public function get_usertable() {
         return $this->userstatsdata;
+    }
+
+    /**
+     * Setup the help icon for amount of activity
+     */
+    public function set_helpactivity() {
+        global $CFG;
+        $this->helpactivity = new \stdClass();
+        $this->helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.png';
+        $this->helpactivity->icon = \html_writer::img($this->helpactivity->iconurl,
+                                                      get_string('helpamountofactivity', 'moodleoverflow'));
+        $this->helpactivity->object = \html_writer::span($this->helpactivity->icon, 'helpactivityclass');
     }
 
     // Functions that show the data.

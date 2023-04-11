@@ -212,6 +212,7 @@ $string['userstatsupvotes'] = 'Received upvotes';
 $string['userstatsdownvotes'] = 'Received downvotes';
 $string['userstatsactivity'] = 'Amount of activity';
 $string['userstatsreputation'] = 'User reputation';
+$string['helpamountofactivity'] = 'Each actitivy like writing a post, starting a discussion or giving a rating gives 1 point';
 
 // OTHER.
 $string['messageprovider:posts'] = 'Notification of new posts';
