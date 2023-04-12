@@ -39,7 +39,6 @@ require_once($CFG->libdir . '/tablelib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class userstats_table extends \flexible_table {
-
     private $courseid;                // Course ID.
     private $moodleoverflowid;        // Moodleoverflow that started the printing of statistics.
     private $userstatsdata = array(); // Userstatsdata  is a table that will have objects with every user and his statistics.
@@ -51,8 +50,6 @@ class userstats_table extends \flexible_table {
      */
     public function __construct($uniqueid, $courseid, $moodleoverflow, $url) {
         parent::__construct($uniqueid);
-        global $PAGE;
-        $PAGE->requires->js_call_amd('mod_moodleoverflow/activityhelp', 'init');
 
         $this->courseid = $courseid;
         $this->moodleoverflowid = $moodleoverflow;
@@ -65,7 +62,7 @@ class userstats_table extends \flexible_table {
         $this->define_headers([get_string('userstatsname', 'moodleoverflow'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
                                get_string('userstatsdownvotes', 'moodleoverflow'),
-                               (get_string('userstatsactivity', 'moodleoverflow') . '   ' . $this->helpactivity->object),
+                               (get_string('userstatsactivity', 'moodleoverflow') . $this->helpactivity->object),
                                get_string('userstatsreputation', 'moodleoverflow')]);
         $this->get_table_data();
         $this->sortable(true, 'reputation', SORT_DESC);
@@ -238,7 +235,21 @@ class userstats_table extends \flexible_table {
         $this->helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.png';
         $this->helpactivity->icon = \html_writer::img($this->helpactivity->iconurl,
                                                       get_string('helpamountofactivity', 'moodleoverflow'));
-        $this->helpactivity->object = \html_writer::span($this->helpactivity->icon, 'helpactivityclass');
+        $this->helpactivity->class = 'helpactivityclass btn btn-link';
+        $this->helpactivity->iconattributes = array('role' => 'button',
+                                                    'data-container' => 'body',
+                                                    'data-toggle' => 'popover',
+                                                    'data-placement' => 'right',
+                                                    'data-html' => 'true',
+                                                    'data-trigger' => 'focus',
+                                                    'tabindex' => '0',
+                                                    'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
+                                                                      get_string('helpamountofactivity', 'moodleoverflow') .
+                                                                      '</p> </div>');
+
+        $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
+                                                         $this->helpactivity->class,
+                                                         $this->helpactivity->iconattributes);
     }
 
     // Functions that show the data.

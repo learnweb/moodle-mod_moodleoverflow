@@ -481,3 +481,10 @@
 .mod_moodleoverflow-label-review {
     background-color: #ffd3d3;
 }
+
+.moodleoverflow-statistics-table .header.c3 .helpactivityclass {
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 4;
+}
