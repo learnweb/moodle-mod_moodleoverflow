@@ -49,7 +49,9 @@ class userstats_table extends \flexible_table {
      * @param int $uniqueid Unique id of this table.
      */
     public function __construct($uniqueid, $courseid, $moodleoverflow, $url) {
+        global $PAGE;
         parent::__construct($uniqueid);
+        $PAGE->requires->js_call_amd('mod_moodleoverflow/activityhelp', 'init');
 
         $this->courseid = $courseid;
         $this->moodleoverflowid = $moodleoverflow;
@@ -240,6 +242,7 @@ class userstats_table extends \flexible_table {
                                                     'data-container' => 'body',
                                                     'data-toggle' => 'popover',
                                                     'data-placement' => 'right',
+                                                    'data-action' => 'showhelpicon',
                                                     'data-html' => 'true',
                                                     'data-trigger' => 'focus',
                                                     'tabindex' => '0',

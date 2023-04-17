@@ -483,8 +483,6 @@
 }
 
 .moodleoverflow-statistics-table .header.c3 .helpactivityclass {
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-left: 4;
+    padding: 0;
+    margin-left: 8px;
 }
