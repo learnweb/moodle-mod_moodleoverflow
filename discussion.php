@@ -143,9 +143,6 @@ $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 // Start the side-output.
 echo $OUTPUT->header();
 
-// Print a text, if multiple marks are allowed.
-moodleoverflow_print_multiplemarks_comment($modulecontext, $post);
-
 echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
 
 // Guests and users can not subscribe to a discussion.
@@ -157,7 +154,14 @@ echo "<br>";
 
 echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
 
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post);
+// if multiplemarks are on, then print the discussion considering the markdata, else print the discussion.
+if ($marksetting) {
+    $multiplemarksdata = moodleoverflow_get_discussion_markdata($d);
+    moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarksdata);
+} else {
+    moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post);
+}
+
 
 echo '</div></div>';
 
