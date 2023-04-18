@@ -1242,6 +1242,9 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $permalink = new moodle_url($discussionlink);
     $permalink->set_anchor('p' . $post->id);
 
+    // Save the setting of multiplemarks.
+    $multiplemarkssetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
+
     // If the user has started the discussion, he can mark the answer as helpful.
     $canmarkhelpful = (($USER->id == $discussion->userid) && ($USER->id != $post->userid) &&
         ($iscomment != $post->parent) && !empty($post->parent));
@@ -1256,7 +1259,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
             // If there is markdata: consider it.
             // Markdata saves the ID of a marked post in the discussion.
             // If multiplemarks are allowed, other posts than the marked post will have another string.
-            if ($markdata != false && $markdata->helpfulpostid != false && $post->id != $markdata->helpfulpostid) {
+            if ($multiplemarkssetting->allowmultiplemarks == 1 && $markdata != false && $markdata->helpfulpostid != false
+                                           && $post->id != $markdata->helpfulpostid) {
                 $commands[] = html_writer::tag('a', $str->alsomarkhelpful,
                     array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
             } else {
@@ -1280,7 +1284,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
             // If there is markdata: consider it.
             // Markdata saves the ID of a marked post in the discussion.
             // If multiplemarks are allowed, other posts than the marked post will have another string.
-            if ($markdata != false && $markdata->solvedpostid != false && $post->id != $markdata->solvedpostid) {
+            if ($multiplemarkssetting->allowmultiplemarks == 1 && $markdata != false && $markdata->solvedpostid != false
+                                           && $post->id != $markdata->solvedpostid) {
                 $commands[] = html_writer::tag('a', $str->alsomarksolved,
                     array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved'));
             } else {

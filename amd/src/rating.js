@@ -70,7 +70,7 @@ async function sendVote(postid, rating, userid) {
  */
 export function init(userid, allowmultiplemark) {
     Prefetch.prefetchStrings('mod_moodleoverflow',
-        ['marksolved', 'marknotsolved', 'markhelpful', 'marknothelpful',
+        ['marksolved', 'alsomarksolved', 'marknotsolved', 'markhelpful', 'alsomarkhelpful', 'marknothelpful',
             'action_remove_upvote', 'action_upvote', 'action_remove_downvote', 'action_downvote']);
 
     root.onclick = async(event) => {
@@ -130,7 +130,7 @@ export function init(userid, allowmultiplemark) {
                         postElement.classList.remove(htmlclass);
                         actionElement.textContent = await getString(`mark${action}`, 'mod_moodleoverflow');
                     }
-                    // Iterate trough all posts in the discussion and check if there are other marked posts.
+                    /*// Iterate trough all posts in the discussion and check if there are other marked posts.
                     var othermarkedposts = 0;
                     for (const el of root.querySelectorAll('.moodleoverflowpost')) {
                         if (el.classList.contains(htmlclass)) {
@@ -142,12 +142,16 @@ export function init(userid, allowmultiplemark) {
                     // Else: do nothing, because if there is no marked post, the string doesn't change.
                     if (othermarkedposts == 1) {
                         for (const el of root.querySelectorAll('.moodleoverflowpost')) {
-                            if (!el.classList.contains(htmlclass)) {
-                                el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
-                                    await getString(`alsomark${action}`, 'mod_moodleoverflow');
+                            if (el.classList.contains(htmlclass)) {
+
+                                //el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
+                                    //await getString(`alsomark${action}`, 'mod_moodleoverflow');
+                            }
+                            else {
+
                             }
                         }
-                    }
+                    }*/
                 }
                 // If the post is being marked, mark it.
                 if (!shouldRemove) {

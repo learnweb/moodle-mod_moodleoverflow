@@ -46,7 +46,7 @@ class ratings {
      *
      * @return bool|int
      */
-    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null) {
+    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null, $allowmultiplemarks = 0) {
         global $DB, $USER, $SESSION;
 
         // Has a user been submitted?
@@ -138,20 +138,23 @@ class ratings {
                 throw new moodle_exception('notteacher', 'moodleoverflow');
             }
 
-            // Get other ratings in the discussion.
-            $sql = "SELECT *
-                    FROM {moodleoverflow_ratings}
-                    WHERE discussionid = ? AND rating = ?";
-            $otherrating = $DB->get_record_sql($sql, [ $discussion->id, $rating ]);
+            if ($allowmultiplemarks == 0) {
+                // Get other ratings in the discussion.
+                $sql = "SELECT *
+                        FROM {moodleoverflow_ratings}
+                        WHERE discussionid = ? AND rating = ?";
+                $otherrating = $DB->get_record_sql($sql, [ $discussion->id, $rating ]);
 
-            // If there is an old rating, update it. Else create a new rating record.
-            if ($otherrating) {
-                return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
-            } else {
-                $mid = $moodleoverflow->id;
+                // If there is an old rating, update it. Else create a new rating record.
+                if ($otherrating) {
+                    return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
+                } else {
+                    $mid = $moodleoverflow->id;
 
-                return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id, $rating, $userid, $modulecontext);
+                    return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id, $rating, $userid, $modulecontext);
+                }
             }
+
         }
 
         // Update an rating record.
