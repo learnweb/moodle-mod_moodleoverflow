@@ -137,62 +137,37 @@ class provider implements
      */
     public static function get_contexts_for_userid(int $userid) : contextlist {
         // Fetch all Moodleoverflow discussions, moodleoverflow posts, ratings, tracking settings and subscriptions.
-        // FIX: split query into two parts due to a never ending database request.
-        $sql1 = "SELECT c.id
-                     FROM {context} c
-                     INNER JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
-                     INNER JOIN {modules} m ON m.id = cm.module AND m.name = :modname
-                     INNER JOIN {moodleoverflow} mof ON mof.id = cm.instance
-                     LEFT JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = mof.id
-                     LEFT JOIN {moodleoverflow_posts} p ON p.discussion = d.id
-                     LEFT JOIN {moodleoverflow_read} r ON r.moodleoverflowid = mof.id
-                     LEFT JOIN {moodleoverflow_subscriptions} s ON s.moodleoverflow = mof.id
-                     WHERE (
-                         d.userid = :duserid OR
-                         d.usermodified = :dmuserid OR
-                         p.userid = :puserid OR
-                         r.userid = :ruserid OR
-                         s.userid = :suserid
-                     ) GROUP BY c.id";
+        $sql = "SELECT c.id
+                FROM {context} c
+                INNER JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
+                INNER JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                INNER JOIN {moodleoverflow} mof ON mof.id = cm.instance
+                WHERE EXISTS (
+                    SELECT 1 FROM {moodleoverflow_discussions} d WHERE d.moodleoverflow = mof.id AND (d.userid = :userid OR d.usermodified = :userid)
+                ) OR EXISTS (
+                    SELECT 1 FROM {moodleoverflow_posts} p WHERE p.discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = mof.id) AND p.userid = :userid
+                ) OR EXISTS (
+                    SELECT 1 FROM {moodleoverflow_read} r WHERE r.moodleoverflowid = mof.id AND r.userid = :userid
+                ) OR EXISTS (
+                    SELECT 1 FROM {moodleoverflow_subscriptions} s WHERE s.moodleoverflow = mof.id AND s.userid = :userid
+                ) OR EXISTS (
+                    SELECT 1 FROM {moodleoverflow_discuss_subs} ds WHERE ds.moodleoverflow = mof.id AND ds.userid = :userid
+                ) OR EXISTS (
+                    SELECT 1 FROM {moodleoverflow_ratings} ra WHERE ra.moodleoverflowid = mof.id AND ra.userid = :userid
+                ) OR EXISTS (
+                    SELECT 1 FROM {moodleoverflow_tracking} track WHERE track.moodleoverflowid = mof.id AND track.userid = :userid
+                ) OR EXISTS (
+                    SELECT 1 FROM {moodleoverflow_grades} g WHERE g.moodleoverflowid = mof.id AND g.userid = :userid
+                );"
 
-        $sql2 = "SELECT c.id
-                     FROM {context} c
-                     INNER JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
-                     INNER JOIN {modules} m ON m.id = cm.module AND m.name = :modname
-                     INNER JOIN {moodleoverflow} mof ON mof.id = cm.instance
-                     LEFT JOIN {moodleoverflow_discuss_subs} ds ON ds.moodleoverflow = mof.id
-                     LEFT JOIN {moodleoverflow_ratings} ra ON ra.moodleoverflowid = mof.id
-                     LEFT JOIN {moodleoverflow_tracking} track ON track.moodleoverflowid = mof.id
-                     LEFT JOIN {moodleoverflow_grades} g ON g.moodleoverflowid = mof.id
-                     WHERE (
-                         ds.userid = :dsuserid OR
-                         ra.userid = :rauserid OR
-                         track.userid = :userid OR
-                         g.userid = :guserid
-                     ) GROUP BY c.id";
-
-        $params1 = [
+        $params = [
             'modname'      => 'moodleoverflow',
             'contextlevel' => CONTEXT_MODULE,
-            'duserid'      => $userid,
-            'dmuserid'     => $userid,
-            'puserid'      => $userid,
-            'ruserid'      => $userid,
-            'suserid'      => $userid
-        ];
-
-        $params2 = [
-            'modname'      => 'moodleoverflow',
-            'contextlevel' => CONTEXT_MODULE,
-            'dsuserid'     => $userid,
-            'rauserid'     => $userid,
-            'userid'       => $userid,
-            'guserid'      => $userid
+            'userid'      => $userid
         ];
 
         $contextlist = new \core_privacy\local\request\contextlist();
-        $contextlist->add_from_sql($sql1, $params1);
-        $contextlist->add_from_sql($sql2, $params2);
+        $contextlist->add_from_sql($sql, $params);
 
         return $contextlist;
     }
