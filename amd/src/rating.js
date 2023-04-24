@@ -130,24 +130,6 @@ export function init(userid, allowmultiplemark) {
                         postElement.classList.remove(htmlclass);
                         actionElement.textContent = await getString(`mark${action}`, 'mod_moodleoverflow');
                     }
-                    // Iterate trough all posts in the discussion and check if there are other marked posts.
-                    var othermarkedposts = 0;
-                    for (const el of root.querySelectorAll('.moodleoverflowpost')) {
-                        if (el.classList.contains(htmlclass)) {
-                            othermarkedposts = 1;
-                            break;
-                        }
-                    }
-                    // If there are other marked posts, iterate trough each post and update the string to 'also mark as ...' .
-                    // Else: do nothing, because if there is no marked post, the string doesn't change.
-                    if (othermarkedposts == 1) {
-                        for (const el of root.querySelectorAll('.moodleoverflowpost')) {
-                            if (!el.classList.contains(htmlclass)) {
-                                el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
-                                    await getString(`alsomark${action}`, 'mod_moodleoverflow');
-                            }
-                        }
-                    }
                 }
                 // If the post is being marked, mark it.
                 if (!shouldRemove) {
