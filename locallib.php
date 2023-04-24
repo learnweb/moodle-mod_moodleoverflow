@@ -1022,6 +1022,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
         // Assign the ratings to the matching posts.
         $posts[$postid]->upvotes = $discussionratings[$post->id]->upvotes;
         $posts[$postid]->downvotes = $discussionratings[$post->id]->downvotes;
+        $posts[$postid]->votesdifference = $posts[$postid]->upvotes - $posts[$postid]->downvotes;
         $posts[$postid]->statusstarter = $discussionratings[$post->id]->ishelpful;
         $posts[$postid]->statusteacher = $discussionratings[$post->id]->issolved;
     }
