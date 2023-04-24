@@ -157,6 +157,7 @@ class ratings {
                 // If there is an old rating, update it. Else create a new rating record.
                 if ($otherrating) {
                     return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
+    
                 } else {
                     $mid = $moodleoverflow->id;
 

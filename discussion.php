@@ -76,8 +76,7 @@ if ($ratingid) {
 
     if (in_array($ratingid, array(RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL))) {
         // Rate the post.
-        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm, null,
-                                                                    $marksetting->allowmultiplemarks)) {
+        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
@@ -156,7 +155,7 @@ echo "<br>";
 echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
 
 // if multiplemarks are on, then print the discussion considering the markdata, else print the discussion.
-if ($marksetting->allowmultiplemarks == 1) {
+if ($marksetting) {
     $multiplemarksdata = moodleoverflow_get_discussion_markdata($d);
     moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarksdata);
 } else {
