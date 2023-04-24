@@ -65,10 +65,10 @@ async function sendVote(postid, rating, userid) {
  * Init function.
  *
  * @param {int} userid
- * @param {int} allowmultiplemark   // 1 means allowed, 0 means not allowed.
+ * @param {int} allowmultiplemarks   // 1 means allowed, 0 means not allowed.
  *
  */
-export function init(userid, allowmultiplemark) {
+export function init(userid, allowmultiplemarks) {
     Prefetch.prefetchStrings('mod_moodleoverflow',
         ['marksolved', 'marknotsolved', 'markhelpful', 'marknothelpful',
             'action_remove_upvote', 'action_upvote', 'action_remove_downvote', 'action_downvote']);
@@ -117,7 +117,7 @@ export function init(userid, allowmultiplemark) {
 
                    then add a mark, if the post is being marked.
                 */
-                if (allowmultiplemark == 0) {
+                if (allowmultiplemarks == false) {
                     // Delete all marks in the discussion
                     for (const el of root.querySelectorAll('.moodleoverflowpost.' + htmlclass)) {
                         el.classList.remove(htmlclass);

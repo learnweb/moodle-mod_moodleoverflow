@@ -52,6 +52,10 @@ if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
 
 // Save the allowmultiplemarks setting.
 $marksetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
+$multiplemarks = false;
+if ($marksetting->allowmultiplemarks == 1) {
+    $multiplemarks = true;
+}
 
 // Get the related coursemodule and its context.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
@@ -131,7 +135,7 @@ if ($node && ($post->id != $discussion->firstpost)) {
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $marksetting->allowmultiplemarks]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $multiplemarks]);
 
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
@@ -153,7 +157,7 @@ echo "<br>";
 
 echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
 
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post);
+moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks);
 
 echo '</div></div>';
 
