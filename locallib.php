@@ -877,35 +877,6 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
 }
 
 /**
- * Prints a text, if multiple marks are allowed.
- *
- * @param stdClass $context        The moodleoverflow context.
- * @param stdClass $post           The post object.
- */
-function moodleoverflow_print_multiplemarks_comment($context, $post) {
-    global $USER;
-
-    // Check if the current user is the starter of the discussion.
-    $ownpost = (isloggedin() && ($USER->id == $post->userid));
-
-    // Check if the current user can mark posts as solved.
-    $canmarksolved = (has_capability('mod/moodleoverflow:marksolved', $context));
-    $comment = '';
-
-    if ($ownpost) {
-        if ($canmarksolved) {
-            $comment = get_string('multiplemarkscommentteacherownpost', 'moodleoverflow');
-        } else {
-            $comment = get_string('multiplemarkscommentstudentownpost', 'moodleoverflow');
-        }
-    }
-    else if ($canmarksolved) {
-        $comment = get_string('multiplemarkscommentteacher', 'moodleoverflow');
-    }
-    $comment = $comment . '<br>' . '<br>';
-    echo $comment;
-}
-/**
  * Prints a moodleoverflow discussion.
  *
  * @param stdClass $course         The course object
@@ -917,7 +888,7 @@ function moodleoverflow_print_multiplemarks_comment($context, $post) {
 function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post) {
     global $USER;
 
-    // Check if the current user is the starter of the discussion.
+    // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() && ($USER->id == $post->userid));
 
     // Fetch the modulecontext.
