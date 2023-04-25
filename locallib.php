@@ -1213,7 +1213,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                     array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
         } else {
             // If there are already marked posts, change the string of the button.
-            if($helpfulposts) {
+            if ($helpfulposts) {
                 $commands[] = html_writer::tag('a', $str->alsomarkhelpful,
                     array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
             } else {

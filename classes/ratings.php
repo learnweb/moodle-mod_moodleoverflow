@@ -157,11 +157,12 @@ class ratings {
                 // If there is an old rating, update it. Else create a new rating record.
                 if ($otherrating) {
                     return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
-    
+
                 } else {
                     $mid = $moodleoverflow->id;
 
-                    return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id, $rating, $userid, $modulecontext);
+                    return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id,
+                                                                  $rating, $userid, $modulecontext);
                 }
 
             } else {
@@ -169,7 +170,6 @@ class ratings {
                 $mid = $moodleoverflow->id;
                 return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id, $rating, $userid, $modulecontext);
             }
-            
         }
 
         // Update an rating record.
@@ -268,9 +268,9 @@ class ratings {
         // The answers that are marked as correct by both are displayed first.
         if ($statusteacher && $statusstarter) {
             $markedposts = array();
-            foreach ($statusteacher as $solvedposts ) {
+            foreach ($statusteacher as $solvedposts) {
                 foreach ($statusstarter as $helpfulposts) {
-                    // Is the same answer correct for both? 
+                    // Is the same answer correct for both?
                     if ($solvedposts->postid == $helpfulposts->postid) {
                         // Save the post that is marked as solved and helpful and go to the next post.
                         $markedposts[] = $postscopy[$solvedposts->postid];
@@ -292,10 +292,10 @@ class ratings {
         // If the answers the teacher marks are preferred, and only
         // the teacher marked an answer as solved, display it first.
         if ($preferteacher && $statusteacher) {
-            // Save the marked posts
+            // Save the marked posts.
             $markedposts = array();
             foreach ($statusteacher as $solvedpost) {
-                if(array_key_exists($solvedpost->postid, $postscopy)) {
+                if (array_key_exists($solvedpost->postid, $postscopy)) {
                     $markedposts[] = $postscopy[$solvedpost->postid];
                 }
             }
@@ -313,10 +313,10 @@ class ratings {
         // If the user who started the discussion has marked
         // an answer as helpful, display this answer first.
         if ($statusstarter) {
-            // Save the marked posts
+            // Save the marked posts.
             $markedposts = array();
             foreach ($statusstarter as $helpfulpost) {
-                if(array_key_exists($helpfulpost->postid, $postscopy)) {
+                if (array_key_exists($helpfulpost->postid, $postscopy)) {
                     $markedposts[] = $postscopy[$helpfulpost->postid];
                 }
             }
@@ -333,10 +333,10 @@ class ratings {
 
         // If a teacher has marked an answer as solved, display it next.
         if ($statusteacher) {
-            // Save the marked posts
+            // Save the marked posts.
             $markedposts = array();
             foreach ($statusteacher as $solvedpost) {
-                if(array_key_exists($solvedpost->postid, $postscopy)) {
+                if (array_key_exists($solvedpost->postid, $postscopy)) {
                     $markedposts[] = $postscopy[$solvedpost->postid];
                 }
             }
@@ -847,15 +847,16 @@ class ratings {
 
     private static function moodleoverflow_sort_post_by_votes(array $posts) {
         // Function uses quicksort to sort the posts in descending order.
-        self::moodleoverflow_quicksort_post_by_votes($posts, 0, sizeof($posts) - 1);
-        
+        self::moodleoverflow_quicksort_post_by_votes($posts, 0, count($posts) - 1);
     }
 
     private static function moodleoverflow_quicksort_post_by_votes(array $posts, $low, $high) {
-        if ($low >= $high) return;
+        if ($low >= $high) {
+            return;
+        }
         $left = $low;
         $right = $high;
-        $pivot = $posts[ ($low + $high) / 2]->votesdifference;
+        $pivot = $posts[($low + $high) / 2]->votesdifference;
         do {
             while ($posts[$left]->votesdifference > $pivot) {
                 $left++;
