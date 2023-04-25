@@ -158,7 +158,7 @@ class provider implements
                     SELECT 1 FROM {moodleoverflow_tracking} track WHERE track.moodleoverflowid = mof.id AND track.userid = :userid
                 ) OR EXISTS (
                     SELECT 1 FROM {moodleoverflow_grades} g WHERE g.moodleoverflowid = mof.id AND g.userid = :userid
-                );"
+                );";
 
         $params = [
             'modname'      => 'moodleoverflow',
