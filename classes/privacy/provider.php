@@ -143,27 +143,35 @@ class provider implements
                 INNER JOIN {modules} m ON m.id = cm.module AND m.name = :modname
                 INNER JOIN {moodleoverflow} mof ON mof.id = cm.instance
                 WHERE EXISTS (
-                    SELECT 1 FROM {moodleoverflow_discussions} d WHERE d.moodleoverflow = mof.id AND (d.userid = :userid OR d.usermodified = :userid)
+                    SELECT 1 FROM {moodleoverflow_discussions} d WHERE d.moodleoverflow = mof.id AND (d.userid = :duserid OR d.usermodified = :dmuserid)
                 ) OR EXISTS (
-                    SELECT 1 FROM {moodleoverflow_posts} p WHERE p.discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = mof.id) AND p.userid = :userid
+                    SELECT 1 FROM {moodleoverflow_posts} p WHERE p.discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = mof.id) AND p.userid = :puserid
                 ) OR EXISTS (
-                    SELECT 1 FROM {moodleoverflow_read} r WHERE r.moodleoverflowid = mof.id AND r.userid = :userid
+                    SELECT 1 FROM {moodleoverflow_read} r WHERE r.moodleoverflowid = mof.id AND r.userid = :ruserid
                 ) OR EXISTS (
-                    SELECT 1 FROM {moodleoverflow_subscriptions} s WHERE s.moodleoverflow = mof.id AND s.userid = :userid
+                    SELECT 1 FROM {moodleoverflow_subscriptions} s WHERE s.moodleoverflow = mof.id AND s.userid = :suserid
                 ) OR EXISTS (
-                    SELECT 1 FROM {moodleoverflow_discuss_subs} ds WHERE ds.moodleoverflow = mof.id AND ds.userid = :userid
+                    SELECT 1 FROM {moodleoverflow_discuss_subs} ds WHERE ds.moodleoverflow = mof.id AND ds.userid = :dsuserid
                 ) OR EXISTS (
-                    SELECT 1 FROM {moodleoverflow_ratings} ra WHERE ra.moodleoverflowid = mof.id AND ra.userid = :userid
+                    SELECT 1 FROM {moodleoverflow_ratings} ra WHERE ra.moodleoverflowid = mof.id AND ra.userid = :rauserid
                 ) OR EXISTS (
-                    SELECT 1 FROM {moodleoverflow_tracking} track WHERE track.moodleoverflowid = mof.id AND track.userid = :userid
+                    SELECT 1 FROM {moodleoverflow_tracking} track WHERE track.moodleoverflowid = mof.id AND track.userid = :tuserid
                 ) OR EXISTS (
-                    SELECT 1 FROM {moodleoverflow_grades} g WHERE g.moodleoverflowid = mof.id AND g.userid = :userid
+                    SELECT 1 FROM {moodleoverflow_grades} g WHERE g.moodleoverflowid = mof.id AND g.userid = :guserid
                 );";
 
         $params = [
             'modname'      => 'moodleoverflow',
             'contextlevel' => CONTEXT_MODULE,
-            'userid'      => $userid
+            'duserid'      => $userid,
+            'dmuserid'     => $userid,
+            'puserid'      => $userid,
+            'ruserid'      => $userid,
+            'suserid'      => $userid,
+            'dsuserid'     => $userid,
+            'rauserid'     => $userid,
+            'tuserid'      => $userid,
+            'guserid'      => $userid
         ];
 
         $contextlist = new \core_privacy\local\request\contextlist();
