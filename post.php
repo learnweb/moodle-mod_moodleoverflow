@@ -436,7 +436,7 @@ if (!empty($moodleoverflow)) {
 
             // Request a confirmation to delete the post.
             echo $OUTPUT->header();
-            echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
+            echo $OUTPUT->heading('');
             echo $OUTPUT->confirm(get_string("deletesureplural", "moodleoverflow", $replycount + 1),
                 "post.php?delete=$delete&confirm=$delete", $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' .
                 $post->discussion . '#p' . $post->id);
@@ -446,7 +446,7 @@ if (!empty($moodleoverflow)) {
 
             // Print a confirmation message.
             echo $OUTPUT->header();
-            echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
+            echo $OUTPUT->heading('');
             echo $OUTPUT->confirm(get_string("deletesure", "moodleoverflow", $replycount),
                 "post.php?delete=$delete&confirm=$delete",
                 $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $post->discussion . '#p' . $post->id);
