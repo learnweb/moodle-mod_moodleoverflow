@@ -149,13 +149,13 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
     // Print a button if the user is capable of seeing the user stats.
     if ($canseeuserstats) {
-        $buttontext2 = get_string('seeuserstats', 'moodleoverflow');
-        $buttonurl2 = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
+        $userstatsbuttontext = get_string('seeuserstats', 'moodleoverflow');
+        $userstatsbuttonurl = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
                                                                            'courseid' => $moodleoverflow->course,
                                                                            'mid' => $moodleoverflow->id]);
-        $button2 = new single_button($buttonurl2, $buttontext2, 'get');
-        $button2->class = 'singlebutton align-middle m-2';
-        echo $OUTPUT->render($button2);
+        $userstatsbutton = new single_button($userstatsbuttonurl, $userstatsbuttontext, 'get');
+        $userstatsbutton->class = 'singlebutton align-middle m-2';
+        echo $OUTPUT->render($userstatsbutton);
     }
 
     // Get all the recent discussions the user is allowed to see.
