@@ -61,7 +61,7 @@ class userstats_table extends \flexible_table {
         $this->set_attribute('id', $uniqueid);
         $this->define_columns(['username', 'receivedupvotes', 'receiveddownvotes', 'activity', 'reputation']);
         $this->define_baseurl($url);
-        $this->define_headers([get_string('userstatsname', 'moodleoverflow'),
+        $this->define_headers([get_string('fullnameuser'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
                                get_string('userstatsdownvotes', 'moodleoverflow'),
                                (get_string('userstatsactivity', 'moodleoverflow') . $this->helpactivity->object),

@@ -207,7 +207,6 @@ $string['markmoodleoverflowreadsuccessful'] = 'All posts have been marked as rea
 $string['noguesttracking'] = 'Sorry, guests are not allowed to set tracking options.';
 
 // Strings for the userstats_table.php.
-$string['userstatsname'] = 'User name';
 $string['userstatsupvotes'] = 'Received upvotes';
 $string['userstatsdownvotes'] = 'Received downvotes';
 $string['userstatsactivity'] = 'Amount of activity';
