@@ -101,7 +101,6 @@ jobs:
       - name: Grunt
         if: ${{ always() }}
         run: moodle-plugin-ci grunt
-        continue-on-error: true
 
   test:
     runs-on: ubuntu-latest
