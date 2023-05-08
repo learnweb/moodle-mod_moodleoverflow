@@ -30,7 +30,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 
 // Readtracking constants.
@@ -1260,6 +1259,13 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades=null) {
 function moodleoverflow_get_fontawesome_icon_map() {
     return [
         'mod_moodleoverflow:i/commenting' => 'fa-commenting',
-        'mod_moodleoverflow:i/pending-big' => 'fa-clock-o text-danger moodleoverflow-icon-big'
+        'mod_moodleoverflow:i/pending-big' => 'fa-clock-o text-danger moodleoverflow-icon-2x',
+        'mod_moodleoverflow:i/status-helpful' => 'fa-thumbs-up moodleoverflow-icon-1_5x moodleoverflow-text-orange',
+        'mod_moodleoverflow:i/status-solved' => 'fa-check moodleoverflow-icon-1_5x moodleoverflow-text-green',
+        'mod_moodleoverflow:i/reply' => 'fa-reply',
+        'mod_moodleoverflow:i/subscribed' => 'fa-bell moodleoverflow-icon-1_5x',
+        'mod_moodleoverflow:i/unsubscribed' => 'fa-bell-slash-o moodleoverflow-icon-1_5x',
+        'mod_moodleoverflow:i/vote-up' => 'fa-chevron-up moodleoverflow-icon-2x moodleoverflow-icon-no-margin',
+        'mod_moodleoverflow:i/vote-down' => 'fa-chevron-down moodleoverflow-icon-2x moodleoverflow-icon-no-margin'
     ];
 }

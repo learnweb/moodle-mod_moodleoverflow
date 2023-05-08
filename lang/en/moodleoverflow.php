@@ -42,16 +42,15 @@ $string['moodleoverflow:addinstance'] = 'Add a new Moodleoverflow instance';
 $string['moodleoverflow:allowforcesubscribe'] = 'Allow forced subscription';
 $string['moodleoverflow:createattachment'] = 'Create attachments';
 $string['moodleoverflow:managesubscriptions'] = 'Manage subscriptions';
+
 $string['moodleoverflow:ratehelpful'] = 'Mark a post as helpful';
 $string['moodleoverflow:ratepost'] = 'Rate a post';
-$string['moodleoverflow:viewanyrating'] = 'View ratings';
 $string['moodleoverflow:deleteanypost'] = 'Delete posts';
 $string['moodleoverflow:deleteownpost'] = 'Delete own posts';
 $string['moodleoverflow:editanypost'] = 'Edit posts';
 $string['moodleoverflow:startdiscussion'] = 'Start a discussion';
 $string['moodleoverflow:replypost'] = 'Reply in discussion';
 $string['moodleoverflow:viewdiscussion'] = 'View discussion';
-$string['moodleoverflow:view'] = 'View discussionlist';
 $string['moodleoverflow:marksolved'] = 'Mark a post as solution';
 $string['moodleoverflow:reviewpost'] = 'Review (approve or reject) posts';
 $string['nowallsubscribed'] = 'All forums in {$a} are subscribed.';
@@ -65,15 +64,8 @@ $string['noviewdiscussionspermission'] = 'You do not have the permission to view
 $string['addanewdiscussion'] = 'Add a new discussion topic';
 $string['seeuserstats'] = 'View user statistics';
 $string['nodiscussions'] = 'There are no discussion topics yet in this forum.';
-$string['headerdiscussion'] = 'Discussion';
-$string['headerstartedby'] = 'Started by';
-$string['headerreplies'] = 'Replies';
-$string['headerlastpost'] = 'Last published post';
-$string['headerunread'] = 'Unread';
-$string['headervotes'] = 'Votes';
-$string['headerstatus'] = 'Status';
-$string['markallread'] = 'Mark read';
-$string['markallread'] = 'Mark all posts in this discussion read.';
+$string['markallread_forum'] = 'Mark all posts as read';
+$string['markallread'] = 'Mark all posts in this discussion as read';
 $string['delete'] = 'Delete';
 $string['parent'] = 'Show parent';
 $string['markread'] = 'Mark read';
@@ -84,6 +76,7 @@ $string['bynameondate'] = 'by {$a->name} ({$a->rating}) - {$a->date}';
 $string['bynameondatenorating'] = 'by {$a->name} - {$a->date}';
 $string['deletesure'] = 'Are you sure you want to delete this post?';
 $string['deletesureplural'] = 'Are you sure you want to delete this post and all replies? ({$a} posts)';
+$string['amount_unread_posts_in_discussion'] = 'There are {$a} unread posts in this discussion.';
 
 // Strings for the settings.php.
 $string['configmanydiscussions'] = 'Maximum number of discussions shown in a Moodleoverflow instance per page';
@@ -188,6 +181,7 @@ $string['discussionname'] = 'Discussion name';
 $string['discussionlocked'] = 'This discussion has been locked so you can no longer reply to it.';
 $string['hiddenmoodleoverflowpost'] = 'Hidden forum post';
 $string['moodleoverflowsubjecthidden'] = 'Subject (hidden)';
+
 $string['moodleoverflowauthorhidden'] = 'Author (hidden)';
 $string['moodleoverflowbodyhidden'] = 'This post cannot be viewed by you, probably because you have not posted in the discussion, the maximum editing time hasn\'t passed yet, the discussion has not started or the discussion has expired.';
 $string['addanewreply'] = 'Add a new answer';
@@ -318,6 +312,10 @@ If \'Allow forced read tracking\' is enabled in the site administration, then a 
 $string['ratingheading'] = 'Rating and reputation';
 $string['starterrating'] = 'Helpful';
 $string['teacherrating'] = 'Solution';
+$string['ratedbystarter'] = 'This post was marked as the most helpful by the questioner';
+$string['ratedbyteacher'] = 'This post was marked as the solution by a teacher';
+$string['containsstarterrating'] = 'Contains a post marked as the most helpful by the questioner';
+$string['containsteacherrating'] = 'Contains a post marked as the solution by a teacher';
 $string['ratingpreference'] = 'Display first';
 $string['ratingpreference_help'] = 'Answers can be marked as solution and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
 
@@ -338,16 +336,13 @@ $string['attachments'] = 'Attachments';
 $string['attachment_help'] = 'You can optionally attach one or more files to a forum post. If you attach an image, it will be displayed after the message.';
 
 // Templates.
-$string['helpfulanswer'] = 'The question owner accepted this as the best answer.';
-$string['solvedanswer'] = 'This post is marked as solution.';
-$string['bestanswer'] = 'The question owner and a course owner accepted this as the best answer.';
 $string['reputation'] = 'Reputation';
-$string['upvote'] = 'Upvote';
-$string['upvotenotchangeable'] = 'Upvote (not changeable)';
-$string['noupvote'] = 'No upvote';
-$string['downvote'] = 'Downvote';
-$string['downvotenotchangeable'] = 'Downvote (not changeable)';
-$string['nodownvote'] = 'No downvote';
+$string['action_remove_upvote'] = 'Click to remove upvote';
+$string['upvotenotchangeable'] = 'Cannot upvote';
+$string['action_upvote'] = 'Click to upvote';
+$string['action_remove_downvote'] = 'Click to remove downvote';
+$string['downvotenotchangeable'] = 'Cannot downvote';
+$string['action_downvote'] = 'Click to downvote';
 $string['movetopicicon'] = 'The icon to move a topic';
 $string['movetopictoforum'] = 'The icon to move a selected topic to another forum';
 

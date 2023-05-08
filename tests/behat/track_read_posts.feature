@@ -52,7 +52,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I follow "Test moodleoverflow name"
     And I follow "Track unread posts"
     And I wait to be redirected
-    And I click on "1" "link" in the "Admin User" "table_row"
+    And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
 
@@ -103,6 +103,6 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I follow "Test moodleoverflow name"
     And I follow "Track unread posts"
     And I wait to be redirected
-    And I click on "1" "link" in the "Admin User" "table_row"
+    And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
