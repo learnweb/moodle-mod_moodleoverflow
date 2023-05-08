@@ -104,8 +104,9 @@ class review_test extends \advanced_testcase {
     }
 
     /**
-     * @runInSeparateProcess
      * Test reviews functionality in forums where teachers should review everything.
+     *
+     * @runInSeparateProcess
      */
     public function test_forum_review_everything() {
         global $DB, $CFG;
@@ -182,8 +183,9 @@ class review_test extends \advanced_testcase {
     }
 
     /**
-     * @runInSeparateProcess
      * Test reviews functionality in forums where teachers should review questions.
+     *
+     * @runInSeparateProcess
      */
     public function test_forum_review_only_questions() {
         global $DB, $CFG;
