@@ -128,7 +128,7 @@ class send_mails extends \core\task\scheduled_task {
 
             foreach ($usersto as $userto) {
                 try {
-                    cron_setup_user($userto, $course);
+                    \core\cron::setup_user($userto, $course);
 
                     $maildata = new moodleoverflow_email(
                         $course,

@@ -749,7 +749,7 @@ function moodleoverflow_send_mails() {
             $userto->markposts = array();
 
             // Cache the capabilities of the user.
-            cron_setup_user($userto);
+            \core\cron::setup_user($userto);
 
             // Reset the caches.
             foreach ($coursemodules as $moodleoverflowid => $unused) {
@@ -838,7 +838,7 @@ function moodleoverflow_send_mails() {
                 }
 
                 // Setup roles and languages.
-                cron_setup_user($userto, $course);
+                \core\cron::setup_user($userto, $course);
 
                 // Cache the users capability to view full names.
                 if (!isset($userto->viewfullnames[$moodleoverflow->id])) {
