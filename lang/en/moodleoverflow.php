@@ -62,6 +62,7 @@ $string['noviewdiscussionspermission'] = 'You do not have the permission to view
 
 // Strings for the locallib.php.
 $string['addanewdiscussion'] = 'Add a new discussion topic';
+$string['seeuserstats'] = 'View user statistics';
 $string['nodiscussions'] = 'There are no discussion topics yet in this forum.';
 $string['markallread_forum'] = 'Mark all posts as read';
 $string['markallread'] = 'Mark all posts in this discussion as read';
@@ -198,6 +199,13 @@ $string['markreadfailed'] = 'A post of the discussion could not be marked as rea
 $string['markdiscussionreadsuccessful'] = 'The discussion has been marked as read.';
 $string['markmoodleoverflowreadsuccessful'] = 'All posts have been marked as read.';
 $string['noguesttracking'] = 'Sorry, guests are not allowed to set tracking options.';
+
+// Strings for the userstats_table.php.
+$string['userstatsupvotes'] = 'Received upvotes';
+$string['userstatsdownvotes'] = 'Received downvotes';
+$string['userstatsactivity'] = 'Amount of activity';
+$string['userstatsreputation'] = 'User reputation';
+$string['helpamountofactivity'] = 'Each actitivy like writing a post, starting a discussion or giving a rating gives 1 point';
 
 // OTHER.
 $string['messageprovider:posts'] = 'Notification of new posts';

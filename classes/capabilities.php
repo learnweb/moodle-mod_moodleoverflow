@@ -42,7 +42,6 @@ class capabilities {
     const EDIT_ANY_POST = 'mod/moodleoverflow:editanypost';
     const DELETE_OWN_POST = 'mod/moodleoverflow:deleteownpost';
     const DELETE_ANY_POST = 'mod/moodleoverflow:deleteanypost';
-    const DELETE_ANY_RATING = 'mod/moodleoverflow:viewanyrating';
     const RATE_POST = 'mod/moodleoverflow:ratepost';
     const MARK_SOLVED = 'mod/moodleoverflow:marksolved';
     const MANAGE_SUBSCRIPTIONS = 'mod/moodleoverflow:managesubscriptions';

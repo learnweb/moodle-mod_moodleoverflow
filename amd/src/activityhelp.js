@@ -1,4 +1,3 @@
-<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,21 +14,28 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines the version and other meta-info about the plugin
+ * Show a help string for the amount of activity column in userstats_table.php
  *
- * Setting the $plugin->version to 0 prevents the plugin from being installed.
- * See https://docs.moodle.org/dev/version.php for more info.
- *
- * @package   mod_moodleoverflow
- * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @module     mod_moodleoverflow/activityhelp
+ * @copyright  2023 Tamaro Walter
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'mod_moodleoverflow';
-$plugin->version = 2023050801;
-$plugin->release = 'v4.1-r1';
-$plugin->requires = 2020061500; // Requires Moodle 3.9+.
-$plugin->maturity = MATURITY_STABLE;
-$plugin->dependencies = array();
+
+const Selectors = {
+    actions: {
+        showHelpIcon: '[data-action="showhelpicon"]',
+    },
+};
+
+/**
+ * Function that shows the help string.
+ */
+export const init = () => {
+    document.addEventListener('click', event => {
+        if (event.target.closest(Selectors.actions.showHelpIcon)) {
+            event.preventDefault();
+        }
+    });
+};
