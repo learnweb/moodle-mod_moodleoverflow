@@ -137,6 +137,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $canstartdiscussion = moodleoverflow_user_can_post_discussion($moodleoverflow, $cm, $context);
     $canviewdiscussions = has_capability('mod/moodleoverflow:viewdiscussion', $context);
     $canreviewposts = has_capability('mod/moodleoverflow:reviewpost', $context);
+    $canseeuserstats = has_capability('mod/moodleoverflow:viewanyrating', $context);
 
     // Print a button if the user is capable of starting
     // a new discussion or if the selfenrol is aviable.
@@ -148,6 +149,33 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $button->formid = 'newdiscussionform';
         echo $OUTPUT->render($button);
     }
+
+    // Print a button if the user is capable of seeing the user stats.
+    if ($canseeuserstats) {
+        $userstatsbuttontext = get_string('seeuserstats', 'moodleoverflow');
+        $userstatsbuttonurl = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
+                                                                           'courseid' => $moodleoverflow->course,
+                                                                           'mid' => $moodleoverflow->id]);
+        $userstatsbutton = new single_button($userstatsbuttonurl, $userstatsbuttontext, 'get');
+        $userstatsbutton->class = 'singlebutton align-middle m-2';
+        echo $OUTPUT->render($userstatsbutton);
+    }
+
+    // Get all the recent discussions the user is allowed to see.
+    $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
+
+    // If we want paging.
+    if ($page != -1) {
+
+        // Get the number of discussions.
+        $numberofdiscussions = moodleoverflow_get_discussions_count($cm);
+
+        // Show the paging bar.
+        echo $OUTPUT->paging_bar($numberofdiscussions, $page, $perpage, "view.php?id=$cm->id");
+    }
+
+    // Get the number of replies for each discussion.
+    $replies = moodleoverflow_count_discussion_replies($cm);
 
     // Check whether the moodleoverflow instance can be tracked and is tracked.
     if ($cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {

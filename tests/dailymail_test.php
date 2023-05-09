@@ -127,7 +127,6 @@ class dailymail_test extends \advanced_testcase {
      * Test if the task send_daily_mail sends a mail to the user.
      */
     public function test_mail_delivery() {
-        global $DB;
 
         // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
@@ -145,7 +144,6 @@ class dailymail_test extends \advanced_testcase {
      * Test if the content of the mail matches the supposed content.
      */
     public function test_content_of_mail_delivery() {
-        global $DB;
 
         // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
@@ -180,7 +178,6 @@ class dailymail_test extends \advanced_testcase {
      * Test if the task does not send a mail when maildigest = 0
      */
     public function test_mail_not_send() {
-        global $DB;
         // Creat user with daily_mail = off.
         $this->helper_create_user_and_discussion('0');
 

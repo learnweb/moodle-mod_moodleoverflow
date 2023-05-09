@@ -65,6 +65,7 @@ if ($id) {
 // Save the allowmultiplemarks setting.
 $marksetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
 
+
 // Require a login.
 require_login($course, true, $cm);
 
