@@ -845,11 +845,23 @@ class ratings {
             && $post->reviewed == 1;
     }
 
+    /**
+     * Function that sorts an array of posts.
+     *
+     * @param array $posts  The posts objects that are being sorted.
+     */
     private static function moodleoverflow_sort_post_by_votes(array $posts) {
         // Function uses quicksort to sort the posts in descending order.
         self::moodleoverflow_quicksort_post_by_votes($posts, 0, count($posts) - 1);
     }
 
+    /**
+     * Sorts array of posts with quicksort algorithm.
+     *
+     * @param array $posts The posts that are being sorted by quicksort.
+     * @param int   $low   Index for quicksort.
+     * @param int   $high  Index for quicksort.
+     */
     private static function moodleoverflow_quicksort_post_by_votes(array $posts, $low, $high) {
         if ($low >= $high) {
             return;
