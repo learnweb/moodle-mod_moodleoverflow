@@ -448,10 +448,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 /**
  * Prints a popup with a menu of other moodleoverflow in the course.
  * Menu to move a topic to another moodleoverflow forum.
- *
- * @param object $course
- * @param object $cm
- * @param int $movetopopup forum where forum list is being printed.
  */
 function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     global $CFG, $DB, $PAGE;

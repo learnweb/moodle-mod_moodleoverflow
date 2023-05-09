@@ -30,6 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
+require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
 
 /**
  * PHPUnit Tests for testing readtracking.
@@ -37,7 +38,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
  * @group mod_moodleoverflow
  */
 class review_test extends \advanced_testcase {
@@ -105,13 +105,9 @@ class review_test extends \advanced_testcase {
 
     /**
      * Test reviews functionality in forums where teachers should review everything.
-     *
-     * @runInSeparateProcess
      */
     public function test_forum_review_everything() {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
-
+        global $DB;
         $options = array('course' => $this->course->id, 'needsreview' => review::EVERYTHING,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
@@ -184,13 +180,9 @@ class review_test extends \advanced_testcase {
 
     /**
      * Test reviews functionality in forums where teachers should review questions.
-     *
-     * @runInSeparateProcess
      */
     public function test_forum_review_only_questions() {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
-
+        global $DB;
         $options = array('course' => $this->course->id, 'needsreview' => review::QUESTIONS,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);

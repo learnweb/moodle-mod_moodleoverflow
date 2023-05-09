@@ -67,7 +67,7 @@ class send_mails extends \core\task\scheduled_task {
      * Sends initial notifications for needed reviews to all users with review capability.
      */
     public function send_review_notifications() {
-        global $DB, $OUTPUT, $PAGE, $CFG;
+        global $DB, $OUTPUT, $PAGE;
 
         $rendererhtml = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
         $renderertext = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
@@ -128,12 +128,7 @@ class send_mails extends \core\task\scheduled_task {
 
             foreach ($usersto as $userto) {
                 try {
-                    // Check for moodle version. Version 401 supported until 8 December 2025.
-                    if ($CFG->branch >= 402) {
-                        \core\cron::setup_user($userto, $course);
-                    } else {
-                        cron_setup_user($userto, $course);
-                    }
+                    cron_setup_user($userto, $course);
 
                     $maildata = new moodleoverflow_email(
                         $course,

@@ -35,57 +35,22 @@ use context;
  */
 class capabilities {
 
-    /** capability */
     const ADD_INSTANCE = 'mod/moodleoverflow:addinstance';
-
-    /** capability */
     const VIEW_DISCUSSION = 'mod/moodleoverflow:viewdiscussion';
-
-    /** capability */
     const REPLY_POST = 'mod/moodleoverflow:replypost';
-
-    /** capability */
     const START_DISCUSSION = 'mod/moodleoverflow:startdiscussion';
-
-    /** capability */
     const EDIT_ANY_POST = 'mod/moodleoverflow:editanypost';
-
-    /** capability */
     const DELETE_OWN_POST = 'mod/moodleoverflow:deleteownpost';
-
-    /** capability */
     const DELETE_ANY_POST = 'mod/moodleoverflow:deleteanypost';
-
-    /** capability */
     const RATE_POST = 'mod/moodleoverflow:ratepost';
-
-    /** capability */
     const MARK_SOLVED = 'mod/moodleoverflow:marksolved';
-
-    /** capability */
     const MANAGE_SUBSCRIPTIONS = 'mod/moodleoverflow:managesubscriptions';
-
-    /** capability */
     const ALLOW_FORCE_SUBSCRIBE = 'mod/moodleoverflow:allowforcesubscribe';
-
-    /** capability */
     const CREATE_ATTACHMENT = 'mod/moodleoverflow:createattachment';
-
-    /** capability */
     const REVIEW_POST = 'mod/moodleoverflow:reviewpost';
 
-    /** @var array */
     private static $cache = [];
 
-    /**
-     * Saves the cache from has_capability.
-     *
-     * @param string            $capability The capability that is being checked.
-     * @param context           $context    The context.
-     * @param int|null          $userid     The user ID.
-     *
-     * @return bool true or false
-     */
     public static function has(string $capability, context $context, $userid = null): bool {
         global $USER;
         if (!$userid) {

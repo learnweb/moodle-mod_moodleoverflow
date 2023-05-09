@@ -749,12 +749,7 @@ function moodleoverflow_send_mails() {
             $userto->markposts = array();
 
             // Cache the capabilities of the user.
-            // Check for moodle version. Version 401 supported until 8 December 2025.
-            if ($CFG->branch >= 402) {
-                \core\cron::setup_user($userto);
-            } else {
-                cron_setup_user($userto);
-            }
+            cron_setup_user($userto);
 
             // Reset the caches.
             foreach ($coursemodules as $moodleoverflowid => $unused) {
@@ -843,12 +838,7 @@ function moodleoverflow_send_mails() {
                 }
 
                 // Setup roles and languages.
-                // Check for moodle version. Version 401 supported until 8 December 2025.
-                if ($CFG->branch >= 402) {
-                    \core\cron::setup_user($userto, $course);
-                } else {
-                    cron_setup_user($userto, $course);
-                }
+                cron_setup_user($userto, $course);
 
                 // Cache the users capability to view full names.
                 if (!isset($userto->viewfullnames[$moodleoverflow->id])) {
