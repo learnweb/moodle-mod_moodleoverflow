@@ -65,8 +65,10 @@ async function sendVote(postid, rating, userid) {
  * Init function.
  *
  * @param {int} userid
+ * @param {boolean} allowmultiplemarks   // true means allowed, false means not allowed.
+ *
  */
-export function init(userid) {
+export function init(userid, allowmultiplemarks) {
     Prefetch.prefetchStrings('mod_moodleoverflow',
         ['marksolved', 'marknotsolved', 'markhelpful', 'marknothelpful',
             'action_remove_upvote', 'action_upvote', 'action_remove_downvote', 'action_downvote']);
@@ -109,17 +111,70 @@ export function init(userid) {
                 const baseRating = isHelpful ? RATING_HELPFUL : RATING_SOLVED;
                 const rating = shouldRemove ? baseRating * 10 : baseRating;
                 await sendVote(postid, rating, userid);
-                for (const el of root.querySelectorAll('.moodleoverflowpost.' + htmlclass)) {
-                    el.classList.remove(htmlclass);
-                    el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
-                        await getString(`mark${action}`, 'mod_moodleoverflow');
+
+                /* If multiplemarks are not allowed (that is the default mode): delete all marks.
+                   else: only delete the mark if the post is being unmarked.
+
+                   then add a mark, if the post is being marked.
+                */
+                if (!allowmultiplemarks) {
+                    // Delete all marks in the discussion
+                    for (const el of root.querySelectorAll('.moodleoverflowpost.' + htmlclass)) {
+                        el.classList.remove(htmlclass);
+                        el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
+                            await getString(`mark${action}`, 'mod_moodleoverflow');
+                    }
+                } else {
+                    // Remove only the mark of the unmarked post.
+                    if (shouldRemove) {
+                        postElement.classList.remove(htmlclass);
+                        actionElement.textContent = await getString(`mark${action}`, 'mod_moodleoverflow');
+                        changeStrings(htmlclass, action);
+                    }
                 }
+                // If the post is being marked, mark it.
                 if (!shouldRemove) {
                     postElement.classList.add(htmlclass);
                     actionElement.textContent = await getString(`marknot${action}`, 'mod_moodleoverflow');
+                    if (allowmultiplemarks) {
+                        changeStrings(htmlclass, action);
+                    }
                 }
+
             }
         }
     };
 
+}
+
+/**
+ * Function to change the String of the post data-action button.
+ * Only usable if mulitplemarks are allowed.
+ * @param {string} htmlclass the class where the String is being updated
+ * @param {string} action    helpful or solved mark
+ */
+async function changeStrings(htmlclass, action) {
+    Prefetch.prefetchStrings('mod_moodleoverflow',
+        ['marksolved', 'alsomarksolved', 'markhelpful', 'alsomarkhelpful',]);
+
+    // 1. Step: Are there other posts in the Discussion, that are solved/helpful?
+    var othermarkedposts = false;
+    for (const el of root.querySelectorAll('.moodleoverflowpost')) {
+        if (el.classList.contains(htmlclass)) {
+            othermarkedposts = true;
+            break;
+        }
+    }
+    // 2. Step: Change the strings of the action Button of the unmarked posts.
+    for (const el of root.querySelectorAll('.moodleoverflowpost')) {
+        if (!el.classList.contains(htmlclass) && el.querySelector(`[data-moodleoverflow-action="${action}"]`)) {
+            if (othermarkedposts) {
+                el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
+                    await getString(`alsomark${action}`, 'mod_moodleoverflow');
+            } else {
+                el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
+                    await getString(`mark${action}`, 'mod_moodleoverflow');
+            }
+        }
+    }
 }

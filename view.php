@@ -62,6 +62,10 @@ if ($id) {
     throw new moodle_exception('missingparameter');
 }
 
+// Save the allowmultiplemarks setting.
+$marksetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
+
+
 // Require a login.
 require_login($course, true, $cm);
 
@@ -86,7 +90,7 @@ $PAGE->set_url('/mod/moodleoverflow/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($moodleoverflow->name));
 $PAGE->set_heading(format_string($course->fullname));
 
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $marksetting->allowmultiplemarks]);
 
 // Output starts here.
 echo $OUTPUT->header();
