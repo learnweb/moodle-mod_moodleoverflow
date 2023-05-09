@@ -290,5 +290,21 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2023040400, 'moodleoverflow');
     }
 
+    if ($oldversion < 2023050803) {
+        // Define table moodleoverflow to be edited.
+        $table = new xmldb_table('moodleoverflow');
+
+        // Define field limitedmode to be added to moodleoverflow.
+        $field = new xmldb_field('limitedmode', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'allowmultiplemarks');
+
+        //Conditionally launch add field limitedmode
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Moodleoverflow savepoint reached.
+        upgrade_mod_savepoint(true, 2023050803, 'moodleoverflow');
+    }
+
     return true;
 }
