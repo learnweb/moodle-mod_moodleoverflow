@@ -39,14 +39,26 @@ require_once($CFG->libdir . '/tablelib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class userstats_table extends \flexible_table {
-    private $courseid;                // Course ID.
-    private $moodleoverflowid;        // Moodleoverflow that started the printing of statistics.
-    private $userstatsdata = array(); // Userstatsdata  is a table that will have objects with every user and his statistics.
-    private $helpactivity;            // Help icon for amountofactivity-column.
+
+    /** @var int the Course ID*/
+    private $courseid;
+
+    /** @var int Moodleoverflow that started the printing of statistics*/
+    private $moodleoverflowid;
+
+    /** @var array table that will have objects with every user and his statistics. */
+    private $userstatsdata = array();
+
+    /** @var \stdClass Help icon for amountofactivity-column.*/
+    private $helpactivity;
 
     /**
      * Constructor for workflow_table.
+     *
      * @param int $uniqueid Unique id of this table.
+     * @param int $courseid
+     * @param int $moodleoverflow ID if the moodleoverflow
+     * @param string $url The url of the table
      */
     public function __construct($uniqueid, $courseid, $moodleoverflow, $url) {
         global $PAGE;
@@ -87,6 +99,10 @@ class userstats_table extends \flexible_table {
 
     /**
      * Method to sort the userstatsdata-table.
+     *
+     * @param array $sortorder The sort order array.
+     *
+     * @return void
      */
     private function sort_table_data($sortorder) {
         $key = $sortorder['sortby'];
@@ -103,6 +119,13 @@ class userstats_table extends \flexible_table {
 
     /**
      * Sorts userstatsdata with quicksort algorithm.
+     *
+     * @param int    $low       index for quicksort.
+     * @param int    $high      index for quicksort.
+     * @param int    $key       the column that is being sorted (upvotes, downvotes etc.).
+     * @param string $order     sort in ascending or descending order.
+     *
+     * @return void
      */
     private function quick_usertable_sort($low, $high, $key, $order) {
         if ($low >= $high) {
@@ -256,10 +279,21 @@ class userstats_table extends \flexible_table {
     }
 
     // Functions that show the data.
+
+    /**
+     * username column
+     * @param object $row
+     * @return string
+     */
     public function col_username($row) {
         return $row->link;
     }
 
+    /**
+     * upvotes column
+     * @param object $row
+     * @return string
+     */
     public function col_receivedupvotes($row) {
         if ($row->receivedupvotes > 0) {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
@@ -270,6 +304,11 @@ class userstats_table extends \flexible_table {
         }
     }
 
+    /**
+     * downvotes column
+     * @param object $row
+     * @return string
+     */
     public function col_receiveddownvotes($row) {
         if ($row->receiveddownvotes > 0) {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
@@ -280,6 +319,11 @@ class userstats_table extends \flexible_table {
         }
     }
 
+    /**
+     * activity column
+     * @param object $row
+     * @return string
+     */
     public function col_activity($row) {
         if ($row->activity > 0) {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
@@ -290,6 +334,11 @@ class userstats_table extends \flexible_table {
         }
     }
 
+    /**
+     * reputation column
+     * @param object $row
+     * @return string
+     */
     public function col_reputation($row) {
         if ($row->reputation > 0) {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
@@ -300,6 +349,12 @@ class userstats_table extends \flexible_table {
         }
     }
 
+    /**
+     * error handling
+     * @param object $colname
+     * @param int    $attempt
+     * @return null
+     */
     public function other_cols($colname, $attempt) {
         return null;
     }

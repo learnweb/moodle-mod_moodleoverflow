@@ -41,11 +41,22 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  */
 class dailymail_test extends \advanced_testcase {
 
+    /** @var \stdClass */
     private $sink;
+
+    /** @var \stdClass */
     private $course;
+
+    /** @var \stdClass */
     private $user;
+
+    /** @var \stdClass */
     private $moodleoverflow;
+
+    /** @var \stdClass */
     private $coursemodule;
+
+    /** @var \stdClass */
     private $discussion;
 
     /**
@@ -81,7 +92,7 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Function that creates a new user, which adds a new discussion an post to the moodleoverflow.
-     * @param $maildigest The maildigest setting: 0 = off , 1 = on
+     * @param int $maildigest The maildigest setting: 0 = off , 1 = on
      */
     public function helper_create_user_and_discussion($maildigest) {
         // Create a user enrolled in the course as student.

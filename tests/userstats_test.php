@@ -29,22 +29,53 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
+
+/**
+ * PHPUnit Tests for testing userstats.
+ *
+ * @package mod_moodleoverflow
+ * @copyright 2023 Tamaro Walter
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class userstats_test extends \advanced_testcase {
 
+    /** @var \stdClass */
     private $course;
+
+    /** @var \stdClass */
     private $coursemodule;
-    private $context;
+
+    /** @var \stdClass */
     private $moodleoverflow;
+
+    /** @var \stdClass */
     private $teacher;
+
+    /** @var \stdClass */
     private $user1;
+
+    /** @var \stdClass */
     private $user2;
-    private $discussion1;       // Discussion from user1.
-    private $discussion2;       // Discussion from user2.
-    private $post1;             // First post from discussion1.
-    private $post2;             // First post from discussion2.
-    private $answer1;           // Answerpost to discussion1 from user2.
-    private $answer2;           // Answerpost to discussion2 from user1.
-    private $generator;         // Generator for moodleoverflow.
+
+    /** @var \stdClass */
+    private $discussion1;
+
+    /** @var \stdClass */
+    private $discussion2;
+
+    /** @var \stdClass */
+    private $post1;
+
+    /** @var \stdClass */
+    private $post2;
+
+    /** @var \stdClass */
+    private $answer1;
+
+    /** @var \stdClass */
+    private $answer2;
+    /** @var \mod_moodleoverflow_generator $generator */
+    private $generator;
 
     /**
      * Test setUp.
@@ -156,7 +187,6 @@ class userstats_test extends \advanced_testcase {
         $location = array('course' => $this->course->id);
         $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $this->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->moodleoverflow->id);
-        $this->context = \context_course::instance($this->course->id);
 
         // Create a teacher.
         $this->teacher = $this->getDataGenerator()->create_user(array('firstname' => 'Tamaro', 'lastname' => 'Walter'));
@@ -192,6 +222,12 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Create a upvote to a post in an existing discussion.
+     *
+     * @param object $author       // The creator of the rating.
+     * @param object $discussion   // Discussion object.
+     * @param object $post         // Post that is being rated.
+     *
+     * @return $rating
      */
     private function create_upvote($author, $discussion, $post) {
         $record = (object) [
@@ -208,6 +244,12 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Create a downvote to a post in an existing discussion.
+     *
+     * @param object $author       // The creator of the rating.
+     * @param object $discussion   // Discussion object.
+     * @param object $post         // Post that is being rated.
+     *
+     * @return $rating
      */
     private function create_downvote($author, $discussion, $post) {
         $record = (object) [
@@ -224,6 +266,12 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Create a helpful rating to a post in an existing discussion.
+     *
+     * @param object $author       // The creator of the rating.
+     * @param object $discussion   // Discussion object.
+     * @param object $post         // Post that is being rated.
+     *
+     * @return $rating
      */
     private function create_helpful($author, $discussion, $post) {
         $record = (object) [
@@ -240,6 +288,12 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Create a solution rating to a post in an existing discussion.
+     *
+     * @param object $author       // The creator of the rating.
+     * @param object $discussion   // Discussion object.
+     * @param object $post         // Post that is being rated.
+     *
+     * @return $rating
      */
     private function create_solution($author, $discussion, $post) {
         $record = (object) [
