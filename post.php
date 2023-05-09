@@ -436,7 +436,6 @@ if (!empty($moodleoverflow)) {
 
             // Request a confirmation to delete the post.
             echo $OUTPUT->header();
-            echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
             echo $OUTPUT->confirm(get_string("deletesureplural", "moodleoverflow", $replycount + 1),
                 "post.php?delete=$delete&confirm=$delete", $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' .
                 $post->discussion . '#p' . $post->id);
@@ -446,7 +445,6 @@ if (!empty($moodleoverflow)) {
 
             // Print a confirmation message.
             echo $OUTPUT->header();
-            echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
             echo $OUTPUT->confirm(get_string("deletesure", "moodleoverflow", $replycount),
                 "post.php?delete=$delete&confirm=$delete",
                 $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $post->discussion . '#p' . $post->id);
@@ -777,12 +775,6 @@ $PAGE->set_heading($course->fullname);
 
 // Display the header.
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($moodleoverflow->name), 2);
-
-// Show the description of the instance.
-if (!empty($moodleoverflow->intro)) {
-    echo $OUTPUT->box(format_module_intro('moodleoverflow', $moodleoverflow, $cm->id), 'generalbox', 'intro');
-}
 
 // Display the form.
 $mformpost->display();

@@ -528,6 +528,12 @@
     background-color: #ffd3d3;
 }
 
+
+.moodleoverflow-statistics-table .header.c3 .helpactivityclass {
+    padding: 0;
+    margin-left: 8px;
+}
+
 .moodleoverflow-gap-small {
     gap: 8px;
 }

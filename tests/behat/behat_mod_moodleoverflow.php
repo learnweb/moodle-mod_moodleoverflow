@@ -114,8 +114,7 @@ class behat_mod_moodleoverflow extends behat_base {
     }
 
     /**
-     * Finds the discussion card.
-     *
+     * Gets the container node.
      * @param string $discussiontitle
      */
     protected function find_moodleoverflow_discussion_card(string $discussiontitle): \Behat\Mink\Element\Element {

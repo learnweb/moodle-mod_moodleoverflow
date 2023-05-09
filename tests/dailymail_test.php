@@ -41,11 +41,22 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  */
 class dailymail_test extends \advanced_testcase {
 
+    /** @var \stdClass */
     private $sink;
+
+    /** @var \stdClass */
     private $course;
+
+    /** @var \stdClass */
     private $user;
+
+    /** @var \stdClass */
     private $moodleoverflow;
+
+    /** @var \stdClass */
     private $coursemodule;
+
+    /** @var \stdClass */
     private $discussion;
 
     /**
@@ -81,7 +92,7 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Function that creates a new user, which adds a new discussion an post to the moodleoverflow.
-     * @param $maildigest The maildigest setting: 0 = off , 1 = on
+     * @param int $maildigest The maildigest setting: 0 = off , 1 = on
      */
     public function helper_create_user_and_discussion($maildigest) {
         // Create a user enrolled in the course as student.
@@ -127,7 +138,6 @@ class dailymail_test extends \advanced_testcase {
      * Test if the task send_daily_mail sends a mail to the user.
      */
     public function test_mail_delivery() {
-        global $DB;
 
         // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
@@ -145,7 +155,6 @@ class dailymail_test extends \advanced_testcase {
      * Test if the content of the mail matches the supposed content.
      */
     public function test_content_of_mail_delivery() {
-        global $DB;
 
         // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
@@ -180,7 +189,6 @@ class dailymail_test extends \advanced_testcase {
      * Test if the task does not send a mail when maildigest = 0
      */
     public function test_mail_not_send() {
-        global $DB;
         // Creat user with daily_mail = off.
         $this->helper_create_user_and_discussion('0');
 
