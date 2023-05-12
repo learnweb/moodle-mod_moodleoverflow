@@ -39,40 +39,40 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  */
 class userstats_test extends \advanced_testcase {
 
-    /** @var \stdClass */
+    /** @var \stdClass test course */
     private $course;
 
-    /** @var \stdClass */
+    /** @var \stdClass coursemodule */
     private $coursemodule;
 
-    /** @var \stdClass */
+    /** @var \stdClass test moodleoverflow */
     private $moodleoverflow;
 
-    /** @var \stdClass */
+    /** @var \stdClass test teacher */
     private $teacher;
 
-    /** @var \stdClass */
+    /** @var \stdClass test user */
     private $user1;
 
-    /** @var \stdClass */
+    /** @var \stdClass another test user */
     private $user2;
 
-    /** @var \stdClass */
+    /** @var \stdClass fake discussion */
     private $discussion1;
 
-    /** @var \stdClass */
+    /** @var \stdClass another faked discussion */
     private $discussion2;
 
-    /** @var \stdClass */
+    /** @var \stdClass a post */
     private $post1;
 
-    /** @var \stdClass */
+    /** @var \stdClass another post */
     private $post2;
 
-    /** @var \stdClass */
+    /** @var \stdClass answer to a post */
     private $answer1;
 
-    /** @var \stdClass */
+    /** @var \stdClass another answer to a post */
     private $answer2;
     /** @var \mod_moodleoverflow_generator $generator */
     private $generator;
