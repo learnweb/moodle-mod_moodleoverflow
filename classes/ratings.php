@@ -79,10 +79,7 @@ class ratings {
 
         // Are multiple marks allowed?
         $markssetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
-        $multiplemarks = false;
-        if ($markssetting->allowmultiplemarks == 1) {
-            $multiplemarks = true;
-        }
+        $multiplemarks = (bool) $markssetting->allowmultiplemarks;
 
         // Retrieve the contexts.
         $modulecontext = \context_module::instance($cm->id);
