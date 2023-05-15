@@ -86,8 +86,6 @@ class dailymail_test extends \advanced_testcase {
         \mod_moodleoverflow\subscriptions::reset_discussion_cache();
     }
 
-
-
     // Helper functions.
 
     /**
