@@ -227,6 +227,11 @@ class ratings {
         return self::moodleoverflow_get_reputation_instance($moodleoverflow->id, $userid);
     }
 
+    /**
+     * Sort the answers of a discussion by their marks and votes.
+     * 
+     * @param object $posts all the posts from a discussion.
+     */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
         // Create a copy that only has the answer posts and save the parent post.
         $answerposts = $posts;
@@ -235,12 +240,15 @@ class ratings {
         // Create an empty array for the sorted posts and add the parent post.
         $sortedposts = array();
         $sortedposts[0] = $parentpost;
+
         // Check if solved posts are preferred over helpful posts.
         $solutionspreferred = $posts[array_key_first($posts)]->ratingpreference == 1;
 
         // Sort the answer posts by ratings.
 
         // Build groups of different types of answers (Solved and helpful, only solved/helpful, other).
+        // statusteacher == 1 means the post is marked as solved.
+        // statusstarter == 1 means the post is marked as helpful.
         // If a group is complete, sort the group.
         $index = 1;
         $startsolvedandhelpful = 1;

@@ -57,7 +57,7 @@ class userstats_test extends \advanced_testcase {
     /** @var \stdClass another test user */
     private $user2;
 
-    /** @var \stdClass fake discussion */
+    /** @var \stdClass a discussion */
     private $discussion1;
 
     /** @var \stdClass another faked discussion */
@@ -74,6 +74,7 @@ class userstats_test extends \advanced_testcase {
 
     /** @var \stdClass another answer to a post */
     private $answer2;
+
     /** @var \mod_moodleoverflow_generator $generator */
     private $generator;
 
