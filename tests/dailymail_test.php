@@ -41,22 +41,22 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  */
 class dailymail_test extends \advanced_testcase {
 
-    /** @var \stdClass */
+    /** @var \stdClass collection of messages */
     private $sink;
 
-    /** @var \stdClass */
+    /** @var \stdClass test course */
     private $course;
 
-    /** @var \stdClass */
+    /** @var \stdClass test user*/
     private $user;
 
-    /** @var \stdClass */
+    /** @var \stdClass moodleoverflow instance */
     private $moodleoverflow;
 
-    /** @var \stdClass */
+    /** @var \stdClass coursemodule instance */
     private $coursemodule;
 
-    /** @var \stdClass */
+    /** @var \stdClass discussion instance */
     private $discussion;
 
     /**
