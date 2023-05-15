@@ -106,7 +106,7 @@ export function init(userid, allowmultiplemarks) {
             case 'helpful':
             case 'solved': {
                 const isHelpful = action === 'helpful';
-                const htmlclass = isHelpful ? 'statusstarter' : 'statusteacher';
+                const htmlclass = isHelpful ? 'markedhelpful' : 'markedsolution';
                 const shouldRemove = postElement.classList.contains(htmlclass);
                 const baseRating = isHelpful ? RATING_HELPFUL : RATING_SOLVED;
                 const rating = shouldRemove ? baseRating * 10 : baseRating;
