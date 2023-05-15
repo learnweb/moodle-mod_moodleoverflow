@@ -230,160 +230,119 @@ class ratings {
         return self::moodleoverflow_get_reputation_instance($moodleoverflow->id, $userid);
     }
 
-    /**
-     * Sort a discussion by the ratings of their posts.
-     *
-     * @param array $posts
-     *
-     * @return array
-     */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
-        // Create copies to manipulate.
-        $parentcopy = $posts;
-        $postscopy = $posts;
-        $anothercopy = $posts;
-
-        // Check if teacher ratings are prefered.
-        $preferteacher = (array_shift($anothercopy)->ratingpreference == 1);
-
-        // Create an array with all the keys of the older array.
-        $oldorder = array();
-        foreach ($postscopy as $postid => $post) {
-            $oldorder[] = $postid;
-        }
-
-        // Create an array for the new order.
-        $neworder = array();
-
-        // The parent post stays the parent post.
-        $parent = array_shift($parentcopy);
-        unset($postscopy[$parent->id]);
-        $discussionid = $parent->discussion;
-        $neworder[] = (int) $parent->id;
-
-        // Check if answers has been marked.
-        $statusstarter = self::moodleoverflow_discussion_is_solved($discussionid, false);
-        $statusteacher = self::moodleoverflow_discussion_is_solved($discussionid, true);
-
-        // The answers that are marked as correct by both are displayed first.
-        if ($statusteacher && $statusstarter) {
-            $markedposts = array();
-            foreach ($statusteacher as $solvedposts) {
-                foreach ($statusstarter as $helpfulposts) {
-                    // Is the same answer correct for both?
-                    if ($solvedposts->postid == $helpfulposts->postid) {
-                        // Save the post that is marked as solved and helpful and go to the next post.
-                        $markedposts[] = $postscopy[$solvedposts->postid];
-                        break;
-                    }
-                }
-            }
-            // Now sort the posts by their votes.
-            self::moodleoverflow_sort_post_by_votes($markedposts);
-
-            // Iterate trough the marked posts and add it to the new Order.
-            foreach ($markedposts as $post) {
-                // Add the post to the new order and delete it from the posts array.
-                $neworder[] = (int) $post->id;
-                unset($postscopy[$post->id]);
-            }
-        }
-
-        // If the answers the teacher marks are preferred, and only
-        // the teacher marked an answer as solved, display it first.
-        if ($preferteacher && $statusteacher) {
-            // Save the marked posts.
-            $markedposts = array();
-            foreach ($statusteacher as $solvedpost) {
-                if (array_key_exists($solvedpost->postid, $postscopy)) {
-                    $markedposts[] = $postscopy[$solvedpost->postid];
-                }
-            }
-            // Sort the solved answers.
-            self::moodleoverflow_sort_post_by_votes($markedposts);
-
-            // Iterate trough the marked posts and add it to the new Order.
-            foreach ($markedposts as $post) {
-                // Add the post to the new order and delete it from the posts array.
-                $neworder[] = (int) $post->id;
-                unset($postscopy[$post->id]);
-            }
-        }
-
-        // If the user who started the discussion has marked
-        // an answer as helpful, display this answer first.
-        if ($statusstarter) {
-            // Save the marked posts.
-            $markedposts = array();
-            foreach ($statusstarter as $helpfulpost) {
-                if (array_key_exists($helpfulpost->postid, $postscopy)) {
-                    $markedposts[] = $postscopy[$helpfulpost->postid];
-                }
-            }
-            // Sort the helpful answers.
-            self::moodleoverflow_sort_post_by_votes($markedposts);
-
-            // Iterate trough the marked posts and add it to the new Order.
-            foreach ($markedposts as $post) {
-                // Add the post to the new order and delete it from the posts array.
-                $neworder[] = (int) $post->id;
-                unset($postscopy[$post->id]);
-            }
-        }
-
-        // If a teacher has marked an answer as solved, display it next.
-        if ($statusteacher) {
-            // Save the marked posts.
-            $markedposts = array();
-            foreach ($statusteacher as $solvedpost) {
-                if (array_key_exists($solvedpost->postid, $postscopy)) {
-                    $markedposts[] = $postscopy[$solvedpost->postid];
-                }
-            }
-            // Sort the solved answers.
-            self::moodleoverflow_sort_post_by_votes($markedposts);
-
-            // Iterate trough the marked posts and add it to the new Order.
-            foreach ($markedposts as $post) {
-                // Add the post to the new order and delete it from the posts array.
-                $neworder[] = (int) $post->id;
-                unset($postscopy[$post->id]);
-            }
-        }
-
-        // All answers that are not marked by someone should now be left.
-
-        // Search for all comments.
-        foreach ($postscopy as $postid => $post) {
-            // Add all comments to the order.
-            // They are independant from the votes.
-            if ($post->parent != $parent->id) {
-                $neworder[] = $postid;
-                unset($postscopy[$postid]);
-            }
-        }
-
-        // Sort the remaining answers by their total votes.
-        $votesarray = array();
-        foreach ($postscopy as $postid => $post) {
-            $votesarray[$post->id] = $post->upvotes - $post->downvotes;
-        }
-        arsort($votesarray);
-
-        // Add the remaining messages to the new order.
-        foreach ($votesarray as $postid => $votes) {
-            $neworder[] = $postid;
-        }
-
-        // The new order is determined.
-        // It has to be applied now.
+        // Create a copy that only has the answer posts and save the parent post.
+        $answerposts = $posts;
+        $parentpost = array_shift($answerposts);
+        
+        // Create an empty array for the sorted posts and add the parent post.
         $sortedposts = array();
-        foreach ($neworder as $k) {
-            $sortedposts[$k] = $posts[$k];
+        $sortedposts[0] = $parentpost;
+        // Check if solved posts are preferred over helpful posts.
+        $solutionspreferred = $posts[array_key_first($posts)]->ratingpreference == 1;
+
+        // Sort the answer posts by ratings.
+
+        // Build groups of different types of answers (Solved and helpful, only solved/helpful, other).
+        // If a group is complete, sort the group.
+        $index = 1;
+        $startsolvedandhelpful = 1;
+        $startsolved = 1;
+        $starthelpful = 1;
+        $startother = 1;
+        // Solved and helpful posts are first.
+        foreach ($answerposts as $post) {
+            if ($post->statusteacher == 1 && $post->statusstarter == 1) {
+                $sortedposts[$index] = $post;
+                $index++;
+            }
+        }
+        //Update the indices and sort the group by votes.
+        if ($index > $startsolvedandhelpful) {
+            $startsolved = $index;
+            $starthelpful = $index;
+            $startother = $index;
+            self::moodleoverflow_quicksort_post_by_votes($sortedposts, $startsolvedandhelpful, $index - 1);
         }
 
-        // Return the sorted posts.
-        return $sortedposts;
+        // Check if solutions are preferred.
+        if ($solutionspreferred) {
+
+            // Build the group of only solved posts.
+            foreach ($answerposts as $post) {
+                if ($post->statusteacher == 1 && $post->statusstarter == 0) {
+                    $sortedposts[$index] = $post;
+                    $index++;
+                }
+            }
+            // Update the indices and sort the group by votes.
+            if ($index > $startsolved) {
+                $starthelpful = $index;
+                $startother = $index;
+                self::moodleoverflow_quicksort_post_by_votes($sortedposts, $startsolved, $index - 1);
+            }
+
+            // Build the group of only helpful posts.
+            foreach ($answerposts as $post) {
+                if ($post->statusteacher == 0 && $post->statusstarter == 1) {
+                    $sortedposts[$index] = $post;
+                    $index++;
+                }
+            }
+            // Update the indices and sort the group by votes.
+            if ($index > $starthelpful) {
+                $startother = $index;
+                self::moodleoverflow_quicksort_post_by_votes($sortedposts, $starthelpful, $index - 1);
+            }
+        } else {
+
+            // Build the group of only helpful posts.
+            foreach ($answerposts as $post) {
+                if ($post->statusteacher == 0 && $post->statusstarter == 1) {
+                    $sortedposts[$index] = $post;
+                    $index++;
+                }
+            }
+            // Update the indices and sort the group by votes.
+            if ($index > $starthelpful) {
+                $startsolved = $index;
+                $startother = $index;
+                self::moodleoverflow_quicksort_post_by_votes($sortedposts, $starthelpful, $index - 1);
+            }
+
+            // Build the group of only solved posts.
+            foreach ($answerposts as $post) {
+                if ($post->statusteacher == 1 && $post->statusstarter == 0) {
+                    $sortedposts[$index] = $post;
+                    $index++;
+                }
+            }
+            // Update the indices and sort the group by votes.
+            if ($index > $startsolved) {
+                $startother = $index;
+                self::moodleoverflow_quicksort_post_by_votes($sortedposts, $startsolved, $index - 1);
+            }
+        }
+
+        // Now build the group of posts without ratings like helpful/solved.
+        foreach ($answerposts as $post) {
+            if ($post->statusteacher == 0 && $post->statusstarter == 0) {
+                $sortedposts[$index] = $post;
+                $index++;
+            }
+        }
+        // Update the indices and sort the group by votes.
+        if ($index > $startother) {
+            self::moodleoverflow_quicksort_post_by_votes($sortedposts, $startother, $index - 1);
+        }
+
+        // Rearrange the indices and return the sorted posts.
+        $neworder = array();
+        foreach ($sortedposts as $post) {
+            $neworder[$post->id] = $post;
+        }
+        // return now the sorted posts.
+        return $neworder;
     }
 
     /**
@@ -845,18 +804,13 @@ class ratings {
             && $post->reviewed == 1;
     }
 
-    private static function moodleoverflow_sort_post_by_votes(array $posts) {
-        // Function uses quicksort to sort the posts in descending order.
-        self::moodleoverflow_quicksort_post_by_votes($posts, 0, count($posts) - 1);
-    }
-
-    private static function moodleoverflow_quicksort_post_by_votes(array $posts, $low, $high) {
+    private static function moodleoverflow_quicksort_post_by_votes(array &$posts, $low, $high) {
         if ($low >= $high) {
             return;
         }
         $left = $low;
         $right = $high;
-        $pivot = $posts[($low + $high) / 2]->votesdifference;
+        $pivot = $posts[intval(($low + $high) / 2)]->votesdifference;
         do {
             while ($posts[$left]->votesdifference > $pivot) {
                 $left++;
