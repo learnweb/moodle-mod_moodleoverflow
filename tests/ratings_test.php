@@ -109,7 +109,7 @@ class ratings_test extends \advanced_testcase {
         // Create helpful, solved, up and downvotes ratings.
         $this->create_everygroup();
 
-        // Test with every group if rating
+        // Test with every group of rating
 
         // Create a array of the posts, save the sorted post and compare them to the order that they should have.
         $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
@@ -167,6 +167,8 @@ class ratings_test extends \advanced_testcase {
         $rightorderposts = array($this->post, $this->answer2, $this->answer3, $this->answer4, $this->answer6, $this->answer5);
         $result = $this->postsorderequal($sortedposts, $rightorderposts);
         $this->assertEquals(1, $result);
+
+        // Now test every rating group alone
     }
 
     // Helper functions
@@ -304,6 +306,76 @@ class ratings_test extends \advanced_testcase {
         $this->answer6->markedsolution = 0;
     }
 
-    // private function create_groupswithoutsolution
+    /**
+     * Creates a rating of one group for every post in the discussion
+     * Creates up and downvotes
+     * @param string $group
+     * A Group can be:
+     * - both as solution and helpful marked posts (sh)
+     * - only solution posts (s)
+     * - only helpful (h)
+     * - no mark (o)
+     */
+    private function create_onegroup($group) {
+
+        $answers = array($this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
+        foreach ($answers as $answer) {
+            switch ($group) {
+                case 'sh':
+                    $answer->markedhelpful = 1;
+                    $answer->markedsolution = 1;
+                    break;
+                case 's':
+                    $answer->markedhelpful = 0;
+                    $answer->markedsolution = 1;
+                    break;
+                case 'h':
+                    $answer->markedhelpful = 1;
+                    $answer->markedsolution = 0;
+                    break;
+                case 'o':
+                    $answer->markedhelpful = 0;
+                    $answer->markedsolution = 0;
+                    break;
+                default:
+                    $answer->markedhelpful = 0;
+                    $answer->markedsolution = 0;
+                    break;
+            }
+        }
+
+        // Votes for the answerposts
+        // Answer1.
+        $this->answer1->upvotes = 4;
+        $this->answer1->downvotes = -4;
+        $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes; // Vd = 0.
+
+        // Answer2.
+        $this->answer1->upvotes = 1;
+        $this->answer1->downvotes = 2;
+        $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes; // Vd = -1.
+
+        // Answer3.
+        $this->answer1->upvotes = 3;
+        $this->answer1->downvotes = 2;
+        $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes; // Vd = 1.
+
+        // Answer4.
+        $this->answer1->upvotes = 5;
+        $this->answer1->downvotes = 0;
+        $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes; // Vd = 5
+
+        // Answer5.
+        $this->answer1->upvotes = 0;
+        $this->answer1->downvotes = 2;
+        $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes; // Vd = -2.
+
+        // Answer6.
+        $this->answer1->upvotes = 4;
+        $this->answer1->downvotes = 2;
+        $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes; // Vd = 2.
+
+        // Rightorder = answer4 , answer6, answer3, answer1, answer2, answer5.
+    }
 
 }
