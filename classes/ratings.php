@@ -259,7 +259,7 @@ class ratings {
         $startother = 1;
         // Solved and helpful posts are first.
         foreach ($answerposts as $post) {
-            if ($post->markedsolution == 1 && $post->markedhelpful == 1) {
+            if ($post->markedsolution > 0 && $post->markedhelpful > 0) {
                 $sortedposts[$index] = $post;
                 $index++;
             }
@@ -277,7 +277,7 @@ class ratings {
 
             // Build the group of only solved posts.
             foreach ($answerposts as $post) {
-                if ($post->markedsolution == 1 && $post->markedhelpful == 0) {
+                if ($post->markedsolution > 0 && $post->markedhelpful == 0) {
                     $sortedposts[$index] = $post;
                     $index++;
                 }
@@ -291,7 +291,7 @@ class ratings {
 
             // Build the group of only helpful posts.
             foreach ($answerposts as $post) {
-                if ($post->markedsolution == 0 && $post->markedhelpful == 1) {
+                if ($post->markedsolution == 0 && $post->markedhelpful > 0) {
                     $sortedposts[$index] = $post;
                     $index++;
                 }
@@ -305,7 +305,7 @@ class ratings {
 
             // Build the group of only helpful posts.
             foreach ($answerposts as $post) {
-                if ($post->markedsolution == 0 && $post->markedhelpful == 1) {
+                if ($post->markedsolution == 0 && $post->markedhelpful > 0) {
                     $sortedposts[$index] = $post;
                     $index++;
                 }
@@ -319,7 +319,7 @@ class ratings {
 
             // Build the group of only solved posts.
             foreach ($answerposts as $post) {
-                if ($post->markedsolution == 1 && $post->markedhelpful == 0) {
+                if ($post->markedsolution > 0 && $post->markedhelpful == 0) {
                     $sortedposts[$index] = $post;
                     $index++;
                 }
