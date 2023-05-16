@@ -243,7 +243,8 @@ class ratings {
 
         // Check if solved posts are preferred over helpful posts.
         $solutionspreferred = $posts[array_key_first($posts)]->ratingpreference == 1;
-
+        var_dump('start');
+        var_dump($posts);
         // Sort the answer posts by ratings.
 
         // Build groups of different types of answers (Solved and helpful, only solved/helpful, other).
@@ -342,10 +343,15 @@ class ratings {
         }
 
         // Rearrange the indices and return the sorted posts.
+        var_dump('sortedpost');
+        var_dump($sortedposts);
+
         $neworder = array();
         foreach ($sortedposts as $post) {
             $neworder[$post->id] = $post;
         }
+        var_dump('neworder');
+        var_dump($neworder);
         // return now the sorted posts.
         return $neworder;
     }
