@@ -229,14 +229,14 @@ class ratings {
 
     /**
      * Sort the answers of a discussion by their marks and votes.
-     * 
+     *
      * @param object $posts all the posts from a discussion.
      */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
         // Create a copy that only has the answer posts and save the parent post.
         $answerposts = $posts;
         $parentpost = array_shift($answerposts);
-        
+
         // Create an empty array for the sorted posts and add the parent post.
         $sortedposts = array();
         $sortedposts[0] = $parentpost;
@@ -264,7 +264,7 @@ class ratings {
                 $index++;
             }
         }
-        //Update the indices and sort the group by votes.
+        // Update the indices and sort the group by votes.
         if ($index > $startsolvedandhelpful) {
             $startsolved = $index;
             $starthelpful = $index;
@@ -349,7 +349,7 @@ class ratings {
         foreach ($sortedposts as $post) {
             $neworder[$post->id] = $post;
         }
- 
+
         // return now the sorted posts.
         return $neworder;
     }

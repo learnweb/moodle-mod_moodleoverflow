@@ -37,7 +37,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @copyright 2023 Tamaro Walter
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class ratings_test extends \advanced_testcase { 
+class ratings_test extends \advanced_testcase {
     /** @var \stdClass test course */
     private $course;
 
@@ -101,7 +101,7 @@ class ratings_test extends \advanced_testcase {
     }
 
     // Begin of test functions
-    
+
     /**
      * Test, if rating can sort after ever group with ratingpreferences on helpful first.
      */
@@ -125,7 +125,6 @@ class ratings_test extends \advanced_testcase {
         $rightorderposts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer6, $this->answer5);
         $result = $this->postsorderequal($sortedposts, $rightorderposts);
         $this->assertEquals(1, $result);
-
 
         // Test without posts that are only marked as solved
         $posts = array($this->post, $this->answer1, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
@@ -171,7 +170,7 @@ class ratings_test extends \advanced_testcase {
     }
 
     // Helper functions
-    
+
     /**
      * This function creates:
      * - a course with a moodleoverflow
@@ -211,7 +210,7 @@ class ratings_test extends \advanced_testcase {
 
     /**
      * This function compares 2 arrays with posts and checks if the order is the same.
-     * 
+     *
      * @param array $sortedposts - The sorted posts
      * @param array $rightorderposts       - The posts with the order they should have
      * The function returns 1 if $sortedposts matches $posts, else 0
@@ -268,14 +267,14 @@ class ratings_test extends \advanced_testcase {
         $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes;
         $this->answer1->markedhelpful = 1;
         $this->answer1->markedsolution = 1;
-        
+
         // Answer2.
         $this->answer2->upvotes = 0;
         $this->answer2->downvotes = 0;
         $this->answer2->votesdifference = $this->answer2->upvotes - $this->answer2->downvotes;
         $this->answer2->markedhelpful = 0;
         $this->answer2->markedsolution = 1;
-        
+
         // Answer3.
         $this->answer3->upvotes = 0;
         $this->answer3->downvotes = 0;
@@ -305,6 +304,6 @@ class ratings_test extends \advanced_testcase {
         $this->answer6->markedsolution = 0;
     }
 
-    //private function create_groupswithoutsolution
-    
+    // private function create_groupswithoutsolution
+
 }
