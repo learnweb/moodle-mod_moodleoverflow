@@ -552,7 +552,40 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
         }
     }
 }
-
+/**
+ * Insert Overview of discussions and post in the Miscellaneous block in the my profile page.
+ *
+ * @param tree $tree tree
+ * @param stdClass $user user
+ * @param int $iscurrentuser iscurrentuser
+ */
+function moodleoverflow_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
+    global $DB, $CFG, $USER;
+    if (isguestuser($user)) {
+        // Coopy from forum - the guest user cannot post, so it is not possible to view any posts.
+        // May as well just bail aggressively here.
+        return false;
+    }
+    if (get_config('moodleoverflow', 'showoverviewprofilpage')) {
+        $viewdiscussionurl = new moodle_url('/mod/moodleoverflow/viewstartingdiscussion.php');
+        if (!empty($course)) {
+            $viewdiscussionurl->param('course', $course->id);
+        }
+        $discussionnode = new core_user\output\myprofile\node('miscellaneous', 'moodleoverflowdiscussions',
+            get_string('viewdiscussions', 'moodleoverflow'), null, $viewdiscussionurl);
+        $tree->add_node($discussionnode);
+        $viewposturl = new moodle_url('/mod/moodleoverflow/viewcontributingposts.php');
+        if (!empty($course)) {
+            $viewposturl->param('course', $course->id);
+        }
+        $postnode = new core_user\output\myprofile\node('miscellaneous', 'moodleoverflowposts',
+            get_string('viewposts', 'moodleoverflow'), null, $viewposturl);
+        $tree->add_node($postnode);
+        return true;
+    } else {
+        return false;
+    }
+}
 /**
  * Determine the current context if one wa not already specified.
  *

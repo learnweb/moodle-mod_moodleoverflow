@@ -196,6 +196,14 @@ $string['marknothelpful'] = 'Not Helpful';
 $string['answer'] = '{$a} Answer';
 $string['answers'] = '{$a} Answers';
 
+// Strings for Overview Pages
+$string['overviewdiscussions'] = 'Overview of all started discussions';
+$string['overviewposts'] = 'Overview of all posts';
+$string['viewdiscussions'] = 'View started Moodleoverflow discussions';
+$string['viewposts'] = 'View answers to Moodleoverflow discussions';
+$string['showoverviewprofilpage'] = 'Link Overview on Profile Page';
+$string['showoverviewprofilpage_desc'] = 'Show Links to Overview Pages in User Profile Page';
+
 // Strings for the readtracking.php.
 $string['markreadfailed'] = 'A post of the discussion could not be marked as read.';
 $string['markdiscussionreadsuccessful'] = 'The discussion has been marked as read.';
@@ -464,7 +472,6 @@ $string['email_rejected_subject'] = '{$a->coursename}: One of your posts has bee
 $string['your_post_was_rejected'] = 'Your post was rejected.';
 $string['your_post_was_rejected_with_reason'] = 'Your post was rejected with the following reason:';
 $string['original_post'] = 'Original post';
-
 
 // Daily mail message.
 $string['digestunreadpost'] = 'Course: {$a->linktocourse} -> {$a->linktoforum}, Topic: {$a->linktodiscussion} has {$a->unreadposts} unread posts.';
