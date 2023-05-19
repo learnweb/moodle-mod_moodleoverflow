@@ -28,7 +28,14 @@
 // Include config and locallib.
 require_once(__DIR__.'/../../config.php');
 global $PAGE, $OUTPUT;
+// If invoked from a course show the discussions from the course.
+$courseid = optional_param('courseid', 0, PARAM_INT);
 $params = array();
+
+if ($courseid) {
+    $params['courseid'] = $courseid;
+}
+
 $PAGE->set_url('/mod/moodleoverflow/viewcontributingposts.php', $params);
 require_login();
 

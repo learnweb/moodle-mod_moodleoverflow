@@ -569,7 +569,7 @@ function moodleoverflow_myprofile_navigation(core_user\output\myprofile\tree $tr
     if (get_config('moodleoverflow', 'showoverviewprofilpage')) {
         $viewdiscussionurl = new moodle_url('/mod/moodleoverflow/viewstartingdiscussion.php');
         if (!empty($course)) {
-            $viewdiscussionurl->param('course', $course->id);
+            $viewdiscussionurl->param('courseid', $course->id);
         }
         $discussionnode = new core_user\output\myprofile\node('miscellaneous', 'moodleoverflowdiscussions',
             get_string('viewdiscussions', 'moodleoverflow'), null, $viewdiscussionurl);

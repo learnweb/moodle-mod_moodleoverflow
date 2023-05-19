@@ -46,6 +46,16 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     public function render_discussion_list($data) {
         return $this->render_from_template('mod_moodleoverflow/discussions', $data);
     }
+    /**
+     * Display the discussion list for the viewstartingdiscussion.php.
+     *
+     * @param object $data The prepared variables.
+     *
+     * @return string
+     */
+    public function render_discussion_started_list($data) {
+        return $this->render_from_template('mod_moodleoverflow/discussion_started_list', $data);
+    }
 
     /**
      * Display the forum list in the view.php if a discussion needs to be moved to another forum.

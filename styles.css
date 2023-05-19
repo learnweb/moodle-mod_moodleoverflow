@@ -12,6 +12,9 @@
 /*
  * The discussionlist in the view.php
  */
+.moodleoverflowheaderlist {
+    border-spacing: 0;
+}
 
 .moodleoverflowheaderlist th.header.replies .iconsmall {
     margin: 0 .3em;
