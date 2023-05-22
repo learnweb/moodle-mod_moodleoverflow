@@ -77,6 +77,10 @@ class ratings {
             throw new moodle_exception('invalidcourseid');
         }
 
+        // Are multiple marks allowed?
+        $markssetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
+        $multiplemarks = (bool) $markssetting->allowmultiplemarks;
+
         // Retrieve the contexts.
         $modulecontext = \context_module::instance($cm->id);
         $coursecontext = \context_course::instance($course->id);
@@ -138,18 +142,29 @@ class ratings {
                 throw new moodle_exception('notteacher', 'moodleoverflow');
             }
 
-            // Get other ratings in the discussion.
-            $sql = "SELECT *
-                    FROM {moodleoverflow_ratings}
-                    WHERE discussionid = ? AND rating = ?";
-            $otherrating = $DB->get_record_sql($sql, [ $discussion->id, $rating ]);
+            // Check if multiple marks are not enabled.
+            if (!$multiplemarks) {
 
-            // If there is an old rating, update it. Else create a new rating record.
-            if ($otherrating) {
-                return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
+                // Get other ratings in the discussion.
+                $sql = "SELECT *
+                        FROM {moodleoverflow_ratings}
+                        WHERE discussionid = ? AND rating = ?";
+                $otherrating = $DB->get_record_sql($sql, [ $discussion->id, $rating ]);
+
+                // If there is an old rating, update it. Else create a new rating record.
+                if ($otherrating) {
+                    return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
+
+                } else {
+                    $mid = $moodleoverflow->id;
+
+                    return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id,
+                                                                  $rating, $userid, $modulecontext);
+                }
+
             } else {
+                // If multiplemarks are allowed, only create a new rating.
                 $mid = $moodleoverflow->id;
-
                 return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id, $rating, $userid, $modulecontext);
             }
         }
@@ -213,119 +228,130 @@ class ratings {
     }
 
     /**
-     * Sort a discussion by the ratings of their posts.
+     * Sort the answers of a discussion by their marks and votes.
      *
-     * @param array $posts
-     *
-     * @return array
+     * @param object $posts all the posts from a discussion.
      */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
-        // Create copies to manipulate.
-        $parentcopy = $posts;
-        $postscopy = $posts;
-        $anothercopy = $posts;
+        // Create a copy that only has the answer posts and save the parent post.
+        $answerposts = $posts;
+        $parentpost = array_shift($answerposts);
 
-        // Check if teacher ratings are prefered.
-        $preferteacher = (array_shift($anothercopy)->ratingpreference == 1);
-
-        // Create an array with all the keys of the older array.
-        $oldorder = array();
-        foreach ($postscopy as $postid => $post) {
-            $oldorder[] = $postid;
-        }
-
-        // Create an array for the new order.
-        $neworder = array();
-
-        // The parent post stays the parent post.
-        $parent = array_shift($parentcopy);
-        unset($postscopy[$parent->id]);
-        $discussionid = $parent->discussion;
-        $neworder[] = (int) $parent->id;
-
-        // Check if answers has been marked.
-        $statusstarter = self::moodleoverflow_discussion_is_solved($discussionid, false);
-        $statusteacher = self::moodleoverflow_discussion_is_solved($discussionid, true);
-
-        // The answer that is marked as correct by both is displayed first.
-        if ($statusteacher && $statusstarter) {
-
-            // Is the same answer correct for both?
-            if ($statusstarter->postid == $statusteacher->postid) {
-
-                // Add the post to the new order and delete it from the posts array.
-                $neworder[] = (int) $statusstarter->postid;
-                unset($postscopy[$statusstarter->postid]);
-
-                // Unset the stati to skip the following if-statements.
-                $statusstarter = false;
-                $statusteacher = false;
-            }
-        }
-
-        // If the answers the teacher marks are preferred, and only
-        // the teacher marked an answer as solved, display it first.
-        if ($preferteacher && $statusteacher) {
-
-            // Add the post to the new order and delete it from the posts array.
-            $neworder[] = (int) $statusteacher->postid;
-            unset($postscopy[$statusteacher->postid]);
-
-            // Unset the status to skip the following if-statements.
-            $statusteacher = false;
-        }
-
-        // If the user who started the discussion has marked
-        // an answer as helpful, display this answer first.
-        if ($statusstarter) {
-
-            // Add the post to the new order and delete it from the posts array.
-            $neworder[] = (int) $statusstarter->postid;
-            unset($postscopy[$statusstarter->postid]);
-        }
-
-        // If a teacher has marked an answer as solved, display it next.
-        if ($statusteacher) {
-
-            // Add the post to the new order and delete it from the posts array.
-            $neworder[] = (int) $statusteacher->postid;
-            unset($postscopy[$statusteacher->postid]);
-        }
-
-        // All answers that are not marked by someone should now be left.
-
-        // Search for all comments.
-        foreach ($postscopy as $postid => $post) {
-
-            // Add all comments to the order.
-            // They are independant from the votes.
-            if ($post->parent != $parent->id) {
-                $neworder[] = $postid;
-                unset($postscopy[$postid]);
-            }
-        }
-
-        // Sort the remaining answers by their total votes.
-        $votesarray = array();
-        foreach ($postscopy as $postid => $post) {
-            $votesarray[$post->id] = $post->upvotes - $post->downvotes;
-        }
-        arsort($votesarray);
-
-        // Add the remaining messages to the new order.
-        foreach ($votesarray as $postid => $votes) {
-            $neworder[] = $postid;
-        }
-
-        // The new order is determined.
-        // It has to be applied now.
+        // Create an empty array for the sorted posts and add the parent post.
         $sortedposts = array();
-        foreach ($neworder as $k) {
-            $sortedposts[$k] = $posts[$k];
+        $sortedposts[0] = $parentpost;
+
+        // Check if solved posts are preferred over helpful posts.
+        $solutionspreferred = false;
+        if ($posts[array_key_first($posts)]->ratingpreference == 1) {
+            $solutionspreferred = true;
         }
 
-        // Return the sorted posts.
-        return $sortedposts;
+        // Sort the answer posts by ratings.
+        // Build groups of different types of answers (Solved and helpful, only solved/helpful, other).
+        // markedsolved == 1 means the post is marked as solved.
+        // markedhelpful == 1 means the post is marked as helpful.
+        // If a group is complete, sort the group.
+        $index = 1;
+        $startsolvedandhelpful = 1;
+        $startsolved = 1;
+        $starthelpful = 1;
+        $startother = 1;
+        // Solved and helpful posts are first.
+        foreach ($answerposts as $post) {
+            if ($post->markedsolution > 0 && $post->markedhelpful > 0) {
+                $sortedposts[$index] = $post;
+                $index++;
+            }
+        }
+        // Update the indices and sort the group by votes.
+        if ($index > $startsolvedandhelpful) {
+            $startsolved = $index;
+            $starthelpful = $index;
+            $startother = $index;
+            self::moodleoverflow_quicksort_post_by_votes($sortedposts, $startsolvedandhelpful, $index - 1);
+        }
+
+        // Check if solutions are preferred.
+        if ($solutionspreferred) {
+
+            // Build the group of only solved posts.
+            foreach ($answerposts as $post) {
+                if ($post->markedsolution > 0 && $post->markedhelpful == 0) {
+                    $sortedposts[$index] = $post;
+                    $index++;
+                }
+            }
+            // Update the indices and sort the group by votes.
+            if ($index > $startsolved) {
+                $starthelpful = $index;
+                $startother = $index;
+                self::moodleoverflow_quicksort_post_by_votes($sortedposts, $startsolved, $index - 1);
+            }
+
+            // Build the group of only helpful posts.
+            foreach ($answerposts as $post) {
+                if ($post->markedsolution == 0 && $post->markedhelpful > 0) {
+                    $sortedposts[$index] = $post;
+                    $index++;
+                }
+            }
+            // Update the indices and sort the group by votes.
+            if ($index > $starthelpful) {
+                $startother = $index;
+                self::moodleoverflow_quicksort_post_by_votes($sortedposts, $starthelpful, $index - 1);
+            }
+        } else {
+
+            // Build the group of only helpful posts.
+            foreach ($answerposts as $post) {
+                if ($post->markedsolution == 0 && $post->markedhelpful > 0) {
+                    $sortedposts[$index] = $post;
+                    $index++;
+                }
+            }
+            // Update the indices and sort the group by votes.
+            if ($index > $starthelpful) {
+                $startsolved = $index;
+                $startother = $index;
+                self::moodleoverflow_quicksort_post_by_votes($sortedposts, $starthelpful, $index - 1);
+            }
+
+            // Build the group of only solved posts.
+            foreach ($answerposts as $post) {
+                if ($post->markedsolution > 0 && $post->markedhelpful == 0) {
+                    $sortedposts[$index] = $post;
+                    $index++;
+                }
+            }
+            // Update the indices and sort the group by votes.
+            if ($index > $startsolved) {
+                $startother = $index;
+                self::moodleoverflow_quicksort_post_by_votes($sortedposts, $startsolved, $index - 1);
+            }
+        }
+
+        // Now build the group of posts without ratings like helpful/solved.
+        foreach ($answerposts as $post) {
+            if ($post->markedsolution == 0 && $post->markedhelpful == 0) {
+                $sortedposts[$index] = $post;
+                $index++;
+            }
+        }
+        // Update the indices and sort the group by votes.
+        if ($index > $startother) {
+            self::moodleoverflow_quicksort_post_by_votes($sortedposts, $startother, $index - 1);
+        }
+
+        // Rearrange the indices and return the sorted posts.
+
+        $neworder = array();
+        foreach ($sortedposts as $post) {
+            $neworder[$post->id] = $post;
+        }
+
+        // Return now the sorted posts.
+        return $neworder;
     }
 
     /**
@@ -426,8 +452,8 @@ class ratings {
             // Check if a teacher marked a solution as solved.
             if ($DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3))) {
 
-                // Return the rating record.
-                return $DB->get_record('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3));
+                // Return the rating records.
+                return $DB->get_records('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 3));
             }
 
             // The teacher has not marked the discussion as solved.
@@ -437,8 +463,8 @@ class ratings {
         // Check if the topic starter marked a solution as helpful.
         if ($DB->record_exists('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4))) {
 
-            // Return the rating record.
-            return $DB->get_record('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4));
+            // Return the rating records.
+            return $DB->get_records('moodleoverflow_ratings', array('discussionid' => $discussionid, 'rating' => 4));
         }
 
         // The topic starter has not marked a solution as helpful.
@@ -785,6 +811,42 @@ class ratings {
         // Check the capability.
         return capabilities::has(capabilities::RATE_POST, $modulecontext, $userid)
             && $post->reviewed == 1;
+    }
+
+    /**
+     * Sorts answerposts of a discussion with quicksort algorithm
+     * @param array $posts  the posts that are being sorted
+     * @param int   $low    the index from where the sorting begins
+     * @param int   $high   the index until the array is being sorted
+     */
+    private static function moodleoverflow_quicksort_post_by_votes(array &$posts, $low, $high) {
+        if ($low >= $high) {
+            return;
+        }
+        $left = $low;
+        $right = $high;
+        $pivot = $posts[intval(($low + $high) / 2)]->votesdifference;
+        do {
+            while ($posts[$left]->votesdifference > $pivot) {
+                $left++;
+            }
+            while ($posts[$right]->votesdifference < $pivot) {
+                $right--;
+            }
+            if ($left <= $right) {
+                $temp = $posts[$right];
+                $posts[$right] = $posts[$left];
+                $posts[$left] = $temp;
+                $right--;
+                $left++;
+            }
+        } while ($left <= $right);
+        if ($low < $right) {
+            self::moodleoverflow_quicksort_post_by_votes($posts, $low, $right);
+        }
+        if ($high > $left ) {
+            self::moodleoverflow_quicksort_post_by_votes($posts, $left, $high);
+        }
     }
 
 }

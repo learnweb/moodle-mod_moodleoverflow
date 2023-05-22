@@ -155,15 +155,15 @@ class moodleoverflow_email implements \renderable, \templatable {
     protected function export_for_template_text(\mod_moodleoverflow_renderer $renderer) {
 
         return array(
-            'id' => html_entity_decode($this->post->id),
-            'coursename' => html_entity_decode($this->get_coursename()),
-            'courselink' => html_entity_decode($this->get_courselink()),
-            'moodleoverflowname' => html_entity_decode($this->get_moodleoverflowname()),
-            'showdiscussionname' => html_entity_decode($this->has_showdiscussionname()),
-            'discussionname' => html_entity_decode($this->get_discussionname()),
-            'subject' => html_entity_decode($this->get_subject()),
-            'authorfullname' => html_entity_decode($this->get_author_fullname()),
-            'postdate' => html_entity_decode($this->get_postdate()),
+            'id' => html_entity_decode($this->post->id, ENT_COMPAT),
+            'coursename' => html_entity_decode($this->get_coursename(), ENT_COMPAT),
+            'courselink' => html_entity_decode($this->get_courselink(), ENT_COMPAT),
+            'moodleoverflowname' => html_entity_decode($this->get_moodleoverflowname(), ENT_COMPAT),
+            'showdiscussionname' => html_entity_decode($this->has_showdiscussionname(), ENT_COMPAT),
+            'discussionname' => html_entity_decode($this->get_discussionname(), ENT_COMPAT),
+            'subject' => html_entity_decode($this->get_subject(), ENT_COMPAT),
+            'authorfullname' => html_entity_decode($this->get_author_fullname(), ENT_COMPAT),
+            'postdate' => html_entity_decode($this->get_postdate(), ENT_COMPAT),
             'firstpost' => $this->is_firstpost(),
             'canreply' => $this->canreply,
             'permalink' => $this->get_permalink(),
@@ -179,7 +179,7 @@ class moodleoverflow_email implements \renderable, \templatable {
             'grouppicture' => $this->get_group_picture(),
 
             // Format some components according to the renderer.
-            'message' => html_entity_decode($renderer->format_message_text($this->cm, $this->post)),
+            'message' => html_entity_decode($renderer->format_message_text($this->cm, $this->post), ENT_COMPAT),
         );
     }
 

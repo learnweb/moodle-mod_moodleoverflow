@@ -41,11 +41,22 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  */
 class dailymail_test extends \advanced_testcase {
 
+    /** @var \stdClass collection of messages */
     private $sink;
+
+    /** @var \stdClass test course */
     private $course;
+
+    /** @var \stdClass test user*/
     private $user;
+
+    /** @var \stdClass moodleoverflow instance */
     private $moodleoverflow;
+
+    /** @var \stdClass coursemodule instance */
     private $coursemodule;
+
+    /** @var \stdClass discussion instance */
     private $discussion;
 
     /**
@@ -75,13 +86,11 @@ class dailymail_test extends \advanced_testcase {
         \mod_moodleoverflow\subscriptions::reset_discussion_cache();
     }
 
-
-
     // Helper functions.
 
     /**
      * Function that creates a new user, which adds a new discussion an post to the moodleoverflow.
-     * @param $maildigest The maildigest setting: 0 = off , 1 = on
+     * @param int $maildigest The maildigest setting: 0 = off , 1 = on
      */
     public function helper_create_user_and_discussion($maildigest) {
         // Create a user enrolled in the course as student.
@@ -125,6 +134,7 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task send_daily_mail sends a mail to the user.
+     * @covers \send_daily_mail::execute
      */
     public function test_mail_delivery() {
 
@@ -142,6 +152,7 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the content of the mail matches the supposed content.
+     * @covers \send_daily_mail::execute
      */
     public function test_content_of_mail_delivery() {
 
@@ -176,6 +187,7 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task does not send a mail when maildigest = 0
+     * @covers \send_daily_mail::execute
      */
     public function test_mail_not_send() {
         // Creat user with daily_mail = off.
@@ -191,6 +203,7 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if database is updated after sending a mail
+     * @covers \send_daily_mail::execute
      */
     public function test_records_removed() {
         global $DB;

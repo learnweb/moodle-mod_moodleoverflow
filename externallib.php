@@ -46,8 +46,8 @@ class mod_moodleoverflow_external extends external_api {
     public static function record_vote_parameters() {
         return new external_function_parameters(
             array(
-                'postid'       => new external_value(PARAM_INT, 'id of post'),
-                'ratingid'     => new external_value(PARAM_INT, 'rating')
+                'postid' => new external_value(PARAM_INT, 'id of post'),
+                'ratingid' => new external_value(PARAM_INT, 'rating')
             )
         );
     }
@@ -79,8 +79,8 @@ class mod_moodleoverflow_external extends external_api {
 
         // Parameter validation.
         $params = self::validate_parameters(self::record_vote_parameters(), array(
-            'postid'       => $postid,
-            'ratingid'     => $ratingid,
+            'postid' => $postid,
+            'ratingid' => $ratingid,
         ));
 
         $transaction = $DB->start_delegated_transaction();

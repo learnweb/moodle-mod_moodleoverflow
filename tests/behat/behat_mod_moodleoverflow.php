@@ -113,6 +113,10 @@ class behat_mod_moodleoverflow extends behat_base {
         $this->execute('behat_general::i_wait_to_be_redirected');
     }
 
+    /**
+     * Gets the container node.
+     * @param string $discussiontitle
+     */
     protected function find_moodleoverflow_discussion_card(string $discussiontitle): \Behat\Mink\Element\Element {
         return $this->find('xpath',
             '//*[contains(concat(" ",normalize-space(@class)," ")," moodleoverflowdiscussion ")][.//*[text()="'.

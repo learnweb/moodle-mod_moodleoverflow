@@ -191,7 +191,7 @@
     width: 4px;
 }
 
-.moodleoverflowpost.statusteacher.statusstarter:before {
+.moodleoverflowpost.markedsolution.markedhelpful:before {
     background: linear-gradient(80deg, rgba(234, 133, 22, 1) 50%, rgba(112, 160, 52, 1) 50%);
     bottom: -1px;
     content: "";
@@ -202,7 +202,7 @@
     width: 4px;
 }
 
-.moodleoverflowpost.statusteacher:before {
+.moodleoverflowpost.markedsolution:before {
     background: rgba(112, 160, 52, 1);
     bottom: -1px;
     content: "";
@@ -213,7 +213,7 @@
     width: 4px;
 }
 
-.moodleoverflowpost.statusstarter:before {
+.moodleoverflowpost.markedhelpful:before {
     background: rgba(234, 133, 22, 1);
     bottom: -1px;
     content: "";
@@ -229,11 +229,11 @@
     display: none;
 }
 
-.moodleoverflowpost.statusstarter .onlyifhelpful {
+.moodleoverflowpost.markedhelpful .onlyifhelpful {
     display: initial;
 }
 
-.moodleoverflowpost.statusteacher .onlyifsolved {
+.moodleoverflowpost.markedsolution .onlyifsolved {
     display: initial;
 }
 

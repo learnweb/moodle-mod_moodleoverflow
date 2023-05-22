@@ -35,22 +35,57 @@ use context;
  */
 class capabilities {
 
+    /** capability add instance */
     const ADD_INSTANCE = 'mod/moodleoverflow:addinstance';
+
+    /** capability view discussions*/
     const VIEW_DISCUSSION = 'mod/moodleoverflow:viewdiscussion';
+
+    /** capability reply in discussions*/
     const REPLY_POST = 'mod/moodleoverflow:replypost';
+
+    /** capability start discussions*/
     const START_DISCUSSION = 'mod/moodleoverflow:startdiscussion';
+
+    /** capability edit post from other course participants*/
     const EDIT_ANY_POST = 'mod/moodleoverflow:editanypost';
+
+    /** capability delete your post*/
     const DELETE_OWN_POST = 'mod/moodleoverflow:deleteownpost';
+
+    /** capability delete post from any course participant*/
     const DELETE_ANY_POST = 'mod/moodleoverflow:deleteanypost';
+
+    /** capability rate a post*/
     const RATE_POST = 'mod/moodleoverflow:ratepost';
+
+    /** capability mark a post as a solution for a questions*/
     const MARK_SOLVED = 'mod/moodleoverflow:marksolved';
+
+    /** capability manage the subscription of a moodleoverflow instance */
     const MANAGE_SUBSCRIPTIONS = 'mod/moodleoverflow:managesubscriptions';
+
+    /** capability force the subscription of participants */
     const ALLOW_FORCE_SUBSCRIBE = 'mod/moodleoverflow:allowforcesubscribe';
+
+    /** capability attach files to posts */
     const CREATE_ATTACHMENT = 'mod/moodleoverflow:createattachment';
+
+    /** capability review post to be published*/
     const REVIEW_POST = 'mod/moodleoverflow:reviewpost';
 
+    /** @var array cache capabilities*/
     private static $cache = [];
 
+    /**
+     * Saves the cache from has_capability.
+     *
+     * @param string            $capability The capability that is being checked.
+     * @param context           $context    The context.
+     * @param int|null          $userid     The user ID.
+     *
+     * @return bool true or false
+     */
     public static function has(string $capability, context $context, $userid = null): bool {
         global $USER;
         if (!$userid) {
