@@ -290,7 +290,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2023040400, 'moodleoverflow');
     }
 
-    if ($oldversion < 2023050803) {
+    if ($oldversion < 2023052200) {
         // Define table moodleoverflow to be edited.
         $table = new xmldb_table('moodleoverflow');
 
@@ -303,7 +303,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         }
 
         // Moodleoverflow savepoint reached.
-        upgrade_mod_savepoint(true, 2023050803, 'moodleoverflow');
+        upgrade_mod_savepoint(true, 2023052200, 'moodleoverflow');
     }
 
     return true;
