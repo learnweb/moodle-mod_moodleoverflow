@@ -23,7 +23,6 @@
  */
 namespace mod_moodleoverflow\task;
 
-defined('MOODLE_INTERNAL') || die();
 /**
  * This task sends a daily mail of unread posts
  */

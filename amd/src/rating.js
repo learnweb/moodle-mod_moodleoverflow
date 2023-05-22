@@ -106,16 +106,16 @@ export function init(userid, allowmultiplemarks) {
             case 'helpful':
             case 'solved': {
                 const isHelpful = action === 'helpful';
-                const htmlclass = isHelpful ? 'statusstarter' : 'statusteacher';
+                const htmlclass = isHelpful ? 'markedhelpful' : 'markedsolution';
                 const shouldRemove = postElement.classList.contains(htmlclass);
                 const baseRating = isHelpful ? RATING_HELPFUL : RATING_SOLVED;
                 const rating = shouldRemove ? baseRating * 10 : baseRating;
                 await sendVote(postid, rating, userid);
 
-                /* If multiplemarks are not allowed (that is the default mode): delete all marks.
-                   else: only delete the mark if the post is being unmarked.
+                /* If       multiplemarks are not allowed (that is the default mode): delete all marks.
+                   else:    only delete the mark if the post is being unmarked.
 
-                   then add a mark, if the post is being marked.
+                   Add a mark, if the post is being marked.
                 */
                 if (!allowmultiplemarks) {
                     // Delete all marks in the discussion
@@ -149,7 +149,7 @@ export function init(userid, allowmultiplemarks) {
 
 /**
  * Function to change the String of the post data-action button.
- * Only usable if mulitplemarks are allowed.
+ * Only used if mulitplemarks are allowed.
  * @param {string} htmlclass the class where the String is being updated
  * @param {string} action    helpful or solved mark
  */

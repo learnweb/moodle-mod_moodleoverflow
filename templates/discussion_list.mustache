@@ -119,23 +119,23 @@
                         {{#pix}}i/duration, moodle, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
                     {{/ questionunderreview }}
                     {{^ questionunderreview }}
-                        {{#statusteacher}}
+                        {{#markedsolution}}
                             <a href="{{teacherlink}}">
                                 {{# pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/ pix}}
                             </a>
-                        {{/statusteacher}}
-                        {{^statusteacher}}
+                        {{/markedsolution}}
+                        {{^markedsolution}}
                             {{# pix}} status/c_blank, moodleoverflow, {{#str}}marknotsolved, moodleoverflow{{/str}}{{/ pix}}
-                        {{/statusteacher}}
+                        {{/markedsolution}}
 
-                        {{#statusstarter}}
+                        {{#markedhelpful}}
                             <a href="{{starterlink}}">
                                 {{# pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/ pix}}
                             </a>
-                        {{/statusstarter}}
-                        {{^statusstarter}}
+                        {{/markedhelpful}}
+                        {{^markedhelpful}}
                             {{# pix}} status/b_blank, moodleoverflow, {{#str}}marknothelpful, moodleoverflow{{/str}} {{/ pix}}
-                        {{/statusstarter}}
+                        {{/markedhelpful}}
                     {{/ questionunderreview }}
                 </td>
 

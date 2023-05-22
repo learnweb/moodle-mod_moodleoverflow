@@ -46,16 +46,16 @@
                         {{#pix}}i/duration, moodle, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
                     {{/ questionunderreview }}
                     {{^ questionunderreview }}
-                        {{#statusteacher}}
+                        {{#markedsolution}}
                             <a href="{{teacherlink}}">{{! avoid whitespace
                                 !}}{{# pix}} i/status-solved, moodleoverflow, {{#str}}containsteacherrating, moodleoverflow{{/str}} {{/ pix}}{{!
                             !}}</a>
-                        {{/statusteacher}}
-                        {{#statusstarter}}
+                        {{/markedsolution}}
+                        {{#markedhelpful}}
                             <a href="{{starterlink}}">{{! avoid whitespace
                                 !}}{{# pix}} i/status-helpful, moodleoverflow, {{#str}}containsstarterrating, moodleoverflow{{/str}} {{/ pix}}{{!
                             !}}</a>
-                        {{/ statusstarter }}
+                        {{/ markedhelpful }}
                     {{/ questionunderreview }}
                 </div>
                 <div class="d-flex flex-colum flex-wrap justify-content-around">

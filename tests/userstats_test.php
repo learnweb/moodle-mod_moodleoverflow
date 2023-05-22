@@ -39,41 +39,42 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  */
 class userstats_test extends \advanced_testcase {
 
-    /** @var \stdClass */
+    /** @var \stdClass test course */
     private $course;
 
-    /** @var \stdClass */
+    /** @var \stdClass coursemodule */
     private $coursemodule;
 
-    /** @var \stdClass */
+    /** @var \stdClass test moodleoverflow */
     private $moodleoverflow;
 
-    /** @var \stdClass */
+    /** @var \stdClass test teacher */
     private $teacher;
 
-    /** @var \stdClass */
+    /** @var \stdClass test user */
     private $user1;
 
-    /** @var \stdClass */
+    /** @var \stdClass another test user */
     private $user2;
 
-    /** @var \stdClass */
+    /** @var \stdClass a discussion */
     private $discussion1;
 
-    /** @var \stdClass */
+    /** @var \stdClass another faked discussion */
     private $discussion2;
 
-    /** @var \stdClass */
+    /** @var \stdClass a post */
     private $post1;
 
-    /** @var \stdClass */
+    /** @var \stdClass another post */
     private $post2;
 
-    /** @var \stdClass */
+    /** @var \stdClass answer to a post */
     private $answer1;
 
-    /** @var \stdClass */
+    /** @var \stdClass another answer to a post */
     private $answer2;
+
     /** @var \mod_moodleoverflow_generator $generator */
     private $generator;
 
@@ -98,6 +99,7 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if a upvote is being counted.
+     * @covers \userstats_table
      */
     public function test_upvote() {
         // Teacher upvotes the discussion and the answer of user2.
@@ -115,6 +117,7 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if a downvote is being counted.
+     * @covers \userstats_table
      */
     public function test_downvote() {
         // Teacher downvotes the discussion and the answer of user1.
@@ -132,6 +135,7 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if the activity is calculated correctly.
+     * @covers \userstats_table
      */
     public function test_activity() {
         // User1 will rates 3 times.
@@ -152,6 +156,7 @@ class userstats_test extends \advanced_testcase {
     }
     /**
      * Test, if the reputation is calculated correctly.
+     * @covers \userstats_table
      */
     public function test_reputation() {
         // User1 creates some ratings for user2, Teacher creates some ratings for user2.
