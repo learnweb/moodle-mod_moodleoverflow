@@ -128,8 +128,7 @@ class behat_mod_moodleoverflow extends behat_base {
      *
      * This step is for advanced users, use it if you don't find anything else suitable for what you need.
      *
-     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should exist in the
-     *  "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
+     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should exist in the "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
      * @throws ElementNotFoundException Thrown by behat_base::find
      * @param string $element The locator of the specified selector
      * @param string $selectortype The selector type
@@ -150,8 +149,7 @@ class behat_mod_moodleoverflow extends behat_base {
     /**
      * Click on the element of the specified type which is located inside the second element.
      *
-     * @When /^I click on "(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" in the
-     *  "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
+     * @When /^I click on "(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" in the "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
      * @param string $element Element we look for
      * @param string $selectortype The type of what we look for
      * @param string $discussiontitle The discussion title
@@ -175,8 +173,7 @@ class behat_mod_moodleoverflow extends behat_base {
      *
      * This step is for advanced users, use it if you don't find anything else suitable for what you need.
      *
-     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should not exist in the
-     *  "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
+     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should not exist in the "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
      * @throws ExpectationException
      * @param string $element The locator of the specified selector
      * @param string $selectortype The selector type
