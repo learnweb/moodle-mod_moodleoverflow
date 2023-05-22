@@ -99,6 +99,7 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if a upvote is being counted.
+     * @covers \userstats_table
      */
     public function test_upvote() {
         // Teacher upvotes the discussion and the answer of user2.
@@ -116,6 +117,7 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if a downvote is being counted.
+     * @covers \userstats_table
      */
     public function test_downvote() {
         // Teacher downvotes the discussion and the answer of user1.
@@ -133,6 +135,7 @@ class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if the activity is calculated correctly.
+     * @covers \userstats_table
      */
     public function test_activity() {
         // User1 will rates 3 times.
@@ -153,6 +156,7 @@ class userstats_test extends \advanced_testcase {
     }
     /**
      * Test, if the reputation is calculated correctly.
+     * @covers \userstats_table
      */
     public function test_reputation() {
         // User1 creates some ratings for user2, Teacher creates some ratings for user2.

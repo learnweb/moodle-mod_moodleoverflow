@@ -350,7 +350,7 @@ class ratings {
             $neworder[$post->id] = $post;
         }
 
-        // return now the sorted posts.
+        // Return now the sorted posts.
         return $neworder;
     }
 
@@ -813,6 +813,12 @@ class ratings {
             && $post->reviewed == 1;
     }
 
+    /**
+     * Sorts answerposts of a discussion with quicksort algorithm
+     * @param array $posts  the posts that are being sorted
+     * @param int   $low    the index from where the sorting begins
+     * @param int   $high   the index until the array is being sorted
+     */
     private static function moodleoverflow_quicksort_post_by_votes(array &$posts, $low, $high) {
         if ($low >= $high) {
             return;

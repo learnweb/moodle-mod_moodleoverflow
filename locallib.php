@@ -921,6 +921,7 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
  * @param stdClass $moodleoverflow The moodleoverflow object
  * @param stdClass $discussion     The discussion object
  * @param stdClass $post           The post object
+ * @param bool     $multiplemarks  The setting of multiplemarks (default: multiplemarks are not allowed)
  */
 function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks = false) {
     global $USER;
@@ -1118,6 +1119,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
  * @param bool $iscomment
  * @param array $usermapping
  * @param int $level
+ * @param bool $multiplemarks setting of multiplemarks
  * @return void|null
  * @throws coding_exception
  * @throws dml_exception
@@ -1494,6 +1496,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
  * @param array  $posts          Array of posts within the discussion
  * @param bool   $iscomment      Whether the current post is a comment
  * @param array $usermapping
+ * @param bool  $multiplemarks
  * @return string
  * @throws coding_exception
  * @throws dml_exception
