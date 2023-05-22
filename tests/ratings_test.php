@@ -168,7 +168,7 @@ class ratings_test extends \advanced_testcase {
         $result = $this->postsorderequal($sortedposts, $rightorderposts);
         $this->assertEquals(1, $result);
 
-        // Test without posts that are marked as both helpful and marked.
+        // Test without posts that are marked as both helpful and solved.
         $posts = array($this->post, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
         $this->set_ratingpreferences(0);
         $sortedposts = ratings::moodleoverflow_sort_answers_by_ratings($posts);

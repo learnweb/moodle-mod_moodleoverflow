@@ -249,8 +249,8 @@ class ratings {
 
         // Sort the answer posts by ratings.
         // Build groups of different types of answers (Solved and helpful, only solved/helpful, other).
-        // statusteacher == 1 means the post is marked as solved.
-        // statusstarter == 1 means the post is marked as helpful.
+        // markedsolved == 1 means the post is marked as solved.
+        // markedhelpful == 1 means the post is marked as helpful.
         // If a group is complete, sort the group.
         $index = 1;
         $startsolvedandhelpful = 1;
