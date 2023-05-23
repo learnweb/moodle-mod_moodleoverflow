@@ -916,14 +916,16 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
 /**
  * Prints a moodleoverflow discussion.
  *
- * @param stdClass $course         The course object
+ * @param stdClass $course              The course object
  * @param object   $cm
- * @param stdClass $moodleoverflow The moodleoverflow object
- * @param stdClass $discussion     The discussion object
- * @param stdClass $post           The post object
- * @param bool     $multiplemarks  The setting of multiplemarks (default: multiplemarks are not allowed)
+ * @param stdClass $moodleoverflow      The moodleoverflow object
+ * @param stdClass $discussion          The discussion object
+ * @param stdClass $post                The post object
+ * @param bool     $multiplemarks       The setting of multiplemarks (default: multiplemarks are not allowed)
+ * @param int      $limitedanswertime   A Unix timestamp, until answers are limited (default: 0)
  */
-function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks = false) {
+function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post,
+                                         $multiplemarks = false, $limitedanswertime = 0) {
     global $USER;
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() && ($USER->id == $post->userid));
@@ -976,7 +978,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Print the starting post.
     echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
-        $ownpost, false, '', '', $postread, true, $istracked, 0, $usermapping, 0, $multiplemarks);
+        $ownpost, false, '', '', $postread, true, $istracked, 0, $usermapping, 0, $multiplemarks, $limitedanswertime);
 
     // Print answer divider.
     if ($answercount == 1) {
@@ -990,7 +992,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $istracked, $posts,
-        null, $usermapping, $multiplemarks);
+        null, $usermapping, $multiplemarks, $limitedanswertime);
 
     echo '</div>';
 }
@@ -1104,22 +1106,23 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
 /**
  * Prints a moodleoverflow post.
- * @param object $post
- * @param object $discussion
- * @param object $moodleoverflow
- * @param object $cm
- * @param object $course
- * @param object $ownpost
- * @param bool $link
- * @param string $footer
- * @param string $highlight
- * @param bool $postisread
- * @param bool $dummyifcantsee
- * @param bool $istracked
- * @param bool $iscomment
- * @param array $usermapping
- * @param int $level
- * @param bool $multiplemarks setting of multiplemarks
+ * @param object   $post
+ * @param object   $discussion
+ * @param object   $moodleoverflow
+ * @param object   $cm
+ * @param object   $course
+ * @param object   $ownpost
+ * @param bool     $link
+ * @param string   $footer
+ * @param string   $highlight
+ * @param bool     $postisread
+ * @param bool     $dummyifcantsee
+ * @param bool     $istracked
+ * @param bool     $iscomment
+ * @param array    $usermapping
+ * @param int      $level
+ * @param bool     $multiplemarks       The setting of multiplemarks (default: multiplemarks are not allowed)
+ * @param int      $limitedanswertime   A Unix timestamp, until answers are limited (default: 0) 
  * @return void|null
  * @throws coding_exception
  * @throws dml_exception
@@ -1129,7 +1132,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                                    $ownpost = false, $link = false,
                                    $footer = '', $highlight = '', $postisread = null,
                                    $dummyifcantsee = true, $istracked = false,
-                                   $iscomment = false, $usermapping = [], $level = 0, $multiplemarks = false) {
+                                   $iscomment = false, $usermapping = [], $level = 0,
+                                   $multiplemarks = false, $limitedanswertime = 0) {
     global $USER, $CFG, $OUTPUT, $PAGE;
 
     // Require the filelib.
@@ -1309,8 +1313,14 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
         // Answer to the parent post.
         if (empty($post->parent)) {
-            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-            $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);
+            // Check if limitedanswertime is on.
+            if ($limitedanswertime > time()) {
+                // If answers are still limited, the answer-command will have no link.
+                $commands['limitedanswer'] = array('text' => $str->replyfirst, 'attributes' => $attributes);
+            } else {
+                $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
+                $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);
+            }
 
             // If the post is a comment, answer to the parent post.
         } else if (!$iscomment) {
@@ -1457,9 +1467,16 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Output the commands.
     $commandhtml = array();
-    foreach ($commands as $command) {
+    foreach ($commands as $key => $command) {
         if (is_array($command)) {
-            $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
+            if ($key == 'limitedanswer') {
+                // TO-DO: Build a helpicon and add id to the span, so that in one span is the command and the helpicon
+                // The helpicon itself is a span: <span class = "onlyifreviewed> answer <span>helpicon </span></span>
+                $helpicon;
+                $commandhtml[] = html_writer::tag('span', $command['text'], $command['attributes']);
+            } else {
+                $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
+            }
         } else {
             $commandhtml[] = $command;
         }
@@ -1487,23 +1504,25 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 /**
  * Prints all posts of the discussion in a nested form.
  *
- * @param object $course         The course object
+ * @param object $course                The course object
  * @param object $cm
- * @param object $moodleoverflow The moodleoverflow object
- * @param object $discussion     The discussion object
- * @param object $parent         The object of the parent post
- * @param bool   $istracked      Whether the user tracks the discussion
- * @param array  $posts          Array of posts within the discussion
- * @param bool   $iscomment      Whether the current post is a comment
- * @param array $usermapping
- * @param bool  $multiplemarks
+ * @param object $moodleoverflow        The moodleoverflow object
+ * @param object $discussion            The discussion object
+ * @param object $parent                The object of the parent post
+ * @param bool   $istracked             Whether the user tracks the discussion
+ * @param array  $posts                 Array of posts within the discussion
+ * @param bool   $iscomment             Whether the current post is a comment
+ * @param array  $usermapping
+ * @param bool   $multiplemarks         The setting of multiplemarks (default: multiplemarks are not allowed)
+ * @param int    $limitedanswertime     A Unix timestamp, until answers are limited (default: 0)
  * @return string
  * @throws coding_exception
  * @throws dml_exception
  * @throws moodle_exception
  */
 function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent,
-                                           $istracked, $posts, $iscomment = null, $usermapping = [], $multiplemarks = false) {
+                                           $istracked, $posts, $iscomment = null, $usermapping = [],
+                                           $multiplemarks = false, $limitedanswertime = 0) {
     global $USER;
 
     // Prepare the output.
@@ -1544,12 +1563,13 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
             $postread = !empty($post->postread);
 
             // Print the answer.
-            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
-                $ownpost, false, '', '', $postread, true, $istracked, $parentid, $usermapping, $level, $multiplemarks);
+            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, false, '', '',
+                                                 $postread, true, $istracked, $parentid, $usermapping, $level,
+                                                 $multiplemarks, $limitedanswertime);
 
             // Print its children.
             $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow,
-                $discussion, $post, $istracked, $posts, $parentid, $usermapping, $multiplemarks);
+                $discussion, $post, $istracked, $posts, $parentid, $usermapping, $multiplemarks, $limitedanswertime);
 
             // End the div.
             $output .= "</div>\n";

@@ -229,12 +229,12 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('allowmultiplemarks', 'allowmultiplemarks', 'moodleoverflow');
         $mform->setDefault('allowmultiplemarks', 0);
 
-        // Limited mode options.
-        $mform->addElement('header', 'limitedmodeheading', get_string('limitedmodeheading', 'moodleoverflow'));
+        // Limited answer options.
+        $mform->addElement('header', 'limitedanswerheading', get_string('limitedanswerheading', 'moodleoverflow'));
 
-        $mform->addElement('date_time_selector', 'limitedmode', get_string('limitedmode', 'moodleoverflow'),
+        $mform->addElement('date_time_selector', 'limitedanswer', get_string('limitedanswer', 'moodleoverflow'),
                 array('optional' => true));
-        $mform->addHelpButton('limitedmode', 'limitedmode', 'moodleoverflow');
+        $mform->addHelpButton('limitedanswer', 'limitedanswer', 'moodleoverflow');
 
 
         // Add standard elements, common to all modules.

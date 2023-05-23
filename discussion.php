@@ -50,12 +50,16 @@ if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
     throw new moodle_exception('invalidcourseid');
 }
 
-// Save the allowmultiplemarks setting.
+// Save some settings, that posts depend on.
+// Setting of allowmultiplemarks.
 $marksetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
 $multiplemarks = false;
 if ($marksetting->allowmultiplemarks == 1) {
     $multiplemarks = true;
 }
+// Setting of limitedanswer. Limitedanswertime saves the timestamp, until the limitedanswer is on (0 if off).
+$limitedanswersetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'limitedanswer');
+$limitedanswertime = $limitedanswersetting->limitedanswer;
 
 // Get the related coursemodule and its context.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
@@ -147,7 +151,11 @@ $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 // Start the side-output.
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
-
+if($limitedanswertime > time()) {
+    mtrace('LIMITED MODE ON');
+} else {
+    mtrace('LIMITED MODE OFF');
+}
 // Guests and users can not subscribe to a discussion.
 if ((!is_guest($modulecontext, $USER) && isloggedin() && $canviewdiscussion)) {
     echo '';
@@ -157,7 +165,7 @@ echo "<br>";
 
 echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
 
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks);
+moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks, $limitedanswertime);
 
 echo '</div></div>';
 

@@ -338,9 +338,9 @@ $string['attachments'] = 'Attachments';
 $string['attachment_help'] = 'You can optionally attach one or more files to a forum post. If you attach an image, it will be displayed after the message.';
 $string['allowmultiplemarks'] = 'Multiple marks?';
 $string['allowmultiplemarks_help'] = 'A post can be marked as helpful or solved. Within a discussion, only one post can be marked as helpful/solved. Click the checkbox to mark multiple posts as helpful/solved.';
-$string['limitedmodeheading'] = 'Limited Mode';
-$string['limitedmode'] = 'Start in limited mode?';
-$string['limitedmode_help'] = 'If a Moodleoverflow starts in limited mode, students can not answer to questions until the set up date';
+$string['limitedanswerheading'] = 'Limited Answer Mode';
+$string['limitedanswer'] = 'Start in a limited answer mode?';
+$string['limitedanswer_help'] = 'If a Moodleoverflow starts in limited answer mode, students can not answer to questions until the set up date';
 
 // Templates.
 $string['reputation'] = 'Reputation';
