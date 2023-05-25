@@ -204,7 +204,8 @@ class userstats_table extends \flexible_table {
                       LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid
                       LEFT JOIN {moodleoverflow} moodleoverflow ON discuss.moodleoverflow = moodleoverflow.id
                                 WHERE ((moodleoverflow.anonymous = 0) OR (moodleoverflow.anonymous = 1
-                                AND posts.parent != 0)) AND discuss.course = ' . $this->courseid . ';';
+                                AND posts.parent != 0 AND posts.userid != discuss.userid))
+                                AND discuss.course = ' . $this->courseid . ';';
         $ratingdata = $DB->get_records_sql($sqlquery);
 
         // Step 2.0: Now collect the data for every user in the course.
