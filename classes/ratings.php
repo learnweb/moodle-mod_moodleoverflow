@@ -121,9 +121,7 @@ class ratings {
             }
 
             // Delete the rating.
-            self::moodleoverflow_remove_rating($postid, $rating / 10, $userid, $modulecontext);
-
-            return true;
+            return self::moodleoverflow_remove_rating($postid, $rating / 10, $userid, $modulecontext);
         }
 
         // Check for an older rating in this discussion.
@@ -641,8 +639,8 @@ class ratings {
         // Get the solved rating.
         $sql = "SELECT *
                 FROM {moodleoverflow_ratings}
-                WHERE userid = ? AND postid = ? AND rating = 3";
-        $rating['solved'] = $DB->get_record_sql($sql, [ $userid, $postid ]);
+                WHERE postid = ? AND rating = 3";
+        $rating['solved'] = $DB->get_record_sql($sql, [ $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_SOLVED) {
@@ -652,8 +650,8 @@ class ratings {
         // Get the helpful rating.
         $sql = "SELECT *
                 FROM {moodleoverflow_ratings}
-                WHERE userid = ? AND postid = ? AND rating = 4";
-        $rating['helpful'] = $DB->get_record_sql($sql, [ $userid, $postid ]);
+                WHERE postid = ? AND rating = 4";
+        $rating['helpful'] = $DB->get_record_sql($sql, [ $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_HELPFUL) {
