@@ -137,4 +137,9 @@ if ($ADMIN->fulltree) {
         $setting->set_updatedcallback('moodleoverflow_update_all_grades');
     }
 
+    // Allow teachers to see cummulative userstats.
+    $settings->add(new admin_setting_configcheckbox('moodleoverflow/showuserstats',
+        get_string('showuserstats', 'moodleoverflow'), get_string('configshowuserstats', 'moodleoverflow'), 0));
+
+
 }

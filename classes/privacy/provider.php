@@ -161,17 +161,17 @@ class provider implements
                 )";
 
         $params = [
-            'modname'      => 'moodleoverflow',
+            'modname' => 'moodleoverflow',
             'contextlevel' => CONTEXT_MODULE,
-            'duserid'      => $userid,
-            'dmuserid'     => $userid,
-            'puserid'      => $userid,
-            'ruserid'      => $userid,
-            'suserid'      => $userid,
-            'dsuserid'     => $userid,
-            'rauserid'     => $userid,
-            'tuserid'      => $userid,
-            'guserid'      => $userid
+            'duserid' => $userid,
+            'dmuserid' => $userid,
+            'puserid' => $userid,
+            'ruserid' => $userid,
+            'suserid' => $userid,
+            'dsuserid' => $userid,
+            'rauserid' => $userid,
+            'tuserid' => $userid,
+            'guserid' => $userid
         ];
 
         $contextlist = new \core_privacy\local\request\contextlist();
