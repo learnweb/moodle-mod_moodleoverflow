@@ -47,10 +47,10 @@ if ($mid) {
     $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $mid), '*');
 }
 // Require a login.
-require_login($course, true, $cm);
+require_login($course);
 
 // Set the context.
-$context = context_module::instance($cm->id);
+$context = context_course::instance($course->id);
 $PAGE->set_context($context);
 
 // Do a capability check, in case a user iserts the userstats-url manually.
@@ -63,8 +63,7 @@ if (has_capability('mod/moodleoverflow:viewanyrating', $context)) {
 
     // Output starts here.
     echo $OUTPUT->header();
-    echo $OUTPUT->heading('');
     $table = new userstats_table('statisticstable' , $course->id, $moodleoverflow->id, $PAGE->url);
-    echo $table->out();
+    $table->out();
     echo $OUTPUT->footer();
 }

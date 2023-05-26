@@ -25,6 +25,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_moodleoverflow\tables;
+use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\ratings;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -52,6 +54,9 @@ class userstats_table extends \flexible_table {
     /** @var \stdClass Help icon for amountofactivity-column.*/
     private $helpactivity;
 
+    /** @var \stdClass Help icon for userreputation-column.*/
+    private $userreputationhelp;
+
     /**
      * Constructor for workflow_table.
      *
@@ -67,7 +72,8 @@ class userstats_table extends \flexible_table {
 
         $this->courseid = $courseid;
         $this->moodleoverflowid = $moodleoverflow;
-        $this->set_helpactivity();
+        $this->create_helpicon('showactivityhelp', $this->helpactivity);
+        $this->create_helpicon('showuserreputationhelp', $this->userreputationhelp);
 
         $this->set_attribute('class', 'moodleoverflow-statistics-table');
         $this->set_attribute('id', $uniqueid);
@@ -188,7 +194,7 @@ class userstats_table extends \flexible_table {
         $users = get_enrolled_users($context , '',  0, $userfields = 'u.id, u.firstname, u.lastname');
 
         // Step 1.0: Build the datatable with all relevant Informations.
-        $sqlquery = 'SELECT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,
+        $sqlquery = 'SELECT DISTINCT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,
                             ratings.id AS rateid,
                             discuss.userid AS discussuserid,
                             posts.id AS postid,
@@ -198,16 +204,15 @@ class userstats_table extends \flexible_table {
                             ratings.postid AS ratepostid,
                             discuss.id AS discussid,
                             posts.discussion AS postdiscussid,
-                            ratings.discussionid AS ratediscussid
+                            ratings.discussionid AS ratediscussid,
+                            posts.message AS postcontent,
+                            moodleoverflow.anonymous AS anonymous
                       FROM {moodleoverflow_discussions} discuss
                       LEFT JOIN {moodleoverflow_posts} posts ON discuss.id = posts.discussion
                       LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid
                       LEFT JOIN {moodleoverflow} moodleoverflow ON discuss.moodleoverflow = moodleoverflow.id
-                                WHERE ((moodleoverflow.anonymous = 0) OR (moodleoverflow.anonymous = 1
-                                AND posts.parent != 0 AND posts.userid != discuss.userid))
-                                AND discuss.course = ' . $this->courseid . ';';
-        $ratingdata = $DB->get_records_sql($sqlquery);
-
+                          WHERE (moodleoverflow.anonymous = 0 OR moodleoverflow.anonymous = 1) AND discuss.course = :courseid;';
+        $ratingdata = $DB->get_records_sql($sqlquery, array('courseid' => $this->courseid));
         // Step 2.0: Now collect the data for every user in the course.
         foreach ($users as $user) {
             $student = new \stdClass();
@@ -225,24 +230,34 @@ class userstats_table extends \flexible_table {
                 if ($row->postuserid !== $student->id && $row->rateuserid !== $student->id) {
                     continue;
                 }
-                if ($row->postuserid == $student->id && $row->rating == RATING_UPVOTE) {
+                if ($row->postuserid == $student->id && $row->rating == RATING_UPVOTE
+                    && !($row->anonymous == anonymous::QUESTION_ANONYMOUS && $row->postuserid == $row->discussuserid)) {
                     $student->receivedupvotes += 1;
                 }
-                if ($row->postuserid == $student->id && $row->rating == RATING_DOWNVOTE) {
+                if ($row->postuserid == $student->id && $row->rating == RATING_DOWNVOTE
+                    && !($row->anonymous == anonymous::QUESTION_ANONYMOUS && $row->postuserid == $row->discussuserid)) {
                     $student->receiveddownvotes += 1;
                 }
-                if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts)) {
+                // A) In case the forum has anonymous questions -
+                //      we do not count the ratings which are created by the (anonymous) - questioner.
+                if ($row->rateuserid == $student->id
+                    && !array_key_exists($row->rateid, $student->ratedposts)
+                    && !($row->anonymous == anonymous::QUESTION_ANONYMOUS && $row->rateuserid == $row->discussuserid)) {
                     $student->activity += 1;
                     $student->ratedposts[$row->rateid] = $row->rateid;
                 }
-                if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts)) {
+                // If the current user created the posts...
+                // A) In case the forum has anonymous questions -
+                //      we do not count the posts which are created by the (anonymous) - questioner.
+                // B) The post wasn't counted
+                if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts)
+                    && !($row->anonymous == anonymous::QUESTION_ANONYMOUS && $row->postuserid == $row->discussuserid)) {
                     $student->activity += 1;
                     $student->submittedposts[$row->postid] = $row->postid;
                 }
             }
             // Get the user reputation from the course.
-            $student->reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($this->moodleoverflowid,
-                                                                                              $student->id);
+            $student->reputation = ratings::moodleoverflow_get_reputation_course($this->courseid, $student->id);
             array_push($this->userstatsdata, $student);
         }
     }
@@ -257,28 +272,28 @@ class userstats_table extends \flexible_table {
     /**
      * Setup the help icon for amount of activity
      */
-    public function set_helpactivity() {
+    public function create_helpicon($action, &$helpactivity) {
         global $CFG;
-        $this->helpactivity = new \stdClass();
-        $this->helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.png';
-        $this->helpactivity->icon = \html_writer::img($this->helpactivity->iconurl,
+        $helpactivity = new \stdClass();
+        $helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.png';
+        $helpactivity->icon = \html_writer::img($helpactivity->iconurl,
                                                       get_string('helpamountofactivity', 'moodleoverflow'));
-        $this->helpactivity->class = 'helpactivityclass btn btn-link';
-        $this->helpactivity->iconattributes = array('role' => 'button',
+        $helpactivity->class = $action . 'class btn btn-link';
+        $helpactivity->iconattributes = array('role' => 'button',
                                                     'data-container' => 'body',
                                                     'data-toggle' => 'popover',
                                                     'data-placement' => 'right',
-                                                    'data-action' => 'showhelpicon',
+                                                    'data-action' => $action,
                                                     'data-html' => 'true',
                                                     'data-trigger' => 'focus',
                                                     'tabindex' => '0',
                                                     'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
-                                                                      get_string('helpamountofactivity', 'moodleoverflow') .
+                                                                      get_string($action . '_desc', 'moodleoverflow') .
                                                                       '</p> </div>');
 
-        $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
-                                                         $this->helpactivity->class,
-                                                         $this->helpactivity->iconattributes);
+        $helpactivity->object = \html_writer::span($helpactivity->icon,
+                                                         $helpactivity->class,
+                                                         $helpactivity->iconattributes);
     }
 
     // Functions that show the data.

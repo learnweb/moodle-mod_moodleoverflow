@@ -25,7 +25,8 @@
 
 const Selectors = {
     actions: {
-        showHelpIcon: '[data-action="showhelpicon"]',
+        showActivityHelp: '[data-action="showactivityhelp"]',
+        showUserReputationHelp: '[data-action="showuserreputationhelp"]',
     },
 };
 
@@ -34,7 +35,12 @@ const Selectors = {
  */
 export const init = () => {
     document.addEventListener('click', event => {
-        if (event.target.closest(Selectors.actions.showHelpIcon)) {
+        if (event.target.closest(Selectors.actions.showActivityHelp)) {
+            event.preventDefault();
+        }
+    });
+    document.addEventListener('click', event => {
+        if (event.target.closest(Selectors.actions.showUserReputationHelp)) {
             event.preventDefault();
         }
     });

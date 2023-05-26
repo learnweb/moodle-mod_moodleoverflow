@@ -207,7 +207,9 @@ $string['userstatsupvotes'] = 'Received upvotes';
 $string['userstatsdownvotes'] = 'Received downvotes';
 $string['userstatsactivity'] = 'Amount of activity';
 $string['userstatsreputation'] = 'User reputation';
-$string['helpamountofactivity'] = 'Each actitivy like writing a post, starting a discussion or giving a rating gives 1 point';
+$string['helpamountofactivity'] = 'Each activity like writing a post, starting a discussion or giving a rating gives 1 point';
+$string['showactivityhelp_desc'] = 'Each activity like writing a post, starting a discussion or giving a rating gives 1 point';
+$string['showuserreputationhelp_desc'] = 'Depending on the Moodleoverflow you selected you will see the course, ';
 
 // OTHER.
 $string['messageprovider:posts'] = 'Notification of new posts';
