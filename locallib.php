@@ -1315,8 +1315,21 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         if (empty($post->parent)) {
             // Check if limitedanswertime is on.
             if ($limitedanswertime > time()) {
+                // answer limitedanswertime as a readable date.
+                $date = gmdate('d.m.Y', $limitedanswertime);
+
                 // If answers are still limited, the answer-command will have no link.
-                $commands['limitedanswer'] = array('text' => $str->replyfirst, 'attributes' => $attributes);
+                $limitedanswerattributes = [
+                    'class' => 'onlyifreviewed text-muted'
+                ];
+                $htmlclass = 'onlyifreviewed text-muted helpicon';
+                $content = get_string('limitedanswer_helpicon', 'moodleoverflow', array('limitedanswerdate' => $date));
+                $helpobject = new \mod_moodleoverflow\output\helpicon($htmlclass, $content);
+                $helpicon = $helpobject->get_helpicon();
+
+                $limitedanswerobject = html_writer::tag('span', $str->replyfirst . '    ' . $helpicon);
+                // Build a html span that has the answer button and the helpicon
+                $commands['limitedanswer'] = array('text' => $limitedanswerobject, 'attributes' => $limitedanswerattributes);
             } else {
                 $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
                 $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);

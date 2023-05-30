@@ -45,7 +45,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      * Defines forms elements.
      */
     public function definition() {
-        global $CFG, $COURSE, $PAGE;
+        global $CFG, $COURSE, $PAGE, $DB;
 
         // Define the modform.
         $mform = $this->_form;
@@ -229,9 +229,42 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('allowmultiplemarks', 'allowmultiplemarks', 'moodleoverflow');
         $mform->setDefault('allowmultiplemarks', 0);
 
+
         // Limited answer options.
         $mform->addElement('header', 'limitedanswerheading', get_string('limitedanswerheading', 'moodleoverflow'));
 
+        // Check if limitedanswermode was already set up and place a warning if so.
+        if($limitedanswertime = $DB->get_record('moodleoverflow', array('id' => $this->current->id), 'limitedanswer')) {
+            if (!is_null($limitedanswertime)) {
+                $limitedanswertime = $limitedanswertime->limitedanswer;
+            } else {
+                $limitedanswertime = 0;
+            }
+        } else {
+            $limitedanswertime = 0;
+        }
+        if ($limitedanswertime < time() && $limitedanswertime > 0) {
+            $warningbutton = html_writer::div(get_string('limitedanswerwarning_setup', 'moodleoverflow'),
+                                              'alert alert-warning',
+                                              array('role' => 'alert'));
+            $mform->addElement('html', $warningbutton);
+        }
+
+        // Check if there are already answered posts in this moodleoverflow and place a warning if so.
+        $sql = 'SELECT COUNT(*) AS answerposts
+                FROM {moodleoverflow_discussions} discuss JOIN {moodleoverflow_posts} posts 
+                WHERE discuss.id = posts.discussion
+                  AND posts.parent != 0
+                  AND discuss.moodleoverflow = ' . $this->current->id . ';';
+        $answerpostscount = $DB->get_records_sql($sql);
+        $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
+        if ($answerpostscount > 0) {
+            $warningbutton = html_writer::div(get_string('limitedanswerwarning_answers', 'moodleoverflow'),
+                                              'alert alert-warning',
+                                              array('role' => 'alert'));
+            $mform->addElement('html', $warningbutton);
+        }
+        
         $mform->addElement('date_time_selector', 'limitedanswer', get_string('limitedanswer', 'moodleoverflow'),
                 array('optional' => true));
         $mform->addHelpButton('limitedanswer', 'limitedanswer', 'moodleoverflow');

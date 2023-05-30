@@ -151,11 +151,7 @@ $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 // Start the side-output.
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
-if($limitedanswertime > time()) {
-    mtrace('LIMITED MODE ON');
-} else {
-    mtrace('LIMITED MODE OFF');
-}
+
 // Guests and users can not subscribe to a discussion.
 if ((!is_guest($modulecontext, $USER) && isloggedin() && $canviewdiscussion)) {
     echo '';
