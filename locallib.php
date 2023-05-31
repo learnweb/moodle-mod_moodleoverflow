@@ -1122,7 +1122,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
  * @param array    $usermapping
  * @param int      $level
  * @param bool     $multiplemarks       The setting of multiplemarks (default: multiplemarks are not allowed)
- * @param int      $limitedanswertime   A Unix timestamp, until answers are limited (default: 0) 
+ * @param int      $limitedanswertime   A Unix timestamp, until answers are limited (default: 0)
  * @return void|null
  * @throws coding_exception
  * @throws dml_exception
@@ -1315,7 +1315,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         if (empty($post->parent)) {
             // Check if limitedanswertime is on.
             if ($limitedanswertime > time()) {
-                // answer limitedanswertime as a readable date.
+                // Change limitedanswertime to a readable date.
                 $date = gmdate('d.m.Y', $limitedanswertime);
 
                 // If answers are still limited, the answer-command will have no link.
@@ -1328,7 +1328,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                 $helpicon = $helpobject->get_helpicon();
 
                 $limitedanswerobject = html_writer::tag('span', $str->replyfirst . '    ' . $helpicon);
-                // Build a html span that has the answer button and the helpicon
+                // Build a html span that has the answer button and the helpicon.
                 $commands['limitedanswer'] = array('text' => $limitedanswerobject, 'attributes' => $limitedanswerattributes);
             } else {
                 $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
@@ -1483,8 +1483,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     foreach ($commands as $key => $command) {
         if (is_array($command)) {
             if ($key == 'limitedanswer') {
-                // TO-DO: Build a helpicon and add id to the span, so that in one span is the command and the helpicon
-                // The helpicon itself is a span: <span class = "onlyifreviewed> answer <span>helpicon </span></span>
                 $helpicon;
                 $commandhtml[] = html_writer::tag('span', $command['text'], $command['attributes']);
             } else {

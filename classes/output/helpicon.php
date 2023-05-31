@@ -15,15 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *
+ * Use of the Helpicon from Moodle core.
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_moodleoverflow\output;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Builds a Helpicon, that shows a String when hovering over it.
@@ -36,7 +34,13 @@ class helpicon {
     /** @var object The Helpicon*/
     private $helpobject;
 
-    function __construct($htmlclass, $content) {
+    /**
+     * Builds a Helpicon and stores it in helpobject.
+     *
+     * @param string $htmlclass     The classname in which the icon will be.
+     * @param string $content       A string that shows the information that the icon has.
+     */
+    public function __construct($htmlclass, $content) {
         global $CFG;
         $iconurl = $CFG->wwwroot . '/pix/a/help.png';
         $icon = \html_writer::img($iconurl, $content);
@@ -53,7 +57,12 @@ class helpicon {
         $this->helpobject = \html_writer::span($icon, $class, $iconattributes);
     }
 
-    function get_helpicon() {
+    /**
+     * Returns the Helpicon, so that it can be used.
+     *
+     * @return object The Helpicon
+     */
+    public function get_helpicon() {
         return $this->helpobject;
     }
 }

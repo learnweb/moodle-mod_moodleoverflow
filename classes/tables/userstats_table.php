@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *
+ * Userstats Feature
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 require_once($CFG->libdir . '/tablelib.php');
 use mod_moodleoverflow\output\helpicon;
+
 /**
  * Table listing all user statistics of a course
  *

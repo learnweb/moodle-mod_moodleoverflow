@@ -297,7 +297,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         // Define field limitedanswer to be added to moodleoverflow.
         $field = new xmldb_field('limitedanswer', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'allowmultiplemarks');
 
-        //Conditionally launch add field limitedanswer
+        // Conditionally launch add field limitedanswer.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
