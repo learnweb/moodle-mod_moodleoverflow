@@ -1134,7 +1134,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                                    $dummyifcantsee = true, $istracked = false,
                                    $iscomment = false, $usermapping = [], $level = 0,
                                    $multiplemarks = false, $limitedanswertime = 0) {
-    global $USER, $CFG, $OUTPUT, $PAGE;
+    global $USER, $CFG, $OUTPUT, $PAGE, $DB;
 
     // Require the filelib.
     require_once($CFG->libdir . '/filelib.php');
@@ -1318,18 +1318,51 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                 // Change limitedanswertime to a readable date.
                 $date = gmdate('d.m.Y', $limitedanswertime);
 
-                // If answers are still limited, the answer-command will have no link.
-                $limitedanswerattributes = [
-                    'class' => 'onlyifreviewed text-muted'
-                ];
-                $htmlclass = 'onlyifreviewed text-muted helpicon';
-                $content = get_string('limitedanswer_helpicon', 'moodleoverflow', array('limitedanswerdate' => $date));
-                $helpobject = new \mod_moodleoverflow\output\helpicon($htmlclass, $content);
-                $helpicon = $helpobject->get_helpicon();
+                // Check if user is a student or teacher.
+                $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
+                $iseditteacher = $DB->record_exists('role_assignments', ['userid' => $USER->id, 'roleid' => $roleid]);
 
-                $limitedanswerobject = html_writer::tag('span', $str->replyfirst . '    ' . $helpicon);
-                // Build a html span that has the answer button and the helpicon.
-                $commands['limitedanswer'] = array('text' => $limitedanswerobject, 'attributes' => $limitedanswerattributes);
+                $roleidteacher = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
+                $isteacher = $DB->record_exists('role_assignments', ['userid' => $USER->id, 'roleid' => $roleidteacher]);
+                if (!($iseditteacher || $isteacher)) {
+                    // The User is a student.
+
+                    // Build the help icon.
+                    $limitedanswerattributes = ['class' => 'onlyifreviewed text-muted'];
+                    $htmlclass = 'onlyifreviewed text-muted helpicon';
+                    $content = get_string('limitedanswer_helpicon_student', 'moodleoverflow', array('limitedanswerdate' => $date));
+                    $helpobject = new \mod_moodleoverflow\output\helpicon($htmlclass, $content);
+                    $helpicon = $helpobject->get_helpicon();
+
+                    // Build a html span that has the answer button and the help icon.
+                    $limitedanswerobject = html_writer::tag('span', $str->replyfirst . '    ' . $helpicon);
+
+                    // Save the span in the commands with an extra key.
+                    $commands['limitedanswerstudent'] = array('text' => $limitedanswerobject,
+                                                              'attributes' => $limitedanswerattributes);
+
+                } else {
+                    // The User is a teacher.
+
+                    // Build the help icon.
+                    $limitedanswerattributes = ['class' => 'onlyifreviewed'];
+                    $htmlclass = 'onlyifreviewed helpicon';
+                    $content = get_string('limitedanswer_helpicon_teacher', 'moodleoverflow', array('limitedanswerdate' => $date));
+                    $helpobject = new \mod_moodleoverflow\output\helpicon($htmlclass, $content);
+                    $helpicon = $helpobject->get_helpicon();
+
+                    // Build the answer button with a link.
+                    $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
+                    $answerbutton = html_writer::link($replyurl, $str->replyfirst, array('class' => 'onlyifreviewed answerbutton'));
+
+                    // Build a html span that has the answer button and the help icon.
+                    $limitedanswerobject = html_writer::tag('span', $answerbutton . '    ' . $helpicon);
+
+                    // Save the span in the commands with an extra key.
+                    $commands['limitedanswerteacher'] = array('text' => $limitedanswerobject,
+                                                              'attributes' => $limitedanswerattributes);
+                }
+
             } else {
                 $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
                 $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);
@@ -1482,8 +1515,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $commandhtml = array();
     foreach ($commands as $key => $command) {
         if (is_array($command)) {
-            if ($key == 'limitedanswer') {
-                $helpicon;
+            if ($key == 'limitedanswerstudent' || $key == 'limitedanswerteacher') {
                 $commandhtml[] = html_writer::tag('span', $command['text'], $command['attributes']);
             } else {
                 $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
