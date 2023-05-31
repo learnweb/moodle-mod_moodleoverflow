@@ -232,39 +232,39 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         // Limited answer options.
         $mform->addElement('header', 'limitedanswerheading', get_string('limitedanswerheading', 'moodleoverflow'));
 
-        // Check if limitedanswermode was already set up and place a warning if so.
-        if ($limitedanswertime = $DB->get_record('moodleoverflow', array('id' => $this->current->id), 'limitedanswer')) {
-            if (!empty($limitedanswertime)) {
-                $limitedanswertime = $limitedanswertime->limitedanswer;
+        if (!empty($this->current->id)) {
+            // Check if limitedanswermode was already set up and place a warning if so.
+            if ($limitedanswertime = $DB->get_record('moodleoverflow', array('id' => $this->current->id), 'limitedanswer')) {
+                if (!empty($limitedanswertime)) {
+                    $limitedanswertime = $limitedanswertime->limitedanswer;
+                } else {
+                    $limitedanswertime = 0;
+                }
             } else {
                 $limitedanswertime = 0;
             }
-        } else {
-            $limitedanswertime = 0;
-        }
-        if ($limitedanswertime <= time() && $limitedanswertime > 0) {
-            $warningbutton = html_writer::div(get_string('limitedanswerwarning_setup', 'moodleoverflow'),
-                                              'alert alert-warning',
-                                              array('role' => 'alert'));
-            $mform->addElement('html', $warningbutton);
-        }
+            if ($limitedanswertime <= time() && $limitedanswertime > 0) {
+                $warningbutton = html_writer::div(get_string('limitedanswerwarning_setup', 'moodleoverflow'),
+                                                'alert alert-warning',
+                                                array('role' => 'alert'));
+                $mform->addElement('html', $warningbutton);
+            }
 
-        // Check if there are already answered posts in this moodleoverflow and place a warning if so.
-        $answerpostscount = 0;
-        if (!empty($this->current->id)) {
+            // Check if there are already answered posts in this moodleoverflow and place a warning if so.
             $sql = 'SELECT COUNT(*) AS answerposts
             FROM {moodleoverflow_discussions} discuss JOIN {moodleoverflow_posts} posts
             WHERE discuss.id = posts.discussion
-              AND posts.parent != 0
-              AND discuss.moodleoverflow = ' . $this->current->id . ';';
+                AND posts.parent != 0
+                AND discuss.moodleoverflow = ' . $this->current->id . ';';
             $answerpostscount = $DB->get_records_sql($sql);
             $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
-        }
-        if ($answerpostscount > 0) {
-            $warningbutton = html_writer::div(get_string('limitedanswerwarning_answers', 'moodleoverflow'),
-                                              'alert alert-warning',
-                                              array('role' => 'alert'));
-            $mform->addElement('html', $warningbutton);
+
+            if ($answerpostscount > 0) {
+                $warningbutton = html_writer::div(get_string('limitedanswerwarning_answers', 'moodleoverflow'),
+                                                'alert alert-warning',
+                                                array('role' => 'alert'));
+                $mform->addElement('html', $warningbutton);
+            }
         }
 
         // Limited answer setting.
