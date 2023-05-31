@@ -1585,6 +1585,7 @@ function get_attachments($post, $cm) {
     // We retrieve all files according to the time that they were created.  In the case that several files were uploaded
     // at the sametime (e.g. in the case of drag/drop upload) we revert to using the filename.
     $files = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $post->id, "filename", false);
+    var_dump($files);
     if ($files) {
         $i = 0;
         foreach ($files as $file) {
@@ -1595,8 +1596,8 @@ function get_attachments($post, $cm) {
             $iconimage = $OUTPUT->pix_icon(file_file_icon($file),
                 get_mimetype_description($file), 'moodle',
                 array('class' => 'icon'));
-            $path = file_encode_url($CFG->wwwroot . '/pluginfile.php', '/' .
-                $context->id . '/mod_moodleoverflow/attachment/' . $post->id . '/' . $attachments[$i]['filename']);
+            $path =  moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(),
+                                                     $file->get_itemid(), $file->get_filepath(), $file->get_filename());
 
             $attachments[$i]['icon'] = $iconimage;
             $attachments[$i]['filepath'] = $path;
