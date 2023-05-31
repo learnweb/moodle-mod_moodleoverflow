@@ -28,7 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_moodleoverflow';
-$plugin->version = 2023052200;
+$plugin->version = 2023052301;
 $plugin->release = 'v4.2-r1';
 $plugin->requires = 2020061500; // Requires Moodle 3.9+.
 $plugin->maturity = MATURITY_STABLE;

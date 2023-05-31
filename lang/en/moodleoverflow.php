@@ -338,7 +338,13 @@ $string['attachments'] = 'Attachments';
 $string['attachment_help'] = 'You can optionally attach one or more files to a forum post. If you attach an image, it will be displayed after the message.';
 $string['allowmultiplemarks'] = 'Multiple marks?';
 $string['allowmultiplemarks_help'] = 'A post can be marked as helpful or solved. Within a discussion, only one post can be marked as helpful/solved. Click the checkbox to mark multiple posts as helpful/solved.';
-
+$string['limitedanswerheading'] = 'Limited Answer Mode';
+$string['limitedanswer'] = 'Start in a limited answer mode?';
+$string['limitedanswerwarning_setup'] = 'You already activated the limited answer mode and it expired. Activating this mode another time is highly NOT recommended.';
+$string['limitedanswerwarning_answers'] = 'There are already answered posts in this moodleoverflow. Activating limited answer mode now is highly NOT recommended';
+$string['limitedanswer_help'] = 'If a Moodleoverflow starts in limited answer mode, students can not answer to questions until the set up date';
+$string['limitedanswer_helpicon_student'] = 'This Moodleoverflow is in a limited answer mode. Posts can not be answered until {$a->limitedanswerdate}';
+$string['limitedanswer_helpicon_teacher'] = 'This Moodleoverflow is in a limited answer mode until {$a->limitedanswerdate}. See Settings for more information';
 // Templates.
 $string['reputation'] = 'Reputation';
 $string['action_remove_upvote'] = 'Click to remove upvote';
