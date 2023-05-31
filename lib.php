@@ -411,7 +411,7 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
  */
 function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options = array()) {
     global $DB, $CFG;
-
+    var_dump("if context->contextlever");
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
     }
@@ -419,26 +419,28 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
     require_course_login($course, true, $cm);
 
     $areas = moodleoverflow_get_file_areas($course, $cm, $context);
-
+    var_dump("if isset areas(filearea)");
     // Filearea must contain a real area.
     if (!isset($areas[$filearea])) {
         return false;
     }
 
     $postid = (int) array_shift($args);
-
+    var_dump("post = getrecord");
     if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
         return false;
     }
-
+    var_dump("discussion = record");
     if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
         return false;
     }
-
+    var_dump("moodlevoerflow = record");
     if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $cm->instance))) {
         return false;
     }
-
+    var_dump("hier kommen die arsg");
+    var_dump($args);
+    var_dump("jetzt der rest");
     $itemid = array_shift($args);
     $filename = array_pop($args);
     if (!$args) {
@@ -455,16 +457,23 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
     if (!$file = $fs->get_file_by_hash(sha1($fullpath))||$file->is_directory()) {
         return false;
     }*/
+    var_dump("get file");
     $file = $fs->get_file($context->id, 'mod_moodleoverflow', $filearea, $itemid, $filepath, $filename);
+    var_dump($context->id);
+    var_dump($filearea);
+    var_dump($itemid);
+    var_dump($filepath);
+    var_dump($filename);
     // Make sure groups allow this user to see this file.
-    /*if ($discussion->groupid > 0) {
+    if ($discussion->groupid > 0) {
         $groupmode = groups_get_activity_groupmode($cm, $course);
         if ($groupmode == SEPARATEGROUPS) {
+
             if (!groups_is_member($discussion->groupid) && !has_capability('moodle/site:accessallgroups', $context)) {
                 return false;
             }
         }
-    }*/
+    }
 
     // Make sure we're allowed to see it...
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
