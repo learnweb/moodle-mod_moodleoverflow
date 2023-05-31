@@ -234,7 +234,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Check if limitedanswermode was already set up and place a warning if so.
         if ($limitedanswertime = $DB->get_record('moodleoverflow', array('id' => $this->current->id), 'limitedanswer')) {
-            if (!is_null($limitedanswertime)) {
+            if (!empty($limitedanswertime)) {
                 $limitedanswertime = $limitedanswertime->limitedanswer;
             } else {
                 $limitedanswertime = 0;
@@ -251,7 +251,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Check if there are already answered posts in this moodleoverflow and place a warning if so.
         $answerpostscount = 0;
-        if (!is_null($this->current->id)) {
+        if (!empty($this->current->id)) {
             $sql = 'SELECT COUNT(*) AS answerposts
             FROM {moodleoverflow_discussions} discuss JOIN {moodleoverflow_posts} posts
             WHERE discuss.id = posts.discussion
