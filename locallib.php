@@ -1362,7 +1362,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                     $commands['limitedanswerteacher'] = array('text' => $limitedanswerobject,
                                                               'attributes' => $limitedanswerattributes);
                 }
-
             } else {
                 $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
                 $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);
@@ -1516,7 +1515,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     foreach ($commands as $key => $command) {
         if (is_array($command)) {
             if ($key == 'limitedanswerstudent' || $key == 'limitedanswerteacher') {
-                $commandhtml[] = html_writer::tag('span', $command['text'], $command['attributes']);
+                $commandhtml[] = html_writer::tag('span', $command['text'], $command['attributes'] ?? null);
             } else {
                 $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
             }
