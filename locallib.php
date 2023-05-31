@@ -1337,9 +1337,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                     // Build a html span that has the answer button and the help icon.
                     $limitedanswerobject = html_writer::tag('span', $str->replyfirst . '    ' . $helpicon);
 
-                    // Save the span in the commands with an extra key.
-                    $commands['limitedanswerstudent'] = array('text' => $limitedanswerobject,
-                                                              'attributes' => $limitedanswerattributes);
+                    // Save the span in the commands with an extra value.
+                    $commands[] = array('text' => $limitedanswerobject,
+                                        'attributes' => $limitedanswerattributes,
+                                        'limitedanswer' => 'student');
 
                 } else {
                     // The User is a teacher.
@@ -1358,9 +1359,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                     // Build a html span that has the answer button and the help icon.
                     $limitedanswerobject = html_writer::tag('span', $answerbutton . '    ' . $helpicon);
 
-                    // Save the span in the commands with an extra key.
-                    $commands['limitedanswerteacher'] = array('text' => $limitedanswerobject,
-                                                              'attributes' => $limitedanswerattributes);
+                    // Save the span in the commands with an extra value.
+                    $commands[] = array('text' => $limitedanswerobject,
+                                        'attributes' => $limitedanswerattributes,
+                                        'limitedanswer' => 'teacher');
                 }
             } else {
                 $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
@@ -1512,9 +1514,9 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Output the commands.
     $commandhtml = array();
-    foreach ($commands as $key => $command) {
+    foreach ($commands as $command) {
         if (is_array($command)) {
-            if ($key == 'limitedanswerstudent' || $key == 'limitedanswerteacher') {
+            if (array_key_exists('limitedanswer', $command)) {
                 $commandhtml[] = html_writer::tag('span', $command['text'], $command['attributes'] ?? null);
             } else {
                 $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
