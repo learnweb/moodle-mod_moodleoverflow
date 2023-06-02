@@ -1585,7 +1585,6 @@ function get_attachments($post, $cm) {
     // We retrieve all files according to the time that they were created.  In the case that several files were uploaded
     // at the sametime (e.g. in the case of drag/drop upload) we revert to using the filename.
     $files = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $post->id, "filename", false);
-    var_dump($files);
     if ($files) {
         $i = 0;
         foreach ($files as $file) {

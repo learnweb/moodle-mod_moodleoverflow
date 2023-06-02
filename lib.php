@@ -409,9 +409,8 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
  * @param bool     $forcedownload whether or not force download
  * @param array    $options       additional options affecting the file serving
  */
-function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options = array()) {
+function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array()) {
     global $DB, $CFG;
-    var_dump("if context->contextlever");
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
     }
@@ -425,9 +424,8 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
         return false;
     }
 
-    $postid = (int) array_shift($args);
-    var_dump("post = getrecord");
-    if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
+
+    /*if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
         return false;
     }
     var_dump("discussion = record");
@@ -442,6 +440,10 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
     var_dump($args);
     var_dump("jetzt der rest");
     $itemid = array_shift($args);
+
+   */
+
+    $itemid = array_pop($args);
     $filename = array_pop($args);
     if (!$args) {
         // Empty path, use root.
@@ -450,22 +452,11 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
         // Assemble filepath.
         $filepath = '/' . implode('/', $args) . '/';
     }
-
     $fs = get_file_storage();
-    $relativepath = implode('/', $args);
-    /*$fullpath = "/$context->id/mod_moodleoverflow/$filearea/$postid/$relativepath";
-    if (!$file = $fs->get_file_by_hash(sha1($fullpath))||$file->is_directory()) {
-        return false;
-    }*/
-    var_dump("get file");
+
     $file = $fs->get_file($context->id, 'mod_moodleoverflow', $filearea, $itemid, $filepath, $filename);
-    var_dump($context->id);
-    var_dump($filearea);
-    var_dump($itemid);
-    var_dump($filepath);
-    var_dump($filename);
     // Make sure groups allow this user to see this file.
-    if ($discussion->groupid > 0) {
+    /*if ($discussion->groupid > 0) {
         $groupmode = groups_get_activity_groupmode($cm, $course);
         if ($groupmode == SEPARATEGROUPS) {
 
@@ -473,15 +464,15 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, array $arg
                 return false;
             }
         }
-    }
+    }*/
 
     // Make sure we're allowed to see it...
-    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
+  /*  if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
         return false;
-    }
+    }*/
 
     // Finally send the file.
-    send_stored_file($file, 86400, 0, $forcedownload, $options); // Download MUST be forced - security!
+    send_stored_file($file, 86400, 0, true, $options); // Download MUST be forced - security!
 }
 
 /* Navigation API */
