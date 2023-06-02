@@ -109,68 +109,14 @@ class userstats_table extends \flexible_table {
         $length = count($this->userstatsdata);
         if ($sortorder['sortorder'] == 4) {
             // 4 means sort in ascending order.
-            $this->quick_usertable_sort(0, $length - 1, $key, 'asc');
+            usort($this->userstatsdata, function ($a, $b) use ($key) {
+                return $a->$key - $b->$key;
+            });
         } else if ($sortorder['sortorder'] == 3) {
             // 3 means sort in descending order.
-            $this->quick_usertable_sort(0, $length - 1, $key, 'desc');
-        }
-    }
-
-    /**
-     * Sorts userstatsdata with quicksort algorithm.
-     *
-     * @param int    $low       index for quicksort.
-     * @param int    $high      index for quicksort.
-     * @param int    $key       the column that is being sorted (upvotes, downvotes etc.).
-     * @param string $order     sort in ascending or descending order.
-     *
-     * @return void
-     */
-    private function quick_usertable_sort($low, $high, $key, $order) {
-        if ($low >= $high) {
-            return;
-        }
-        $left = $low;
-        $right = $high;
-        $pivot = $this->userstatsdata[intval(($low + $high) / 2)];
-        $pivot = $pivot->$key;
-        do {
-            if ($order == 'asc') {
-                while ($this->userstatsdata[$left]->$key < $pivot) {
-                    $left++;
-                }
-                while ($this->userstatsdata[$right]->$key > $pivot) {
-                    $right--;
-                }
-            } else if ($order == 'desc') {
-                while ($this->userstatsdata[$left]->$key > $pivot) {
-                    $left++;
-                }
-                while ($this->userstatsdata[$right]->$key < $pivot) {
-                    $right--;
-                }
-            }
-            if ($left <= $right) {
-                $temp = $this->userstatsdata[$right];
-                $this->userstatsdata[$right] = $this->userstatsdata[$left];
-                $this->userstatsdata[$left] = $temp;
-                $right--;
-                $left++;
-            }
-        } while ($left <= $right);
-        if ($low < $right) {
-            if ($order == 'asc') {
-                $this->quick_usertable_sort($low, $right, $key, 'asc');
-            } else if ($order == 'desc') {
-                $this->quick_usertable_sort($low, $right, $key, 'desc');
-            }
-        }
-        if ($high > $left) {
-            if ($order == 'asc') {
-                $this->quick_usertable_sort($left, $high, $key, 'desc');
-            } else if ($order == 'desc') {
-                $this->quick_usertable_sort($left, $high, $key, 'desc');
-            }
+            usort($this->userstatsdata, function ($a, $b) use ($key) {
+                return $b->$key - $a->$key;
+            });
         }
     }
 
