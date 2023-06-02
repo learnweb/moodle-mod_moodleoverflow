@@ -206,10 +206,9 @@ $string['noguesttracking'] = 'Sorry, guests are not allowed to set tracking opti
 $string['userstatsupvotes'] = 'Received upvotes';
 $string['userstatsdownvotes'] = 'Received downvotes';
 $string['userstatsactivity'] = 'Amount of activity';
+$string['userstatsactivity_help'] = 'Each activity like writing a post, starting a discussion or giving a rating gives 1 point';
 $string['userstatsreputation'] = 'User reputation';
-$string['helpamountofactivity'] = 'Each activity like writing a post, starting a discussion or giving a rating gives 1 point';
-$string['showactivityhelp_desc'] = 'Each activity like writing a post, starting a discussion or giving a rating gives 1 point';
-$string['showuserreputationhelp_desc'] = 'Depending on the Moodleoverflow you selected you will see the course, ';
+$string['userstatsreputation_help'] = 'Depending on the Moodleoverflow you selected you will see the course, ';
 
 // OTHER.
 $string['messageprovider:posts'] = 'Notification of new posts';

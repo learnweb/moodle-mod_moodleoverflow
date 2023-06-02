@@ -51,12 +51,6 @@ class userstats_table extends \flexible_table {
     /** @var array table that will have objects with every user and his statistics. */
     private $userstatsdata = array();
 
-    /** @var \stdClass Help icon for amountofactivity-column.*/
-    private $helpactivity;
-
-    /** @var \stdClass Help icon for userreputation-column.*/
-    private $userreputationhelp;
-
     /**
      * Constructor for workflow_table.
      *
@@ -66,14 +60,11 @@ class userstats_table extends \flexible_table {
      * @param string $url The url of the table
      */
     public function __construct($uniqueid, $courseid, $moodleoverflow, $url) {
-        global $PAGE;
+        global $OUTPUT;
         parent::__construct($uniqueid);
-        $PAGE->requires->js_call_amd('mod_moodleoverflow/activityhelp', 'init');
 
         $this->courseid = $courseid;
         $this->moodleoverflowid = $moodleoverflow;
-        $this->create_helpicon('showactivityhelp', $this->helpactivity);
-        $this->create_helpicon('showuserreputationhelp', $this->userreputationhelp);
 
         $this->set_attribute('class', 'moodleoverflow-statistics-table');
         $this->set_attribute('id', $uniqueid);
@@ -82,8 +73,11 @@ class userstats_table extends \flexible_table {
         $this->define_headers([get_string('fullnameuser'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
                                get_string('userstatsdownvotes', 'moodleoverflow'),
-                               (get_string('userstatsactivity', 'moodleoverflow') . $this->helpactivity->object),
-                               get_string('userstatsreputation', 'moodleoverflow')]);
+                               get_string('userstatsactivity', 'moodleoverflow') . ' ' .
+                                    $OUTPUT->help_icon('userstatsactivity', 'moodleoverflow'),
+                               get_string('userstatsreputation', 'moodleoverflow') . ' ' .
+                                    $OUTPUT->help_icon('userstatsreputation', 'moodleoverflow')
+        ]);
         $this->get_table_data();
         $this->sortable(true, 'reputation', SORT_DESC);
         $this->no_sorting('username');
@@ -95,7 +89,6 @@ class userstats_table extends \flexible_table {
      * @return void
      */
     public function out() {
-        global $DB;
         $this->start_output();
         $this->sort_table_data($this->get_sort_order());
         $this->format_and_add_array_of_rows($this->userstatsdata, true);
@@ -267,33 +260,6 @@ class userstats_table extends \flexible_table {
      */
     public function get_usertable() {
         return $this->userstatsdata;
-    }
-
-    /**
-     * Setup the help icon for amount of activity
-     */
-    public function create_helpicon($action, &$helpactivity) {
-        global $CFG;
-        $helpactivity = new \stdClass();
-        $helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.png';
-        $helpactivity->icon = \html_writer::img($helpactivity->iconurl,
-                                                      get_string('helpamountofactivity', 'moodleoverflow'));
-        $helpactivity->class = $action . 'class btn btn-link';
-        $helpactivity->iconattributes = array('role' => 'button',
-                                                    'data-container' => 'body',
-                                                    'data-toggle' => 'popover',
-                                                    'data-placement' => 'right',
-                                                    'data-action' => $action,
-                                                    'data-html' => 'true',
-                                                    'data-trigger' => 'focus',
-                                                    'tabindex' => '0',
-                                                    'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
-                                                                      get_string($action . '_desc', 'moodleoverflow') .
-                                                                      '</p> </div>');
-
-        $helpactivity->object = \html_writer::span($helpactivity->icon,
-                                                         $helpactivity->class,
-                                                         $helpactivity->iconattributes);
     }
 
     // Functions that show the data.
