@@ -193,15 +193,18 @@ class userstats_table extends \flexible_table {
                             discuss.userid AS discussuserid,
                             posts.id AS postid,
                             posts.userid AS postuserid,
+                            posts.parent AS parentpostid,
                             ratings.rating AS rating,
                             ratings.userid AS rateuserid,
                             ratings.postid AS ratepostid,
                             discuss.id AS discussid,
                             posts.discussion AS postdiscussid,
-                            ratings.discussionid AS ratediscussid
+                            ratings.discussionid AS ratediscussid,
+                            moodleoverflow.anonymous AS anonymoussetting
                       FROM {moodleoverflow_discussions} discuss
                       LEFT JOIN {moodleoverflow_posts} posts ON discuss.id = posts.discussion
                       LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid
+                      LEFT JOIN {moodleoverflow} moodleoverflow ON discuss.moodleoverflow = moodleoverflow.id
                       WHERE discuss.course = ' . $this->courseid . ';';
         $ratingdata = $DB->get_records_sql($sqlquery);
 
@@ -219,20 +222,37 @@ class userstats_table extends \flexible_table {
             $student->activity = 0;
             $student->reputation = 0;
             foreach ($ratingdata as $row) {
+                // Is the rating from or for the current student?
                 if ($row->postuserid !== $student->id && $row->rateuserid !== $student->id) {
                     continue;
                 }
+                // Was the rated post written by the student and was it given an upvote?
                 if ($row->postuserid == $student->id && $row->rating == RATING_UPVOTE) {
                     $student->receivedupvotes += 1;
                 }
+                // Was the rated post written by the student and was it given an upvote?
                 if ($row->postuserid == $student->id && $row->rating == RATING_DOWNVOTE) {
                     $student->receiveddownvotes += 1;
                 }
-                if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts)) {
+                // Did a teacher rate a post as solution?
+                if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts)
+                    && $row->rating == RATING_SOLVED) {
                     $student->activity += 1;
                     $student->ratedposts[$row->rateid] = $row->rateid;
                 }
-                if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts)) {
+
+                // Did a student rate a post as helpful? Only count a helpful if the discussion is not anonymous
+                if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts)
+                    && ($row->rating == RATING_HELPFUL && $row->anonymoussetting == 0) || 
+                       ($row->rating == RATING_UPVOTE || $row->rating == RATING_DOWNVOTE)) {
+                    $student->activity += 1;
+                    $student->ratedposts[$row->rateid] = $row->rateid;
+                }
+
+                // Did the student write a post? Only count the writed post if:
+                // The post is not in an anonymous discussion or the post from the user that started the discussion in partially anonymous discussion. 
+                if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts)
+                    && (($row->anonymoussetting == 0) || ($row->anonymoussetting == 1 && $row->parentpostid !== 0))) {
                     $student->activity += 1;
                     $student->submittedposts[$row->postid] = $row->postid;
                 }
