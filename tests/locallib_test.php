@@ -173,5 +173,4 @@ class locallib_test extends advanced_testcase {
         }
     }
 
-
 }
