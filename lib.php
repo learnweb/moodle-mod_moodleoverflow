@@ -423,8 +423,8 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
         return false;
     }
 
-    $itemid = array_pop($args);
     $filename = array_pop($args);
+    $itemid = array_pop($args);
 
     // Check if post, discussion or moodleoverflow still exists.
     if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $itemid))) {
