@@ -418,12 +418,10 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
     require_course_login($course, true, $cm);
 
     $areas = moodleoverflow_get_file_areas($course, $cm, $context);
-    var_dump("if isset areas(filearea)");
     // Filearea must contain a real area.
     if (!isset($areas[$filearea])) {
         return false;
     }
-
 
     /*if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
         return false;
@@ -441,7 +439,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
     var_dump("jetzt der rest");
     $itemid = array_shift($args);
 
-   */
+    */
 
     $itemid = array_pop($args);
     $filename = array_pop($args);
@@ -467,7 +465,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
     }*/
 
     // Make sure we're allowed to see it...
-  /*  if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
+    /*  if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
         return false;
     }*/
 

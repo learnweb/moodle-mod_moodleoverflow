@@ -1595,7 +1595,7 @@ function get_attachments($post, $cm) {
             $iconimage = $OUTPUT->pix_icon(file_file_icon($file),
                 get_mimetype_description($file), 'moodle',
                 array('class' => 'icon'));
-            $path =  moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(),
+            $path = moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(),
                                                      $file->get_itemid(), $file->get_filepath(), $file->get_filename());
 
             $attachments[$i]['icon'] = $iconimage;
