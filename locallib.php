@@ -1850,6 +1850,13 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             // Delete the read records.
             \mod_moodleoverflow\readtracking::moodleoverflow_delete_read_records(-1, $post->id);
 
+            // Delete the attachments.
+            try {
+                $DB->delete_records('files', array('itemid' => $post->id));
+            } catch (Exception $e) {
+                $e->getMessage();
+            }
+
             // Just in case, check for the new last post of the discussion.
             moodleoverflow_discussion_update_last_post($post->discussion);
 

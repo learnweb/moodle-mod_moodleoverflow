@@ -423,26 +423,20 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
         return false;
     }
 
-    /*if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $postid))) {
+    $itemid = array_pop($args);
+    $filename = array_pop($args);
+
+    // Check if post, discussion or moodleoverflow still exists.
+    if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $itemid))) {
         return false;
     }
-    var_dump("discussion = record");
     if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
         return false;
     }
-    var_dump("moodlevoerflow = record");
     if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $cm->instance))) {
         return false;
     }
-    var_dump("hier kommen die arsg");
-    var_dump($args);
-    var_dump("jetzt der rest");
-    $itemid = array_shift($args);
 
-    */
-
-    $itemid = array_pop($args);
-    $filename = array_pop($args);
     if (!$args) {
         // Empty path, use root.
         $filepath = '/';
@@ -453,8 +447,9 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
     $fs = get_file_storage();
 
     $file = $fs->get_file($context->id, 'mod_moodleoverflow', $filearea, $itemid, $filepath, $filename);
+
     // Make sure groups allow this user to see this file.
-    /*if ($discussion->groupid > 0) {
+    if ($discussion->groupid > 0) {
         $groupmode = groups_get_activity_groupmode($cm, $course);
         if ($groupmode == SEPARATEGROUPS) {
 
@@ -462,12 +457,12 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
                 return false;
             }
         }
-    }*/
+    }
 
     // Make sure we're allowed to see it...
-    /*  if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
+    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
         return false;
-    }*/
+    }
 
     // Finally send the file.
     send_stored_file($file, 86400, 0, true, $options); // Download MUST be forced - security!
