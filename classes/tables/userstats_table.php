@@ -193,7 +193,6 @@ class userstats_table extends \flexible_table {
                             discuss.userid AS discussuserid,
                             posts.id AS postid,
                             posts.userid AS postuserid,
-                            posts.parent AS parentpostid,
                             ratings.rating AS rating,
                             ratings.userid AS rateuserid,
                             ratings.postid AS ratepostid,
@@ -215,11 +214,11 @@ class userstats_table extends \flexible_table {
             $student->name = $user->firstname . ' ' . $user->lastname;
             $linktostudent = new \moodle_url('/user/view.php', array('id' => $student->id, 'course' => $this->courseid));
             $student->link = \html_writer::link($linktostudent->out(), $student->name);
-            $student->submittedposts = array(); // Key = postid, Value = postid.
-            $student->ratedposts = array();     // Key = rateid, Value = rateid.
+            $student->submittedposts = array(); // Posts written by the student. Key = postid, Value = postid.
+            $student->ratedposts = array();     // Posts that the student rated. Key = rateid, Value = rateid.
             $student->receivedupvotes = 0;
             $student->receiveddownvotes = 0;
-            $student->activity = 0;
+            $student->activity = 0;             // Number of written posts and submitted ratings.
             $student->reputation = 0;
             foreach ($ratingdata as $row) {
                 // Is the rating from or for the current student?
@@ -234,25 +233,20 @@ class userstats_table extends \flexible_table {
                 if ($row->postuserid == $student->id && $row->rating == RATING_DOWNVOTE) {
                     $student->receiveddownvotes += 1;
                 }
-                // Did a teacher rate a post as solution?
+                // Did a student/teacher submit a helpful/solution mark?
+                // For solution marks: only count a solution if the discussion is not completely anonymous.
+                // For helpful makrs: only count helpful marks if the discussion is not any kind of anonymous.
                 if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts)
-                    && $row->rating == RATING_SOLVED) {
+                    && ((($row->rating == RATING_SOLVED) && ($row->anonymoussetting != 1)) ||
+                        (($row->rating == RATING_HELPFUL) && ($row->anonymoussetting == 0)))) {
                     $student->activity += 1;
                     $student->ratedposts[$row->rateid] = $row->rateid;
                 }
-
-                // Did a student rate a post as helpful? Only count a helpful if the discussion is not anonymous
-                if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts)
-                    && ($row->rating == RATING_HELPFUL && $row->anonymoussetting == 0) || 
-                       ($row->rating == RATING_UPVOTE || $row->rating == RATING_DOWNVOTE)) {
-                    $student->activity += 1;
-                    $student->ratedposts[$row->rateid] = $row->rateid;
-                }
-
-                // Did the student write a post? Only count the writed post if:
-                // The post is not in an anonymous discussion or the post from the user that started the discussion in partially anonymous discussion. 
+                // Did the student write a post? Only count a written post if: the post is not in an anonymous discussion;
+                // or the post is in a partial anonymous discussion and the user is not the starter of the discussion.
                 if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts)
-                    && (($row->anonymoussetting == 0) || ($row->anonymoussetting == 1 && $row->parentpostid !== 0))) {
+                    && (($row->anonymoussetting == 0) ||
+                        ($row->anonymoussetting == 2 && $row->postuserid != $row->discussuserid))) {
                     $student->activity += 1;
                     $student->submittedposts[$row->postid] = $row->postid;
                 }
