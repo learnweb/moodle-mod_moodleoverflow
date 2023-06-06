@@ -148,7 +148,7 @@ class userstats_test extends \advanced_testcase {
         $data = $this->create_statstable();
         foreach ($data as $student) {
             if ($student->id == $this->user1->id) {
-                $activity = $student->activity;
+                $activity = $student->forumactivity;
             }
         }
         $this->assertEquals(5, $activity);
@@ -165,13 +165,13 @@ class userstats_test extends \advanced_testcase {
         $this->create_downvote($this->user1, $this->discussion2[1], $this->post2);
         $this->create_solution($this->teacher, $this->discussion1[1], $this->answer1);
 
-        // Calculate the reputation of user2.
-        $reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($this->moodleoverflow->id, $this->user2->id);
+        // Calculate the forum reputation of user2.
+        $reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation_instance($this->moodleoverflow->id, $this->user2->id);
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
         foreach ($data as $student) {
             if ($student->id == $this->user2->id) {
-                $reputation2 = $student->reputation;
+                $reputation2 = $student->forumreputation;
             }
         }
         $this->assertEquals($reputation, $reputation2);

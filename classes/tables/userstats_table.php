@@ -28,6 +28,7 @@ namespace mod_moodleoverflow\tables;
 
 defined('MOODLE_INTERNAL') || die();
 
+use mod_moodleoverflow\ratings;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 require_once($CFG->libdir . '/tablelib.php');
 
@@ -71,15 +72,23 @@ class userstats_table extends \flexible_table {
 
         $this->set_attribute('class', 'moodleoverflow-statistics-table');
         $this->set_attribute('id', $uniqueid);
-        $this->define_columns(['username', 'receivedupvotes', 'receiveddownvotes', 'activity', 'reputation']);
+        $this->define_columns(['username',
+                               'receivedupvotes',
+                               'receiveddownvotes',
+                               'forumactivity',
+                               'courseactivity',
+                               'forumreputation',
+                               'coursereputation']);
         $this->define_baseurl($url);
         $this->define_headers([get_string('fullnameuser'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
                                get_string('userstatsdownvotes', 'moodleoverflow'),
-                               (get_string('userstatsactivity', 'moodleoverflow') . $this->helpactivity->object),
-                               get_string('userstatsreputation', 'moodleoverflow')]);
+                               (get_string('userstatsforumactivity', 'moodleoverflow') . $this->helpactivity->object),
+                               (get_string('userstatscourseactivity', 'moodleoverflow') . $this->helpactivity->object),
+                               get_string('userstatsforumreputation', 'moodleoverflow'),
+                               get_string('userstatscoursereputation', 'moodleoverflow')]);
         $this->get_table_data();
-        $this->sortable(true, 'reputation', SORT_DESC);
+        $this->sortable(true, 'coursereputation', SORT_DESC);
         $this->no_sorting('username');
         $this->setup();
     }
@@ -93,7 +102,7 @@ class userstats_table extends \flexible_table {
         $this->start_output();
         $this->sort_table_data($this->get_sort_order());
         $this->format_and_add_array_of_rows($this->userstatsdata, true);
-        $this->text_sorting('reputation');
+        $this->text_sorting('coursereputation');
         $this->finish_output();
     }
 
@@ -168,7 +177,7 @@ class userstats_table extends \flexible_table {
         }
         if ($high > $left) {
             if ($order == 'asc') {
-                $this->quick_usertable_sort($left, $high, $key, 'desc');
+                $this->quick_usertable_sort($left, $high, $key, 'asc');
             } else if ($order == 'desc') {
                 $this->quick_usertable_sort($left, $high, $key, 'desc');
             }
@@ -189,17 +198,16 @@ class userstats_table extends \flexible_table {
 
         // Step 1.0: Build the datatable with all relevant Informations.
         $sqlquery = 'SELECT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,
-                            ratings.id AS rateid,
+                            discuss.id AS discussid,
                             discuss.userid AS discussuserid,
                             posts.id AS postid,
                             posts.userid AS postuserid,
+                            ratings.id AS rateid,
                             ratings.rating AS rating,
                             ratings.userid AS rateuserid,
                             ratings.postid AS ratepostid,
-                            discuss.id AS discussid,
-                            posts.discussion AS postdiscussid,
-                            ratings.discussionid AS ratediscussid,
-                            moodleoverflow.anonymous AS anonymoussetting
+                            moodleoverflow.anonymous AS anonymoussetting,
+                            moodleoverflow.id AS moodleoverflowid
                       FROM {moodleoverflow_discussions} discuss
                       LEFT JOIN {moodleoverflow_posts} posts ON discuss.id = posts.discussion
                       LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid
@@ -218,42 +226,60 @@ class userstats_table extends \flexible_table {
             $student->ratedposts = array();     // Posts that the student rated. Key = rateid, Value = rateid.
             $student->receivedupvotes = 0;
             $student->receiveddownvotes = 0;
-            $student->activity = 0;             // Number of written posts and submitted ratings.
-            $student->reputation = 0;
+            $student->forumactivity = 0;             // Number of written posts and submitted ratings in the current moodleoverflow.
+            $student->courseactivity = 0;            // Number of written posts and submitted ratings in the course.
+            $student->forumreputation = 0;           // Reputation in the current moodleoverflow.
+            $student->coursereputation = 0;          // Reputation in the course.
+
             foreach ($ratingdata as $row) {
                 // Is the rating from or for the current student?
                 if ($row->postuserid !== $student->id && $row->rateuserid !== $student->id) {
                     continue;
                 }
-                // Was the rated post written by the student and was it given an upvote?
-                if ($row->postuserid == $student->id && $row->rating == RATING_UPVOTE) {
-                    $student->receivedupvotes += 1;
+
+                // Did the student receive an up- or downvote?
+                // Only count if the discussion is not anonymous or if the user is not starter of the discussion.
+                if ($row->postuserid == $student->id &&
+                   (($row->anonymoussetting == 0) || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
+                    if ($row->rating == RATING_UPVOTE) {
+                        $student->receivedupvotes += 1;
+                    } else if ($row->rating == RATING_DOWNVOTE) {
+                        $student->receiveddownvotes += 1;
+                    }
                 }
-                // Was the rated post written by the student and was it given an upvote?
-                if ($row->postuserid == $student->id && $row->rating == RATING_DOWNVOTE) {
-                    $student->receiveddownvotes += 1;
-                }
-                // Did a student/teacher submit a helpful/solution mark?
+
+                // Did a student submit a rating?
                 // For solution marks: only count a solution if the discussion is not completely anonymous.
                 // For helpful makrs: only count helpful marks if the discussion is not any kind of anonymous.
-                if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts)
-                    && ((($row->rating == RATING_SOLVED) && ($row->anonymoussetting != 1)) ||
-                        (($row->rating == RATING_HELPFUL) && ($row->anonymoussetting == 0)))) {
-                    $student->activity += 1;
+                // Up and downvotes are always counted.
+                if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts) &&
+                    (($row->rating == RATING_SOLVED && $row->anonymoussetting != 2) ||
+                     ($row->rating == RATING_HELPFUL && $row->anonymoussetting == 0) ||
+                     ($row->rating == RATING_UPVOTE) ||
+                     ($row->rating == RATING_DOWNVOTE))) {
+
+                    if ($row->moodleoverflowid == $this->moodleoverflowid) {
+                        $student->forumactivity += 1;
+                    }
+                    $student->courseactivity += 1;
                     $student->ratedposts[$row->rateid] = $row->rateid;
                 }
+
                 // Did the student write a post? Only count a written post if: the post is not in an anonymous discussion;
                 // or the post is in a partial anonymous discussion and the user is not the starter of the discussion.
-                if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts)
-                    && (($row->anonymoussetting == 0) ||
-                        ($row->anonymoussetting == 2 && $row->postuserid != $row->discussuserid))) {
-                    $student->activity += 1;
+                if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts) &&
+                    ($row->anonymoussetting == 0 || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
+
+                    if ($row->moodleoverflowid == $this->moodleoverflowid) {
+                        $student->forumactivity += 1;
+                    }
+                    $student->courseactivity += 1;
                     $student->submittedposts[$row->postid] = $row->postid;
                 }
             }
             // Get the user reputation from the course.
-            $student->reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($this->moodleoverflowid,
-                                                                                              $student->id);
+            $student->forumreputation = ratings::moodleoverflow_get_reputation_instance($this->moodleoverflowid, $student->id);
+            $student->coursereputation = ratings::moodleoverflow_get_reputation_course($this->courseid, $student->id);
             array_push($this->userstatsdata, $student);
         }
     }
@@ -334,35 +360,64 @@ class userstats_table extends \flexible_table {
     }
 
     /**
-     * activity column
+     * Forum activity column
      * @param object $row
      * @return string
      */
-    public function col_activity($row) {
-        if ($row->activity > 0) {
+    public function col_forumactivity($row) {
+        if ($row->forumactivity > 0) {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
-                   $row->activity . \html_writer::end_span());
+                   $row->forumactivity . \html_writer::end_span());
         } else {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
-                   $row->activity . \html_writer::end_span());
+                   $row->forumactivity . \html_writer::end_span());
         }
     }
 
     /**
-     * reputation column
+     * Forum reputation column
      * @param object $row
      * @return string
      */
-    public function col_reputation($row) {
-        if ($row->reputation > 0) {
+    public function col_forumreputation($row) {
+        if ($row->forumreputation > 0) {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
-                   $row->reputation . \html_writer::end_span());
+                   $row->forumreputation . \html_writer::end_span());
         } else {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
-                   $row->reputation . \html_writer::end_span());
+                   $row->forumreputation . \html_writer::end_span());
         }
     }
 
+    /**
+     * Course activity column
+     * @param object $row
+     * @return string
+     */
+    public function col_courseactivity($row) {
+        if ($row->courseactivity > 0) {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
+                   $row->courseactivity . \html_writer::end_span());
+        } else {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
+                   $row->courseactivity . \html_writer::end_span());
+        }
+    }
+
+    /**
+     * Course reputation column
+     * @param object $row
+     * @return string
+     */
+    public function col_coursereputation($row) {
+        if ($row->coursereputation > 0) {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
+                   $row->coursereputation . \html_writer::end_span());
+        } else {
+            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
+                   $row->coursereputation . \html_writer::end_span());
+        }
+    }
     /**
      * error handling
      * @param object $colname
