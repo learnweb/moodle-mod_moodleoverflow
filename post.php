@@ -113,6 +113,9 @@ if (!isloggedin() || isguestuser()) {
     $PAGE->set_title($course->shortname);
     $PAGE->set_heading($course->fullname);
 
+    // The page should not be large, only pages containing broad tables are usually.
+    $PAGE->add_body_class('limitedwidth');
+
     // The guest needs to login.
     echo $OUTPUT->header();
     $strlogin = get_string('noguestpost', 'forum') . '<br /><br />' . get_string('liketologin');
@@ -423,6 +426,9 @@ if (!empty($moodleoverflow)) {
         $PAGE->navbar->add(get_string('delete', 'moodleoverflow'));
         $PAGE->set_title($course->shortname);
         $PAGE->set_heading($course->fullname);
+
+        // The page should not be large, only pages containing broad tables are usually.
+        $PAGE->add_body_class('limitedwidth');
 
         // Check if there are replies for the post.
         if ($replycount) {
@@ -772,6 +778,9 @@ $toppost->subject = get_string("addanewdiscussion", "moodleoverflow");
 // Initiate the page.
 $PAGE->set_title("$course->shortname: $moodleoverflow->name " . format_string($toppost->subject));
 $PAGE->set_heading($course->fullname);
+
+// The page should not be large, only pages containing broad tables are usually.
+$PAGE->add_body_class('limitedwidth');
 
 // Display the header.
 echo $OUTPUT->header();

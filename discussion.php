@@ -35,6 +35,9 @@ $ratedpost = optional_param('rp', 0, PARAM_INT);
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d));
 
+// The page should not be large, only pages containing broad tables are usually.
+$PAGE->add_body_class('limitedwidth');
+
 // Check if the discussion is valid.
 if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
     throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
