@@ -59,6 +59,7 @@ $string['moodleoverflow:movetopic'] = 'Move Topic to another Moddleoverflow Foru
 
 // Strings for the view.php.
 $string['noviewdiscussionspermission'] = 'You do not have the permission to view discussions in this forum';
+$string['lastpost'] = 'Last post';
 
 // Strings for the locallib.php.
 $string['addanewdiscussion'] = 'Add a new discussion topic';
