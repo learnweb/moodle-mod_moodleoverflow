@@ -36,6 +36,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @package mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \userstats_table
  */
 class userstats_test extends \advanced_testcase {
 
@@ -107,11 +109,7 @@ class userstats_test extends \advanced_testcase {
 
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        foreach ($data as $student) {
-            if ($student->id == $this->user2->id) {
-                $upvotes = $student->receivedupvotes;
-            }
-        }
+        $upvotes = $this->get_specific_userstats($data, $this->user2, 'receivedupvotes');
         $this->assertEquals(1, $upvotes);
     }
 
@@ -125,11 +123,7 @@ class userstats_test extends \advanced_testcase {
 
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        foreach ($data as $student) {
-            if ($student->id == $this->user1->id) {
-                $downvotes = $student->receiveddownvotes;
-            }
-        }
+        $downvotes = $this->get_specific_userstats($data, $this->user1, 'receiveddownvotes');
         $this->assertEquals(1, $downvotes);
     }
 
@@ -146,11 +140,7 @@ class userstats_test extends \advanced_testcase {
         // Activity = 5.
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        foreach ($data as $student) {
-            if ($student->id == $this->user1->id) {
-                $activity = $student->forumactivity;
-            }
-        }
+        $activity = $this->get_specific_userstats($data, $this->user1, 'forumactivity');
         $this->assertEquals(5, $activity);
 
     }
@@ -166,15 +156,117 @@ class userstats_test extends \advanced_testcase {
         $this->create_solution($this->teacher, $this->discussion1[1], $this->answer1);
 
         // Calculate the forum reputation of user2.
-        $reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation_instance($this->moodleoverflow->id, $this->user2->id);
+        $reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation_instance($this->moodleoverflow->id,
+                                                                                          $this->user2->id);
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        foreach ($data as $student) {
-            if ($student->id == $this->user2->id) {
-                $reputation2 = $student->forumreputation;
-            }
-        }
+        $reputation2 = $this->get_specific_userstats($data, $this->user2, 'forumreputation');
         $this->assertEquals($reputation, $reputation2);
+    }
+
+    /**
+     * Test, if userstats are calculated correctly if the moodleoverflow is partially anonymous.
+     * @covers \userstats_table
+     */
+    public function test_partial_anonymous() {
+        global $DB;
+        // Test case: Only topic startes are anonymous.
+        $this->make_anonymous(1);
+
+        // Get the current userstats to compare later.
+        $olduserstats = $this->create_statstable();
+        $oldreceivedupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
+        $oldreceiveddownvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receiveddownvotes');
+        $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'forumactivity');
+
+        $oldreceivedupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
+        $oldreceiveddownvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receiveddownvotes');
+        $oldactivityuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'forumactivity');
+
+        // User1 starts a new discussion, the forum activity shouldn't change.
+        $discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->user1);
+        $starterpost = $DB->get_record('moodleoverflow_posts', array('id' => $discussion[0]->firstpost), '*');
+        $newuserstats = $this->create_statstable();
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $this->assertEquals($oldactivityuser1, $newactivityuser1);
+
+        // User2 now gives an answer to user1, his activity should change.
+        $answeruser2 = $this->generator->reply_to_post($discussion[1], $this->user2, true);
+        $newuserstats = $this->create_statstable();
+        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'forumactivity');
+        $this->assertEquals($oldactivityuser2 + 1, $newactivityuser2);
+        $oldactivityuser2 = $newactivityuser2;  // Update it for further comparisons.
+
+        // User1 rates the answer from user2 as helpful an gives it an upvote.
+        // The activity of user1 should only change when he gives an upvote.
+        // The received upvotes from user2 should change.
+        $this->create_helpful($this->user1, $discussion[1], $answeruser2);
+        $newuserstats = $this->create_statstable();
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $this->assertEquals($oldactivityuser1, $newactivityuser1);
+
+        $this->create_upvote($this->user1, $discussion[1], $answeruser2);
+        $newuserstats = $this->create_statstable();
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $newreceivedupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'receivedupvotes');
+        $this->assertEquals($oldactivityuser1 + 1, $newactivityuser1);
+        $this->assertEquals($oldreceivedupvotesuser2 + 1, $newreceivedupvotesuser2);
+
+        // User2 gives the discussion starter post an upvote. #
+        // Activity of User2 should change, the receivedupvotes from user1 shouln't change.
+        $this->create_upvote($this->user2, $discussion[1], $starterpost);
+        $newuserstats = $this->create_statstable();
+        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'forumactivity');
+        $newreceivedupvotesuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'receivedupvotes');
+        $this->assertEquals($oldactivityuser2 + 1, $newactivityuser2);
+        $this->assertEquals($oldreceivedupvotesuser1, $newreceivedupvotesuser1);
+    }
+
+    /**
+     * Test, if userstats are calculated correctly if the moodleoverflow is partially anonymous.
+     * @covers \userstats_table
+     */
+    public function test_total_anonymous() {
+        global $DB;
+        // Test case: Only topic startes are anonymous.
+        $this->make_anonymous(2);
+
+        // Get the current userstats to compare later.
+        $olduserstats = $this->create_statstable();
+        $oldreceivedupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
+        $oldreceiveddownvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receiveddownvotes');
+        $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'forumactivity');
+
+        $oldreceivedupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
+        $oldreceiveddownvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receiveddownvotes');
+        $oldactivityuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'forumactivity');
+
+        // User1 starts a new discussion, the forum activity shouldn't change.
+        $discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->user1);
+        $newuserstats = $this->create_statstable();
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $this->assertEquals($oldactivityuser1, $newactivityuser1);
+
+        // User2 now gives an answer to user1, his activity shouldn't change.
+        $answeruser2 = $this->generator->reply_to_post($discussion[1], $this->user2, true);
+        $newuserstats = $this->create_statstable();
+        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'forumactivity');
+        $this->assertEquals($oldactivityuser2, $newactivityuser2);
+
+        // User1 rates the answer from user2 as helpful an gives it an upvote.
+        // The activity of user1 should only change when he gives an upvote.
+        // User2 received upvotes should not change.
+        $this->create_helpful($this->user1, $discussion[1], $answeruser2);
+        $newuserstats = $this->create_statstable();
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $this->assertEquals($oldactivityuser1, $newactivityuser1);
+
+        $this->create_upvote($this->user1, $discussion[1], $answeruser2);
+        $newuserstats = $this->create_statstable();
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $newreceivedupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'receivedupvotes');
+        $this->assertEquals($oldactivityuser1 + 1, $newactivityuser1);
+        $this->assertEquals($oldreceivedupvotesuser2, $newreceivedupvotesuser2);
     }
 
     // Helper functions.
@@ -212,6 +304,23 @@ class userstats_test extends \advanced_testcase {
         $this->answer2 = $this->generator->reply_to_post($this->discussion2[1], $this->user1, true);
     }
 
+    /**
+     * Makes the existing moodleoverflow anonymous.
+     * There are 2 types of anonymous moodleoverflows:
+     * anonymous = 1, the topic starter is anonymous
+     * anonymous = 2, all users are anonym
+     *
+     * @param int $anonymoussetting
+     */
+    private function make_anonymous($anonymoussetting) {
+        global $DB;
+        if ($anonymoussetting == 1 || $anonymoussetting == 2) {
+            $this->moodleoverflow->anonymous = $anonymoussetting;
+            $DB->update_record('moodleoverflow', $this->moodleoverflow);
+        } else {
+            throw new \Exception('invalid parameter, anonymoussetting should be 1 or 2');
+        }
+    }
 
     /**
      * Create a usertable and return it.
@@ -311,5 +420,37 @@ class userstats_test extends \advanced_testcase {
             'lastchanged' => time()
         ];
         return $this->generator->create_rating($record);
+    }
+
+    /**
+     * Return a specific value from the userstatstable.
+     *
+     * @param array     $statstable
+     * @param object    $user
+     * @param string    $stats          // A key that specifies which value should be returned.
+     */
+    private function get_specific_userstats($statstable, $user, $stats) {
+        foreach ($statstable as $student) {
+            if ($student->id == $user->id) {
+                switch ($stats) {
+                    case 'receivedupvotes':
+                        $result = $student->receivedupvotes;
+                        break;
+                    case 'receiveddownvotes':
+                        $result = $student->receiveddownvotes;
+                        break;
+                    case 'forumactivity':
+                        $result = $student->forumactivity;
+                        break;
+                    case 'forumreputation':
+                        $result = $student->forumreputation;
+                        break;
+                    default:
+                        throw new \Exception('parameter unknown');
+                        break;
+                }
+            }
+        }
+        return $result;
     }
 }

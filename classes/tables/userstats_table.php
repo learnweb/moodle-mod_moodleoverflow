@@ -250,7 +250,7 @@ class userstats_table extends \flexible_table {
 
                 // Did a student submit a rating?
                 // For solution marks: only count a solution if the discussion is not completely anonymous.
-                // For helpful makrs: only count helpful marks if the discussion is not any kind of anonymous.
+                // For helpful marks: only count helpful marks if the discussion is not any kind of anonymous.
                 // Up and downvotes are always counted.
                 if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts) &&
                     (($row->rating == RATING_SOLVED && $row->anonymoussetting != 2) ||
