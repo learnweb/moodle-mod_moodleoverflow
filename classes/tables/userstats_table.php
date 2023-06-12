@@ -98,7 +98,6 @@ class userstats_table extends \flexible_table {
      * @return void
      */
     public function out() {
-        global $DB;
         $this->start_output();
         $this->sort_table_data($this->get_sort_order());
         $this->format_and_add_array_of_rows($this->userstatsdata, true);
@@ -194,7 +193,7 @@ class userstats_table extends \flexible_table {
         global $DB;
         // Get all userdata from a course.
         $context = \context_course::instance($this->courseid);
-        $users = get_enrolled_users($context , '',  0, $userfields = 'u.id, u.firstname, u.lastname');
+        $users = get_enrolled_users($context , '',  0, 'u.id, u.firstname, u.lastname');
 
         // Step 1.0: Build the datatable with all relevant Informations.
         $sqlquery = 'SELECT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,

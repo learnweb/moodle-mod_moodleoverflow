@@ -175,12 +175,10 @@ class userstats_test extends \advanced_testcase {
 
         // Get the current userstats to compare later.
         $olduserstats = $this->create_statstable();
-        $oldreceivedupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
-        $oldreceiveddownvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receiveddownvotes');
+        $oldupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
         $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'forumactivity');
 
-        $oldreceivedupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
-        $oldreceiveddownvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receiveddownvotes');
+        $oldupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
         $oldactivityuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'forumactivity');
 
         // User1 starts a new discussion, the forum activity shouldn't change.
@@ -208,18 +206,18 @@ class userstats_test extends \advanced_testcase {
         $this->create_upvote($this->user1, $discussion[1], $answeruser2);
         $newuserstats = $this->create_statstable();
         $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
-        $newreceivedupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'receivedupvotes');
+        $newupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'receivedupvotes');
         $this->assertEquals($oldactivityuser1 + 1, $newactivityuser1);
-        $this->assertEquals($oldreceivedupvotesuser2 + 1, $newreceivedupvotesuser2);
+        $this->assertEquals($oldupvotesuser2 + 1, $newupvotesuser2);
 
         // User2 gives the discussion starter post an upvote. #
         // Activity of User2 should change, the receivedupvotes from user1 shouln't change.
         $this->create_upvote($this->user2, $discussion[1], $starterpost);
         $newuserstats = $this->create_statstable();
         $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'forumactivity');
-        $newreceivedupvotesuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'receivedupvotes');
+        $newupvotesuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'receivedupvotes');
         $this->assertEquals($oldactivityuser2 + 1, $newactivityuser2);
-        $this->assertEquals($oldreceivedupvotesuser1, $newreceivedupvotesuser1);
+        $this->assertEquals($oldupvotesuser1, $newupvotesuser1);
     }
 
     /**
@@ -227,18 +225,15 @@ class userstats_test extends \advanced_testcase {
      * @covers \userstats_table
      */
     public function test_total_anonymous() {
-        global $DB;
         // Test case: Only topic startes are anonymous.
         $this->make_anonymous(2);
 
         // Get the current userstats to compare later.
         $olduserstats = $this->create_statstable();
-        $oldreceivedupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
-        $oldreceiveddownvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receiveddownvotes');
+        $oldupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
         $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'forumactivity');
 
-        $oldreceivedupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
-        $oldreceiveddownvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receiveddownvotes');
+        $oldupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
         $oldactivityuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'forumactivity');
 
         // User1 starts a new discussion, the forum activity shouldn't change.
@@ -264,9 +259,9 @@ class userstats_test extends \advanced_testcase {
         $this->create_upvote($this->user1, $discussion[1], $answeruser2);
         $newuserstats = $this->create_statstable();
         $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
-        $newreceivedupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'receivedupvotes');
+        $newupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'receivedupvotes');
         $this->assertEquals($oldactivityuser1 + 1, $newactivityuser1);
-        $this->assertEquals($oldreceivedupvotesuser2, $newreceivedupvotesuser2);
+        $this->assertEquals($oldupvotesuser2, $newupvotesuser2);
     }
 
     // Helper functions.
