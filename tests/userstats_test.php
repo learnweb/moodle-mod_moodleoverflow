@@ -210,7 +210,7 @@ class userstats_test extends \advanced_testcase {
         $this->assertEquals($oldactivityuser1 + 1, $newactivityuser1);
         $this->assertEquals($oldupvotesuser2 + 1, $newupvotesuser2);
 
-        // User2 gives the discussion starter post an upvote. #
+        // User2 gives the discussion starter post an upvote.
         // Activity of User2 should change, the receivedupvotes from user1 shouln't change.
         $this->create_upvote($this->user2, $discussion[1], $starterpost);
         $newuserstats = $this->create_statstable();
@@ -388,7 +388,7 @@ class userstats_test extends \advanced_testcase {
             'discussionid' => $discussion->id,
             'userid' => $author->id,
             'postid' => $post->id,
-            'rating' => 3,
+            'rating' => 4,
             'firstrated' => time(),
             'lastchanged' => time()
         ];
@@ -410,7 +410,7 @@ class userstats_test extends \advanced_testcase {
             'discussionid' => $discussion->id,
             'userid' => $author->id,
             'postid' => $post->id,
-            'rating' => 4,
+            'rating' => 3,
             'firstrated' => time(),
             'lastchanged' => time()
         ];
