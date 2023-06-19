@@ -54,7 +54,7 @@ $context = context_module::instance($cm->id);
 $PAGE->set_context($context);
 
 // Do a capability check, in case a user iserts the userstats-url manually.
-if (has_capability('mod/moodleoverflow:viewanyrating', $context)) {
+if (has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('moodleoverflow', 'showuserstats')) {
     // Print the page header.
     $PAGE->set_url('/mod/moodleoverflow/userstats.php', array('id' => $cm->id,
     'courseid' => $course->id, 'mid' => $moodleoverflow->id));
@@ -65,6 +65,9 @@ if (has_capability('mod/moodleoverflow:viewanyrating', $context)) {
     echo $OUTPUT->header();
     echo $OUTPUT->heading('');
     $table = new userstats_table('statisticstable' , $course->id, $moodleoverflow->id, $PAGE->url);
-    echo $table->out();
+    $table->out();
     echo $OUTPUT->footer();
+} else {
+    redirect(new moodle_url('/'));
 }
+
