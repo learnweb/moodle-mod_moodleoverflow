@@ -79,10 +79,9 @@ class post {
      *   - get_all_discussion_posts, da ein post nicht weitere posts in seiner umgebung kennt (außer seinen Elternpost)
      *   - print_post_nested, auch hier der gleiche grund, außerdem ruft print_post_nested auch nur print_posts_nested und geht zum nächsten Post
      *   - count_replies, da hier eine sammlung von posts abgeprüft wird.
-     *   - vielleicht auch noch add_discussion()
-     * 
-     * 
-     * 
+     *   - add_discussion() bleibt in der locallib, da hier nur die construct methode (add_new_post()) aufgerufen wird.
+     *
+     *
      * Wie funktionieren post.php und classes/post_form.php? 
      * 
      * post.php:
