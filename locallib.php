@@ -1852,7 +1852,35 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
 
             // Delete the attachments.
             try {
+                // First delete the actual files on the disk.
+                $fs = get_file_storage();
+                $context = context_module::instance($cm->id);
+                $attachments = get_attachments($post, $cm);
+
+                foreach ($attachments as $attachment) {
+                    // Prepare file record object
+                    $fileinfo = array(
+                        'component' => 'mod_moodleoverflow',        // Your component name.
+                        'filearea' => 'attachment',                 // Usually = table name
+                        'itemid' => $post->id,                      // Usually = ID of row in table
+                        'contextid' => $context->id,                // ID of context
+                        'filepath' => $attachment['filepath'],      // Any path beginning and ending in /
+                        'filename' => $attachment['filename']       // Any filename
+                    );
+
+                    // Get file
+                    $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'],
+                            $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
+
+                    // Delete it if it exists
+                    if ($file) {
+                        $file->delete();
+                    }
+                }
+
+                // Then delete the entry the database.
                 $DB->delete_records('files', array('itemid' => $post->id));
+
             } catch (Exception $e) {
                 $e->getMessage();
             }
