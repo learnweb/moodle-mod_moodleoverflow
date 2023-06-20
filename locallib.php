@@ -1857,20 +1857,9 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
                 $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $post->id, "filename", false);
 
                 foreach ($attachments as $attachment) {
-                    // Prepare file record object
-                    $fileinfo = array(
-                        'component' => 'mod_moodleoverflow',            // Your component name.
-                        'filearea' => 'attachment',                     // Usually = table name
-                        'itemid' => $post->id,                          // Usually = ID of row in table
-                        'contextid' => $context->id,                    // ID of context
-                        'filepath' => $attachment->get_filepath(),      // Any path beginning and ending in /
-                        'filename' => $attachment->get_filename()       // Any filename
-                    );
-
                     // Get file
-                    $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'],
-                            $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
-
+                    $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
+                                          $attachment->get_filepath(), $attachment->get_filename());
                     // Delete it if it exists
                     if ($file) {
                         $file->delete();
