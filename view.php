@@ -92,6 +92,9 @@ $PAGE->set_heading(format_string($course->fullname));
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $marksetting->allowmultiplemarks]);
 
+// The page should not be large, only pages containing broad tables are usually.
+$PAGE->add_body_class('limitedwidth');
+
 // Output starts here.
 echo $OUTPUT->header();
 
