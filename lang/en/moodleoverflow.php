@@ -59,6 +59,7 @@ $string['moodleoverflow:movetopic'] = 'Move Topic to another Moddleoverflow Foru
 
 // Strings for the view.php.
 $string['noviewdiscussionspermission'] = 'You do not have the permission to view discussions in this forum';
+$string['lastpost'] = 'Last post';
 
 // Strings for the locallib.php.
 $string['addanewdiscussion'] = 'Add a new discussion topic';
@@ -202,12 +203,14 @@ $string['markdiscussionreadsuccessful'] = 'The discussion has been marked as rea
 $string['markmoodleoverflowreadsuccessful'] = 'All posts have been marked as read.';
 $string['noguesttracking'] = 'Sorry, guests are not allowed to set tracking options.';
 
-// Strings for the userstats_table.php.
+// Strings for the userstats feature.
 $string['userstatsupvotes'] = 'Received upvotes';
 $string['userstatsdownvotes'] = 'Received downvotes';
 $string['userstatsactivity'] = 'Amount of activity';
 $string['userstatsreputation'] = 'User reputation';
-$string['helpamountofactivity'] = 'Each actitivy like writing a post, starting a discussion or giving a rating gives 1 point';
+$string['helpamountofactivity'] = 'Each activity like writing a post, starting a discussion or giving a rating gives 1 point';
+$string['showuserstats'] = 'Show cumulative user statistics';
+$string['configshowuserstats'] = 'Allow teachers in courses to see statistics summarizing the activity of users in Moodleoverflows.';
 
 // OTHER.
 $string['messageprovider:posts'] = 'Notification of new posts';
