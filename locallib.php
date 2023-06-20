@@ -1610,7 +1610,6 @@ function get_attachments($post, $cm) {
             $i += 1;
         }
     }
-
     return $attachments;
 }
 
@@ -1855,17 +1854,17 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
                 // First delete the actual files on the disk.
                 $fs = get_file_storage();
                 $context = context_module::instance($cm->id);
-                $attachments = get_attachments($post, $cm);
+                $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $post->id, "filename", false);
 
                 foreach ($attachments as $attachment) {
                     // Prepare file record object
                     $fileinfo = array(
-                        'component' => 'mod_moodleoverflow',        // Your component name.
-                        'filearea' => 'attachment',                 // Usually = table name
-                        'itemid' => $post->id,                      // Usually = ID of row in table
-                        'contextid' => $context->id,                // ID of context
-                        'filepath' => $attachment['filepath'],      // Any path beginning and ending in /
-                        'filename' => $attachment['filename']       // Any filename
+                        'component' => 'mod_moodleoverflow',            // Your component name.
+                        'filearea' => 'attachment',                     // Usually = table name
+                        'itemid' => $post->id,                          // Usually = ID of row in table
+                        'contextid' => $context->id,                    // ID of context
+                        'filepath' => $attachment->get_filepath(),      // Any path beginning and ending in /
+                        'filename' => $attachment->get_filename()       // Any filename
                     );
 
                     // Get file
