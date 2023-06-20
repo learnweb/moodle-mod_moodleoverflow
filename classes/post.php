@@ -73,6 +73,7 @@ class post {
      *   - get_post_full, print_post, 
      *   - add_attachment und get_attachments
      *   sollten auch hier programmiert sein.
+     *   Es soll auch möglich sein, den Elternpost, die Diskussion oder das Moodleoverflow als objekt zurückzugeben, damit alle Datenbankaufrufe hier passieren und nicht woanders.
      * 
      * - Diese Funktionen sollten in der Locallib bleiben:
      *   - user_can_see_post, da es von außen nur auf einen existierenden post zugreift
@@ -82,14 +83,17 @@ class post {
      *   - add_discussion() bleibt in der locallib, da hier nur die construct methode (add_new_post()) aufgerufen wird.
      *
      *
+     * 
+     * 
      * Wie funktionieren post.php und classes/post_form.php? 
      * 
      * post.php:
      * Bei jeder art von Interaktion (erstellen, ändern, löschen) wird die post.php aufgerufen
      * => Im 1. Schritt wird geprüft, welche Art von Interaktion vorliegt. -> vielliecht auch das in classes/post.php auslagern
-     * => Im 2. Schritt wird ein neues post_form Objekt gebaut (Was macht das objekt genau? Wahrscheinlich kann man das auch auslagern)
+     * => Im 2. Schritt wird ein neues post_form Objekt gebaut und dem objekt neue funktionen übergeben
      * 
      * 
      * classes/post_form.php:
+     * Bildet nur die form ab, wo man den titel, Inhalt und attachments seines posts eintragen kann
      */
 }
