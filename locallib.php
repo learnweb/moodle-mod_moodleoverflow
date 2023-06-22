@@ -39,8 +39,8 @@ require_once(dirname(__FILE__) . '/lib.php');
  * Get all discussions in a moodleoverflow instance.
  *
  * @param object $cm
- * @param int    $page
- * @param int    $perpage
+ * @param int $page
+ * @param int $perpage
  *
  * @return array
  */
@@ -290,7 +290,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Check if a single post was marked by the question owner and a teacher.
         $statusboth = false;
-        if ($markedhelpful  && $markedsolution) {
+        if ($markedhelpful && $markedsolution) {
             if ($markedhelpful->postid == $markedsolution->postid) {
                 $statusboth = true;
             }
@@ -1472,7 +1472,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->footer = $footer;
 
     // Mark the forum post as read.
-    if ($istracked  && !$postisread) {
+    if ($istracked && !$postisread) {
         readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
@@ -1688,7 +1688,7 @@ function moodleoverflow_add_new_post($post) {
     // Mark the created post as read if the user is tracking the discussion.
     $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
     $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
-    if ($cantrack  && $istracked) {
+    if ($cantrack && $istracked) {
         readtracking::moodleoverflow_mark_post_read($post->userid, $post);
     }
 
@@ -1748,7 +1748,7 @@ function moodleoverflow_update_post($newpost) {
     // Mark the edited post as read.
     $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
     $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
-    if ($cantrack  && $istracked) {
+    if ($cantrack && $istracked) {
         readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
@@ -1848,56 +1848,56 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
         }
 
         // Delete the ratings.
-        if ($DB->delete_records('moodleoverflow_ratings', array('postid' => $post->id))) {
+        $DB->delete_records('moodleoverflow_ratings', array('postid' => $post->id));
 
-            // Delete the post.
-            if ($DB->delete_records('moodleoverflow_posts', array('id' => $post->id))) {
+        // Delete the post.
+        if ($DB->delete_records('moodleoverflow_posts', array('id' => $post->id))) {
 
-                // Delete the read records.
-                readtracking::moodleoverflow_delete_read_records(-1, $post->id);
+            // Delete the read records.
+            readtracking::moodleoverflow_delete_read_records(-1, $post->id);
 
-                // Delete the attachments.
-                // First delete the actual files on the disk.
-                $fs = get_file_storage();
-                $context = context_module::instance($cm->id);
-                $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $post->id, "filename", false);
+            // Delete the attachments.
+            // First delete the actual files on the disk.
+            $fs = get_file_storage();
+            $context = context_module::instance($cm->id);
+            $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
+                $post->id, "filename", false);
 
-                foreach ($attachments as $attachment) {
-                    // Get file
-                    $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
-                        $attachment->get_filepath(), $attachment->get_filename());
+            foreach ($attachments as $attachment) {
+                // Get file
+                $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
+                    $attachment->get_filepath(), $attachment->get_filename());
 
-                    // Delete it if it exists
-                    if ($file) {
-                        $file->delete();
-                    }
+                // Delete it if it exists
+                if ($file) {
+                    $file->delete();
                 }
-
-                // Just in case, check for the new last post of the discussion.
-                moodleoverflow_discussion_update_last_post($post->discussion);
-
-                // Get the context module.
-                $modulecontext = context_module::instance($cm->id);
-
-                // Trigger the post deletion event.
-                $params = array(
-                    'context' => $modulecontext,
-                    'objectid' => $post->id,
-                    'other' => array(
-                        'discussionid' => $post->discussion,
-                        'moodleoverflowid' => $moodleoverflow->id
-                    )
-                );
-                if ($post->userid !== $USER->id) {
-                    $params['relateduserid'] = $post->userid;
-                }
-                $event = post_deleted::create($params);
-                $event->trigger();
-
-                // The post has been deleted.
-                $transaction->allow_commit();
-                return true;
             }
+
+            // Just in case, check for the new last post of the discussion.
+            moodleoverflow_discussion_update_last_post($post->discussion);
+
+            // Get the context module.
+            $modulecontext = context_module::instance($cm->id);
+
+            // Trigger the post deletion event.
+            $params = array(
+                'context' => $modulecontext,
+                'objectid' => $post->id,
+                'other' => array(
+                    'discussionid' => $post->discussion,
+                    'moodleoverflowid' => $moodleoverflow->id
+                )
+            );
+            if ($post->userid !== $USER->id) {
+                $params['relateduserid'] = $post->userid;
+            }
+            $event = post_deleted::create($params);
+            $event->trigger();
+
+            // The post has been deleted.
+            $transaction->allow_commit();
+            return true;
         }
     } catch (Exception $e) {
         $transaction->rollback($e);
@@ -2070,7 +2070,7 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     if ($DB->record_exists('moodleoverflow_grades', array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id))) {
 
         $DB->set_field('moodleoverflow_grades', 'grade', $grade, array('userid' => $userid,
-            'moodleoverflowid' => $moodleoverflow->id ));
+            'moodleoverflowid' => $moodleoverflow->id));
 
     } else {
 
