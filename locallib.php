@@ -1833,24 +1833,28 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
     global $DB, $USER;
 
     // Iterate through all children and delete them.
-    $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
-    if ($deletechildren  && $childposts) {
-        foreach ($childposts as $childpost) {
-            moodleoverflow_delete_post($childpost, true, $cm, $moodleoverflow);
+    // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
+    // All DB transactions are rolled back.
+    try {
+        $transaction = $DB->start_delegated_transaction();
+
+        $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
+        if ($deletechildren && $childposts) {
+            foreach ($childposts as $childpost) {
+                moodleoverflow_delete_post($childpost, true, $cm, $moodleoverflow);
+            }
         }
-    }
 
-    // Delete the ratings.
-    if ($DB->delete_records('moodleoverflow_ratings', array('postid' => $post->id))) {
+        // Delete the ratings.
+        if ($DB->delete_records('moodleoverflow_ratings', array('postid' => $post->id))) {
 
-        // Delete the post.
-        if ($DB->delete_records('moodleoverflow_posts', array('id' => $post->id))) {
+            // Delete the post.
+            if ($DB->delete_records('moodleoverflow_posts', array('id' => $post->id))) {
 
-            // Delete the read records.
-            \mod_moodleoverflow\readtracking::moodleoverflow_delete_read_records(-1, $post->id);
+                // Delete the read records.
+                \mod_moodleoverflow\readtracking::moodleoverflow_delete_read_records(-1, $post->id);
 
-            // Delete the attachments.
-            try {
+                // Delete the attachments.
                 // First delete the actual files on the disk.
                 $fs = get_file_storage();
                 $context = context_module::instance($cm->id);
@@ -1859,44 +1863,43 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
                 foreach ($attachments as $attachment) {
                     // Get file
                     $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
-                                          $attachment->get_filepath(), $attachment->get_filename());
+                        $attachment->get_filepath(), $attachment->get_filename());
+
                     // Delete it if it exists
                     if ($file) {
                         $file->delete();
                     }
                 }
 
-                // Then delete the entry the database.
-                $DB->delete_records('files', array('itemid' => $post->id));
 
-            } catch (Exception $e) {
-                $e->getMessage();
+                // Just in case, check for the new last post of the discussion.
+                moodleoverflow_discussion_update_last_post($post->discussion);
+
+                // Get the context module.
+                $modulecontext = context_module::instance($cm->id);
+
+                // Trigger the post deletion event.
+                $params = array(
+                    'context' => $modulecontext,
+                    'objectid' => $post->id,
+                    'other' => array(
+                        'discussionid' => $post->discussion,
+                        'moodleoverflowid' => $moodleoverflow->id
+                    )
+                );
+                if ($post->userid !== $USER->id) {
+                    $params['relateduserid'] = $post->userid;
+                }
+                $event = \mod_moodleoverflow\event\post_deleted::create($params);
+                $event->trigger();
+
+                // The post has been deleted.
+                $transaction->allow_commit();
+                return true;
             }
-
-            // Just in case, check for the new last post of the discussion.
-            moodleoverflow_discussion_update_last_post($post->discussion);
-
-            // Get the context module.
-            $modulecontext = context_module::instance($cm->id);
-
-            // Trigger the post deletion event.
-            $params = array(
-                'context' => $modulecontext,
-                'objectid' => $post->id,
-                'other' => array(
-                    'discussionid' => $post->discussion,
-                    'moodleoverflowid' => $moodleoverflow->id
-                )
-            );
-            if ($post->userid !== $USER->id) {
-                $params['relateduserid'] = $post->userid;
-            }
-            $event = \mod_moodleoverflow\event\post_deleted::create($params);
-            $event->trigger();
-
-            // The post has been deleted.
-            return true;
         }
+    } catch (Exception $e) {
+        $transaction->rollback($e);
     }
 
     // Deleting the post failed.
