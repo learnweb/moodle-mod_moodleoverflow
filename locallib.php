@@ -27,6 +27,8 @@
 
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\event\post_deleted;
+use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
@@ -178,8 +180,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $replies = moodleoverflow_count_discussion_replies($cm);
 
     // Check whether the moodleoverflow instance can be tracked and is tracked.
-    if ($cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
-        $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    if ($cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
+        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
     } else {
         $istracked = false;
     }
@@ -849,10 +851,10 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
     // Mark the created post as read.
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
     if ($cantrack && $istracked) {
-        \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($post->userid, $post);
+        readtracking::moodleoverflow_mark_post_read($post->userid, $post);
     }
 
     // Trigger event.
@@ -932,7 +934,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     $modulecontext = context_module::instance($cm->id);
 
     // Is the forum tracked?
-    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
 
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
@@ -1072,7 +1074,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
         // Is it an old post?
         if ($tracking) {
-            if (\mod_moodleoverflow\readtracking::moodleoverflow_is_old_post($post)) {
+            if (readtracking::moodleoverflow_is_old_post($post)) {
                 $posts[$postid]->postread = true;
             }
         }
@@ -1471,7 +1473,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Mark the forum post as read.
     if ($istracked  && !$postisread) {
-        \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($USER->id, $post);
+        readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
     $mustachedata->iscomment = $level == 2;
@@ -1684,10 +1686,10 @@ function moodleoverflow_add_new_post($post) {
     }
 
     // Mark the created post as read if the user is tracking the discussion.
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
     if ($cantrack  && $istracked) {
-        \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($post->userid, $post);
+        readtracking::moodleoverflow_mark_post_read($post->userid, $post);
     }
 
     // Return the id of the created post.
@@ -1744,10 +1746,10 @@ function moodleoverflow_update_post($newpost) {
     moodleoverflow_add_attachment($newpost, $moodleoverflow, $cm);
 
     // Mark the edited post as read.
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
     if ($cantrack  && $istracked) {
-        \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($USER->id, $post);
+        readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
     // The post has been edited successfully.
@@ -1807,7 +1809,7 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
     }
 
     // Delete the read-records for the discussion.
-    \mod_moodleoverflow\readtracking::moodleoverflow_delete_read_records(-1, -1, $discussion->id);
+    readtracking::moodleoverflow_delete_read_records(-1, -1, $discussion->id);
 
     // Remove the subscriptions for this discussion.
     $DB->delete_records('moodleoverflow_discuss_subs', array('discussion' => $discussion->id));
@@ -1852,7 +1854,7 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             if ($DB->delete_records('moodleoverflow_posts', array('id' => $post->id))) {
 
                 // Delete the read records.
-                \mod_moodleoverflow\readtracking::moodleoverflow_delete_read_records(-1, $post->id);
+                readtracking::moodleoverflow_delete_read_records(-1, $post->id);
 
                 // Delete the attachments.
                 // First delete the actual files on the disk.
@@ -1889,7 +1891,7 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
                 if ($post->userid !== $USER->id) {
                     $params['relateduserid'] = $post->userid;
                 }
-                $event = \mod_moodleoverflow\event\post_deleted::create($params);
+                $event = post_deleted::create($params);
                 $event->trigger();
 
                 // The post has been deleted.
