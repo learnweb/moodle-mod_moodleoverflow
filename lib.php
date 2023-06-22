@@ -414,7 +414,6 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
     }
-
     require_course_login($course, true, $cm);
 
     $areas = moodleoverflow_get_file_areas($course, $cm, $context);

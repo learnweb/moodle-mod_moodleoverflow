@@ -194,62 +194,29 @@ class ratings_test extends \advanced_testcase {
         // Test case 1: helpful and solved post, only solved posts.
         $group1 = 'sh';
         $group2 = 's';
-        $this->create_twogroups($group1, $group2);
-        $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
-        $sortedposts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
-        $rightorderposts = array($this->post, $this->answer2, $this->answer1, $this->answer3,
-                                 $this->answer6, $this->answer5, $this->answer4);
-        $result = $this->postsorderequal($sortedposts, $rightorderposts);
-        $this->assertEquals(1, $result);
+        $this->process_groups($group1, $group2);
 
         // Test case 2: helpful and solved post, only helpful posts.
-        $group1 = 'sh';
         $group2 = 'h';
-        $this->create_twogroups($group1, $group2);
-        $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
-        $sortedposts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
-        $rightorderposts = array($this->post, $this->answer2, $this->answer1, $this->answer3,
-                                 $this->answer6, $this->answer5, $this->answer4);
-        $result = $this->postsorderequal($sortedposts, $rightorderposts);
-        $this->assertEquals(1, $result);
+        $this->process_groups($group1, $group2);
 
         // Test case 3: helpful and solved post, not-marked posts.
-        $group1 = 'sh';
         $group2 = 'o';
-        $this->create_twogroups($group1, $group2);
-        $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
-        $sortedposts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
-        $rightorderposts = array($this->post, $this->answer2, $this->answer1, $this->answer3,
-                                 $this->answer6, $this->answer5, $this->answer4);
-        $result = $this->postsorderequal($sortedposts, $rightorderposts);
-        $this->assertEquals(1, $result);
+        $this->process_groups($group1, $group2);
 
         // Test case 4: only solved posts and only helpful posts with ratingpreferences = 0.
         $group1 = 's';
         $group2 = 'h';
         $this->set_ratingpreferences(0);
-        $this->create_twogroups($group1, $group2);
-        $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
-        $sortedposts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
         $rightorderposts = array($this->post, $this->answer6, $this->answer5, $this->answer4,
-                                 $this->answer2, $this->answer1, $this->answer3);
-        $result = $this->postsorderequal($sortedposts, $rightorderposts);
-        $this->assertEquals(1, $result);
+            $this->answer2, $this->answer1, $this->answer3);
+        $this->process_groups($group1, $group2, $rightorderposts);
 
         // Test case 5: only solved posts and only helpful posts with ratingpreferences = 1.
-        $group1 = 's';
-        $group2 = 'h';
         $this->set_ratingpreferences(1);
-        $this->create_twogroups($group1, $group2);
-        $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
-        $sortedposts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
-        $rightorderposts = array($this->post, $this->answer2, $this->answer1, $this->answer3,
-                                 $this->answer6, $this->answer5, $this->answer4);
-        $result = $this->postsorderequal($sortedposts, $rightorderposts);
-        $this->assertEquals(1, $result);
+        $this->process_groups($group1, $group2);
 
         // Test case 6: only solved posts and not-marked posts.
-        $group1 = 's';
         $group2 = 'o';
         $this->create_twogroups($group1, $group2);
         $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
@@ -261,14 +228,7 @@ class ratings_test extends \advanced_testcase {
 
         // Test case 6: only helpful posts and not-marked posts.
         $group1 = 'h';
-        $group2 = 'o';
-        $this->create_twogroups($group1, $group2);
-        $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
-        $sortedposts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
-        $rightorderposts = array($this->post, $this->answer2, $this->answer1, $this->answer3,
-                                 $this->answer6, $this->answer5, $this->answer4);
-        $result = $this->postsorderequal($sortedposts, $rightorderposts);
-        $this->assertEquals(1, $result);
+        $this->process_groups($group1, $group2);
     }
 
     /**
@@ -650,5 +610,25 @@ class ratings_test extends \advanced_testcase {
         // Rightorder (s,o) = answer2, answer1, answer3, answer6, answer5, answer4.
         // Rightorder (h,o) = answer2, answer1, answer3, answer6, answer5, answer4.
 
+    }
+
+    /**
+     * Executing the sort function and comparing the sorted post to the expected order.
+     * @param String $group1
+     * @param string $group2
+     * @param array|null $orderposts
+     * @return void
+     */
+    private function process_groups(String $group1, string $group2, array $orderposts = null) {
+        $this->create_twogroups($group1, $group2);
+        $posts = array($this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6);
+        $sortedposts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
+        $rightorderposts = array($this->post, $this->answer2, $this->answer1, $this->answer3,
+            $this->answer6, $this->answer5, $this->answer4);
+        if ($orderposts) {
+            $rightorderposts = $orderposts;
+        }
+        $result = $this->postsorderequal($sortedposts, $rightorderposts);
+        $this->assertEquals(1, $result);
     }
 }
