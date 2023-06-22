@@ -1871,7 +1871,6 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
                     }
                 }
 
-
                 // Just in case, check for the new last post of the discussion.
                 moodleoverflow_discussion_update_last_post($post->discussion);
 
