@@ -1837,7 +1837,7 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
     // Iterate through all children and delete them.
     // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
     // All DB transactions are rolled back.
-    try {
+    // try {
         $transaction = $DB->start_delegated_transaction();
 
         $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
@@ -1899,9 +1899,9 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             $transaction->allow_commit();
             return true;
         }
-    } catch (Exception $e) {
-        $transaction->rollback($e);
-    }
+    // } catch (Exception $e) {
+    //    $transaction->rollback($e);
+    // }
 
     // Deleting the post failed.
     return false;
