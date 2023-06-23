@@ -1900,7 +1900,7 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
         return true;
     }
     // } catch (Exception $e) {.
-    //    $transaction->rollback($e);
+    // $transaction->rollback($e);
     // }.
 
     // Deleting the post failed.
