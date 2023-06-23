@@ -114,15 +114,57 @@ class review_test extends \advanced_testcase {
 
         $options = array('course' => $this->course->id, 'needsreview' => review::EVERYTHING,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
-        $studentanswers = $this->start_review_process($options);
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+
+        list(, $teacherpost) = $this->generator->post_to_forum($moodleoverflow, $this->teacher);
+        list(, $studentpost) = $this->generator->post_to_forum($moodleoverflow, $this->student);
+
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 0, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+
+        $this->run_send_mails();
+        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS, 'reviewed' => 0,
+            'timereviewed' => null], $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+
+        $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
+        $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
+
+        $this->mailsink->clear();
+        $this->messagesink->clear();
+
+        $this->assertNull(\mod_moodleoverflow_external::review_approve_post($studentpost->id));
+
+        $this->run_send_mails();
+        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]);
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
+        $this->assertNotNull($post->timereviewed ?? null);
+
+        $this->assertEquals(0, $this->mailsink->count());
+        $this->assertEquals(2, $this->messagesink->count());
+
+        $this->messagesink->clear();
+
+        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student, false);
+        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student, false);
+
+        $this->run_send_mails();
+        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
 
         $this->assertEquals(2, $this->mailsink->count());
         $this->assertEquals(0, $this->messagesink->count());
 
         $this->mailsink->clear();
 
-        $this->assertNotNull(\mod_moodleoverflow_external::review_approve_post($studentanswers[0]->id));
-        $this->assertNull(\mod_moodleoverflow_external::review_reject_post($studentanswers[1]->id, 'This post was not good!'));
+        $this->assertNotNull(\mod_moodleoverflow_external::review_approve_post($studentanswer1->id));
+        $this->assertNull(\mod_moodleoverflow_external::review_reject_post($studentanswer2->id, 'This post was not good!'));
 
         $this->run_send_mails();
         $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
@@ -137,7 +179,7 @@ class review_test extends \advanced_testcase {
         $this->assertEquals($this->student->email, $rejectionmessage->to);
 
         // Check post was deleted.
-        $this->assertEquals(0, $DB->count_records('moodleoverflow_posts', ['id' => $studentanswers[1]->id]));
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_posts', ['id' => $studentanswer2->id]));
     }
 
     /**
@@ -151,15 +193,63 @@ class review_test extends \advanced_testcase {
 
         $options = array('course' => $this->course->id, 'needsreview' => review::QUESTIONS,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
-        $studentanswers = $this->start_review_process($options);
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+
+        list(, $teacherpost) = $this->generator->post_to_forum($moodleoverflow, $this->teacher);
+        list(, $studentpost) = $this->generator->post_to_forum($moodleoverflow, $this->student);
+
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 0, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+
+        $this->run_send_mails();
+        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS, 'reviewed' => 0,
+            'timereviewed' => null], $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+
+        $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
+        $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
+
+        $this->mailsink->clear();
+        $this->messagesink->clear();
+
+        $this->assertNull(\mod_moodleoverflow_external::review_approve_post($studentpost->id));
+
+        $this->run_send_mails();
+        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]);
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
+        $this->assertNotNull($post->timereviewed ?? null);
+
+        $this->assertEquals(0, $this->mailsink->count());
+        $this->assertEquals(2, $this->messagesink->count());
+
+        $this->messagesink->clear();
+
+        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student, false);
+        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student, false);
+
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer1->id]));
+
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer2->id]));
+
+        $this->run_send_mails();
+        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
 
         $this->assertEquals(0, $this->mailsink->count());
         $this->assertEquals(4, $this->messagesink->count());
 
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentanswers[0]->id]));
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer1->id]));
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentanswers[1]->id]));
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer2->id]));
     }
 
     /**
@@ -169,9 +259,9 @@ class review_test extends \advanced_testcase {
         global $DB;
         $options = array('course' => $this->course->id, 'needsreview' => review::EVERYTHING,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
-        set_config('allowreview', 0, 'moodleoverflow');
-
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
+
+        set_config('allowreview', 0, 'moodleoverflow');
 
         list(, $teacherpost) = $this->generator->post_to_forum($moodleoverflow, $this->teacher);
         list(, $studentpost) = $this->generator->post_to_forum($moodleoverflow, $this->student);
@@ -241,66 +331,5 @@ class review_test extends \advanced_testcase {
             $this->assertObjectHasAttribute($key, $actual, "Failed asserting that attribute '$key' exists.");
             $this->assertEquals($value, $actual->$key, "Failed asserting that \$obj->$key '" . $actual->$key . "' equals '$value'");
         }
-    }
-
-    /**
-     * Processing the review process and inserting feedback.
-     * @param array $options
-     * @return array
-     * @throws \coding_exception
-     * @throws \dml_exception
-     */
-    private function start_review_process($options) {
-        global $DB;
-        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-
-        list(, $teacherpost) = $this->generator->post_to_forum($moodleoverflow, $this->teacher);
-        list(, $studentpost) = $this->generator->post_to_forum($moodleoverflow, $this->student);
-
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 0, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
-
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
-
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS, 'reviewed' => 0,
-            'timereviewed' => null], $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
-
-        $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
-        $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
-
-        $this->mailsink->clear();
-        $this->messagesink->clear();
-
-        $this->assertNull(\mod_moodleoverflow_external::review_approve_post($studentpost->id));
-
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
-
-        $post = $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]);
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
-        $this->assertNotNull($post->timereviewed ?? null);
-
-        $this->assertEquals(0, $this->mailsink->count());
-        $this->assertEquals(2, $this->messagesink->count());
-
-        $this->messagesink->clear();
-
-        $studentanswer1 = $this->generator->reply_to_post($teacherpost, $this->student, false);
-        $studentanswer2 = $this->generator->reply_to_post($teacherpost, $this->student, false);
-
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer1->id]));
-
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => 1, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentanswer2->id]));
-
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
-        return array($studentanswer1, $studentanswer2);
     }
 }
