@@ -78,21 +78,17 @@ class post_test extends \advanced_testcase {
     public function test_moodleoverflow_delete_post() {
         global $DB;
 
-        $result = 0;
         // The attachment should exist.
-        if ($DB->get_record('files', array('itemid' => $this->post->id))) {
-            $result = 1;
-        }
-        $this->assertEquals(1, $result);
+        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->id)));
+        $this->assertEquals(2, $numberofattachments);
 
         // Delete the post from the teacher with its attachment.
         moodleoverflow_delete_post($this->post, false, $this->coursemodule, $this->moodleoverflow);
 
         // Now try to get the attachment.
-        if (!$DB->get_record('files', array('itemid' => $this->post->id))) {
-            $result = 2;
-        }
-        $this->assertEquals(2, $result);
+        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->id)));
+
+        $this->assertEquals(0, $numberofattachments);
     }
 
     /**
@@ -102,21 +98,15 @@ class post_test extends \advanced_testcase {
     public function test_moodleoverflow_delete_discussion() {
         global $DB;
 
-        $result = 0;
-        // The attachment should exist.
-        if ($DB->get_record('files', array('itemid' => $this->post->id))) {
-            $result = 1;
-        }
-        $this->assertEquals(1, $result);
+        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->id, 'filearea' => 'attachment')));
+        $this->assertEquals(2, $numberofattachments);
 
         // Delete the post from the teacher with its attachment.
         moodleoverflow_delete_discussion($this->discussion[0], $this->course, $this->coursemodule, $this->moodleoverflow);
 
         // Now try to get the attachment.
-        if (!$DB->get_record('files', array('itemid' => $this->post->id))) {
-            $result = 2;
-        }
-        $this->assertEquals(2, $result);
+        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->id)));
+        $this->assertEquals(0, $numberofattachments);
     }
 
     /**
@@ -142,28 +132,22 @@ class post_test extends \advanced_testcase {
         $this->post = $DB->get_record('moodleoverflow_posts', array('id' => $this->discussion[0]->firstpost), '*');
 
         // Create an attachment by inserting it directly in the database and update the post record.
-        $this->attachment = new \stdClass();
-        $this->attachment->contenthash = '81a897de6707916841bcafa3fb853377086744ba';
-        $this->attachment->pathnamehash = 'bb9fe5ed6ab47359546f7df8858263d9c6814646';
+
         $modulecontext = \context_module::instance($this->coursemodule->id);
-        $this->attachment->contextid = $modulecontext->id;
-        $this->attachment->component = 'mod_moodleoverflow';
-        $this->attachment->filearea = 'attachment';
-        $this->attachment->itemid = $this->post->id;
-        $this->attachment->filepath = '/';
-        $this->attachment->filename = 'thisfile.png';
-        $this->attachment->userid = $this->teacher->id;
-        $this->attachment->filesize = 129595;
-        $this->attachment->mimetype = 'image/png';
-        $this->attachment->status = 0;
-        $this->attachment->source = 'thisfile.png';
-        $this->attachment->author = $this->teacher->firstname . ' ' . $this->teacher->lastname;
-        $this->attachment->license = 'unknown';
-        $this->attachment->timecreated = $this->post->created;
-        $this->attachment->timemodified = $this->post->modified;
-        $this->attachment->sortorder = 0;
-        $this->attachment->referencefileid = null;
-        $DB->insert_record('files', $this->attachment);
+
+        $fileinfo = [
+            'contextid' => $modulecontext->id,   // ID of the context.
+            'component' => 'mod_moodleoverflow', // Your component name.
+            'filearea'  => 'attachment',       // Usually = table name.
+            'itemid'    => $this->post->id,              // Usually = ID of row in table.
+            'filepath'  => '/',            // Any path beginning and ending in /.
+            'filename'  => 'NH.jpg',   // Any filename.
+        ];
+
+        $fs = get_file_storage();
+
+        // Create a new file containing the text 'hello world'.
+        $fs->create_file_from_string($fileinfo, 'hello world');
 
         $this->post->attachment = 1;
         $DB->update_record('moodleoverflow_posts', $this->post);
