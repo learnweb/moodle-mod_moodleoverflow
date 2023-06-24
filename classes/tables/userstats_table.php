@@ -187,45 +187,15 @@ class userstats_table extends \flexible_table {
      * @return 2d-array with user statistic
      */
     public function get_table_data() {
-        global $DB;
         // Get all userdata from a course.
         $context = \context_course::instance($this->courseid);
         $users = get_enrolled_users($context , '',  0, 'u.id, u.firstname, u.lastname');
 
-        // Step 1.0: Build the datatable with all relevant Informations.
-        $sqlquery = 'SELECT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,
-                            discuss.id AS discussid,
-                            discuss.userid AS discussuserid,
-                            posts.id AS postid,
-                            posts.userid AS postuserid,
-                            ratings.id AS rateid,
-                            ratings.rating AS rating,
-                            ratings.userid AS rateuserid,
-                            ratings.postid AS ratepostid,
-                            moodleoverflow.anonymous AS anonymoussetting,
-                            moodleoverflow.id AS moodleoverflowid
-                      FROM {moodleoverflow_discussions} discuss
-                      LEFT JOIN {moodleoverflow_posts} posts ON discuss.id = posts.discussion
-                      LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid
-                      LEFT JOIN {moodleoverflow} moodleoverflow ON discuss.moodleoverflow = moodleoverflow.id
-                      WHERE discuss.course = ' . $this->courseid . ';';
-        $ratingdata = $DB->get_records_sql($sqlquery);
+        $ratingdata = $this->get_rating_data();
 
         // Step 2.0: Now collect the data for every user in the course.
         foreach ($users as $user) {
-            $student = new \stdClass();
-            $student->id = $user->id;
-            $student->name = $user->firstname . ' ' . $user->lastname;
-            $linktostudent = new \moodle_url('/user/view.php', array('id' => $student->id, 'course' => $this->courseid));
-            $student->link = \html_writer::link($linktostudent->out(), $student->name);
-            $student->submittedposts = array(); // Posts written by the student. Key = postid, Value = postid.
-            $student->ratedposts = array();     // Posts that the student rated. Key = rateid, Value = rateid.
-            $student->receivedupvotes = 0;
-            $student->receiveddownvotes = 0;
-            $student->forumactivity = 0;             // Number of written posts and submitted ratings in the current moodleoverflow.
-            $student->courseactivity = 0;            // Number of written posts and submitted ratings in the course.
-            $student->forumreputation = 0;           // Reputation in the current moodleoverflow.
-            $student->coursereputation = 0;          // Reputation in the course.
+            $student = $this->createstudent($user);
 
             foreach ($ratingdata as $row) {
                 // Is the rating from or for the current student?
@@ -401,5 +371,53 @@ class userstats_table extends \flexible_table {
      */
     public function other_cols($colname, $attempt) {
         return null;
+    }
+    /**
+     * Return a student object.
+     * @param \stdClass $user
+     * @return object
+     */
+    private function createstudent($user) {
+        $student = new \stdClass();
+        $student->id = $user->id;
+        $student->name = $user->firstname . ' ' . $user->lastname;
+        $linktostudent = new \moodle_url('/user/view.php', array('id' => $student->id, 'course' => $this->courseid));
+        $student->link = \html_writer::link($linktostudent->out(), $student->name);
+        $student->submittedposts = array(); // Posts written by the student. Key = postid, Value = postid.
+        $student->ratedposts = array();     // Posts that the student rated. Key = rateid, Value = rateid.
+        $student->receivedupvotes = 0;
+        $student->receiveddownvotes = 0;
+        $student->forumactivity = 0;             // Number of written posts and submitted ratings in the current moodleoverflow.
+        $student->courseactivity = 0;            // Number of written posts and submitted ratings in the course.
+        $student->forumreputation = 0;           // Reputation in the current moodleoverflow.
+        $student->coursereputation = 0;          // Reputation in the course.
+        return $student;
+    }
+
+    /**
+     * All ratings upvotes downbotes activity etc. from the current course.
+     * @return array
+     * @throws \dml_exception
+     */
+    private function get_rating_data() {
+        global $DB;
+        // Step 1.0: Build the datatable with all relevant Informations.
+        $sqlquery = 'SELECT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,
+                            discuss.id AS discussid,
+                            discuss.userid AS discussuserid,
+                            posts.id AS postid,
+                            posts.userid AS postuserid,
+                            ratings.id AS rateid,
+                            ratings.rating AS rating,
+                            ratings.userid AS rateuserid,
+                            ratings.postid AS ratepostid,
+                            moodleoverflow.anonymous AS anonymoussetting,
+                            moodleoverflow.id AS moodleoverflowid
+                      FROM {moodleoverflow_discussions} discuss
+                      LEFT JOIN {moodleoverflow_posts} posts ON discuss.id = posts.discussion
+                      LEFT JOIN {moodleoverflow_ratings} ratings ON posts.id = ratings.postid
+                      LEFT JOIN {moodleoverflow} moodleoverflow ON discuss.moodleoverflow = moodleoverflow.id
+                      WHERE discuss.course = ' . $this->courseid . ';';
+        return $DB->get_records_sql($sqlquery);
     }
 }
