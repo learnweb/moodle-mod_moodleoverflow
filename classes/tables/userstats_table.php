@@ -331,13 +331,7 @@ class userstats_table extends \flexible_table {
      * @return string
      */
     public function col_receivedupvotes($row) {
-        if ($row->receivedupvotes > 0) {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
-                   $row->receivedupvotes . \html_writer::end_span());
-        } else {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
-                   $row->receivedupvotes . \html_writer::end_span());
-        }
+        return $this->badge_render($row->receivedupvotes);
     }
 
     /**
@@ -346,13 +340,7 @@ class userstats_table extends \flexible_table {
      * @return string
      */
     public function col_receiveddownvotes($row) {
-        if ($row->receiveddownvotes > 0) {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
-                    $row->receiveddownvotes . \html_writer::end_span());
-        } else {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
-                   $row->receiveddownvotes . \html_writer::end_span());
-        }
+        return $this->badge_render($row->receiveddownvotes);
     }
 
     /**
@@ -361,13 +349,7 @@ class userstats_table extends \flexible_table {
      * @return string
      */
     public function col_forumactivity($row) {
-        if ($row->forumactivity > 0) {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
-                   $row->forumactivity . \html_writer::end_span());
-        } else {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
-                   $row->forumactivity . \html_writer::end_span());
-        }
+        return $this->badge_render($row->forumactivity);
     }
 
     /**
@@ -376,13 +358,7 @@ class userstats_table extends \flexible_table {
      * @return string
      */
     public function col_forumreputation($row) {
-        if ($row->forumreputation > 0) {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
-                   $row->forumreputation . \html_writer::end_span());
-        } else {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
-                   $row->forumreputation . \html_writer::end_span());
-        }
+        return $this->badge_render($row->forumreputation);
     }
 
     /**
@@ -391,13 +367,7 @@ class userstats_table extends \flexible_table {
      * @return string
      */
     public function col_courseactivity($row) {
-        if ($row->courseactivity > 0) {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
-                   $row->courseactivity . \html_writer::end_span());
-        } else {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
-                   $row->courseactivity . \html_writer::end_span());
-        }
+        return $this->badge_render($row->courseactivity);
     }
 
     /**
@@ -406,12 +376,21 @@ class userstats_table extends \flexible_table {
      * @return string
      */
     public function col_coursereputation($row) {
-        if ($row->coursereputation > 0) {
+        return $this->badge_render($row->coursereputation);
+    }
+
+    /**
+     * Dependeng on the value display success or warning badge.
+     * @param int $number
+     * @return string
+     */
+    private function badge_render($number) {
+        if ($number > 0) {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
-                   $row->coursereputation . \html_writer::end_span());
+                $number . \html_writer::end_span());
         } else {
             return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
-                   $row->coursereputation . \html_writer::end_span());
+                $number . \html_writer::end_span());
         }
     }
     /**
