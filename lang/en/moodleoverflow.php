@@ -122,7 +122,7 @@ $string['configallowcoursereputation'] = 'Allow to sum the reputation of all ins
 $string['maxmailingtime'] = 'Maximal mailing time';
 $string['configmaxmailingtime'] = 'Posts older than this number of hours will not be mailed to the users. This will help to avoid problems where the cron has not been running for a long time.';
 
-// Strings for the post.php.
+// Strings for the post.php environment.
 $string['invalidmoodleoverflowid'] = 'Forum ID was incorrect';
 $string['invalidparentpostid'] = 'Parent post ID was incorrect';
 $string['notpartofdiscussion'] = 'This post is not part of a discussion!';
@@ -147,6 +147,7 @@ $string['cannotdeletepost'] = 'You can\'t delete this post!';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
 $string['errorwhiledelete'] = 'An error occurred while deleting record.';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
+$string['unknownparameter'] = 'unknown parameter specified';
 
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';
