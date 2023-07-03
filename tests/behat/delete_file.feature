@@ -1,5 +1,5 @@
 @mod @mod_moodleoverflow @javascript @mod_moodleoverflow_delete @javascript @_file_upload
-Feature: Add moodleoverflow activities and discussions
+Feature: Delete attachments
   In order to delete discussions also files need to be deleted
 
   Background: Add a moodleoverflow and a discussion
@@ -35,7 +35,7 @@ Feature: Add moodleoverflow activities and discussions
     And I upload "mod/moodleoverflow/tests/fixtures/NH.jpg" file to "Attachment" filemanager
     And I press "Post to forum"
 
-  Scenario Outline:
+  Scenario Outline: delete with role
     Given I log in as "<role>"
     And I am on "Course 1" course homepage
     And I follow "Test moodleoverflow name"
@@ -52,6 +52,3 @@ Feature: Add moodleoverflow activities and discussions
     Examples:
       | role     |
       | student1 |
-
-
-
