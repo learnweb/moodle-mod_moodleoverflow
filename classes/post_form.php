@@ -100,7 +100,6 @@ class mod_moodleoverflow_post_form extends moodleform {
         // Is it a reply?
         $modform->addElement('hidden', 'reply');
         $modform->setType('reply', PARAM_INT);
-
     }
 
     /**
@@ -142,7 +141,6 @@ class mod_moodleoverflow_post_form extends moodleform {
             'return_types' => FILE_INTERNAL | FILE_CONTROLLED_LINK
         );
     }
-
 }
 
 

@@ -27,6 +27,8 @@
 
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\event\post_deleted;
+use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
@@ -37,8 +39,8 @@ require_once(dirname(__FILE__) . '/lib.php');
  * Get all discussions in a moodleoverflow instance.
  *
  * @param object $cm
- * @param int    $page
- * @param int    $perpage
+ * @param int $page
+ * @param int $perpage
  *
  * @return array
  */
@@ -178,8 +180,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $replies = moodleoverflow_count_discussion_replies($cm);
 
     // Check whether the moodleoverflow instance can be tracked and is tracked.
-    if ($cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
-        $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    if ($cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
+        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
     } else {
         $istracked = false;
     }
@@ -288,7 +290,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Check if a single post was marked by the question owner and a teacher.
         $statusboth = false;
-        if ($markedhelpful  && $markedsolution) {
+        if ($markedhelpful && $markedsolution) {
             if ($markedhelpful->postid == $markedsolution->postid) {
                 $statusboth = true;
             }
@@ -849,10 +851,10 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
     // Mark the created post as read.
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
     if ($cantrack && $istracked) {
-        \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($post->userid, $post);
+        readtracking::moodleoverflow_mark_post_read($post->userid, $post);
     }
 
     // Trigger event.
@@ -932,7 +934,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     $modulecontext = context_module::instance($cm->id);
 
     // Is the forum tracked?
-    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
 
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
@@ -1072,7 +1074,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
         // Is it an old post?
         if ($tracking) {
-            if (\mod_moodleoverflow\readtracking::moodleoverflow_is_old_post($post)) {
+            if (readtracking::moodleoverflow_is_old_post($post)) {
                 $posts[$postid]->postread = true;
             }
         }
@@ -1470,8 +1472,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->footer = $footer;
 
     // Mark the forum post as read.
-    if ($istracked  && !$postisread) {
-        \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($USER->id, $post);
+    if ($istracked && !$postisread) {
+        readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
     $mustachedata->iscomment = $level == 2;
@@ -1595,8 +1597,8 @@ function get_attachments($post, $cm) {
             $iconimage = $OUTPUT->pix_icon(file_file_icon($file),
                 get_mimetype_description($file), 'moodle',
                 array('class' => 'icon'));
-            $path = file_encode_url($CFG->wwwroot . '/pluginfile.php', '/' .
-                $context->id . '/mod_moodleoverflow/attachment/' . $post->id . '/' . $attachments[$i]['filename']);
+            $path = moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(),
+                                                     $file->get_itemid(), $file->get_filepath(), $file->get_filename());
 
             $attachments[$i]['icon'] = $iconimage;
             $attachments[$i]['filepath'] = $path;
@@ -1610,7 +1612,6 @@ function get_attachments($post, $cm) {
             $i += 1;
         }
     }
-
     return $attachments;
 }
 
@@ -1685,10 +1686,10 @@ function moodleoverflow_add_new_post($post) {
     }
 
     // Mark the created post as read if the user is tracking the discussion.
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
-    if ($cantrack  && $istracked) {
-        \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($post->userid, $post);
+    $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    if ($cantrack && $istracked) {
+        readtracking::moodleoverflow_mark_post_read($post->userid, $post);
     }
 
     // Return the id of the created post.
@@ -1745,10 +1746,10 @@ function moodleoverflow_update_post($newpost) {
     moodleoverflow_add_attachment($newpost, $moodleoverflow, $cm);
 
     // Mark the edited post as read.
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-    $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
-    if ($cantrack  && $istracked) {
-        \mod_moodleoverflow\readtracking::moodleoverflow_mark_post_read($USER->id, $post);
+    $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
+    if ($cantrack && $istracked) {
+        readtracking::moodleoverflow_mark_post_read($USER->id, $post);
     }
 
     // The post has been edited successfully.
@@ -1808,7 +1809,7 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
     }
 
     // Delete the read-records for the discussion.
-    \mod_moodleoverflow\readtracking::moodleoverflow_delete_read_records(-1, -1, $discussion->id);
+    readtracking::moodleoverflow_delete_read_records(-1, -1, $discussion->id);
 
     // Remove the subscriptions for this discussion.
     $DB->delete_records('moodleoverflow_discuss_subs', array('discussion' => $discussion->id));
@@ -1823,10 +1824,10 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
 /**
  * Deletes a single moodleoverflow post.
  *
- * @param object $post           The post ID
- * @param bool   $deletechildren       The child posts
- * @param object $cm             The course module
- * @param object $moodleoverflow The moodleoverflow ID
+ * @param object $post                  The post
+ * @param bool   $deletechildren        The child posts
+ * @param object $cm                    The course module
+ * @param object $moodleoverflow        The moodleoverflow
  *
  * @return bool Whether the deletion was successful
  */
@@ -1834,21 +1835,41 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
     global $DB, $USER;
 
     // Iterate through all children and delete them.
-    $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
-    if ($deletechildren  && $childposts) {
-        foreach ($childposts as $childpost) {
-            moodleoverflow_delete_post($childpost, true, $cm, $moodleoverflow);
-        }
-    }
+    // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
+    // All DB transactions are rolled back.
+    try {
+        $transaction = $DB->start_delegated_transaction();
 
-    // Delete the ratings.
-    if ($DB->delete_records('moodleoverflow_ratings', array('postid' => $post->id))) {
+        $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
+        if ($deletechildren && $childposts) {
+            foreach ($childposts as $childpost) {
+                moodleoverflow_delete_post($childpost, true, $cm, $moodleoverflow);
+            }
+        }
+
+        // Delete the ratings.
+        $DB->delete_records('moodleoverflow_ratings', array('postid' => $post->id));
 
         // Delete the post.
         if ($DB->delete_records('moodleoverflow_posts', array('id' => $post->id))) {
-
             // Delete the read records.
-            \mod_moodleoverflow\readtracking::moodleoverflow_delete_read_records(-1, $post->id);
+            readtracking::moodleoverflow_delete_read_records(-1, $post->id);
+
+            // Delete the attachments.
+            // First delete the actual files on the disk.
+            $fs = get_file_storage();
+            $context = context_module::instance($cm->id);
+            $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
+                $post->id, "filename", true);
+            foreach ($attachments as $attachment) {
+                // Get file
+                $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
+                    $attachment->get_filepath(), $attachment->get_filename());
+                // Delete it if it exists
+                if ($file) {
+                    $file->delete();
+                }
+            }
 
             // Just in case, check for the new last post of the discussion.
             moodleoverflow_discussion_update_last_post($post->discussion);
@@ -1868,12 +1889,15 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             if ($post->userid !== $USER->id) {
                 $params['relateduserid'] = $post->userid;
             }
-            $event = \mod_moodleoverflow\event\post_deleted::create($params);
+            $event = post_deleted::create($params);
             $event->trigger();
 
             // The post has been deleted.
+            $transaction->allow_commit();
             return true;
         }
+    } catch (Exception $e) {
+        $transaction->rollback($e);
     }
 
     // Deleting the post failed.
@@ -2043,7 +2067,7 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     if ($DB->record_exists('moodleoverflow_grades', array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id))) {
 
         $DB->set_field('moodleoverflow_grades', 'grade', $grade, array('userid' => $userid,
-            'moodleoverflowid' => $moodleoverflow->id ));
+            'moodleoverflowid' => $moodleoverflow->id));
 
     } else {
 

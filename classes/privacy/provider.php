@@ -143,9 +143,15 @@ class provider implements
                 INNER JOIN {modules} m ON m.id = cm.module AND m.name = :modname
                 INNER JOIN {moodleoverflow} mof ON mof.id = cm.instance
                 WHERE EXISTS (
-                    SELECT 1 FROM {moodleoverflow_discussions} d WHERE d.moodleoverflow = mof.id AND (d.userid = :duserid OR d.usermodified = :dmuserid)
+                    SELECT 1
+                    FROM {moodleoverflow_discussions} d
+                    WHERE d.moodleoverflow = mof.id AND (d.userid = :duserid OR d.usermodified = :dmuserid)
                 ) OR EXISTS (
-                    SELECT 1 FROM {moodleoverflow_posts} p WHERE p.discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = mof.id) AND p.userid = :puserid
+                    SELECT 1
+                    FROM {moodleoverflow_posts} p
+                    WHERE p.discussion IN (SELECT id
+                                           FROM {moodleoverflow_discussions}
+                                           WHERE moodleoverflow = mof.id) AND p.userid = :puserid
                 ) OR EXISTS (
                     SELECT 1 FROM {moodleoverflow_read} r WHERE r.moodleoverflowid = mof.id AND r.userid = :ruserid
                 ) OR EXISTS (

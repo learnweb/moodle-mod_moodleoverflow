@@ -356,6 +356,10 @@ if ($generalmoodleoverflows) {
 $PAGE->navbar->add($string['moodleoverflows']);
 $PAGE->set_title($course->shortname . ': ' . $string['moodleoverflows']);
 $PAGE->set_heading($course->fullname);
+
+// The page should not be large, only pages containing broad tables are usually.
+$PAGE->add_body_class('limitedwidth');
+
 echo $OUTPUT->header();
 
 // Show the subscribe all option only to non-guest and enrolled users.
