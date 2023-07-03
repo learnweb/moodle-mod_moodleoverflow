@@ -477,7 +477,7 @@ class ratings {
      *
      * @return int
      */
-    private static function moodleoverflow_get_reputation_instance($moodleoverflowid, $userid = null) {
+    public static function moodleoverflow_get_reputation_instance($moodleoverflowid, $userid = null) {
         global $DB, $USER;
 
         // Get the user id.
@@ -574,7 +574,7 @@ class ratings {
      *
      * @return int
      */
-    private static function moodleoverflow_get_reputation_course($courseid, $userid = null) {
+    public static function moodleoverflow_get_reputation_course($courseid, $userid = null) {
         global $USER, $DB;
 
         // Get the userid.

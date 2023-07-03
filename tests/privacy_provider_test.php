@@ -39,6 +39,7 @@ use mod_moodleoverflow\privacy\data_export_helper;
  * @group mod_moodleoverflow
  * @group mod_moodleoverflow_privacy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \provider
  */
 class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
