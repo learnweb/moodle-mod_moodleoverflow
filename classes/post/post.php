@@ -26,9 +26,10 @@
 namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed
-use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\capabilities;
-use mod_moodleoverflow\review;
+// use mod_moodleoverflow\anonymous;
+// use mod_moodleoverflow\capabilities;
+// use mod_moodleoverflow\review;
+use mod_moodleoverflow\readtracking;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -42,57 +43,290 @@ require_once(dirname(__FILE__) . '/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post {
-    /*
-     * Wie funktioniert das erstellen, ändern und löschen eines posts?
-     * Was mach die post.php und die classes/post_form.php, wozu sind post.mustache und post_dummy.mustache da?
-     * Welche funktionen zu den posts hat die locallib.php?
-     *
-     * => Was sollte in diese Klasse (classes/post.php) integriert werden, was sollte sie können? Was lässt man in der post.php/locallib.php, braucht man später die postform noch?
-     *
-     * Funktionen aus der Locallib, die mit posts zu tun haben:
-     * - function moodleoverflow_get_post_full($postid) -> holt infos um einen post zu printen
-     * - function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)
-     * - function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modcontext) -> holt sich die posts einer discussion
-     * - function moodleoverflow_print_post(...)
-     * - function moodleoverflow_print_posts_nested
-     * - function get_attachments($post, $cm)
-     * - function moodleoverflow_add_attachment($post, $forum, $cm) {
-     * - function moodleoverflow_add_new_post($post) {
-     * - function moodleoverflow_update_post($newpost) {
-     * - function moodleoverflow_count_replies($post, $onlyreviewed) -> zählt antworten auf eine frage
-     * - function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow) {
-     * - function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = null) {
-     *
-     *
-     * Vorüberlegung zu classes/post.php:
-     * - Jeder Post im moodleoverflow ist ein Objekt identifizierbar über seine ID
-     * - Bei der erstellung einer neuen Diskussion (automatisch mit einem post) oder beim antworten/kommentieren soll ein neues objekt DIESER Klasse erstellt werden
-     * => realisierung der funktionen add_new_post, update_post, delete_post
-     *
-     * - Die funktionen:
-     *   - get_post_full, print_post,
-     *   - add_attachment und get_attachments
-     *   sollten auch hier programmiert sein.
-     *   Es soll auch möglich sein, den Elternpost, die Diskussion oder das Moodleoverflow als objekt zurückzugeben, damit alle Datenbankaufrufe hier passieren und nicht woanders.
-     *
-     * - Diese Funktionen sollten in der Locallib bleiben:
-     *   - user_can_see_post, da es von außen nur auf einen existierenden post zugreift
-     *   - get_all_discussion_posts, da ein post nicht weitere posts in seiner umgebung kennt (außer seinen Elternpost)
-     *   - print_post_nested, auch hier der gleiche grund, außerdem ruft print_post_nested auch nur print_posts_nested und geht zum nächsten Post
-     *   - count_replies, da hier eine sammlung von posts abgeprüft wird.
-     *   - add_discussion() bleibt in der locallib, da hier nur die construct methode (add_new_post()) aufgerufen wird.
-     *
-     *
-     *
-     * Wie funktionieren post.php und classes/post_form.php?
-     *
-     * post.php:
-     * Bei jeder art von Interaktion (erstellen, ändern, löschen) wird die post.php aufgerufen
-     * => Im 1. Schritt wird geprüft, welche Art von Interaktion vorliegt. -> vielliecht auch das in classes/post.php auslagern
-     * => Im 2. Schritt wird ein neues post_form Objekt gebaut und dem objekt neue funktionen übergeben
-     *
-     *
-     * classes/post_form.php:
-     * Bildet nur die form ab, wo man den titel, Inhalt und attachments seines posts eintragen kann
+
+    /** @var int The post ID */
+    private $id;
+
+    /** @var int The corresponding discussion ID */
+    private $discussion;
+
+    /** @var int The parent post ID */
+    private $parent;
+
+    /** @var int The ID of the User who wrote the post */
+    private $userid;
+
+    /** @var int Creation timestamp */
+    private $created;
+
+    /** @var int Modification timestamp */
+    private $modified;
+
+    /** @var string The message (content) of the post */
+    private $message;
+
+    /** @var int  The message format*/
+    private $messageformat;
+
+    /** @var char Attachment of the post */
+    private $attachment;
+
+    /** @var int Mailed status*/
+    private $mailed;
+
+    /** @var int Review status */
+    private $reviewed;
+
+    /** @var int The time where the post was reviewed*/
+    private $timereviewed;
+
+
+    /** 
+     * Constructor to make a new post
      */
+    public function __construct($id, $discussion, $parent, $userid, $created, $modified, $message, $messageformat, $attachment, $mailed, $reviewed, $timereviewed) {
+        $this->id = $id;
+        $this->discussion = $discussion;
+        $this->parent = $parent;
+        $this->userid = $userid;
+        $this->created = $created;
+        $this->modified = $modified;
+        $this->message = $message;
+        $this->messageformat = $messageformat;
+        $this->attachment = $attachment;
+        $this->mailed = $mailed;
+        $this->reviewed = $reviewed;
+        $this->timereviewed = $timereviewed;
+    }
+
+
+    /**
+     * Creates a Post from a DB record.
+     * 
+     * @param object $record Data object.
+     * @return object post
+     */
+    public static function from_record($record) {
+        $id = null;
+        if (object_property_exists($record, 'id') && $record->id) {
+            $id = $record->id;
+        }
+
+        $discussion = null;
+        if (object_property_exists($record, 'discussion') && $record->discussion) {
+            $discussion = $record->discussion;
+        }
+
+        $parent = null;
+        if (object_property_exists($record, 'parent') && $record->parent) {
+            $parent = $record->parent;
+        }
+
+        $userid = null;
+        if (object_property_exists($record, 'userid') && $record->userid) {
+            $userid = $record->userid;
+        }
+
+        $created = null;
+        if (object_property_exists($record, 'created') && $record->created) {
+            $created = $record->created;
+        }
+
+        $modified = null;
+        if (object_property_exists($record, 'modified') && $record->modified) {
+            $modified = $record->modified;
+        }
+
+        $message = null;
+        if (object_property_exists($record, 'message') && $record->message) {
+            $message = $record->message;
+        }
+
+        $messageformat = null;
+        if (object_property_exists($record, 'messageformat') && $record->messageformat) {
+            $message = $record->messageformat;
+        }
+
+        $attachment = null;
+        if (object_property_exists($record, 'attachment') && $record->attachment) {
+            $attachment = $record->attachment;
+        }
+
+        $mailed = null;
+        if (object_property_exists($record, 'mailed') && $record->mailed) {
+            $mailed = $record->mailed;
+        }
+
+        $reviewed = null;
+        if (object_property_exists($record, 'reviewed') && $record->reviewed) {
+            $reviewed = $record->reviewed;
+        }
+
+        $timereviewed = null;
+        if (object_property_exists($record, 'timereviewed') && $record->timereviewed) {
+            $timereviewed = $record->timereviewed;
+        }
+
+        $instance = new self($id, $discussion, $parent, $userid, $created, $modified, $message, $messageformat, $attachment, $mailed, $reviewed, $timereviewed);
+
+        return $instance;
+    }
+
+    // Post Functions:
+
+    /**
+     * Adds a new post in an existing discussion.
+     * @return bool|int The Id of the post if operation was successful
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function moodleoverflow_add_new_post() {
+        global $USER, $DB;
+
+        $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $this->discussion));
+        $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow));
+        $cm = $DB->get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+
+
+        // Add post to the database.
+        $DB->insert_record('moodleoverflow_posts', $this);
+        // Soll hier die Message extra mit $DB->set_field('moodleoverflow_post...) nochmal gesetzt/eingefügt werden?.
+        $this->moodleoverflow_add_attachment($this, $moodleoverflow, $cm);
+
+        if ($this->reviewed) {
+            // Update the discussion.
+            $DB->set_field('moodleoverflow_discussions', 'timemodified', $this->modified, array('id' => $this->discussion));
+            $DB->set_field('moodleoverflow_discussions', 'usermodified', $this->userid, array('id' => $this->discussion));
+        }
+
+
+        // Mark the created post as read if the user is tracking the discussion.
+        $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
+        if ($cantrack && $istracked) {
+            readtracking::moodleoverflow_mark_post_read($this->userid, $this);
+        }
+
+        // Return the id of the created post.
+        return $this->id;
+    }
+
+    /**
+     * Deletes a single moodleoverflow post.
+     *
+     * @param object $post                  The post
+     * @param bool   $deletechildren        The child posts
+     * @param object $cm                    The course module
+     * @param object $moodleoverflow        The moodleoverflow
+     *
+     * @return bool Whether the deletion was successful
+     */
+    public function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow) {
+
+    }
+
+    /**
+     * Gets a post with all info ready for moodleoverflow_print_post.
+     * Most of these joins are just to get the forum id.
+     *
+     * @param int $postid
+     *
+     * @return mixed array of posts or false
+     */
+    public function moodleoverflow_get_post_full($postid) {
+
+    }
+
+
+    /**
+     * If successful, this function returns the name of the file
+     *
+     * @param object $post is a full post record, including course and forum
+     * @param object $forum
+     * @param object $cm
+     *
+     * @return bool
+     */
+    public function moodleoverflow_add_attachment($post, $forum, $cm) {
+
+    }
+
+    /**
+     * Returns attachments with information for the template
+     *
+     * @param object $post
+     * @param object $cm
+     *
+     * @return array
+     */
+    public function moodleoverflow_get_attachments($post, $cm) {
+
+    }
+
+    /**
+     * Prints a moodleoverflow post.
+     * @param object $post
+     * @param object $discussion
+     * @param object $moodleoverflow
+     * @param object $cm
+     * @param object $course
+     * @param object $ownpost
+     * @param bool $link
+     * @param string $footer
+     * @param string $highlight
+     * @param bool $postisread
+     * @param bool $dummyifcantsee
+     * @param bool $istracked
+     * @param bool $iscomment
+     * @param array $usermapping
+     * @param int $level
+     * @param bool $multiplemarks setting of multiplemarks
+     * @return void|null
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    public function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
+                                                     $ownpost = false, $link = false,
+                                                     $footer = '', $highlight = '', $postisread = null,
+                                                     $dummyifcantsee = true, $istracked = false,
+                                                     $iscomment = false, $usermapping = [], $level = 0, $multiplemarks = false) {
+
+    }
+
+    /**
+     * Prints all posts of the discussion in a nested form.
+     *
+     * @param object $course         The course object
+     * @param object $cm
+     * @param object $moodleoverflow The moodleoverflow object
+     * @param object $discussion     The discussion object
+     * @param object $parent         The object of the parent post
+     * @param bool   $istracked      Whether the user tracks the discussion
+     * @param array  $posts          Array of posts within the discussion
+     * @param bool   $iscomment      Whether the current post is a comment
+     * @param array $usermapping
+     * @param bool  $multiplemarks
+     * @return string
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    public function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent,
+                                                             $istracked, $posts, $iscomment = null, $usermapping = [], $multiplemarks = false) {
+
+    }
+    
+    public function moodleoverflow_get_parentpost($postid) {
+
+    }
+
+    public function moodleoverflow_get_moodleoverflow() {
+
+    }
+
+    public function moodleoverflow_get_discussion() {
+        
+    }
+
 }

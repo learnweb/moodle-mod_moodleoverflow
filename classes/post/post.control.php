@@ -80,7 +80,7 @@ class post_control {
      * Retuns the prepared post.
      */
     public function get_prepost() {
-        return $this->information;
+        return $this->prepost;
     }
 
     /**
