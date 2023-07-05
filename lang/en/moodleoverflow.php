@@ -148,6 +148,7 @@ $string['cannotdeletepost'] = 'You can\'t delete this post!';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
 $string['errorwhiledelete'] = 'An error occurred while deleting record.';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
+$string['noexistingpost'] = 'Post does not exists, needs to be created first';
 
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';
