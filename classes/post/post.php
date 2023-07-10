@@ -81,23 +81,36 @@ class post {
     /** @var int The time where the post was reviewed*/
     private $timereviewed;
 
+    /** @var int This variable is optional, it contains important information for the add_attachment function */
+    private $formattachments;
+
+    /** @var object The discussion where the post is located */
+    private $discussionobject;
+
+    /** @var object The Moodleoverflow where the post is located*/
+    private $moodleoverflowobject;
+
+    /** @var object The parent post of an answerpost */
+    private $parentpost;
+
     /**
      * Constructor to make a new post
      *
-     * @param int       $discussion     The discussion ID.
-     * @param int       $parent         The parent post ID.
-     * @param int       $userid         The user ID that created the post.
-     * @param int       $created        Creation timestamp
-     * @param int       $modified       Modification timestamp
-     * @param string    $message        The message (content) of the post
-     * @param int       $messageformat  The message format
-     * @param char      $attachment     Attachment of the post
-     * @param int       $mailed         Mailed status
-     * @param int       $reviewed       Review status
-     * @param int       $timereviewed   The time where the post was reviewed
+     * @param int       $discussion         The discussion ID.
+     * @param int       $parent             The parent post ID.
+     * @param int       $userid             The user ID that created the post.
+     * @param int       $created            Creation timestamp
+     * @param int       $modified           Modification timestamp
+     * @param string    $message            The message (content) of the post
+     * @param int       $messageformat      The message format
+     * @param char      $attachment         Attachment of the post
+     * @param int       $mailed             Mailed status
+     * @param int       $reviewed           Review status
+     * @param int       $timereviewed       The time where the post was reviewed
+     * @param object    $formattachments    Information about attachments of the post_form
      */
     public function __construct($discussion, $parent, $userid, $created, $modified, $message,
-                                $messageformat, $attachment, $mailed, $reviewed, $timereviewed) {
+                                $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments = false) {
         $this->discussion = $discussion;
         $this->parent = $parent;
         $this->userid = $userid;
@@ -109,6 +122,7 @@ class post {
         $this->mailed = $mailed;
         $this->reviewed = $reviewed;
         $this->timereviewed = $timereviewed;
+        $this->formattachments = $formattachments;
     }
 
 
@@ -311,19 +325,36 @@ class post {
      * Gets a post with all info ready for moodleoverflow_print_post.
      * Most of these joins are just to get the forum id.
      *
-     * @param int $postid
      *
      * @return mixed array of posts or false
      */
-    public function moodleoverflow_get_post_full($postid) {
+    public function moodleoverflow_get_post_full() {
+        global $DB, $CFG;
+        if (empty($this->id)) {
+            throw new moodle_exception('noexistingpost', 'moodleoverflow');
+        }
 
+        if ($CFG->branch >= 311) {
+            $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+        } else {
+            $allnames = implode(', ', fields::get_name_fields());
+        }
+        $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
+                FROM {moodleoverflow_posts} p
+                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
+                LEFT JOIN {user} u ON p.userid = u.id
+                    WHERE p.id = " . $this->id . " ;";
+
+        $post = $DB->get_records_sql($sql);
+        if ($post->userid === 0) {
+            $post->message = get_string('privacy:anonym_post_message', 'mod_moodleoverflow');
+        }
+        return $post;
     }
-
 
     /**
      * If successful, this function returns the name of the file
      *
-     * @param object $post is a full post record, including course and forum
      * @param object $moodleoverflow    The moodleoverflow object
      * @param object $cm                The course module
      *
@@ -332,24 +363,74 @@ class post {
     public function moodleoverflow_add_attachment($moodleoverflow, $cm) {
         global $DB;
 
-        if (empty($this->attachment)) {
+        if (empty($this->id)) {
+            throw new moodle_exception('noexistingpost', 'moodleoverflow');
+        }
+
+        if (!$this->formattachments) {
+            throw new moodle_exception('missingformattachments', 'moodleoverflow');
+        }
+
+        if (empty($this->formattachments)) {
             return true;    // Nothing to do.
         }
 
         $context = context_module::instance($cm->id);
-        $info = file_get_draft_area_info($this->attachment);
+        $info = file_get_draft_area_info($this->formattachments);
+        $present = ($info['filecount'] > 0) ? '1' : '';
+        file_save_draft_area_file($this->formattachments, $context->id, 'mod_moodleoverflow', 'attachment', $this->id,
+                                  mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
+        $DB->set_field('moodleoverflow_post', 'attachment', $present, array('id' => $this->id));
     }
 
     /**
      * Returns attachments with information for the template
      *
-     * @param object $post
      * @param object $cm
      *
      * @return array
      */
-    public function moodleoverflow_get_attachments($post, $cm) {
+    public function moodleoverflow_get_attachments($cm) {
+        global $CFG, $OUTPUT;
 
+        if (empty($this->id)) {
+            throw new moodle_exception('noexistingpost', 'moodleoverflow');
+        }
+
+        if (empty($this->attachment) || (!$context = context_module::instance($cm->id))) {
+            return array();
+        }
+
+        $attachments = array();
+        $fs = get_file_storage();
+
+        // We retrieve all files according to the time that they were created.  In the case that several files were uploaded
+        // at the sametime (e.g. in the case of drag/drop upload) we revert to using the filename.
+        $file = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $this->id, "filename", false);
+        if ($files) {
+            $i = 0;
+            foreach ($files as $file) {
+                $attachments[$i] = array();
+                $attachments[$i]['filename'] = $file->get_filename();
+                $mimetype = $file->get_mimetype();
+                $iconimage = $OUTPUT->pix_icon(file_file_icon($file),
+                    get_mimetype_description($file), 'moodle',
+                    array('class' => 'icon'));
+                $path = moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(),
+                                                         $file->get_itemid(), $file->get_filepath(), $file->get_filename());
+                $attachments[$i]['icon'] = $iconimage;
+                $attachments[$i]['filepath'] = $path;
+
+                if (in_array($mimetype, array('image/gif', 'image/jpeg', 'image/png'))) {
+                    // Image attachments don't get printed as links.
+                    $attachments[$i]['image'] = true;
+                } else {
+                    $attachments[$i]['image'] = false;
+                }
+                $i += 1;
+            }
+        }
+        return $attachments;
     }
 
     /**
@@ -406,16 +487,66 @@ class post {
 
     }
 
-    public function moodleoverflow_get_parentpost($postid) {
-
-    }
-
+    /**
+     * Returns the moodleoverflow where the post is located.
+     *
+     * @return object $moodleoverflow
+     */
     public function moodleoverflow_get_moodleoverflow() {
+        global $DB;
 
+        if (empty($this->id)) {
+            throw new moodle_exception('noexistingpost', 'moodleoverflow');
+        }
+
+        if (!empty($this->moodleoverflowobject)) {
+            return $this->moodleoverflowobject;
+        }
+
+        $this->get_discussion();
+        $this->moodleoverflowobject = $DB->get_record('moodleoverflow', array('id' => $this->discussionobject->moodleoverflow));
+        return $this->moodleoverflowobject;
     }
 
     public function moodleoverflow_get_discussion() {
+        global $DB;
 
+        if (empty($this->id)) {
+            throw new moodle_exception('noexistingpost', 'moodleoverflow');
+        }
+
+        if (!empty($this->discussionobject)) {
+            return $this->discussionobject;
+        }
+
+        $this->discussionobject = $DB->get_record('moodleoverflow_discussions', array('id' => $this->discussion));
+        return $this->discussionobject;
+    }
+
+    /**
+     * Returns the parent post
+     *
+     * @return object $post
+     */
+    public function moodleoverflow_get_parentpost($postid) {
+        global $DB;
+        if (empty($this->id)) {
+            throw new moodle_exception('noexistingpost', 'moodleoverflow');
+        }
+
+        if ($this->parent == 0) {
+            // This post is the parent post.
+            $this->parentpost = false;
+            return;
+        }
+
+        if (!empty($this->parentpost)) {
+            return $this->parentpost;
+        }
+
+        $parentpostrecord = $DB->get_record('moodleoverflow_post', array('id' => $this->parent));
+        $this->parentpost = $this->from_record($parentpostrecord);
+        return $this->parentpost;
     }
 
     /**
@@ -424,6 +555,7 @@ class post {
      * @return object children/answer posts.
      */
     public function moodleoverflow_get_childposts() {
+        global $DB;
         if (empty($this->id)) {
             throw new moodle_exception('noexistingpost', 'moodleoverflow');
         }

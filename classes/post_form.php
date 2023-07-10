@@ -142,10 +142,3 @@ class mod_moodleoverflow_post_form extends moodleform {
         );
     }
 }
-
-
-
-
-
-
-

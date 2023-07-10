@@ -149,6 +149,7 @@ $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have
 $string['errorwhiledelete'] = 'An error occurred while deleting record.';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
 $string['noexistingpost'] = 'Post does not exists, needs to be created first';
+$string['missingformattachments'] = "This functions requires data that were not submitted. Please check the post_form";
 
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';

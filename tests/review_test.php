@@ -292,16 +292,19 @@ class review_test extends \advanced_testcase {
     private function check_mail_records($teacherpost, $studentpost, $review1, $review2, $mailed) {
         global $DB;
 
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review1, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review2, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review1,
+                                          'timereviewed' => null],
+                                         $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review2,
+                                          'timereviewed' => null],
+                                         $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
 
         $this->run_send_mails();
         $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
 
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => $review1, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => $review1,
+                                          'timereviewed' => null],
+                                         $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
         $this->assert_matches_properties(['mailed' => $mailed, 'reviewed' => $review2, 'timereviewed' => null],
             $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
     }
