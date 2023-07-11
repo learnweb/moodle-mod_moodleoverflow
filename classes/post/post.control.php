@@ -85,7 +85,7 @@ class post_control {
 
     /**
      * Detects the interaction
-     * @param object $urlparamter parameter from the post.php .
+     * @param object $urlparamter parameter from the post.php
      */
     private function detect_interaction($urlparameter) {
         $count = 0;
