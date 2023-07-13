@@ -26,9 +26,9 @@
 namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
-// use mod_moodleoverflow\anonymous;
-// use mod_moodleoverflow\capabilities;
-// use mod_moodleoverflow\review;
+use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\review;
 use mod_moodleoverflow\readtracking;
 
 defined('MOODLE_INTERNAL') || die();
@@ -84,9 +84,9 @@ class post {
     /** @var int This variable is optional, it contains important information for the add_attachment function */
     private $formattachments;
 
-    // Variable that are not from the constructor.
+    // Not database related functions.
 
-    /** @var string The subject of the Discussion */
+    /** @var string The subject/title of the Discussion */
     private $subject;
 
     /** @var object The discussion where the post is located */
@@ -98,8 +98,10 @@ class post {
     /** @var object The parent post of an answerpost */
     private $parentpost;
 
+    // Constructors and other builders.
+
     /**
-     * Constructor to make a new post
+     * Constructor to make a new post.
      *
      * @param int       $discussion         The discussion ID.
      * @param int       $parent             The parent post ID.
@@ -114,8 +116,9 @@ class post {
      * @param int       $timereviewed       The time where the post was reviewed
      * @param object    $formattachments    Information about attachments of the post_form
      */
-    public function __construct($discussion, $parent, $userid, $created, $modified, $message,
+    public function __construct($id, $discussion, $parent, $userid, $created, $modified, $message,
                                 $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments = false) {
+        $this->id = $id;
         $this->discussion = $discussion;
         $this->parent = $parent;
         $this->userid = $userid;
@@ -130,12 +133,11 @@ class post {
         $this->formattachments = $formattachments;
     }
 
-
     /**
-     * Creates a Post from a DB record.
+     * Builds a Post from a DB record.
      *
-     * @param object $record Data object.
-     * @return object post
+     * @param object  $record Data object.
+     * @return object post instance
      */
     public static function from_record($record) {
         $id = null;
@@ -204,6 +206,30 @@ class post {
         return $instance;
     }
 
+    /**
+     * Function to make a new post without specifying the Post ID.
+     *
+     * @param int       $discussion         The discussion ID.
+     * @param int       $parent             The parent post ID.
+     * @param int       $userid             The user ID that created the post.
+     * @param int       $created            Creation timestamp
+     * @param int       $modified           Modification timestamp
+     * @param string    $message            The message (content) of the post
+     * @param int       $messageformat      The message format
+     * @param char      $attachment         Attachment of the post
+     * @param int       $mailed             Mailed status
+     * @param int       $reviewed           Review status
+     * @param int       $timereviewed       The time where the post was reviewed
+     * @param object    $formattachments    Information about attachments of the post_form
+     */
+    public static function constructwithoutid($discussion, $parent, $userid, $created, $modified, $message,
+                                $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments = false) {
+        $id = null;
+        $instance = new self($id, $discussion, $parent, $userid, $created, $modified, $message,
+                             $messageformat, $attachment, $mailed, $reviewed, $timereviewed);
+        return $instance;
+    }
+
     // Post Functions.
 
     /**
@@ -251,10 +277,7 @@ class post {
      */
     public function moodleoverflow_delete_post($deletechildren, $cm, $moodleoverflow) {
         global $DB, $USER;
-
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         // Iterate through all children and delete them.
         // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
@@ -333,11 +356,9 @@ class post {
      *
      * @return mixed array of posts or false
      */
-    public function moodleoverflow_get_post_full() {
+    public function moodleoverflow_get_complete_post() {
         global $DB, $CFG;
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         if ($CFG->branch >= 311) {
             $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
@@ -367,10 +388,7 @@ class post {
      */
     public function moodleoverflow_add_attachment($moodleoverflow, $cm) {
         global $DB;
-
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         if (!$this->formattachments) {
             throw new moodle_exception('missingformattachments', 'moodleoverflow');
@@ -397,10 +415,7 @@ class post {
      */
     public function moodleoverflow_get_attachments($cm) {
         global $CFG, $OUTPUT;
-
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         if (empty($this->attachment) || (!$context = context_module::instance($cm->id))) {
             return array();
@@ -445,10 +460,7 @@ class post {
      */
     public function moodleoverflow_get_moodleoverflow() {
         global $DB;
-
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         if (empty($this->moodleoverflowobject)) {
             $discussion = $this->get_discussion();
@@ -460,15 +472,12 @@ class post {
 
     /**
      * Returns the discussion where the post is located.
-     * 
+     *
      * @return object $discussionobject.
      */
     public function moodleoverflow_get_discussion() {
         global $DB;
-
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         if (empty($this->discussionobject)) {
             $this->discussionobject = $DB->get_record('moodleoverflow_discussions', array('id' => $this->discussion));
@@ -483,9 +492,7 @@ class post {
      */
     public function moodleoverflow_get_parentpost() {
         global $DB;
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         if ($this->parent == 0) {
             // This post is the parent post.
@@ -507,9 +514,7 @@ class post {
      */
     public function moodleoverflow_get_childposts() {
         global $DB;
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         if ($childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $this->id))) {
             return $childposts;
@@ -524,9 +529,7 @@ class post {
      * @return object $ratingsobject.
      */
     public function moodleoverflow_get_post_ratings() {
-        if (empty($this->id)) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
-        }
+        $this->existence_check();
 
         $discussionid = $this->moodleoverflow_get_discussion()->id;
         $postratings = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussionid, $this->id);
@@ -539,6 +542,20 @@ class post {
         $ratingsobject->markedsolution = $postratings->issolved;
 
         return $ratingsobject;
+    }
+
+    /**
+     * Makes sure that the instance exists in the database. Every function in this class requires this check
+     * (except the function that adds a post to the database)
+     *
+     * @return true
+     * @throws moodle_exception
+     */
+    private function existence_check() {
+        if (empty($this->id) || $this->id == false || $this->id == null) {
+            throw new moodle_exception('noexistingpost', 'moodleoverflow');
+        }
+        return true;
     }
 
     // Big Functions.
@@ -590,9 +607,9 @@ class post {
                                               $dummyifcantsee = true, $istracked = false, $iscomment = false, $usermapping = [],
                                               $level = 0, $multiplemarks = false) {
         global $USER, $CFG, $OUTPUT, $PAGE;
-
+        $this->existence_check();
         // Get important variables.
-        $post = $this->moodleoverflow_get_post_full();
+        $post = $this->moodleoverflow_get_complete_post();
         $discussion = $this->moodleoverflow_get_discussion();
         $moodleoverflow = $this->moodleoverflow_get_moodleoverflow();
         $cm = $DB->get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
