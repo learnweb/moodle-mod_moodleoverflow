@@ -23,7 +23,7 @@
  */
 
 
-namespace mod_moodleoverflow\post;
+namespace mod_moodleoverflow\post\post_control;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use mod_moodleoverflow\anonymous;
@@ -169,6 +169,13 @@ class post_control {
             // Notify the user, that he can not post a new discussion.
             throw new moodle_exception('nopostmoodleoverflow', 'moodleoverflow');
         }
+
+        // Set the post to not reviewed if questions should be reviewed and the user is not a reviewed themselve.
+        if (review::get_review_level($this->information->moodleoverflow) >= review::QUESTIONS &&
+            !capabilities::has(capabilities::REVIEW_POST, $this->information->modulecontext, $USER->id)) {
+            $reviewed = 0;
+        }
+
         // Where is the user coming from?
         $SESSION->fromurl = get_local_referer(false);
 
@@ -181,6 +188,7 @@ class post_control {
         $this->prepost->subject = '';
         $this->prepost->userid = $USER->id;
         $this->prepost->message = '';
+        $this->prepost->reviewed = $reviewed;  // IST DAS OKAY?!
 
         // Unset where the user is coming from.
         // Allows to calculate the correct return url later.

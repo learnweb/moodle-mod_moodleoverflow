@@ -23,7 +23,7 @@
  */
 
 
-namespace mod_moodleoverflow\post;
+namespace mod_moodleoverflow\post\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use mod_moodleoverflow\anonymous;
@@ -94,6 +94,9 @@ class post {
 
     /** @var object The Moodleoverflow where the post is located*/
     private $moodleoverflowobject;
+
+    /** @var object The course module object */
+    private $cmobject;
 
     /** @var object The parent post of an answerpost */
     private $parentpost;
@@ -221,8 +224,10 @@ class post {
      * @param int       $reviewed           Review status
      * @param int       $timereviewed       The time where the post was reviewed
      * @param object    $formattachments    Information about attachments of the post_form
+     *
+     * @return object post object without id
      */
-    public static function constructwithoutid($discussion, $parent, $userid, $created, $modified, $message,
+    public static function construct_without_id($discussion, $parent, $userid, $created, $modified, $message,
                                 $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments = false) {
         $id = null;
         $instance = new self($id, $discussion, $parent, $userid, $created, $modified, $message,
@@ -241,13 +246,9 @@ class post {
     public function moodleoverflow_add_new_post() {
         global $USER, $DB;
 
-        $discussion = $this->moodleoverflow_get_discussion();
-        $moodleoverflow = $this->moodleoverflow_get_moodleoverflow();
-        $cm = $DB->get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
-
         // Add post to the database.
         $this->id = $DB->insert_record('moodleoverflow_posts', $this);
-        $this->moodleoverflow_add_attachment($this, $moodleoverflow, $cm);  // RETHINK.
+        $this->moodleoverflow_add_attachment($this, $this->get_moodleoverflow(), $this->get_coursemodule());
 
         if ($this->reviewed) {
             // Update the discussion.
@@ -256,8 +257,8 @@ class post {
         }
 
         // Mark the created post as read if the user is tracking the discussion.
-        $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
+        $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($this->get_moodleoverflow());
+        $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
             readtracking::moodleoverflow_mark_post_read($this->userid, $this);
         }
@@ -269,13 +270,11 @@ class post {
     /**
      * Deletes a single moodleoverflow post.
      *
-     * @param bool   $deletechildren        The child posts
-     * @param object $cm                    The course module
-     * @param object $moodleoverflow        The moodleoverflow
+     * @param bool  $deletechildren        The child posts
      *
-     * @return bool Whether the deletion was successful
+     * @return bool Whether the deletion was successful or not
      */
-    public function moodleoverflow_delete_post($deletechildren, $cm, $moodleoverflow) {
+    public function moodleoverflow_delete_post($deletechildren) {
         global $DB, $USER;
         $this->existence_check();
 
@@ -303,7 +302,7 @@ class post {
 
                 // Delete the attachments.
                 $fs = get_file_storage();
-                $context = context_module::instance($cm->id);
+                $context = context_module::instance($this->get_coursemodule()->id);
                 $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
                     $this->id, "filename", true);
                 foreach ($attachments as $attachment) {
@@ -320,7 +319,7 @@ class post {
                 moodleoverflow_discussion_update_last_post($this->discussion);
 
                 // Get the context module.
-                $modulecontext = context_module::instance($cm->id);
+                $modulecontext = context_module::instance($this->get_coursemodule()->id);
 
                 // Trigger the post deletion event.
                 $params = array(
@@ -328,7 +327,7 @@ class post {
                     'objectid' => $this->id,
                     'other' => array(
                         'discussionid' => $this->discussion,
-                        'moodleoverflowid' => $moodleoverflow->id
+                        'moodleoverflowid' => $this->get_moodleoverflow()->id
                     )
                 );
                 if ($this->userid !== $USER->id) {
@@ -336,6 +335,9 @@ class post {
                 }
                 $event = post_deleted::create($params);
                 $event->trigger();
+
+                // Set the id of this instance to null, so that working with it is not possible anymore.
+                $this->id = null;
 
                 // The post has been deleted.
                 $transaction->allow_commit();
@@ -381,12 +383,9 @@ class post {
     /**
      * If successful, this function returns the name of the file
      *
-     * @param object $moodleoverflow    The moodleoverflow object
-     * @param object $cm                The course module
-     *
      * @return bool
      */
-    public function moodleoverflow_add_attachment($moodleoverflow, $cm) {
+    public function moodleoverflow_add_attachment() {
         global $DB;
         $this->existence_check();
 
@@ -398,26 +397,25 @@ class post {
             return true;    // Nothing to do.
         }
 
-        $context = context_module::instance($cm->id);
+        $context = context_module::instance($this->get_coursemodule()->id);
         $info = file_get_draft_area_info($this->formattachments);
         $present = ($info['filecount'] > 0) ? '1' : '';
         file_save_draft_area_file($this->formattachments, $context->id, 'mod_moodleoverflow', 'attachment', $this->id,
-                                  mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
+                                  mod_moodleoverflow_post_form::attachment_options($this->get_moodleoverflow()));
         $DB->set_field('moodleoverflow_post', 'attachment', $present, array('id' => $this->id));
     }
 
     /**
      * Returns attachments with information for the template
      *
-     * @param object $cm
      *
      * @return array
      */
-    public function moodleoverflow_get_attachments($cm) {
+    public function moodleoverflow_get_attachments() {
         global $CFG, $OUTPUT;
         $this->existence_check();
 
-        if (empty($this->attachment) || (!$context = context_module::instance($cm->id))) {
+        if (empty($this->attachment) || (!$context = context_module::instance($this->get_coursemodule()->id))) {
             return array();
         }
 
@@ -453,12 +451,14 @@ class post {
         return $attachments;
     }
 
+    // Helper Functions.
+
     /**
      * Returns the moodleoverflow where the post is located.
      *
-     * @return object $moodleoverflow
+     * @return object $moodleoverflowobject
      */
-    public function moodleoverflow_get_moodleoverflow() {
+    public function get_moodleoverflow() {
         global $DB;
         $this->existence_check();
 
@@ -475,7 +475,7 @@ class post {
      *
      * @return object $discussionobject.
      */
-    public function moodleoverflow_get_discussion() {
+    public function get_discussion() {
         global $DB;
         $this->existence_check();
 
@@ -484,6 +484,21 @@ class post {
         }
 
         return $this->discussionobject;
+    }
+
+    /**
+     * Returns the coursemodule
+     *
+     * @return object $cmobject
+     */
+    public function get_coursemodule() {
+        $this->existence_check();
+
+        if (empty($this->cmobject)) {
+            $this->cmobject = $DB->get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id);
+        }
+
+        return $this->cmobject;
     }
 
     /**
@@ -531,7 +546,7 @@ class post {
     public function moodleoverflow_get_post_ratings() {
         $this->existence_check();
 
-        $discussionid = $this->moodleoverflow_get_discussion()->id;
+        $discussionid = $this->get_discussion()->id;
         $postratings = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussionid, $this->id);
 
         $ratingsobject = new \stdClass();
@@ -543,6 +558,8 @@ class post {
 
         return $ratingsobject;
     }
+
+    // Security.
 
     /**
      * Makes sure that the instance exists in the database. Every function in this class requires this check
@@ -610,8 +627,8 @@ class post {
         $this->existence_check();
         // Get important variables.
         $post = $this->moodleoverflow_get_complete_post();
-        $discussion = $this->moodleoverflow_get_discussion();
-        $moodleoverflow = $this->moodleoverflow_get_moodleoverflow();
+        $discussion = $this->get_discussion();
+        $moodleoverflow = $this->get_moodleoverflow();
         $cm = $DB->get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $course = $DB->get_record('course', array('id' => $moodleoverflow->course));
 

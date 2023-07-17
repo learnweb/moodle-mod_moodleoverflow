@@ -27,9 +27,12 @@ namespace mod_moodleoverflow\discussion;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\capabilities;
-use mod_moodleoverflow\review;
+
+// Important namespaces.
 use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\review;
+use mod_moodleoverflow\post\post;
+use mod_moodleoverflow\capabilities;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -78,6 +81,12 @@ class discussion {
     /** @var array an Array of posts that belong to this discussion */
     private $posts;
 
+    /** @var object The moodleoverflow object where the discussion is located */
+    private $moodleoverflowobject;
+
+    /** @var object The course module object */
+    private $cmobject;
+
     // Constructors and other builders.
 
     /**
@@ -103,6 +112,7 @@ class discussion {
         $this->timemodified = $timemodified;
         $this->timestart = $timestart;
         $this->usermodified = $usermodified;
+        $this->posts = array();
     }
 
     /**
@@ -172,8 +182,10 @@ class discussion {
      * @param int   $timemodified   The course ID.
      * @param int   $timestart   The course ID.
      * @param int   $usermodified   The course ID.
+     *
+     * @return object discussion object without id.
      */
-    public static function constructwithoutid($course, $moodleoverflow, $name, $firstpost,
+    public static function construct_without_id($course, $moodleoverflow, $name, $firstpost,
                                        $userid, $timemodified, $timestart, $usermodified) {
         $id = null;
         $instance = new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
@@ -182,13 +194,152 @@ class discussion {
 
     // Discussion Functions.
 
-    public function moodleoverflow_add_discussion() {}
-    public function moodleoverflow_delete_discussion() {}
-    public function moodleoverflow_add_post_to_discussion() {}
-    public function moodleoverflow_delete_post_from_discussion() {}
-    public function moodleoverflow_get_discussion_ratings() {}
-    public function moodleoverflow_get_discussion_posts() {}
-    public function moodleoverflow_discussion_update_last_post() {} // This function has something to do with updating the attribute "timemodified".
+    /**
+     * Adds a new Discussion with a post.
+     *
+     * @param object $prepost The prepost object from the post_control. Has information about the post and other important stuff.
+     */
+    public function moodleoverflow_add_discussion($prepost) {
+        global $DB;
+
+        // Get the current time.
+        $timenow = time();
+
+        // Retrieve the module instance.
+        if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $this->moodleoverflow))) {
+            return false;
+        }
+
+        // Add the discussion to the Database.
+        $this->id = $DB->insert_record('moodleoverflow_discussions', $this);
+
+        // Create the first/parent post for the new discussion and add it do the DB.
+        $post = post::construct_without_id($this->id, 0, $prepost->userid, $prepost->created, $prepost->modified,
+                                            $preposts->message, $prepost->messageformat, $prepost->attachment, $prepost->mailed,
+                                            $prepost->reviewed, $prepost->timereviewed, $prepost->formattachments);
+        // Add it to the DB and save the id of the first/parent post.
+        $this->firstpost = $post->moodleoverflow_add_new_post();
+
+        // Save the id of the first/parent post in the DB.
+        $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, array('id' => $this->id));
+
+        // Add the parent post to the $posts array.
+        $this->posts[$this->firstpost] = $post;
+
+        // Trigger event.
+        $params = array(
+            'context' => $prepost->modulecontext,
+            'objectid' => $post->discussion,
+        );
+        $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
+        $event->trigger();
+
+        // Return the id of the discussion.
+        return $this->id;
+    }
+
+    /**
+     * Delete a discussion with all of it's posts
+     *
+     * @return bool Wether deletion was successful of not
+     */
+    public function moodleoverflow_delete_discussion() {
+        global $DB;
+        $this->existence_check();
+
+        // Delete a discussion with all of it's posts.
+        // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
+        // All DB transactions are rolled back.
+        try {
+            $transaction = $DB->start_delegated_transaction();
+
+            // Delete every post of this discussion.
+            foreach ($posts as $post) {
+                $post->moodleoverflow_delete_post(false);
+            }
+
+            // Delete the read-records for the discussion.
+            readtracking::moodleoverflow_delete_read_records(-1, -1, $this->id);
+
+            // Remove the subscriptions for the discussion.
+            $DB->delete_records('moodleoverflow_discuss_subs', array('discussion' => $this->id));
+
+            // Delete the discussion from the database.
+            $DB->delete_records('moodleoverflow_discussions', array('id' => $this->id));
+
+            // Set the id of this instance to null, so that working with it is not possible anymore.
+            $this->id = null;
+
+            // The discussion has been deleted.
+            $transaction->allow_commit();
+            return true;
+
+        } catch (Exception $e) {
+            $transaction->rollback($e);
+        }
+
+        // Deleting the discussion has failed.
+        return false;
+    }
+
+    /**
+     * Adds a new post to this discussion and the DB.
+     *
+     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
+     */
+    public function moodleoverflow_add_post_to_discussion($prepost) {
+        global $DB;
+
+    }
+
+    public function moodleoverflow_delete_post_from_discussion() {
+
+    }
+    public function moodleoverflow_get_discussion_ratings() {
+
+    }
+    public function moodleoverflow_get_discussion_posts() {
+
+    }
+    public function moodleoverflow_discussion_update_last_post() {
+        // This function has something to do with updating the attribute "timemodified".
+    }
+
+
+    /**
+     * Returns the moodleoverflowobject
+     *
+     * @return object $moodleoverflowobject
+     */
+    public function get_moodleoverflow() {
+        global $DB;
+        $this->existence_check();
+
+        if (empty($this->moodleoverflowobject)) {
+            $this->moodleoverflowobject = $DB->get_records('moodleoverflow', array('id' => $this->moodleoverflow));
+        }
+
+        return $this->moodleoverflowobject;
+    }
+
+    /**
+     * Returns the coursemodule
+     *
+     * @return object $cmobject
+     */
+    public function get_coursemodule() {
+        $this->existence_check();
+
+        if (empty($this->cmobject)) {
+            if (!$this->cmobject = $DB->get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id,
+                                                                                         $this->get_moodleoverflow()->course)) {
+                throw new moodle_exception('invalidcoursemodule');
+            }
+
+        }
+
+        return $this->cmobject;
+    }
 
     // Security.
 
