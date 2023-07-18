@@ -43,6 +43,9 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * Class that represents a discussion.
  * A discussion administrates the posts and has one parent post, that started the discussion.
  *
+ * Please be careful with functions that delete posts or discussions.
+ * Security checks for these functions were done in the post_control class and these functions should only be accessed via this way.
+ * Accessing these functions directly without the checks from the post control could lead to serious errors.
  * @package     mod_moodleoverflow
  * @copyright   2023 Tamaro Walter
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -81,6 +84,9 @@ class discussion {
     /** @var array an Array of posts that belong to this discussion */
     private $posts;
 
+    /** @var bool  a variable for checking if this instance has all its posts */
+    private $postsbuild;
+
     /** @var object The moodleoverflow object where the discussion is located */
     private $moodleoverflowobject;
 
@@ -113,6 +119,7 @@ class discussion {
         $this->timestart = $timestart;
         $this->usermodified = $usermodified;
         $this->posts = array();
+        $this->postsbuild = false;
     }
 
     /**
@@ -169,6 +176,9 @@ class discussion {
 
         $instance = new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
 
+        // Get all the posts so that the instance can work with it.
+        $instance->moodleoverflow_get_discussion_posts();
+
         return $instance;
     }
 
@@ -205,16 +215,11 @@ class discussion {
         // Get the current time.
         $timenow = time();
 
-        // Retrieve the module instance.
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $this->moodleoverflow))) {
-            return false;
-        }
-
         // Add the discussion to the Database.
         $this->id = $DB->insert_record('moodleoverflow_discussions', $this);
 
         // Create the first/parent post for the new discussion and add it do the DB.
-        $post = post::construct_without_id($this->id, 0, $prepost->userid, $prepost->created, $prepost->modified,
+        $post = post::construct_without_id($this->id, 0, $prepost->userid, $timenow, $timenow,
                                             $preposts->message, $prepost->messageformat, $prepost->attachment, $prepost->mailed,
                                             $prepost->reviewed, $prepost->timereviewed, $prepost->formattachments);
         // Add it to the DB and save the id of the first/parent post.
@@ -225,6 +230,7 @@ class discussion {
 
         // Add the parent post to the $posts array.
         $this->posts[$this->firstpost] = $post;
+        $this->postsbuild = true;
 
         // Trigger event.
         $params = array(
@@ -246,6 +252,7 @@ class discussion {
     public function moodleoverflow_delete_discussion() {
         global $DB;
         $this->existence_check();
+        $this->posts_check();
 
         // Delete a discussion with all of it's posts.
         // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
@@ -289,18 +296,123 @@ class discussion {
      */
     public function moodleoverflow_add_post_to_discussion($prepost) {
         global $DB;
+        $this->existence_check();
+        $this->post_check();
 
+        // Get the current time.
+        $timenow = time();
+
+        // Create the post that will be added to the new discussion.
+        $post = post::construct_without_id($this->id, $prepost->parent, $timenow, $timenow, $prepost->message,
+                                           $prepost->messageformat, $prepost->attachment, $prepost->mailed,
+                                           $prepost->reviewed, $prepost->timereviewed, $prepost->formattachments);
+        // Add the post to the DB.
+        $postid = $post->moodleoverflow_add_new_post();
+
+        // Add the post to the $posts array.
+        $this->posts[$postid] = $post;
+
+        // Return the id of the added post.
+        return $postid;
     }
 
-    public function moodleoverflow_delete_post_from_discussion() {
+    /**
+     * Deletes a post that is in this discussion from the DB.
+     *
+     * @return bool Wether the deletion was possible
+     * @throws moodle_exception if post is not in this discussion or something failed.
+     */
+    public function moodleoverflow_delete_post_from_discussion($postid, $deletechildren) {
+        $this->existence_check();
+        $this->posts_check();
 
+        // Check if the posts exists in this discussion.
+        $this->post_exists_check($postid);
+
+        // Access the post and delete it.
+        $post = $this->posts[$postid];
+        if (!$post->moodleoverflow_delete_post($deletechildren)) {
+            // Deletion failed.
+            return false;
+        }
+        // Delete the post from the post array.
+        unset($this->posts[$postid]);
+
+        return true;
     }
+
+    /**
+     * Edits the message of a post from this discussion.
+     */
+    public function moodleoverflow_edit_post_from_discussion($postid, $postmessage) {
+        global $DB;
+        $this->existence_check();
+        $this->posts_check();
+
+        // Check if the posts exists in this discussion.
+        $this->post_exists_check($postid);
+
+        // Get the current time.
+        $timenow = time();
+
+        // Access the post and edit its message.
+        $post = $this->post[$postid];
+
+        // If the post is the firstpost, then update the name of this discussion and the post. If not, only update the post.
+        if ($postid == array_key_first($posts));
+    }
+
+    /**
+     * Returns the ratings from this discussion.
+     *
+     * @return array of votings
+     */
     public function moodleoverflow_get_discussion_ratings() {
+        $this->existence_check();
+        $this->posts_check();
 
+        $discussionratings = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($this->id);
+        return $discussionratings;
     }
+
+    /**
+     * Get all posts from this Discussion.
+     * The first/parent post is on the first position in the array.
+     *
+     * @return array $posts     Array ob posts objects
+     */
     public function moodleoverflow_get_discussion_posts() {
+        global $DB;
+        $this->existence_check();
 
+        // Check if the posts array are build yet. If not, build it.
+        if (!$this->postsbuild) {
+            // Get the posts from the DB. Get the parent post first.
+            $firstpostsql = 'SELECT * FROM {moodleoverflow_posts} posts
+                            WHERE posts.discussion = ' . $this->id . ' AND posts.parent = 0;';
+            $otherpostssql = 'SELECT * FROM {moodleoverflow_posts} posts
+                            WHERE posts.discussion = ' . $this->id . ' AND posts.parent != 0;';
+            $firstpostrecord = $DB->get_record_sql($firstpostsql);
+            $otherpostsrecords = $DB->get_records_sql($otherpostssql);
+
+            // Add the first/parent post to the array, then add the other posts.
+            $firstpost = post::from_record($firstpostrecord);
+            $this->posts[$firstpost->get_id()] = $firstpost;
+
+            foreach ($otherpostrecords as $postrecord) {
+                $post = post::from_record($postrecord);
+                $this->posts[$post->get_id()] = $post;
+            }
+
+            // Now the posts are built.
+            $this->postsbuild = true;
+        }
+
+        // Return the posts array.
+        return $this->posts;
     }
+
+
     public function moodleoverflow_discussion_update_last_post() {
         // This function has something to do with updating the attribute "timemodified".
     }
@@ -357,4 +469,31 @@ class discussion {
         return true;
     }
 
+    /**
+     * Makes sure that the instance knows all of its posts (That all posts of the db are in the local array).
+     * Not all functions need this check.
+     * @return true
+     * @throws moodle_exception
+     */
+    private function posts_check() {
+        if (!$this->postsbuild) {
+            throw new moodle_exception('notallpostsavailable', 'moodleoverflow');
+        }
+        return true;
+    }
+
+    /**
+     * Check, if certain posts really exists in this discussion.
+     * 
+     * @param int $postid   The ID of the post that is being checked.
+     * @return true
+     * @throws moodle_exception;
+     */
+    private function post_exists_check($postid) {
+        if (!$this->posts[$postid]) {
+            throw new moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
+        }
+
+        return true;
+    }
 }

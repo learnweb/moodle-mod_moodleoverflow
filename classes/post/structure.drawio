@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="Ocp_CnXS0HLAeEA8QY45" name="Page-1">
-        <mxGraphModel dx="2731" dy="1751" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+        <mxGraphModel dx="3355" dy="2243" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -37,11 +37,6 @@
                 </mxCell>
                 <mxCell id="11" value="Post.php&lt;br&gt;" style="html=1;dropTarget=0;" parent="1" vertex="1">
                     <mxGeometry x="240" y="20" width="180" height="90" as="geometry"/>
-                </mxCell>
-                <mxCell id="12" value="" style="shape=module;jettyWidth=8;jettyHeight=4;" parent="11" vertex="1">
-                    <mxGeometry x="1" width="20" height="20" relative="1" as="geometry">
-                        <mxPoint x="-27" y="7" as="offset"/>
-                    </mxGeometry>
                 </mxCell>
                 <mxCell id="13" value="" style="endArrow=classic;html=1;exitX=0.001;exitY=0.03;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.665;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="9" target="11" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -107,18 +102,6 @@
                 <mxCell id="25" value="2. Interaktion und wichtige Infos im prepost" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="420" y="220" width="145" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="26" value="" style="endArrow=classic;html=1;fontSize=13;entryX=1.001;entryY=0.244;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.066;exitY=1.01;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="21" target="5" edge="1">
-                    <mxGeometry width="50" height="50" relative="1" as="geometry">
-                        <mxPoint x="340" y="240" as="sourcePoint"/>
-                        <mxPoint x="881" y="660" as="targetPoint"/>
-                        <Array as="points">
-                            <mxPoint x="600" y="550"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="27" value="6.&amp;nbsp; Interaktion editieren: editiere den post direkt" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;" parent="1" vertex="1">
-                    <mxGeometry x="100" y="530" width="310" height="30" as="geometry"/>
-                </mxCell>
                 <mxCell id="28" value="Discussion" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" parent="1" vertex="1">
                     <mxGeometry x="50" y="780" width="510" height="460" as="geometry"/>
                 </mxCell>
@@ -179,7 +162,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="42" value="6. Durchführung der Aktion&lt;br&gt;- Interaktion &amp;lt;&amp;lt;new Discussion&amp;gt;&amp;gt; : Neues Objekt der Diskussionsklasse, die dann einen neuen Elternpost hinzufügt (Das diskussionsobject erstellt dann einen neues post-objekt&lt;br&gt;- Interaktion &amp;lt;&amp;lt;Answer/Comment&amp;gt;&amp;gt;: greife auf gestehendes Diskussionsobjekt zu, welches dann ein neues Postobjekt seiner Sammlung hinzufügt&lt;br&gt;- Interaktion &amp;lt;&amp;lt;Delete&amp;gt;&amp;gt;: greife auf bestehendes Diskussionsobjekt zu, welches einen Post aus seiner Sammlung an post löscht&amp;nbsp;&amp;nbsp;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;" parent="1" vertex="1">
+                <mxCell id="42" value="6. Durchführung der Aktion&lt;br&gt;- Interaktion &amp;lt;&amp;lt;new Discussion&amp;gt;&amp;gt; : Neues Objekt der Diskussionsklasse, die dann einen neuen Elternpost hinzufügt (Das diskussionsobject erstellt dann einen neues post-objekt&lt;br&gt;- Interaktion &amp;lt;&amp;lt;Answer/Comment&amp;gt;&amp;gt;: greife auf gestehendes Diskussionsobjekt zu, welches dann ein neues Postobjekt seiner Sammlung hinzufügt&lt;br&gt;- Interaktion &amp;lt;&amp;lt;Delete&amp;gt;&amp;gt;: greife auf bestehendes Diskussionsobjekt zu, welches einen Post aus seiner Sammlung an post löscht&lt;br&gt;- Interaktion &amp;lt;&amp;lt;edit&amp;gt;&amp;gt;: Editiere den gewollten post&amp;nbsp;&amp;nbsp;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;" parent="1" vertex="1">
                     <mxGeometry x="720" y="500" width="530" height="330" as="geometry"/>
                 </mxCell>
                 <mxCell id="43" value="Array an Posts, erstes Element ist der Elternpost" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;" parent="1" vertex="1">

@@ -150,6 +150,7 @@ $string['errorwhiledelete'] = 'An error occurred while deleting record.';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
 $string['noexistingpost'] = 'Post does not exists, needs to be created first';
 $string['noexistingdiscussion'] = 'Discussion does not exists, needs to be created first';
+$string['notallpostsavailable'] = 'This Discussion does not have all of its posts, this could lead to errors! Please use moodleoverflow_get_discussion_posts()';
 $string['missingformattachments'] = "This functions requires data that were not submitted. Please check the post_form";
 
 // Strings for the classes/mod_form.php.
@@ -177,6 +178,7 @@ $string['invalidratingid'] = 'The submitted rating is neither an upvote nor a do
 $string['notstartuser'] = 'Only the user who started the discussion can mark an answer as helpful.';
 $string['notteacher'] = 'Only course owners can do this.';
 $string['ratingtoold'] = 'Ratings can only be changed within 30 minutes after the first vote. ';
+$string['postnotpartofdiscussion'] = 'Post does not exist in this discussion, please check the parameter';
 
 // Strings for the discussion.php.
 $string['invaliddiscussionid'] = 'Discussion ID was incorrect';

@@ -316,7 +316,7 @@ class post {
                 }
 
                 // Just in case, check for the new last post of the discussion.
-                moodleoverflow_discussion_update_last_post($this->discussion);
+                moodleoverflow_discussion_update_last_post($this->discussion); // NEEDS TO CHANGE WITH NEW DISCUSSION CLASS.
 
                 // Get the context module.
                 $modulecontext = context_module::instance($this->get_coursemodule()->id);
@@ -349,6 +349,26 @@ class post {
 
         // Deleting the post failed.
         return false;
+    }
+
+    /**
+     * Edits the message from this instance.
+     * 
+     * @param string    $postmessage   The new message
+     * @param object    $postattachment
+     * @param timestamp $time          The time the post was modified (given from the discussion class).
+     */
+    public function moodleoverflow_edit_post($postmessage, $postattachment, $time) {
+        global $DB;
+        $this->existence_check();
+
+        // Update the attributes.
+        $this->message = $postmessage;
+        $this->modified = $time;
+
+        $DB->update_record('moodleoverflow_posts', $this);
+
+
     }
 
     /**
@@ -452,6 +472,17 @@ class post {
     }
 
     // Helper Functions.
+
+    /**
+     * Returns the id of this instance.
+     *
+     * @return int $this->id
+     */
+    public function get_id() {
+        $this->existence_check();
+
+        return $this->id;
+    }
 
     /**
      * Returns the moodleoverflow where the post is located.
