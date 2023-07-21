@@ -30,6 +30,7 @@ use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\discussion;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -39,11 +40,23 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 /**
  * Class that represents a post.
  *
+ * Please be careful with functions that delete, add or edit posts.
+ * Security checks for these functions were done in the post_control class and these functions should only be accessed that way.
+ * Accessing these functions directly without the checks from the post_control could lead to serious errors.
+ *
+ * Most of the functions in this class are called by moodleoverflow/classes/discussion/discussion.php . The discussion class
+ * manages posts in a moodleoverflow and works like a toplevel class for the post class. If you want to manipulate
+ * (delete, add, edit) posts, please call the functions from the discussion class. To read and obtain information about posts
+ * you are free to choose.
+ *
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post {
+
+    // Attributes. The most important attributes are private and can only be changed by internal functions.
+    // Other attributes can be accessed directly.
 
     /** @var int The post ID */
     private $id;
@@ -58,48 +71,48 @@ class post {
     private $userid;
 
     /** @var int Creation timestamp */
-    private $created;
+    public $created;
 
     /** @var int Modification timestamp */
-    private $modified;
+    public $modified;
 
     /** @var string The message (content) of the post */
-    private $message;
+    public $message;
 
     /** @var int  The message format*/
-    private $messageformat;
+    public $messageformat;
 
     /** @var char Attachment of the post */
-    private $attachment;
+    public $attachment;
 
     /** @var int Mailed status*/
-    private $mailed;
+    public $mailed;
 
     /** @var int Review status */
-    private $reviewed;
+    public $reviewed;
 
     /** @var int The time where the post was reviewed*/
-    private $timereviewed;
-
-    /** @var int This variable is optional, it contains important information for the add_attachment function */
-    private $formattachments;
+    public $timereviewed;
 
     // Not database related functions.
 
+    /** @var int This variable is optional, it contains important information for the add_attachment function */
+    public $formattachments;
+
     /** @var string The subject/title of the Discussion */
-    private $subject;
+    public $subject;
 
     /** @var object The discussion where the post is located */
-    private $discussionobject;
+    public $discussionobject;
 
     /** @var object The Moodleoverflow where the post is located*/
-    private $moodleoverflowobject;
+    public $moodleoverflowobject;
 
     /** @var object The course module object */
-    private $cmobject;
+    public $cmobject;
 
     /** @var object The parent post of an answerpost */
-    private $parentpost;
+    public $parentpost;
 
     // Constructors and other builders.
 
@@ -223,7 +236,7 @@ class post {
      * @param int       $mailed             Mailed status
      * @param int       $reviewed           Review status
      * @param int       $timereviewed       The time where the post was reviewed
-     * @param object    $formattachments    Information about attachments of the post_form
+     * @param object    $formattachments    Information about attachments from the post_form
      *
      * @return object post object without id
      */
@@ -231,7 +244,7 @@ class post {
                                 $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments = false) {
         $id = null;
         $instance = new self($id, $discussion, $parent, $userid, $created, $modified, $message,
-                             $messageformat, $attachment, $mailed, $reviewed, $timereviewed);
+                             $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments);
         return $instance;
     }
 
@@ -315,9 +328,6 @@ class post {
                     }
                 }
 
-                // Just in case, check for the new last post of the discussion.
-                moodleoverflow_discussion_update_last_post($this->discussion); // NEEDS TO CHANGE WITH NEW DISCUSSION CLASS.
-
                 // Get the context module.
                 $modulecontext = context_module::instance($this->get_coursemodule()->id);
 
@@ -353,28 +363,38 @@ class post {
 
     /**
      * Edits the message from this instance.
-     * 
-     * @param string    $postmessage   The new message
-     * @param object    $postattachment
-     * @param timestamp $time          The time the post was modified (given from the discussion class).
+     * @param timestamp $time               The time the post was modified (given from the discussion class).
+     * @param string    $postmessage        The new message
+     * @param object    $messageformat
+     * @param object    $formattachments    Information about attachments from the post_form
      */
-    public function moodleoverflow_edit_post($postmessage, $postattachment, $time) {
+    public function moodleoverflow_edit_post($time, $postmessage, $messageformat, $formattachment) {
         global $DB;
         $this->existence_check();
 
         // Update the attributes.
-        $this->message = $postmessage;
         $this->modified = $time;
+        $this->message = $postmessage;
+        $this->messageformat = $messageformat;
+        $this->formattachment = $formattachment;    // PLEASE CHECK LATER IF THIS IS NEEDED AFTER WORKING WITH THE POST_FORM CLASS.
 
+        // Update the record in the database.
         $DB->update_record('moodleoverflow_posts', $this);
 
+        // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
+        $this->moodleoverflow_add_attachment();
 
+        // Mark the edited post as read.
+        $this->mark_post_read();
+
+        // The post has been edited successfully.
+        return true;
     }
 
     /**
+     * // RETHINK THIS FUNCTION.
      * Gets a post with all info ready for moodleoverflow_print_post.
      * Most of these joins are just to get the forum id.
-     *
      *
      * @return mixed array of posts or false
      */
@@ -471,17 +491,38 @@ class post {
         return $attachments;
     }
 
-    // Helper Functions.
+    // Getter.
 
     /**
-     * Returns the id of this instance.
-     *
-     * @return int $this->id
+     * @return int $this->id    The post ID.
      */
     public function get_id() {
         $this->existence_check();
-
         return $this->id;
+    }
+
+    /**
+     * @return int $this->discussion    The ID of the discussion where the post is located.
+     */
+    public function get_discussionid() {
+        $this->existence_check();
+        return $this->discussion;
+    }
+
+    /**
+     * @return int $this->parent    The ID of the parent post.
+     */
+    public function get_parentid() {
+        $this->existence_check();
+        return $this->parent;
+    }
+
+    /**
+     * @return int $this->userid    The ID of the user who wrote the post.
+     */
+    public function get_userid() {
+        $this->existence_check();
+        return $this->userid;
     }
 
     /**
@@ -495,7 +536,7 @@ class post {
 
         if (empty($this->moodleoverflowobject)) {
             $discussion = $this->get_discussion();
-            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow));
+            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', array('id' => $discussion->get_moodleoverflowid()));
         }
 
         return $this->moodleoverflowobject;
@@ -511,9 +552,9 @@ class post {
         $this->existence_check();
 
         if (empty($this->discussionobject)) {
-            $this->discussionobject = $DB->get_record('moodleoverflow_discussions', array('id' => $this->discussion));
+            $record = $DB->get_record('moodleoverflow_discussions', array('id' => $this->discussion));
+            $this->discussionobject = discussion::from_record($record);
         }
-
         return $this->discussionobject;
     }
 
@@ -569,6 +610,8 @@ class post {
         return false;
     }
 
+    // Helper Functions.
+
     /**
      * Calculate the ratings of a post.
      *
@@ -588,6 +631,19 @@ class post {
         $ratingsobject->markedsolution = $postratings->issolved;
 
         return $ratingsobject;
+    }
+
+    /**
+     * Marks the post as read if the user is tracking the discussion.
+     * Uses function from mod_moodleoverflow\readtracking.
+     */
+    public function mark_post_read() {
+        global $USER;
+        $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($this->get_moodleoverflow());
+        $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
+        if ($cantrack && $istracked) {
+            readtracking::moodleoverflow_mark_post_read($USER->id, $this);
+        }
     }
 
     // Security.

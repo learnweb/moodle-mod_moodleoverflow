@@ -43,8 +43,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * Class that represents a discussion.
  * A discussion administrates the posts and has one parent post, that started the discussion.
  *
- * Please be careful with functions that delete posts or discussions.
- * Security checks for these functions were done in the post_control class and these functions should only be accessed via this way.
+ * Please be careful with functions that delete, add or edit posts and discussions.
+ * Security checks for these functions were done in the post_control class and these functions should only be accessed that way.
  * Accessing these functions directly without the checks from the post control could lead to serious errors.
  * @package     mod_moodleoverflow
  * @copyright   2023 Tamaro Walter
@@ -62,7 +62,7 @@ class discussion {
     private $moodleoverflow;
 
     /** @var char The title of the discussion, the titel of the parent post*/
-    private $name;
+    public $name;
 
     /** @var int The id of the parent/first post*/
     private $firstpost;
@@ -71,27 +71,27 @@ class discussion {
     private $userid;
 
     /** @var int Unix-timestamp of modification */
-    private $timemodified;
+    public $timemodified;
 
     /** @var int Unix-timestamp of discussion creation */
-    private $timestart;
+    public $timestart;
 
     /** @var int the user ID who modified the discussion */
-    private $usermodified;
+    public $usermodified;
 
     // Not Database-related attributes.
 
     /** @var array an Array of posts that belong to this discussion */
-    private $posts;
+    public $posts;
 
     /** @var bool  a variable for checking if this instance has all its posts */
-    private $postsbuild;
+    public $postsbuild;
 
     /** @var object The moodleoverflow object where the discussion is located */
-    private $moodleoverflowobject;
+    public $moodleoverflowobject;
 
     /** @var object The course module object */
-    private $cmobject;
+    public $cmobject;
 
     // Constructors and other builders.
 
@@ -303,14 +303,17 @@ class discussion {
         $timenow = time();
 
         // Create the post that will be added to the new discussion.
-        $post = post::construct_without_id($this->id, $prepost->parent, $timenow, $timenow, $prepost->message,
+        $post = post::construct_without_id($this->id, $prepost->parent, $prepost->userid, $timenow, $timenow, $prepost->message,
                                            $prepost->messageformat, $prepost->attachment, $prepost->mailed,
                                            $prepost->reviewed, $prepost->timereviewed, $prepost->formattachments);
         // Add the post to the DB.
         $postid = $post->moodleoverflow_add_new_post();
 
-        // Add the post to the $posts array.
+        // Add the post to the $posts array and update the timemodified in the DB.
         $this->posts[$postid] = $post;
+        $this->timemodified = $timenow;
+        $this->usermodified = $prepost->userid;
+        $DB->update_record('moodleoverflow_discussions', $this);
 
         // Return the id of the added post.
         return $postid;
@@ -318,48 +321,137 @@ class discussion {
 
     /**
      * Deletes a post that is in this discussion from the DB.
-     *
+     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
      * @return bool Wether the deletion was possible
      * @throws moodle_exception if post is not in this discussion or something failed.
      */
-    public function moodleoverflow_delete_post_from_discussion($postid, $deletechildren) {
+    public function moodleoverflow_delete_post_from_discussion($prepost) {
         $this->existence_check();
         $this->posts_check();
 
         // Check if the posts exists in this discussion.
-        $this->post_exists_check($postid);
+        $this->post_exists_check($prepost->postid);
 
         // Access the post and delete it.
-        $post = $this->posts[$postid];
-        if (!$post->moodleoverflow_delete_post($deletechildren)) {
+        $post = $this->posts[$prepost->postid];
+        if (!$post->moodleoverflow_delete_post($prepost->deletechildren)) {
             // Deletion failed.
             return false;
         }
+
+        // Check for the new last post of the discussion.
+        $this->moodleoverflow_discussion_adapt_to_last_post();
+
         // Delete the post from the post array.
-        unset($this->posts[$postid]);
+        unset($this->posts[$prepost->postid]);
 
         return true;
     }
 
     /**
      * Edits the message of a post from this discussion.
+     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
      */
-    public function moodleoverflow_edit_post_from_discussion($postid, $postmessage) {
+    public function moodleoverflow_edit_post_from_discussion($prepost) {
         global $DB;
         $this->existence_check();
         $this->posts_check();
 
         // Check if the posts exists in this discussion.
-        $this->post_exists_check($postid);
+        $this->post_exists_check($prepost->id);
 
         // Get the current time.
         $timenow = time();
 
-        // Access the post and edit its message.
-        $post = $this->post[$postid];
+        // Access the post.
+        $post = $this->post[$prepost->id];
 
         // If the post is the firstpost, then update the name of this discussion and the post. If not, only update the post.
-        if ($postid == array_key_first($posts));
+        if ($prepost->id == array_key_first($posts)) {
+            $this->name = $prepost->subject;
+            $this->usermodified = $prepost->userid;
+            $this->timemodified = $timenow;
+            $DB->update_record('moodleoverflow_discussions', $this);
+        }
+        $post->moodleoverflow_edit_post($timenow, $prepost->message, $prepost->messageformat, $prepost->formattachment);
+
+        // The post has been edited successfully.
+        return true;
+    }
+
+    /**
+     * This Function checks, what the last added or edited post is. If it changed by a delete function,
+     * the timemodified and the usermodified need to be adapted to the last added or edited post.
+     *
+     * @return bool true if the DB needed to be adapted. false if it didn't change.
+     */
+    public function moodleoverflow_discussion_adapt_to_last_post() {
+        global $DB;
+        $this->existence_check();
+
+        // Find the last reviewed post of the discussion (even if the user has review capability, because it's written to DB).
+        $sql = 'SELECT id, userid, modified
+                FROM {moodleoverflow_posts}
+                WHERE discussion = ' . $this->id .
+                  ' AND reviewed = 1
+                    AND modified = (SELECT MAX(modified) as modified FROM {moodleoverflow_posts})';
+        $record = $DB->get_record_sql($sql);
+        $lastpost = post::from_record($record);
+
+        // Check if the last post changed. If it changed, then update the DB-record of this discussion.
+        if ($lastpost->modified != $this->timemodified || $lastpost->get_userid() != $this->usermodified) {
+            $this->timemodified = $lastpost->modified;
+            $this->usermodified = $lastpost->get_userid();
+            $DB->update_record('moodleoverflow_discussions', $this);
+
+            // Return that the discussion needed an update.
+            return true;
+        }
+
+        // Return that the discussion didn't need an update.
+        return false;
+    }
+
+    // Getter.
+
+    /**
+     * @return int $this->id    The post ID.
+     */
+    public function get_id() {
+        $this->existence_check();
+        return $this->id;
+    }
+
+    /**
+     * @return int $this->course    The ID of the course where the discussion is located.
+     */
+    public function get_courseid() {
+        $this->existence_check();
+        return $this->course;
+    }
+
+    /**
+     * @return int $this->moodleoverflow    The ID of the moodleoverflow where the discussion is located.
+     */
+    public function get_moodleoverflowid() {
+        $this->existence_check();
+        return $this->moodleoverflow;
+    }
+
+    /**
+     * @return int $this->firstpost   The ID of the first post.
+     */
+    public function get_firstpostid() {
+        $this->existence_check();
+        return $this->firstpost;
+    }
+
+    /**
+     * @return int $this->userid    The ID of the user who wrote the post.
+     */
+    public function get_userid() {
+        $this->existence_check();
+        return $this->userid;
     }
 
     /**
@@ -413,11 +505,6 @@ class discussion {
     }
 
 
-    public function moodleoverflow_discussion_update_last_post() {
-        // This function has something to do with updating the attribute "timemodified".
-    }
-
-
     /**
      * Returns the moodleoverflowobject
      *
@@ -447,7 +534,6 @@ class discussion {
                                                                                          $this->get_moodleoverflow()->course)) {
                 throw new moodle_exception('invalidcoursemodule');
             }
-
         }
 
         return $this->cmobject;
@@ -484,7 +570,7 @@ class discussion {
 
     /**
      * Check, if certain posts really exists in this discussion.
-     * 
+     *
      * @param int $postid   The ID of the post that is being checked.
      * @return true
      * @throws moodle_exception;

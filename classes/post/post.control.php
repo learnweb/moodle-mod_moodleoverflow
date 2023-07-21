@@ -35,7 +35,17 @@ defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/lib.php');
 
 /**
- * Class that makes checks to interact with posts.
+ * This Class controls the manipulation of posts and acts as controller of interactions with the post.php
+ *
+ * This Class has 2 main Tasks:
+ * 1. Before entering the post.php
+ * - Detect the wanted interaction (new discussion, new answer in a discussion, editing or deleting a post)
+ * - make capability and other security/integrity checks (are all given data correct?)
+ * - gather important information that need to be used later.
+ *
+ * 2. After working with the post.php
+ * - collect the information from the post_form (the post.php build a form where the user enters the message of a post...)
+ * - based on the interaction, call the right function
  *
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
@@ -419,6 +429,38 @@ class post_control {
 
         // Count all replies of this post.
         $this->information->replycount = moodleoverflow_count_replies($this->information->relatedpost, false);
+    }
+
+    // Helper functions.
+
+    // Database checks.
+
+    /**
+     * Checks if the course exists and returns the $DB->record
+     *
+     * @param object $moodleoverflow
+     */
+    public function check_course_exists($moodleoverflow) {
+        global $DB;
+        if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
+            throw new moodle_exception('invalidcourseid');
+        }
+        return $course;
+    }
+
+    public function check_coursemodule_exists() {
+
+    }
+
+    public function check_moodleoverflow_exists() {
+
+    }
+    public function check_discussion_exists() {
+
+    }
+
+    public function check_post_exists() {
+
     }
 
 }
