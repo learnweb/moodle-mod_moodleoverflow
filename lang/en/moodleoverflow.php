@@ -153,6 +153,10 @@ $string['noexistingdiscussion'] = 'Discussion does not exists, needs to be creat
 $string['notallpostsavailable'] = 'This Discussion does not have all of its posts, this could lead to errors! Please use moodleoverflow_get_discussion_posts()';
 $string['missingformattachments'] = "This functions requires data that were not submitted. Please check the post_form";
 
+// String for the classes/post/post_control.php.
+$string['inaccurateparameter'] = 'Please check your parameter and give exactly 1 parameter to the function';
+$string['wronginteraction'] = 'Wrong interaction detected, please choose the right function';
+
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';
 $string['reply'] = 'Comment';

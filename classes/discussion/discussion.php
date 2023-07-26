@@ -246,10 +246,10 @@ class discussion {
 
     /**
      * Delete a discussion with all of it's posts
-     *
+     * @param object $prepost Information about the post from the post_control
      * @return bool Wether deletion was successful of not
      */
-    public function moodleoverflow_delete_discussion() {
+    public function moodleoverflow_delete_discussion($prepost) {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -273,6 +273,15 @@ class discussion {
 
             // Delete the discussion from the database.
             $DB->delete_records('moodleoverflow_discussions', array('id' => $this->id));
+
+            // Trigger the discussion deleted event.
+            $params = array(
+                'objectid' => $this->id,
+                'context' => $prepost->modulecontext,
+            );
+
+            $event = \mod_moodleoverflow\event\discussion_deleted::create($params);
+            $event->trigger();
 
             // Set the id of this instance to null, so that working with it is not possible anymore.
             $this->id = null;
