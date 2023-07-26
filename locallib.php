@@ -166,16 +166,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     // Get all the recent discussions the user is allowed to see.
     $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
 
-    // If we want paging.
-    if ($page != -1) {
-
-        // Get the number of discussions.
-        $numberofdiscussions = moodleoverflow_get_discussions_count($cm);
-
-        // Show the paging bar.
-        echo $OUTPUT->paging_bar($numberofdiscussions, $page, $perpage, "view.php?id=$cm->id");
-    }
-
     // Get the number of replies for each discussion.
     $replies = moodleoverflow_count_discussion_replies($cm);
 
