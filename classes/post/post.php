@@ -118,7 +118,7 @@ class post {
 
     /**
      * Constructor to make a new post.
-     *
+     * @param int       $id                 The post ID.
      * @param int       $discussion         The discussion ID.
      * @param int       $parent             The parent post ID.
      * @param int       $userid             The user ID that created the post.
@@ -367,6 +367,8 @@ class post {
      * @param string    $postmessage        The new message
      * @param object    $messageformat
      * @param object    $formattachments    Information about attachments from the post_form
+     *
+     * @return true if the post has been edited successfully
      */
     public function moodleoverflow_edit_post($time, $postmessage, $messageformat, $formattachment) {
         global $DB;
@@ -494,6 +496,7 @@ class post {
     // Getter.
 
     /**
+     * Getter for the postid
      * @return int $this->id    The post ID.
      */
     public function get_id() {
@@ -502,6 +505,7 @@ class post {
     }
 
     /**
+     * Getter for the discussionid
      * @return int $this->discussion    The ID of the discussion where the post is located.
      */
     public function get_discussionid() {
@@ -510,6 +514,7 @@ class post {
     }
 
     /**
+     * Getter for the parentid
      * @return int $this->parent    The ID of the parent post.
      */
     public function get_parentid() {
@@ -518,6 +523,7 @@ class post {
     }
 
     /**
+     * Getter for the userid
      * @return int $this->userid    The ID of the user who wrote the post.
      */
     public function get_userid() {
@@ -527,7 +533,6 @@ class post {
 
     /**
      * Returns the moodleoverflow where the post is located.
-     *
      * @return object $moodleoverflowobject
      */
     public function get_moodleoverflow() {

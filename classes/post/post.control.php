@@ -37,6 +37,8 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/lib.php');
 require_once(dirname(__FILE__) . '/locallib.php');
+require_once($CFG->libdir . '/completionlib.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 
 /**
  * This Class controls the manipulation of posts and acts as controller of interactions with the post.php
@@ -68,25 +70,28 @@ class post_control {
      */
     private $interaction;
 
-    /** @var object information about the post like the related moodleoverflow, post etc. .*/
+    /** @var object information about the post like the related moodleoverflow, post etc.
+     * Difference between info and prepost: Info has objects, prepost mostly ID's and string like the message of the post.
+     */
     private $info;
 
     /** @var object prepost for the classes/post/post_form.php,
-     * this object is only used in this class and its not inserted in tehe database*/
+     * this object is more like a prototype of a post and it's not in the database*
+     * Difference between info and prepost. Info has objects, prepost mostly ID's and strings like the message of the post.
+     */
     private $prepost;
 
     /**
      * Constructor
-     *
-     * @param object $urlparameter Parameter that were sent when post.php where opened.
      */
     public function __construct() {
         $this->info = new \stdClass;
     }
 
     /**
-     * Detects the interaction
+     * Detects the interaction and builds the prepost.
      * @param object $urlparamter parameter from the post.php
+     * @throws moodle_exception if the interaction is not correct.
      */
     public function detect_interaction($urlparameter) {
         $count = 0;
@@ -123,9 +128,31 @@ class post_control {
     }
 
     /**
+     * Controls the execution of an interaction.
+     * @param object $form The results from the post_form.
+     * @return bool if the execution succeded
+     */
+    public function execute_interaction($form) {
+        // Redirect url in case of occuring errors.
+        if (empty($SESSION->fromurl)) {
+            $errordestination = '$CFG->wwwroot/mod/moodleoverflow/view.php?m=' . $this->prepost->moodleoverflowid;
+        } else {
+            $errordestination = $SESSION->fromurl;
+        }
+
+        // Format the submitted data.
+        $this->prepost->messageformat = $fromform->message['format'];
+        $this->prepost->message = $fromform->message['text'];
+        $this->prepost->messagetrust = trusttext_trusted($this->prepost->modulecontext);
+
+        // FEHLT.
+    }
+
+    /**
      * This function is used when a guest enters the post.php.
      * Parameters will be checked so that the post.php can redirect the user to the right site.
-     *
+     * @param int $postid
+     * @param int $moodleoverflowid
      * @return object $this->information // The gathered information.
      */
     public function catch_guest($postid = false, $moodleoverflowid = false) {
@@ -159,12 +186,8 @@ class post_control {
     private function build_prepost_create($moodleoverflowid) {
         global $DB, $SESSION, $USER;
 
-        // Get the related moodleoverflow, course and coursemodule.
+        // Get the related moodleoverflow, course coursemodule and the contexts.
         $this->collect_information(false, $moodleoverflowid);
-
-        // Retrieve the contexts.
-        $this->info->modulecontext = context_module::instance($this->info->cm->id);
-        $this->info->coursecontext = context_module::instance($this->info->course->id);
 
         // Check if the user can start a new discussion.
         if (!moodleoverflow_user_can_post_discussion($this->info->moodleoverflow, $this->info->cm, $this->info->modulecontext)) {
@@ -195,16 +218,13 @@ class post_control {
         $SESSION->fromurl = get_local_referer(false);
 
         // Prepare the post.
-        $this->prepost = new \stdClass();
-        $this->prepost->postid = $this->info->relatedpost->get_id();
-        $this->prepost->courseid = $this->info->course->id;
-        $this->prepost->moodleoverflowid = $this->info->moodleoverflow->id;
-        $this->prepost->discussionid = 0;
+        $this->assemble_prepost();
+        $this->prepost->postid = null;
+        $this->prepost->discussionid = null;
         $this->prepost->parentid = 0;
         $this->prepost->subject = '';
         $this->prepost->userid = $USER->id;
         $this->prepost->message = '';
-        $this->prepost->modulecontext = $this->info->modulecontext;
         $this->prepost->reviewed = $reviewed;  // IST DAS OKAY?!
 
         // Unset where the user is coming from.
@@ -220,15 +240,11 @@ class post_control {
     private function build_prepost_reply($replypostid) {
         global $DB, $PAGE, $SESSION, $USER;
 
-        // Get the related poost, discussion, moodleoverflowm course and coursemodule.
+        // Get the related poost, discussion, moodleoverflow, course, coursemodule and contexts.
         $this->collect_information($replypostid, false);
 
         // Ensure the coursemodule is set correctly.
         $PAGE->set_cm($this->info->cm, $this->info->course, $this->info->moodleoverflow);
-
-        // Retrieve the contexts.
-        $this->info->modulecontext = context_module::instance($this->info->cm->id);
-        $this->info->coursecontext = context_module::instance($this->info->course->id);
 
         // Check whether the user is allowed to post.
         if (!moodleoverflow_user_can_post($this->info->modulecontext, $this->info->parent)) {
@@ -252,16 +268,9 @@ class post_control {
         }
 
         // Prepare a post.
-        $this->prepost = new \stdClass();
-        $this->prepost->postid = $this->info->relatedpost->get_id();
-        $this->prepost->courseid = $this->info->course->id;
-        $this->prepost->moodleoverflowid = $this->info->moodleoverflow->id;
-        $this->prepost->discussionid = $this->info->discussion->get_id();
-        $this->prepost->parentid = $this->info->relatedpost->get_parentid();
-        $this->prepost->subject = $this->info->discussion->name;
+        $this->assemble_prepost();
         $this->prepost->userid = $USER->id;
         $this->prepost->message = '';
-        $this->prepost->modulecontext = $this->info->modulecontext;
 
         // Append 'RE: ' to the discussions subject.
         $strre = get_string('re', 'moodleoverflow');
@@ -282,11 +291,8 @@ class post_control {
     private function build_prepost_edit($editpostid) {
         global $DB, $PAGE, $SESSION, $USER;
 
-        // Get the related post, discussion, moodleoverflow, course and coursemodule.
+        // Get the related post, discussion, moodleoverflow, course, coursemodule and contexts.
         $this->collect_information($editpostid, false);
-
-        // Retrieve contexts.
-        $this->info->modulecontext = context_module::instance($this->info->cm->id);
 
         // Set the pages context.
         $PAGE->set_cm($this->info->cm, $this->info->course, $this->info->moodleoverflow);
@@ -314,16 +320,7 @@ class post_control {
         }
 
         // Load the $post variable.
-        $this->prepost = new \stdClass();
-        $this->prepost->postid = $this->info->relatedpost->get_id();
-        $this->prepost->courseid = $this->info->course->id;
-        $this->prepost->moodleoverflowid = $this->info->moodleoverflow->id;
-        $this->prepost->discussionid = $this->info->discussion->id;
-        $this->prepost->parentid = $this->info->relatedpost->get_parentid();
-        $this->prepost->subject = $this->info->discussion->name;
-        $this->prepost->message = $this->info->relatedpost->message;
-        $this->prepost->userid = $this->info->relatedpost->get_userid();
-        $this->prepost->modulecontext = $this->info->modulecontext;
+        $this->assemble->prepost();
 
         // Unset where the user is coming from.
         // Allows to calculate the correct return url later.
@@ -338,12 +335,11 @@ class post_control {
     private function build_prepost_delete($deletepostid) {
         global $DB, $USER;
 
-        // Get the realted post, discussion, moodleoverflow, course and coursemodule.
+        // Get the realted post, discussion, moodleoverflow, course, coursemodule and contexts.
         $this->collect_information($deletepostid, false);
 
         // Require a login and retrieve the modulecontext.
         require_login($this->info->course, false, $this->info->cm);
-        $this->info->modulecontext = context_module::instance($this->info->cm->id);
 
         // Check some capabilities.
         $this->info->deleteownpost = has_capability('mod/moodleoverflow:deleteownpost', $this->info->modulecontext);
@@ -357,32 +353,22 @@ class post_control {
         // Count all replies of this post.
         $this->info->replycount = moodleoverflow_count_replies($this->info->relatedpost, false);
 
-        // In the delete interaction the prepost is already the post object.
-        $this->prepost = new \stdClass();
-        $this->prepost->postid = $this->info->relatedpost->get_id();
-        $this->prepost->courseid = $this->info->course->id;
-        $this->prepost->moodleoverflowid = $this->info->moodleoverflow->id;
-        $this->prepost->discussionid = $this->info->discussion->id;
-        $this->prepost->parentid = $this->info->relatedpost->get_parentid();
-        $this->prepost->subject = $this->info->discussion->name;
-        $this->prepost->message = $this->info->relatedpost->message;
-        $this->prepost->userid = $this->info->relatedpost->get_userid();
-        $this->prepost->modulecontext = $this->info->modulecontext;
+        // Build the prepost.
+        $this->assemble->prepost();
         $this->prepost->deletechildren = true;
     }
 
-
     // Execute Functions, that execute an interaction.
 
-    public function execute_create() {
+    private function execute_create() {
         $this->check_interaction('create');
     }
 
-    public function execute_reply() {
+    private function execute_reply() {
         $this->check_interaction('reply');
     }
 
-    public function execute_edit() {
+    private function execute_edit() {
         $this->check_interaction('edit');
     }
 
@@ -414,7 +400,7 @@ class post_control {
         }
     }
 
-    // Confirm Function for the delete interaction.
+    // Functions that uses the post.php to build the page.
 
     /**
      * Builds a part of confirmation page. The confirmation request box is being build by the post.php.
@@ -427,6 +413,72 @@ class post_control {
         $PAGE->set_title($this->info->course->shortname);
         $PAGE->set_heading($this->info->course->fullname);
         $PAGE->add_body_class('limitedwidth');
+    }
+
+    /**
+     * Builds and returns a post_form object where the users enters/edits the message and attachments of the post.
+     * @param array $pageparams    An object that the post.php created.
+     * @return object a mod_moodleoverflow_post_form object.
+     */
+    public function build_postform($pageparams) {
+        // Require that the user is logged in properly and enrolled to the course.
+        require_login($this->info->course, false, $this->info->cm);
+
+        // Prepare the attachments.
+        $draftitemid = file_get_submitted_draft_itemid('attachments');
+        file_prepare_draft_area($draftitemid, $this->info->modulecontext->id, 'mod_moodleoverflow', 'attachment',
+                                empty($this->prepost->postid) ? null : $this->prepost->postid,
+                                mod_moodleoverflow_post_form::attachment_options($this->info->moodleoverflow));
+
+        // Prepare the form.
+        $edit = $this->interaction == 'edit' ? true : false;
+        $formarray = array( 'course' => $this->info->course, 'cm' => $this->info->cm, 'coursecontext' => $this->info->coursecontext,
+                            'modulecontext' => $this->info->modulecontext, 'moodleoverflow' => $this->info->moodleoverflow,
+                            'post' => $this->info->post, 'edit' => $edit);
+
+        // Declare the post_form.
+        $mformpost = new mod_moodleoverflow_post_form('post.php', $formarray, 'post', '', array('id' => 'mformmoodleoverflow'));
+
+        // If the user is not the original author append an extra message to the message. (Happens when interaction = 'edit').
+        if ($USER->id != $this->prepost->userid) {
+            // Create a temporary object.
+            $data = new \stdClass();
+            $data->date = userdate(time());
+            $this->prepost->messageformat = editors_get_preferred_format();
+            if ($this->prepost->messageformat == FORMAT_HTML) {
+                $data->name = '<a href="' . $CFG->wwwroot . '/user/view.php?id' . $USER->id . '&course=' .
+                              $this->prepost->courseid . '">' . fullname($USER) . '</a>';
+                $this->prepost->message .= '<p><span class="edited">(' . get_string('editedby', 'moodleoverflow', $data) .
+                                           ')</span></p>';
+            } else {
+                $data->name = fullname($USER);
+                $this->prepost->message .= "\n\n(" . get_string('editedby', 'moodleoverflow', $data) . ')';
+            }
+            // Delete the temporary object.
+            unset($data);
+        }
+
+        // Define the heading for the form.
+        $formheading = '';
+        if ($this->info->relatedpost->moodleoverflow_get_parentpost()) {
+            $heading = get_string('yourreply', 'moodleoverflow');
+            $formheading = get_string('reply', 'moodleoverflow');
+        } else {
+            $heading = get_string('yournewtopic', 'moodleoverflow');
+        }
+
+        // Set data for the form.
+        $mformpost->set_data(array(
+            'attachments' => $draftitemid, 'general' => $heading, 'subject' => $this->prepost->subject,
+            'message' => array('text' => $this->prepost->message,
+                               'format' => editors_get_preferred_format(),
+                               'itemid' => $this->prepost->postid),
+            'userid' => $this->prepost->userid, 'parent' => $this->prepost->parentid, 'discussion' => $this->prepost->discussionid,
+            'course' => $this->prepost->courseid)
+            + $pageparams
+        );
+
+        return $mformpost;
     }
 
     // Helper functions.
@@ -457,7 +509,7 @@ class post_control {
         return $this->prepost;
     }
 
-    // Information function.
+    // Functions that build the info and prepost object.
 
     /**
      * Builds the information object that is being used in the build prepost functions.
@@ -467,7 +519,7 @@ class post_control {
      * @return bool, if object could be build or not.
      */
     private function collect_information($postid = false, $moodleoverflowid = false) {
-        if ((!$postid && !$moodleoverflowid) || ($postid && $moodleoverflowid)) {
+        if (!($postid xor $moodleoverflowid)) {
             throw new moodle_exception('inaccurateparameter', 'moodleoverflow');
             return false;
         }
@@ -475,14 +527,40 @@ class post_control {
             $this->info->relatedpost = $this->check_post_exists($postid);
             $this->info->discussion = $this->check_discussion_exists($this->info->relatedpost->get_discussionid());
             $localmoodleoverflowid = $this->info->discussion->get_moodleoverflowid();
-        } else if ($moodleoverflowid) {
+        } else {
             $localmoodleoverflowid = $moodleoverflowid;
         }
         $this->info->moodleoverflow = $this->check_moodleoverflow_exists($localmoodleoverflowid);
         $this->info->course = $this->check_course_exists($this->info->moodleoverflow->course);
         $this->info->cm = $this->check_coursemodule_exists($this->info->moodleoverflow->id, $this->info->course->id);
+        $this->info->modulecontext = context_module::instance($this->info->cm->id);
+        $this->info->coursecontext = context_module::instance($this->info->course->id);
         return true;
     }
+
+    /**
+     * Assembles the prepost object. Helps to reduce code in the build_prepost functions.
+     * Some prepost parameters will be assigned individually by the build_prepost functions.
+     */
+    private function assemble_prepost() {
+        $this->prepost = new \stdClass();
+        $this->prepost->courseid = $this->info->course->id;
+        $this->prepost->moodleoverflowid = $this->info->moodleoverflow->id;
+        $this->prepost->modulecontext = $this->info->modulecontext;
+
+        if ($this->interaction != 'create') {
+            $this->prepost->postid = $this->info->relatedpost->get_id();
+            $this->prepost->discussionid = $this->info->discussion->get_id();
+            $this->prepost->parentid = $this->info->relatedpost->get_parentid();
+            $this->prepost->subject = $this->info->discussion->name;
+
+            if ($this->interaction != 'edit') {
+                $this->prepost->userid = $this->info->relatedpost->get_userid();
+                $this->prepost->message = $this->info->relatedpost->message();
+            }
+        }
+    }
+
 
     // Interaction check.
 

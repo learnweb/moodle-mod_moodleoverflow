@@ -52,7 +52,7 @@ $pageparams = array('moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edi
 // Get the system context instance.
 $systemcontext = context_system::instance();
 
-// Create a post_control object to control the process.
+// Create a post_control object to control and lead the process.
 $postcontrol = new post_control();
 
 // Put all interaction parameters in one object for the post_control.
@@ -111,4 +111,46 @@ if ($postcontrol->get_interaction() == 'delete') {
     }
 }
 
-// Now the post_form will be prepared.
+// A post will be created or edited. For that the post_control builds a post_form.
+$mformpost = $postcontrol->build_postform();
+
+// The User now entered information in the form. The post.php now needs to process the information and call the right function.
+
+// Get attributes from the postcontrol.
+$information = $postcontrol->get_information();
+$prepost = $postcontrol->get_prepost();
+
+// If the interaction was cancelled, the user needs to be redirected.
+if ($mformpost->is_cancelled()) {
+    if (!issett($prepost->discussionid)) {
+        redirect(new moodle_url('/mod/moodleoverflow/view.php', array('m' => $prepost->moodleoverflowid)));
+    } else {
+        redirect(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $prepost->discussionid)));
+    }
+    exit;
+}
+
+// If the post_form is submitted, the post_control executes the right function.
+if ($fromform = $mformpost->get_data()) {
+    $postcontrol->execute_interaction($fromform);
+    exit;
+}
+
+// If the script gets to this point, nothing has been submitted.
+// The post_form will be displayed.
+
+// Define the message to be displayed above the form.
+$toppost = new \stdClass();
+$toppost->subject = get_string('addanewdiscussion', 'moodleoverflow');
+
+// Initiate the page.
+$PAGE->set_title($information->course->shortname . ': ' .
+                 $information->moodleoverflow->name . ' ' .
+                 format_string($toppost->subject));
+$PAGE->set_heading($information->course->fullname);
+$PAGE->add_body_class('limitedwidth');
+
+// Display all.
+echo $OUTPUT->header();
+$mformpost->display();
+echo $OUTPUT->footer();

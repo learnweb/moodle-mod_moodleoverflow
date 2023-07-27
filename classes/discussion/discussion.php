@@ -40,15 +40,15 @@ require_once(dirname(__FILE__) . '/lib.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
- * Class that represents a discussion.
- * A discussion administrates the posts and has one parent post, that started the discussion.
+ * Class that represents a discussion. A discussion administrates the posts and has one parent post, that started the discussion.
+ *
+ * @package     mod_moodleoverflow
+ * @copyright   2023 Tamaro Walter
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  * Please be careful with functions that delete, add or edit posts and discussions.
  * Security checks for these functions were done in the post_control class and these functions should only be accessed that way.
  * Accessing these functions directly without the checks from the post control could lead to serious errors.
- * @package     mod_moodleoverflow
- * @copyright   2023 Tamaro Walter
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class discussion {
 
@@ -424,6 +424,7 @@ class discussion {
     // Getter.
 
     /**
+     * Getter for the post ID
      * @return int $this->id    The post ID.
      */
     public function get_id() {
@@ -432,6 +433,7 @@ class discussion {
     }
 
     /**
+     * Getter for the courseid
      * @return int $this->course    The ID of the course where the discussion is located.
      */
     public function get_courseid() {
@@ -440,6 +442,7 @@ class discussion {
     }
 
     /**
+     * Getter for the moodleoverflowid
      * @return int $this->moodleoverflow    The ID of the moodleoverflow where the discussion is located.
      */
     public function get_moodleoverflowid() {
@@ -448,6 +451,7 @@ class discussion {
     }
 
     /**
+     * Getter for the firstpostid
      * @return int $this->firstpost   The ID of the first post.
      */
     public function get_firstpostid() {
@@ -456,7 +460,8 @@ class discussion {
     }
 
     /**
-     * @return int $this->userid    The ID of the user who wrote the post.
+     * Getter for the userid
+     * @return int $this->userid    The ID of the user who wrote the first post.
      */
     public function get_userid() {
         $this->existence_check();
@@ -465,7 +470,6 @@ class discussion {
 
     /**
      * Returns the ratings from this discussion.
-     *
      * @return array of votings
      */
     public function moodleoverflow_get_discussion_ratings() {
