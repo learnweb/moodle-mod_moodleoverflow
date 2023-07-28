@@ -36,7 +36,6 @@ use mod_moodleoverflow\capabilities;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(dirname(__FILE__) . '/lib.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**

@@ -22,13 +22,14 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\post\post_control;
 use mod_moodleoverflow\review;
+
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
-require_once($CFG->libdir . '/completionlib.php');
 
 global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
-
+require_once($CFG->libdir . '/completionlib.php');
 // Declare optional url parameters.
 $moodleoverflow = optional_param('moodleoverflow', 0, PARAM_INT);
 $reply = optional_param('reply', 0, PARAM_INT);
@@ -52,8 +53,8 @@ $pageparams = array('moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edi
 $systemcontext = context_system::instance();
 
 // Create a post_control object to control and lead the process.
-$postcontrol = new \mod_moodleoverflow\post\post_control();
 $postcontrol = new post_control();
+//$postcontrol = new post_control();
 
 // Put all interaction parameters in one object for the post_control.
 $urlparameter = new \stdClass();

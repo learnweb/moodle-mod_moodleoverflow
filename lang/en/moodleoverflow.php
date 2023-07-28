@@ -155,7 +155,6 @@ $string['missingformattachments'] = 'This functions requires data that was not s
 $string['unexpectedinteractionerror'] = 'An unexpected error occured, please try again';
 
 // String for the classes/post/post_control.php.
-$string['inaccurateparameter'] = 'Please check your parameter and give exactly 1 parameter to the function';
 $string['wronginteraction'] = 'Wrong interaction detected, please choose the right function';
 
 // Strings for the classes/mod_form.php.
