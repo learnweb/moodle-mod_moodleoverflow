@@ -23,7 +23,6 @@
  */
 
 use mod_moodleoverflow\review;
-use mod_moodleoverflow\post\post_control;
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 require_once($CFG->libdir . '/completionlib.php');
@@ -53,6 +52,7 @@ $pageparams = array('moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edi
 $systemcontext = context_system::instance();
 
 // Create a post_control object to control and lead the process.
+$postcontrol = new \mod_moodleoverflow\post\post_control();
 $postcontrol = new post_control();
 
 // Put all interaction parameters in one object for the post_control.

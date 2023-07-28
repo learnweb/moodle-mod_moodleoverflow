@@ -23,7 +23,7 @@
  */
 
 
-namespace mod_moodleoverflow\post\post;
+namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use mod_moodleoverflow\anonymous;
