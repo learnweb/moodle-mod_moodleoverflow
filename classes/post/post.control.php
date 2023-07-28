@@ -141,11 +141,24 @@ class post_control {
         }
 
         // Format the submitted data.
-        $this->prepost->messageformat = $fromform->message['format'];
-        $this->prepost->message = $fromform->message['text'];
+        $this->prepost->messageformat = $form->message['format'];
+        $this->prepost->formattachments = $form->attachments;
+        $this->prepost->message = $form->message['text'];
         $this->prepost->messagetrust = trusttext_trusted($this->prepost->modulecontext);
 
-        // FEHLT.
+        // Get the current time.
+        $this->prepost->timenow = time();
+
+        // Execute the right function.
+        if ($this->interaction == 'create' && $form->moodleoverflow === $this->prepost->moodleoverflowid) {
+            $this->execute_create($form, $errordestination);
+        } else if ($this->interaction == 'reply' && $form->reply === $this->prepost->parentid) {
+            $this->execute_reply($form, $errordestination);
+        } else if ($this->interaction == 'edit' && $form->edit === $this->prepost->postid) {
+            $this->execute_edit($form, $errordestination);
+        } else {
+            throw new moodle_exception('unexpectedinteractionerror', 'moodleoverflow', $errordestination);
+        }
     }
 
     /**
@@ -208,12 +221,6 @@ class post_control {
             throw new moodle_exception('nopostmoodleoverflow', 'moodleoverflow');
         }
 
-        // Set the post to not reviewed if questions should be reviewed and the user is not a reviewed themselve.
-        if (review::get_review_level($this->info->moodleoverflow) >= review::QUESTIONS &&
-            !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)) {
-            $reviewed = 0;
-        }
-
         // Where is the user coming from?
         $SESSION->fromurl = get_local_referer(false);
 
@@ -225,7 +232,6 @@ class post_control {
         $this->prepost->subject = '';
         $this->prepost->userid = $USER->id;
         $this->prepost->message = '';
-        $this->prepost->reviewed = $reviewed;  // IST DAS OKAY?!
 
         // Unset where the user is coming from.
         // Allows to calculate the correct return url later.
@@ -269,6 +275,8 @@ class post_control {
 
         // Prepare a post.
         $this->assemble_prepost();
+        $this->prepost->postid = null;
+        $this->prepost->parentid = $this->info->relatedpost->get_id();
         $this->prepost->userid = $USER->id;
         $this->prepost->message = '';
 
@@ -322,8 +330,7 @@ class post_control {
         // Load the $post variable.
         $this->assemble->prepost();
 
-        // Unset where the user is coming from.
-        // Allows to calculate the correct return url later.
+        // Unset where the user is coming from. This allows to calculate the correct return url later.
         unset($SESSION->fromdiscussion);
     }
 
@@ -360,16 +367,121 @@ class post_control {
 
     // Execute Functions, that execute an interaction.
 
-    private function execute_create() {
-        $this->check_interaction('create');
+    private function execute_create($form, $errordestination) {
+        // Check if the user is allowed to post.
+        $this->check_user_can_create_discussion();
+
+        // Set the post to not reviewed if questions should be reviewed and the user is not a reviewed themselves.
+        if (review::get_review_level($this->info->moodleoverflow) >= review::QUESTIONS &&
+                !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)) {
+            $this->prepost->reviewed = 0;
+        } else {
+            $this->prepost->reviewed = 1;
+        }
+
+        // Create the discussion object.
+        $discussion = discussion::construct_without_id($this->prepost->courseid, $this->prepost->moodleoverflowid,
+                                                       $this->prepost->subject, null, $this->prepost->userid,
+                                                       $this->prepost->timenow, $this->prepost->timenow, $this->prepost->userid);
+        if (!$discussion->moodleoverflow_add_discussion($this->prepost)) {
+            throw new moodle_exception('couldnotadd', 'moodleoverflow', $errordestination);
+        }
+
+        // The creation was successful.
+        $redirectmessage = '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
+
+        // Trigger the discussion created event.
+        $params = array( 'context' => $modulecontext, 'objectid' => $discussion->id,);
+        $event = \mod_moodleoverflow\event\discussion_created::create($params);
+        $event->trigger();
+
+        // Subscribe to this thread.
+        //\mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
+                                                                              //$discussion, $this->info->modulecontext);
+
+        // Define the location to redirect the user after successfully posting.
+        $redirectto = new moodle_url('/mod/moodleoverflow/view.php', array('m' => $form->moodleoverflow));
+        redirect(moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
     }
 
-    private function execute_reply() {
-        $this->check_interaction('reply');
+    private function execute_reply($form, $errordestination) {
+        // Check if the user has the capability to write a reply.
+        $this->check_user_can_create_reply();
+        
+        // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
+        if (review::get_review_level($this->info->moodleoverflow) == review::EVERYTHING &&
+                !has_capability('mod/moodleoverflow:reviewpost', context_module::instance($this->info->cm->id))) {
+            $this->prepost->reviewed = 0;
+        } else {
+            $this->prepost->reviewed = 1;
+        }
+
+        // Create the new post.
+        if (!$newpostid = $this->info->discussion->moodleoverflow_add_post_to_discussion($this->prepost)) {
+            throw new moodle_exception('couldnotadd', 'moodleoverflow', $errordestination);
+        }
+
+        // The creation was successful.
+        $redirectmessage = '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
+        $redirectmessage .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow",
+                                               format_time(get_config('moodleoverflow', 'maxeditingtime'))) . '</p>';
+        
+        // Trigger the post created event.
+        $params = array('context' => $this->info->modulecontext, 'objectid' => $form->id,
+                        'other' => array('discussionid' => $this->prepost->discussionid,
+                                         'moodleoverflowid' => $this->prepost->moodleoverflowid)
+                  );
+        $event = \mod_moodleoverflow\event\post_created::create($params);
+        $event->trigger();
+
+        // Subscribe to this thread;
+        // \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription(form, $this->info->moodleoverflow,
+                                                                        //$this->info->discussion, $this->info->modulecontext);
+        
+        // Define the location to redirect the user after successfully posting.
+        $redirectto = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $this->prepost->discussionid, $newpost->id));
+        redirect(oodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
+
+
     }
 
-    private function execute_edit() {
-        $this->check_interaction('edit');
+    private function execute_edit($form, $errordestination) {
+        global $USER;
+        // Check if the user has the capability to edit his post.
+        $this->check_user_can_edit_post();
+        
+        // Update the post.
+        if (!$this->info->discussion->moodleoverflow_edit_post_from_discussion($this->prepost)) {
+            throw new moodle_exception('couldnotupdate', 'moodleoverflow', $errordestination);
+        }
+        
+        // The edit was successful. 
+        $redirectmessage = get_string('postupdated', 'moodleoverflow');
+        /*if ($this->prepost->userid == $USER->id) {
+            $redirectmessage = get_string('postupdated', 'moodleoverflow');
+        } else {
+            if (\mod_moodleoverflow\anonymous::is_post_anonymous($this->info->discussion, $this->info->moodleoverflow,
+                                                                 $this->prepost->userid)) {
+                $name = get_string('anonymous', 'moodleoverflow');
+            } else {
+                $realuser = $DB->get_record('user', array('id' => $this->prepost->userid));
+                $name = fullname($realuser);
+            }
+            $redirectmessage = get_string('editedpostupdated', 'moodleoverflow', $name);
+        }*/
+
+        // Trigger the post updated event.
+        $params = array('context' => $this->info->modulecontext, 'objectid' => $form->edit,
+                        'other' => array('discussionid' => $this->prepost->discussionid,
+                                         'moodleoverflowid' => $this->prepost->moodleoverflowid),
+                        'relateduserid' => $this->prepost->userid == $USER->id ? $this->prepost->userid : null
+                        );
+        $event = \mod_moodleoverflow\event\post_updated::create($params);
+        $event->trigger();
+
+        // Define the location to redirect the user after successfully editing.
+        $redirectto = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $this->prepost->discussionid, $form->edit));
+        redirect(moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
     }
 
     public function execute_delete() {
@@ -388,7 +500,7 @@ class post_control {
         }
 
         // Check if the post is a parent post or not.
-        if ($this->prepost->get_parentid() == 0) {
+        if ($this->prepost->parentid == 0) {
             $this->info->discussion->moodleoverflow_delete_discussion($this->prepost);
 
             // Redirect the user back to the start page of the moodleoverflow instance.
@@ -524,6 +636,7 @@ class post_control {
             return false;
         }
         if ($postid) {
+            // The related post is the post that is being answered, edited, or deleted.
             $this->info->relatedpost = $this->check_post_exists($postid);
             $this->info->discussion = $this->check_discussion_exists($this->info->relatedpost->get_discussionid());
             $localmoodleoverflowid = $this->info->discussion->get_moodleoverflowid();
@@ -549,12 +662,12 @@ class post_control {
         $this->prepost->modulecontext = $this->info->modulecontext;
 
         if ($this->interaction != 'create') {
-            $this->prepost->postid = $this->info->relatedpost->get_id();
             $this->prepost->discussionid = $this->info->discussion->get_id();
-            $this->prepost->parentid = $this->info->relatedpost->get_parentid();
             $this->prepost->subject = $this->info->discussion->name;
 
-            if ($this->interaction != 'edit') {
+            if ($this->interaction != 'reply') {
+                $this->prepost->parentid = $this->info->relatedpost->get_parentid();
+                $this->prepost->postid = $this->info->relatedpost->get_id();
                 $this->prepost->userid = $this->info->relatedpost->get_userid();
                 $this->prepost->message = $this->info->relatedpost->message();
             }
@@ -647,4 +760,49 @@ class post_control {
         return $post;
     }
 
+
+    // Capability checks.
+
+    /**
+     * Checks if a user can create a discussion.
+     * @return true
+     * @throws moodle_exception
+     */
+    private function check_user_can_create_discussion() {
+        if (!has_capability('mod/moodleoverflow:startdiscussion', $this->info->modulecontext)) {
+            throw new moodle_exception('cannotcreatediscussion', 'moodleoverflow');
+        }
+        return true;
+    }
+
+    /**
+     * Checks if a user can reply in a discussion.
+     * @return true
+     * @throws moodle_exception
+     */
+    private function check_user_can_create_reply() {
+        if (!has_capability('mod/moodleoverflow:replypost', $this->info->modulecontext, $this->prepost->userid)) {
+            throw new moodle_exception('cannotreply', 'moodleoverflow');
+        }
+        return true;
+    }
+
+    /**
+     * Checks if a user can edit a post.
+     * A user can edit if he can edit any post of if he edits his own post and has the ability to:
+     * start a new discussion or to reply to a post.
+     * 
+     * @return true
+     * @throws moodle_exception
+     */
+    private function check_user_can_edit_post() {
+        $editanypost = has_capability('mod/moodleoverflow:editanypost', $this->info->modulecontext);
+        $replypost = has_capability('mod/moodleoverflow:replypost', $this->info->modulecontext);
+        $startdiscussion = has_capability('mod/moodleoverflow:startdiscussion', $this->info->modulecontext);
+        $ownpost = ($this->prepost->userid == $USER->id);
+        if (!(($ownpost && ($replypost || $startdiscussion)) || $editanypost)) {
+            throw new moodle_exception('cannotupdatepost', 'moodleoverflow');
+        }
+        return true;
+    }
 }

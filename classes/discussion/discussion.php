@@ -212,16 +212,12 @@ class discussion {
     public function moodleoverflow_add_discussion($prepost) {
         global $DB;
 
-        // Get the current time.
-        $timenow = time();
-
         // Add the discussion to the Database.
         $this->id = $DB->insert_record('moodleoverflow_discussions', $this);
 
         // Create the first/parent post for the new discussion and add it do the DB.
-        $post = post::construct_without_id($this->id, 0, $prepost->userid, $timenow, $timenow,
-                                            $preposts->message, $prepost->messageformat, $prepost->attachment, $prepost->mailed,
-                                            $prepost->reviewed, $prepost->timereviewed, $prepost->formattachments);
+        $post = post::construct_without_id($this->id, 0, $prepost->userid, $prepost->timenow, $prepost->timenow, $preposts->message,
+                                           $prepost->messageformat, "", 0, $prepost->review, null, $prepost->formattachments);
         // Add it to the DB and save the id of the first/parent post.
         $this->firstpost = $post->moodleoverflow_add_new_post();
 
@@ -308,13 +304,10 @@ class discussion {
         $this->existence_check();
         $this->post_check();
 
-        // Get the current time.
-        $timenow = time();
-
         // Create the post that will be added to the new discussion.
-        $post = post::construct_without_id($this->id, $prepost->parent, $prepost->userid, $timenow, $timenow, $prepost->message,
-                                           $prepost->messageformat, $prepost->attachment, $prepost->mailed,
-                                           $prepost->reviewed, $prepost->timereviewed, $prepost->formattachments);
+        $post = post::construct_without_id($this->id, $prepost->parentid, $prepost->userid, $prepost->timenow, $prepost->timenow,
+                                           $prepost->message, $prepost->messageformat, "", 0, $prepost->reviewed, null,
+                                           $prepost->formattachments);
         // Add the post to the DB.
         $postid = $post->moodleoverflow_add_new_post();
 
@@ -367,19 +360,16 @@ class discussion {
         $this->posts_check();
 
         // Check if the posts exists in this discussion.
-        $this->post_exists_check($prepost->id);
-
-        // Get the current time.
-        $timenow = time();
+        $this->post_exists_check($prepost->postid);
 
         // Access the post.
-        $post = $this->post[$prepost->id];
+        $post = $this->post[$prepost->postid];
 
         // If the post is the firstpost, then update the name of this discussion and the post. If not, only update the post.
         if ($prepost->id == array_key_first($posts)) {
             $this->name = $prepost->subject;
             $this->usermodified = $prepost->userid;
-            $this->timemodified = $timenow;
+            $this->timemodified = $prepost->timenow;
             $DB->update_record('moodleoverflow_discussions', $this);
         }
         $post->moodleoverflow_edit_post($timenow, $prepost->message, $prepost->messageformat, $prepost->formattachment);

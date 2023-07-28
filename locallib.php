@@ -534,7 +534,7 @@ function moodleoverflow_count_discussion_replies($cm) {
  */
 function moodleoverflow_user_can_post_discussion($moodleoverflow, $cm = null, $context = null) {
 
-    // Guests an not-logged-in users can not psot.
+    // Guests an not-logged-in users can not post.
     if (isguestuser() || !isloggedin()) {
         return false;
     }

@@ -150,8 +150,9 @@ $string['errorwhiledelete'] = 'An error occurred while deleting record.';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
 $string['noexistingpost'] = 'Post does not exists, needs to be created first';
 $string['noexistingdiscussion'] = 'Discussion does not exists, needs to be created first';
-$string['notallpostsavailable'] = 'This Discussion does not have all of its posts, this could lead to errors! Please use moodleoverflow_get_discussion_posts()';
-$string['missingformattachments'] = "This functions requires data that were not submitted. Please check the post_form";
+$string['notallpostsavailable'] = 'This Discussion does not have all of its posts, this could lead to errors!';
+$string['missingformattachments'] = 'This functions requires data that was not submitted.';
+$string['unexpectedinteractionerror'] = 'An unexpected error occured, please try again';
 
 // String for the classes/post/post_control.php.
 $string['inaccurateparameter'] = 'Please check your parameter and give exactly 1 parameter to the function';
