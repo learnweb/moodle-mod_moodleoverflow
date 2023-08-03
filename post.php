@@ -30,6 +30,7 @@ require_once(dirname(__FILE__) . '/locallib.php');
 
 global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
 require_once($CFG->libdir . '/completionlib.php');
+
 // Declare optional url parameters.
 $moodleoverflow = optional_param('moodleoverflow', 0, PARAM_INT);
 $reply = optional_param('reply', 0, PARAM_INT);
@@ -88,7 +89,6 @@ if ($postcontrol->get_interaction() == 'delete') {
     // Has the user confirmed the deletion?
     if (!empty($confirm) && confirm_sesskey()) {
         $postcontrol->execute_delete();
-        exit;
     } else {
         // Deletion needs to be confirmed.
         $postcontrol->confirm_delete();
@@ -108,12 +108,12 @@ if ($postcontrol->get_interaction() == 'delete') {
                  '#p' . $information->relatedpost->get_id());
         }
         echo $OUTPUT->footer();
-        exit;
     }
+    exit;
 }
 
 // A post will be created or edited. For that the post_control builds a post_form.
-$mformpost = $postcontrol->build_postform();
+$mformpost = $postcontrol->build_postform($pageparams);
 
 // The User now entered information in the form. The post.php now needs to process the information and call the right function.
 
@@ -123,7 +123,7 @@ $prepost = $postcontrol->get_prepost();
 
 // If the interaction was cancelled, the user needs to be redirected.
 if ($mformpost->is_cancelled()) {
-    if (!issett($prepost->discussionid)) {
+    if (!isset($prepost->discussionid)) {
         redirect(new moodle_url('/mod/moodleoverflow/view.php', array('m' => $prepost->moodleoverflowid)));
     } else {
         redirect(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $prepost->discussionid)));

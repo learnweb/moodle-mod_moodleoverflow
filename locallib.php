@@ -926,7 +926,14 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
  * @param bool     $multiplemarks  The setting of multiplemarks (default: multiplemarks are not allowed)
  */
 function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks = false) {
-    global $USER;
+    global $USER, $DB;
+
+    // TODO: REFACTOR WITH NEW POST AND DISCUSSION STRUCTURE.
+
+    // THE NEXT STEP IS NECESSARY UNTIL THE REFACTORING IS COMPLETE.
+    $discussionrecord = $DB->get_record('moodleoverflow_discussions', array('id'  => $discussion->id));
+    $discussionobject = \mod_moodleoverflow\discussion\discussion::from_record($discussionrecord);
+
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() && ($USER->id == $post->userid));
 
@@ -937,9 +944,10 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
 
     // Retrieve all posts of the discussion.
-    $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
+    $posts = moodleoverflow_get_all_discussion_posts($discussionobject->get_id(), $istracked, $modulecontext);
+    //$posts = $discussionobjects->posts;
 
-    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussionobject->get_id());
 
     // Start with the parent post.
     $post = $posts[$post->id];
@@ -1105,6 +1113,8 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
 
 /**
+ *
+ * TODO: REFACTOR THIS FUNCTION FOR THE NEW POST STRUCTURE.
  * Prints a moodleoverflow post.
  * @param object $post
  * @param object $discussion
@@ -1132,7 +1142,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                                    $footer = '', $highlight = '', $postisread = null,
                                    $dummyifcantsee = true, $istracked = false,
                                    $iscomment = false, $usermapping = [], $level = 0, $multiplemarks = false) {
-    global $USER, $CFG, $OUTPUT, $PAGE;
+    global $USER, $CFG, $OUTPUT, $PAGE, $DB;
 
     // Require the filelib.
     require_once($CFG->libdir . '/filelib.php');
@@ -1284,9 +1294,13 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     // Calculate the age of the post.
     $age = time() - $post->created;
 
+    // TODO: REFACTOR FOR NEW POST STRUCTURE: FOR A TIME, THIS IS THE FIX.
+    $postrecord = $DB->get_record('moodleoverflow_posts', array('id' => $post->id));
+    $postobject = \mod_moodleoverflow\post\post::from_record($postrecord);
+
     // Make a link to edit your own post within the given time and not already reviewed.
     if (($ownpost && ($age < get_config('moodleoverflow', 'maxeditingtime')) &&
-                    (!review::should_post_be_reviewed($post, $moodleoverflow) || !$post->reviewed))
+                    (!review::should_post_be_reviewed($postobject, $moodleoverflow) || !$post->reviewed))
         || capabilities::has(capabilities::EDIT_ANY_POST, $modulecontext)
     ) {
         $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));

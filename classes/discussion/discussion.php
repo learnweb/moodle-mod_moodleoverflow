@@ -60,7 +60,7 @@ class discussion {
     /** @var int The moodleoverflow ID where the discussion is located*/
     private $moodleoverflow;
 
-    /** @var char The title of the discussion, the titel of the parent post*/
+    /** @var string The title of the discussion, the titel of the parent post*/
     public $name;
 
     /** @var int The id of the parent/first post*/
@@ -129,47 +129,47 @@ class discussion {
      */
     public static function from_record($record) {
         $id = null;
-        if (object__property_exists($record, 'id') && $record->id) {
+        if (object_property_exists($record, 'id') && $record->id) {
             $id = $record->id;
         }
 
         $course = null;
-        if (object__property_exists($record, 'course') && $record->course) {
+        if (object_property_exists($record, 'course') && $record->course) {
             $course = $record->course;
         }
 
         $moodleoverflow = null;
-        if (object__property_exists($record, 'moodleoverflow') && $record->moodleoverflow) {
+        if (object_property_exists($record, 'moodleoverflow') && $record->moodleoverflow) {
             $moodleoverflow = $record->moodleoverflow;
         }
 
         $name = null;
-        if (object__property_exists($record, 'name') && $record->name) {
+        if (object_property_exists($record, 'name') && $record->name) {
             $name = $record->name;
         }
 
         $firstpost = null;
-        if (object__property_exists($record, 'firstpost') && $record->firstpost) {
+        if (object_property_exists($record, 'firstpost') && $record->firstpost) {
             $firstpost = $record->firstpost;
         }
 
         $userid = null;
-        if (object__property_exists($record, 'userid') && $record->userid) {
+        if (object_property_exists($record, 'userid') && $record->userid) {
             $userid = $record->userid;
         }
 
         $timemodified = null;
-        if (object__property_exists($record, 'timemodified') && $record->timemodified) {
+        if (object_property_exists($record, 'timemodified') && $record->timemodified) {
             $timemodified = $record->timemodified;
         }
 
         $timestart = null;
-        if (object__property_exists($record, 'timestart') && $record->timestart) {
+        if (object_property_exists($record, 'timestart') && $record->timestart) {
             $timestart = $record->timestart;
         }
 
         $usermodified = null;
-        if (object__property_exists($record, 'usermodified') && $record->usermodified) {
+        if (object_property_exists($record, 'usermodified') && $record->usermodified) {
             $usermodified = $record->usermodified;
         }
 
@@ -212,7 +212,7 @@ class discussion {
         global $DB;
 
         // Add the discussion to the Database.
-        $this->id = $DB->insert_record('moodleoverflow_discussions', $this);
+        $this->id = $DB->insert_record('moodleoverflow_discussions', $this->build_db_object());
 
         // Create the first/parent post for the new discussion and add it do the DB.
         $post = post::construct_without_id($this->id, 0, $prepost->userid, $prepost->timenow, $prepost->timenow, $preposts->message,
@@ -301,7 +301,7 @@ class discussion {
     public function moodleoverflow_add_post_to_discussion($prepost) {
         global $DB;
         $this->existence_check();
-        $this->post_check();
+        $this->posts_check();
 
         // Create the post that will be added to the new discussion.
         $post = post::construct_without_id($this->id, $prepost->parentid, $prepost->userid, $prepost->timenow, $prepost->timenow,
@@ -312,9 +312,9 @@ class discussion {
 
         // Add the post to the $posts array and update the timemodified in the DB.
         $this->posts[$postid] = $post;
-        $this->timemodified = $timenow;
+        $this->timemodified = $prepost->timenow;
         $this->usermodified = $prepost->userid;
-        $DB->update_record('moodleoverflow_discussions', $this);
+        $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
 
         // Return the id of the added post.
         return $postid;
@@ -362,16 +362,16 @@ class discussion {
         $this->post_exists_check($prepost->postid);
 
         // Access the post.
-        $post = $this->post[$prepost->postid];
+        $post = $this->posts[$prepost->postid];
 
         // If the post is the firstpost, then update the name of this discussion and the post. If not, only update the post.
-        if ($prepost->id == array_key_first($posts)) {
+        if ($prepost->postid == array_key_first($this->posts)) {
             $this->name = $prepost->subject;
             $this->usermodified = $prepost->userid;
             $this->timemodified = $prepost->timenow;
-            $DB->update_record('moodleoverflow_discussions', $this);
+            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
         }
-        $post->moodleoverflow_edit_post($timenow, $prepost->message, $prepost->messageformat, $prepost->formattachment);
+        $post->moodleoverflow_edit_post($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachment);
 
         // The post has been edited successfully.
         return true;
@@ -400,7 +400,7 @@ class discussion {
         if ($lastpost->modified != $this->timemodified || $lastpost->get_userid() != $this->usermodified) {
             $this->timemodified = $lastpost->modified;
             $this->usermodified = $lastpost->get_userid();
-            $DB->update_record('moodleoverflow_discussions', $this);
+            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
 
             // Return that the discussion needed an update.
             return true;
@@ -487,13 +487,13 @@ class discussion {
             $otherpostssql = 'SELECT * FROM {moodleoverflow_posts} posts
                             WHERE posts.discussion = ' . $this->id . ' AND posts.parent != 0;';
             $firstpostrecord = $DB->get_record_sql($firstpostsql);
-            $otherpostsrecords = $DB->get_records_sql($otherpostssql);
+            $otherpostsrecord = $DB->get_records_sql($otherpostssql);
 
             // Add the first/parent post to the array, then add the other posts.
             $firstpost = post::from_record($firstpostrecord);
             $this->posts[$firstpost->get_id()] = $firstpost;
 
-            foreach ($otherpostrecords as $postrecord) {
+            foreach ($otherpostsrecord as $postrecord) {
                 $post = post::from_record($postrecord);
                 $this->posts[$post->get_id()] = $post;
             }
@@ -534,11 +534,35 @@ class discussion {
         if (empty($this->cmobject)) {
             if (!$this->cmobject = $DB->get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id,
                                                                                          $this->get_moodleoverflow()->course)) {
-                throw new moodle_exception('invalidcoursemodule');
+                throw new \moodle_exception('invalidcoursemodule');
             }
         }
 
         return $this->cmobject;
+    }
+
+    // Helper functions.
+
+    /**
+     * Builds an object from this instance that has only DB-relevant attributes.
+     * @return object $dbobject
+     */
+    private function build_db_object() {
+        $this->existence_check();
+        $this->posts_check();
+
+        $dbobject = new \stdClass();
+        $dbobject->id = $this->id;
+        $dbobject->course = $this->course;
+        $dbobject->moodleoverflow = $this->moodleoverflow;
+        $dbobject->name = $this->name;
+        $dbobject->firstpost = $this->firstpost;
+        $dbobject->userid = $this->userid;
+        $dbobject->timemodified = $this->timemodified;
+        $dbobject->timestart = $this->timestart;
+        $dbobject->usermodified = $this->usermodified;
+
+        return $dbobject;
     }
 
     // Security.
@@ -552,7 +576,7 @@ class discussion {
      */
     private function existence_check() {
         if (empty($this->id) || $this->id == false || $this->id == null) {
-            throw new moodle_exception('noexistingdiscussion', 'moodleoverflow');
+            throw new \moodle_exception('noexistingdiscussion', 'moodleoverflow');
         }
         return true;
     }
@@ -565,7 +589,7 @@ class discussion {
      */
     private function posts_check() {
         if (!$this->postsbuild) {
-            throw new moodle_exception('notallpostsavailable', 'moodleoverflow');
+            throw new \moodle_exception('notallpostsavailable', 'moodleoverflow');
         }
         return true;
     }
@@ -579,7 +603,7 @@ class discussion {
      */
     private function post_exists_check($postid) {
         if (!$this->posts[$postid]) {
-            throw new moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
+            throw new \moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
         }
 
         return true;

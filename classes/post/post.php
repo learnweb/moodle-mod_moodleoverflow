@@ -30,10 +30,11 @@ use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\discussion;
+use mod_moodleoverflow\discussion\discussion;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
@@ -81,7 +82,7 @@ class post {
     /** @var int  The message format*/
     public $messageformat;
 
-    /** @var char Attachment of the post */
+    /** @var string Attachment of the post */
     public $attachment;
 
     /** @var int Mailed status*/
@@ -259,7 +260,7 @@ class post {
         global $USER, $DB;
 
         // Add post to the database.
-        $this->id = $DB->insert_record('moodleoverflow_posts', $this);
+        $this->id = $DB->insert_record('moodleoverflow_posts', $this->build_db_object());
         $this->moodleoverflow_add_attachment($this, $this->get_moodleoverflow(), $this->get_coursemodule());
 
         if ($this->reviewed) {
@@ -314,7 +315,7 @@ class post {
 
                 // Delete the attachments.
                 $fs = get_file_storage();
-                $context = context_module::instance($this->get_coursemodule()->id);
+                $context = \context_module::instance($this->get_coursemodule()->id);
                 $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
                     $this->id, "filename", true);
                 foreach ($attachments as $attachment) {
@@ -328,7 +329,7 @@ class post {
                 }
 
                 // Get the context module.
-                $modulecontext = context_module::instance($this->get_coursemodule()->id);
+                $modulecontext = \context_module::instance($this->get_coursemodule()->id);
 
                 // Trigger the post deletion event.
                 $params = array(
@@ -380,7 +381,7 @@ class post {
         $this->formattachment = $formattachment;    // PLEASE CHECK LATER IF THIS IS NEEDED AFTER WORKING WITH THE POST_FORM CLASS.
 
         // Update the record in the database.
-        $DB->update_record('moodleoverflow_posts', $this);
+        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
 
         // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
         $this->moodleoverflow_add_attachment();
@@ -431,19 +432,19 @@ class post {
         $this->existence_check();
 
         if (!$this->formattachments) {
-            throw new moodle_exception('missingformattachments', 'moodleoverflow');
+            throw new \moodle_exception('missingformattachments', 'moodleoverflow');
         }
 
         if (empty($this->formattachments)) {
             return true;    // Nothing to do.
         }
 
-        $context = context_module::instance($this->get_coursemodule()->id);
+        $context = \context_module::instance($this->get_coursemodule()->id);
         $info = file_get_draft_area_info($this->formattachments);
         $present = ($info['filecount'] > 0) ? '1' : '';
-        file_save_draft_area_file($this->formattachments, $context->id, 'mod_moodleoverflow', 'attachment', $this->id,
-                                  mod_moodleoverflow_post_form::attachment_options($this->get_moodleoverflow()));
-        $DB->set_field('moodleoverflow_post', 'attachment', $present, array('id' => $this->id));
+        file_save_draft_area_files($this->formattachments, $context->id, 'mod_moodleoverflow', 'attachment', $this->id,
+                                  \mod_moodleoverflow_post_form::attachment_options($this->get_moodleoverflow()));
+        $DB->set_field('moodleoverflow_posts', 'attachment', $present, array('id' => $this->id));
     }
 
     /**
@@ -456,7 +457,7 @@ class post {
         global $CFG, $OUTPUT;
         $this->existence_check();
 
-        if (empty($this->attachment) || (!$context = context_module::instance($this->get_coursemodule()->id))) {
+        if (empty($this->attachment) || (!$context = \context_module::instance($this->get_coursemodule()->id))) {
             return array();
         }
 
@@ -465,7 +466,7 @@ class post {
 
         // We retrieve all files according to the time that they were created.  In the case that several files were uploaded
         // at the sametime (e.g. in the case of drag/drop upload) we revert to using the filename.
-        $file = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $this->id, "filename", false);
+        $files = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $this->id, "filename", false);
         if ($files) {
             $i = 0;
             foreach ($files as $file) {
@@ -571,7 +572,7 @@ class post {
         $this->existence_check();
 
         if (empty($this->cmobject)) {
-            $this->cmobject = $DB->get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id);
+            $this->cmobject = \get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id);
         }
 
         return $this->cmobject;
@@ -650,6 +651,28 @@ class post {
         }
     }
 
+    /**
+     * Builds an object from this instance that has only DB-relevant attributes.
+     * @return object $dbobject
+     */
+    private function build_db_object() {
+        $dbobject = new \stdClass();
+        $dbobject->id = $this->id;
+        $dbobject->discussion = $this->discussion;
+        $dbobject->parent = $this->parent;
+        $dbobject->userid = $this->userid;
+        $dbobject->created = $this->created;
+        $dbobject->modified = $this->modified;
+        $dbobject->message = $this->message;
+        $dbobject->messageformat = $this->messageformat;
+        $dbobject->attachment = $this->attachment;
+        $dbobject->mailed = $this->mailed;
+        $dbobject->reviewed = $this->reviewed;
+        $dbobject->timereviewed = $this->timereviewed;
+
+        return $dbobject;
+    }
+
     // Security.
 
     /**
@@ -661,429 +684,8 @@ class post {
      */
     private function existence_check() {
         if (empty($this->id) || $this->id == false || $this->id == null) {
-            throw new moodle_exception('noexistingpost', 'moodleoverflow');
+            throw new \moodle_exception('noexistingpost', 'moodleoverflow');
         }
         return true;
     }
-
-    // Big Functions.
-
-    // Print Functions.
-
-    /**
-     * Prints all posts of the discussion in a nested form.
-     *
-     * @param object $course         The course object
-     * @param object $cm
-     * @param object $moodleoverflow The moodleoverflow object
-     * @param object $discussion     The discussion object
-     * @param object $parent         The object of the parent post
-     * @param bool   $istracked      Whether the user tracks the discussion
-     * @param array  $posts          Array of posts within the discussion
-     * @param bool   $iscomment      Whether the current post is a comment
-     * @param array $usermapping
-     * @param bool  $multiplemarks
-     * @return string
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws moodle_exception
-     */
-    public function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent, $istracked,
-                                                      $posts, $iscomment = null, $usermapping = [], $multiplemarks = false) {
-
-    }
-
-    /**
-     * Prints a moodleoverflow post.
-     * @param object $ownpost
-     * @param bool $link
-     * @param string $footer
-     * @param string $highlight
-     * @param bool $postisread
-     * @param bool $dummyifcantsee
-     * @param bool $istracked
-     * @param bool $iscomment
-     * @param array $usermapping
-     * @param int $level
-     * @param bool $multiplemarks setting of multiplemarks
-     * @return void|null
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws moodle_exception
-     */
-    public function moodleoverflow_print_post($ownpost = false, $link = false, $footer = '', $highlight = '', $postisread = null,
-                                              $dummyifcantsee = true, $istracked = false, $iscomment = false, $usermapping = [],
-                                              $level = 0, $multiplemarks = false) {
-        global $USER, $CFG, $OUTPUT, $PAGE;
-        $this->existence_check();
-        // Get important variables.
-        $post = $this->moodleoverflow_get_complete_post();
-        $discussion = $this->get_discussion();
-        $moodleoverflow = $this->get_moodleoverflow();
-        $cm = $DB->get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
-        $course = $DB->get_record('course', array('id' => $moodleoverflow->course));
-
-        // Add ratings to the post.
-        $postratings = $this->moodleoverflow_get_post_ratings();
-        $post->upvotes = $postratings->upvotes;
-        $post->downvotes = $postratings->downvotes;
-        $post->votesdifference = $postratings->votesdifference;
-        $post->markedhelpful = $postratings->markedhelpful;
-        $post->markedsolution = $postratings->markedsolution;
-
-        // Add other important stuff.
-        $post->subject = $this->subject;
-
-        // Requiere the filelib.
-        require_once($CFG->libdir . '/filelib.php');
-
-        // String cahe.
-        static $str;
-
-        // Print the 'unread' only on time.
-        static $firstunreadanchorprinted = false;
-
-        // Declare the modulecontext.
-        $modulecontext = context_module::instance($cm->id);
-
-        // Add some information to the post.
-        $post->courseid = $course->id;
-        $post->moodleoverflowid = $moodleoverflow->id;
-        $mcid = $modulecontext->id;
-        $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid,
-                                                      'mod_moodleoverflow', 'post', $post->id);
-
-        // Check if the user has the capability to see posts.
-        if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
-            // No dummy message is requested.
-            if (!$dummyifcantsee) {
-                echo '';
-                return;
-            }
-
-            // Include the renderer to display the dummy content.
-            $renderer = $PAGE->get_renderer('mod_moodleoverflow');
-
-            // Collect the needed data being submitted to the template.
-            $mustachedata = new stdClass();
-
-            // Print the template.
-            return $renderer->render_post_dummy_cantsee($mustachedata);
-        }
-
-        // Check if the strings have been cached.
-        if (empty($str)) {
-            $str = new stdClass();
-            $str->edit = get_string('edit', 'moodleoverflow');
-            $str->delete = get_string('delete', 'moodleoverflow');
-            $str->reply = get_string('reply', 'moodleoverflow');
-            $str->replyfirst = get_string('replyfirst', 'moodleoverflow');
-            $str->parent = get_string('parent', 'moodleoverflow');
-            $str->markread = get_string('markread', 'moodleoverflow');
-            $str->markunread = get_string('markunread', 'moodleoverflow');
-            $str->marksolved = get_string('marksolved', 'moodleoverflow');
-            $str->alsomarksolved = get_string('alsomarksolved', 'moodleoverflow');
-            $str->marknotsolved = get_string('marknotsolved', 'moodleoverflow');
-            $str->markhelpful = get_string('markhelpful', 'moodleoverflow');
-            $str->alsomarkhelpful = get_string('alsomarkhelpful', 'moodleoverflow');
-            $str->marknothelpful = get_string('marknothelpful', 'moodleoverflow');
-        }
-
-        // Get the current link without unnecessary parameters.
-        $discussionlink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
-
-        // Build the object that represents the posting user.
-        $postinguser = new stdClass();
-        if ($CFG->branch >= 311) {
-            $postinguserfields = \core_user\fields::get_picture_fields();
-        } else {
-            $postinguserfields = explode(',', user_picture::fields());
-        }
-        $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
-
-        // Post was anonymized.
-        if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
-            $postinguser->id = null;
-            if ($post->userid == $USER->id) {
-                $postinguser->fullname = get_string('anonym_you', 'mod_moodleoverflow');
-                $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
-            } else {
-                $postinguser->fullname = $usermapping[(int) $post->userid];
-                $postinguser->profilelink = null;
-            }
-        } else {
-            $postinguser->fullname = fullname($postinguser, capabilities::has('moodle/site:viewfullnames', $modulecontext));
-            $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
-            $postinguser->id = $post->userid;
-        }
-
-        // Prepare an array of commands.
-        $commands = array();
-
-        // Create a permalink.
-        $permalink = new moodle_url($discussionlink);
-        $permalink->set_anchor('p' . $post->id);
-
-        // Check if multiplemarks are allowed. If so, check if there are already marked posts.
-        $helpfulposts = false;
-        $solvedposts = false;
-        if ($multiplemarks) {
-            $helpfulposts = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->id, false);
-            $solvedposts = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->id, true);
-        }
-
-        // If the user has started the discussion, he can mark the answer as helpful.
-        $canmarkhelpful = (($USER->id == $discussion->userid) && ($USER->id != $post->userid) &&
-                           ($iscomment != $post->parent) && !empty($post->parent));
-        if ($canmarkhelpful) {
-            // When the post is already marked, remove the mark instead.
-            $link = '/mod/moodleoverflow/discussion.php';
-            if ($post->markedhelpful) {
-                $commands[] = html_writer::tag('a', $str->marknothelpful, array('class' => 'markhelpful onlyifreviewed',
-                                                                                'role' => 'button',
-                                                                                'data-moodleoverflow-action' => 'helpful'));
-            } else {
-                // If there are already marked posts, change the string of the button.
-                if ($helpfulposts) {
-                    $commands[] = html_writer::tag('a', $str->alsomarkhelpful, array('class' => 'markhelpful onlyifreviewed',
-                                                                                     'role' => 'button',
-                                                                                     'data-moodleoverflow-action' => 'helpful'));
-                } else {
-                    $commands[] = html_writer::tag('a', $str->markhelpful, array('class' => 'markhelpful onlyifreviewed',
-                                                                                 'role' => 'button',
-                                                                                 'data-moodleoverflow-action' => 'helpful'));
-                }
-            }
-        }
-
-        // A teacher can mark an answer as solved.
-        $canmarksolved = (($iscomment != $post->parent) && !empty($post->parent) &&
-                           capabilities::has(capabilities::MARK_SOLVED, $modulecontext));
-        if ($canmarksolved) {
-            // When the post is already marked, remove the mark instead.
-            $link = '/mod/moodleoverflow/discussion.php';
-            if ($post->markedsolution) {
-                $commands[] = html_writer::tag('a', $str->marknotsolved, array('class' => 'marksolved onlyifreviewed',
-                                                                               'role' => 'button',
-                                                                               'data-moodleoverflow-action' => 'solved'));
-            } else {
-                // If there are already marked posts, change the string of the button.
-                if ($solvedposts) {
-                    $commands[] = html_writer::tag('a', $str->alsomarksolved, array('class' => 'marksolved onlyifreviewed',
-                                                                                    'role' => 'button',
-                                                                                    'data-moodleoverflow-action' => 'solved'));
-                } else {
-                    $commands[] = html_writer::tag('a', $str->marksolved, array('class' => 'marksolved onlyifreviewed',
-                                                                                'role' => 'button',
-                                                                                'data-moodleoverflow-action' => 'solved'));
-                }
-            }
-        }
-
-        // Calculate the age of the post.
-        $age = time() - $post->created;
-
-        // Make a link to edit your own post within the given time and not already reviewed.
-        if (($ownpost && ($age < get_config('moodleoverflow', 'maxeditingtime'))
-                      && (!review::should_post_be_reviewed($post, $moodleoverflow) || !$post->reviewed))
-            || capabilities::has(capabilities::EDIT_ANY_POST, $modulecontext)) {
-
-            $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
-            $commands[] = array('url' => $editurl, 'text' => $str->edit);
-        }
-
-        // Give the option to delete a post.
-        $notold = ($age < get_config('moodleoverflow', 'maxeditingtime'));
-        if (($ownpost && $notold && capabilities::has(capabilities::DELETE_OWN_POST, $modulecontext)) ||
-            capabilities::has(capabilities::DELETE_ANY_POST, $modulecontext)) {
-
-            $link = '/mod/moodleoverflow/post.php';
-            $commands[] = array('url' => new moodle_url($link, array('delete' => $post->id)), 'text' => $str->delete);
-        }
-
-        // Give the option to reply to a post.
-        if (moodleoverflow_user_can_post($modulecontext, $post, false)) {
-
-            $attributes = [
-                    'class' => 'onlyifreviewed'
-            ];
-
-            // Answer to the parent post.
-            if (empty($post->parent)) {
-                $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-                $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);
-
-                // If the post is a comment, answer to the parent post.
-            } else if (!$iscomment) {
-                $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-                $commands[] = array('url' => $replyurl, 'text' => $str->reply, 'attributes' => $attributes);
-
-                // Else simple respond to the answer.
-            } else {
-                $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $iscomment));
-                $commands[] = array('url' => $replyurl, 'text' => $str->reply, 'attributes' => $attributes);
-            }
-        }
-
-        // Begin of mustache data collecting.
-
-        // Initiate the output variables.
-        $mustachedata = new stdClass();
-        $mustachedata->istracked = $istracked;
-        $mustachedata->isread = false;
-        $mustachedata->isfirstunread = false;
-        $mustachedata->isfirstpost = false;
-        $mustachedata->iscomment = (!empty($post->parent) && ($iscomment == $post->parent));
-        $mustachedata->permalink = $permalink;
-
-        // Get the ratings.
-        $mustachedata->votes = $post->upvotes - $post->downvotes;
-
-        // Check if the post is marked.
-        $mustachedata->markedhelpful = $post->markedhelpful;
-        $mustachedata->markedsolution = $post->markedsolution;
-
-        // Did the user rated this post?
-        $rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($post->id);
-
-         // Initiate the variables.
-        $mustachedata->userupvoted = false;
-        $mustachedata->userdownvoted = false;
-        $mustachedata->canchange = $USER->id != $post->userid;
-
-        // Check the actual rating.
-        if ($rating) {
-
-            // Convert the object.
-            $rating = $rating->rating;
-
-            // Did the user upvoted or downvoted this post?
-            // The user upvoted the post.
-            if ($rating == 1) {
-                $mustachedata->userdownvoted = true;
-            } else if ($rating == 2) {
-                $mustachedata->userupvoted = true;
-            }
-        }
-
-        // Check the reading status of the post.
-        $postclass = '';
-        if ($istracked) {
-            if ($postisread) {
-                $postclass .= ' read';
-                $mustachedata->isread = true;
-            } else {
-                $postclass .= ' unread';
-
-                // Anchor the first unread post of a discussion.
-                if (!$firstunreadanchorprinted) {
-                    $mustachedata->isfirstunread = true;
-                    $firstunreadanchorprinted = true;
-                }
-            }
-        }
-        if ($post->markedhelpful) {
-            $postclass .= ' markedhelpful';
-        }
-        if ($post->markedsolution) {
-            $postclass .= ' markedsolution';
-        }
-        $mustachedata->postclass = $postclass;
-
-        // Is this the firstpost?
-        if (empty($post->parent)) {
-            $mustachedata->isfirstpost = true;
-        }
-
-        // Create an element for the user which posted the post.
-        $postbyuser = new stdClass();
-        $postbyuser->post = $post->subject;
-
-        // Anonymization already handled in $postinguser->fullname.
-        $postbyuser->user = $postinguser->fullname;
-
-        $mustachedata->discussionby = get_string('postbyuser', 'moodleoverflow', $postbyuser);
-
-        // Set basic variables of the post.
-        $mustachedata->postid = $post->id;
-        $mustachedata->subject = format_string($post->subject);
-
-        // Post was anonymized.
-        if (!anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
-            // User picture.
-            $mustachedata->picture = $OUTPUT->user_picture($postinguser, ['courseid' => $course->id]);
-        }
-
-        // The rating of the user.
-        if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
-            $postuserrating = null;
-        } else {
-            $postuserrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);
-        }
-
-        // The name of the user and the date modified.
-        $mustachedata->bydate = userdate($post->modified);
-        $mustachedata->byshortdate = userdate($post->modified, get_string('strftimedatetimeshort', 'core_langconfig'));
-        $mustachedata->byname = $postinguser->profilelink ?
-            html_writer::link($postinguser->profilelink, $postinguser->fullname)
-            : $postinguser->fullname;
-        $mustachedata->byrating = $postuserrating;
-        $mustachedata->byuserid = $postinguser->id;
-        $mustachedata->showrating = $postuserrating !== null;
-        if (get_config('moodleoverflow', 'allowdisablerating') == 1) {
-            $mustachedata->showvotes = $moodleoverflow->allowrating;
-            $mustachedata->showreputation = $moodleoverflow->allowreputation;
-        } else {
-            $mustachedata->showvotes = MOODLEOVERFLOW_RATING_ALLOW;
-            $mustachedata->showreputation = MOODLEOVERFLOW_REPUTATION_ALLOW;
-        }
-        $mustachedata->questioner = $post->userid == $discussion->userid ? 'questioner' : '';
-
-        // Set options for the post.
-        $options = new stdClass();
-        $options->para = false;
-        $options->trusted = false;
-        $options->context = $modulecontext;
-
-        $reviewdelay = get_config('moodleoverflow', 'reviewpossibleaftertime');
-        $mustachedata->reviewdelay = format_time($reviewdelay);
-        $mustachedata->needsreview = !$post->reviewed;
-        $reviewable = time() - $post->created > $reviewdelay;
-        $mustachedata->canreview = capabilities::has(capabilities::REVIEW_POST, $modulecontext);
-        $mustachedata->withinreviewperiod = $reviewable;
-
-        // Prepare the post.
-        $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
-
-        // Load the attachments.
-        $mustachedata->attachments = get_attachments($post, $cm);
-
-        // Output the commands.
-        $commandhtml = array();
-        foreach ($commands as $command) {
-            if (is_array($command)) {
-                $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
-            } else {
-                $commandhtml[] = $command;
-            }
-        }
-        $mustachedata->commands = implode('', $commandhtml);
-
-        // Print a footer if requested.
-        $mustachedata->footer = $footer;
-
-        // Mark the forum post as read.
-        if ($istracked && !$postisread) {
-            readtracking::moodleoverflow_mark_post_read($USER->id, $post);
-        }
-
-        $mustachedata->iscomment = $level == 2;
-
-        // Include the renderer to display the dummy content.
-        $renderer = $PAGE->get_renderer('mod_moodleoverflow');
-
-        // Render the different elements.
-        return $renderer->render_post($mustachedata);
-    }
-
 }
