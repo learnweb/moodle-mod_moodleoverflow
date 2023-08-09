@@ -151,7 +151,7 @@ class post {
 
     /**
      * Builds a Post from a DB record.
-     *
+     * Look up database structure for standard values.
      * @param object  $record Data object.
      * @return object post instance
      */
@@ -161,52 +161,52 @@ class post {
             $id = $record->id;
         }
 
-        $discussion = null;
+        $discussion = 0;
         if (object_property_exists($record, 'discussion') && $record->discussion) {
             $discussion = $record->discussion;
         }
 
-        $parent = null;
+        $parent = 0;
         if (object_property_exists($record, 'parent') && $record->parent) {
             $parent = $record->parent;
         }
 
-        $userid = null;
+        $userid = 0;
         if (object_property_exists($record, 'userid') && $record->userid) {
             $userid = $record->userid;
         }
 
-        $created = null;
+        $created = 0;
         if (object_property_exists($record, 'created') && $record->created) {
             $created = $record->created;
         }
 
-        $modified = null;
+        $modified = 0;
         if (object_property_exists($record, 'modified') && $record->modified) {
             $modified = $record->modified;
         }
 
-        $message = null;
+        $message = '';
         if (object_property_exists($record, 'message') && $record->message) {
             $message = $record->message;
         }
 
-        $messageformat = null;
+        $messageformat = 0;
         if (object_property_exists($record, 'messageformat') && $record->messageformat) {
-            $message = $record->messageformat;
+            $messageformat = $record->messageformat;
         }
 
-        $attachment = null;
+        $attachment = '';
         if (object_property_exists($record, 'attachment') && $record->attachment) {
             $attachment = $record->attachment;
         }
 
-        $mailed = null;
+        $mailed = 0;
         if (object_property_exists($record, 'mailed') && $record->mailed) {
             $mailed = $record->mailed;
         }
 
-        $reviewed = null;
+        $reviewed = 1;
         if (object_property_exists($record, 'reviewed') && $record->reviewed) {
             $reviewed = $record->reviewed;
         }
@@ -216,10 +216,8 @@ class post {
             $timereviewed = $record->timereviewed;
         }
 
-        $instance = new self($id, $discussion, $parent, $userid, $created, $modified, $message,
-                             $messageformat, $attachment, $mailed, $reviewed, $timereviewed);
-
-        return $instance;
+        return new self($id, $discussion, $parent, $userid, $created, $modified, $message, $messageformat, $attachment, $mailed,
+                        $reviewed, $timereviewed);
     }
 
     /**
@@ -243,9 +241,8 @@ class post {
     public static function construct_without_id($discussion, $parent, $userid, $created, $modified, $message,
                                 $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments = false) {
         $id = null;
-        $instance = new self($id, $discussion, $parent, $userid, $created, $modified, $message,
-                             $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments);
-        return $instance;
+        return new self($id, $discussion, $parent, $userid, $created, $modified, $message, $messageformat, $attachment, $mailed,
+                        $reviewed, $timereviewed, $formattachments);
     }
 
     // Post Functions.
@@ -297,11 +294,13 @@ class post {
         try {
             $transaction = $DB->start_delegated_transaction();
 
+            // Get the coursemoduleid for later use.
+            $coursemoduleid = $this->get_coursemodule()->id;
             $childposts = $this->moodleoverflow_get_childposts();
             if ($deletechildren && $childposts) {
                 foreach ($childposts as $childpost) {
                     $child = $this->from_record($childpost);
-                    $child->moodleoverflow_delete_post();
+                    $child->moodleoverflow_delete_post($deletechildren);
                 }
             }
 
@@ -315,7 +314,7 @@ class post {
 
                 // Delete the attachments.
                 $fs = get_file_storage();
-                $context = \context_module::instance($this->get_coursemodule()->id);
+                $context = \context_module::instance($coursemoduleid);
                 $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
                     $this->id, "filename", true);
                 foreach ($attachments as $attachment) {
@@ -328,12 +327,9 @@ class post {
                     }
                 }
 
-                // Get the context module.
-                $modulecontext = \context_module::instance($this->get_coursemodule()->id);
-
                 // Trigger the post deletion event.
                 $params = array(
-                    'context' => $modulecontext,
+                    'context' => $context,
                     'objectid' => $this->id,
                     'other' => array(
                         'discussionid' => $this->discussion,
@@ -343,7 +339,7 @@ class post {
                 if ($this->userid !== $USER->id) {
                     $params['relateduserid'] = $this->userid;
                 }
-                $event = post_deleted::create($params);
+                $event = \mod_moodleoverflow\event\post_deleted::create($params);
                 $event->trigger();
 
                 // Set the id of this instance to null, so that working with it is not possible anymore.
@@ -370,7 +366,7 @@ class post {
      *
      * @return true if the post has been edited successfully
      */
-    public function moodleoverflow_edit_post($time, $postmessage, $messageformat, $formattachment) {
+    public function moodleoverflow_edit_post($time, $postmessage, $messageformat, $formattachments) {
         global $DB;
         $this->existence_check();
 
@@ -378,7 +374,7 @@ class post {
         $this->modified = $time;
         $this->message = $postmessage;
         $this->messageformat = $messageformat;
-        $this->formattachment = $formattachment;    // PLEASE CHECK LATER IF THIS IS NEEDED AFTER WORKING WITH THE POST_FORM CLASS.
+        $this->formattachments = $formattachments;
 
         // Update the record in the database.
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
@@ -430,10 +426,6 @@ class post {
     public function moodleoverflow_add_attachment() {
         global $DB;
         $this->existence_check();
-
-        if (!$this->formattachments) {
-            throw new \moodle_exception('missingformattachments', 'moodleoverflow');
-        }
 
         if (empty($this->formattachments)) {
             return true;    // Nothing to do.
@@ -613,6 +605,16 @@ class post {
         }
 
         return false;
+    }
+
+    /**
+     * This getter works as an help function in case another file/function needs the db-object of this instance (as the function
+     * is not adapted/refactored to the new way of working with discussion).
+     * @return object
+     */
+    public function get_db_object() {
+        $this->existence_check();
+        return $this->build_db_object;
     }
 
     // Helper Functions.

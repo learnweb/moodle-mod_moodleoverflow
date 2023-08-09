@@ -37,7 +37,7 @@ global $CFG;
 
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 require_once($CFG->libdir . '/completionlib.php');
-//require once($CFG->dirroot . 'mod/moodleoverflow/classes/post/post.php');
+
 /**
  * This Class controls the manipulation of posts and acts as controller of interactions with the post.php
  *
@@ -118,7 +118,7 @@ class post_control {
 
         } else if ($urlparameter->delete) {
             $this->interaction = 'delete';
-            $this->info->deletepostid = $urlparameter->edit;
+            $this->info->deletepostid = $urlparameter->delete;
             $this->build_prepost_delete($this->info->deletepostid);
         } else {
             throw new \moodle_exception('unknownaction');
@@ -146,14 +146,7 @@ class post_control {
 
         // Get the current time.
         $this->prepost->timenow = time();
-        /*
-        var_dump($this->interaction);
-        var_dump('<br/>');
-        var_dump($this->prepost);
-        var_dump('</br>');
-        var_dump($form->reply);
-        var_dump($this->prepost->parentid);*/
-        var_dump($form);
+
         // Execute the right function.
         if ($this->interaction == 'create' && $form->moodleoverflow == $this->prepost->moodleoverflowid) {
             $this->execute_create($form, $errordestination);
@@ -347,30 +340,28 @@ class post_control {
     private function build_prepost_delete($deletepostid) {
         global $DB, $USER;
 
-        // Get the realted post, discussion, moodleoverflow, course, coursemodule and contexts.
+        // Get the related post, discussion, moodleoverflow, course, coursemodule and contexts.
         $this->collect_information($deletepostid, false);
 
         // Require a login and retrieve the modulecontext.
         require_login($this->info->course, false, $this->info->cm);
 
         // Check some capabilities.
-        $this->info->deleteownpost = has_capability('mod/moodleoverflow:deleteownpost', $this->info->modulecontext);
-        $this->info->deleteanypost = has_capability('mod/moodleoverflow:deleteanypost', $this->info->modulecontext);
-        if (!(($this->info->relatedpost->get_userid() == $USER->id && $this->info->deleteownpost)
-            || $this->info->deleteanypost)) {
-
-            throw new \moodle_exception('cannotdeletepost', 'moodleoverflow');
-        }
+        $this->check_user_can_delete_post();
 
         // Count all replies of this post.
         $this->info->replycount = moodleoverflow_count_replies($this->info->relatedpost, false);
-
+        if ($this->info->replycount >= 1) {
+            $this->info->deletetype = 'plural';
+        } else {
+            $this->info->deletetype = 'singular';
+        }
         // Build the prepost.
         $this->assemble_prepost();
         $this->prepost->deletechildren = true;
     }
 
-    // Execute Functions, that execute an interaction.
+    // Execute Functions.
 
     private function execute_create($form, $errordestination) {
         global $USER;
@@ -385,9 +376,12 @@ class post_control {
             $this->prepost->reviewed = 1;
         }
 
+        // Get the discussion subject.
+        $this->prepost->subject = $form->subject;
+
         // Create the discussion object.
         $discussion = discussion::construct_without_id($this->prepost->courseid, $this->prepost->moodleoverflowid,
-                                                       $this->prepost->subject, null, $this->prepost->userid,
+                                                       $this->prepost->subject, 0, $this->prepost->userid,
                                                        $this->prepost->timenow, $this->prepost->timenow, $this->prepost->userid);
         if (!$discussion->moodleoverflow_add_discussion($this->prepost)) {
             throw new \moodle_exception('couldnotadd', 'moodleoverflow', $errordestination);
@@ -397,13 +391,16 @@ class post_control {
         $redirectmessage = '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
 
         // Trigger the discussion created event.
-        $params = array( 'context' => $this->info->modulecontext, 'objectid' => $discussion->id,);
+        $params = array( 'context' => $this->info->modulecontext, 'objectid' => $discussion->get_id());
         $event = \mod_moodleoverflow\event\discussion_created::create($params);
         $event->trigger();
 
         // Subscribe to this thread.
-        //\mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
-                                                                              //$discussion, $this->info->modulecontext);
+        // Please be aware that in future the use of get_db_object() should be replaced with only $this->info->discussion,
+        // as the subscription class should be refactored with the new way of working with posts.
+        \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
+                                                                            $discussion->get_db_object(),
+                                                                            $this->info->modulecontext);
 
         // Define the location to redirect the user after successfully posting.
         $redirectto = new \moodle_url('/mod/moodleoverflow/view.php', array('m' => $form->moodleoverflow));
@@ -413,7 +410,7 @@ class post_control {
     private function execute_reply($form, $errordestination) {
         // Check if the user has the capability to write a reply.
         $this->check_user_can_create_reply();
-        
+
         // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
         if (review::get_review_level($this->info->moodleoverflow) == review::EVERYTHING &&
                 !has_capability('mod/moodleoverflow:reviewpost', \context_module::instance($this->info->cm->id))) {
@@ -431,7 +428,7 @@ class post_control {
         $redirectmessage = '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
         $redirectmessage .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow",
                                                format_time(get_config('moodleoverflow', 'maxeditingtime'))) . '</p>';
-        
+
         // Trigger the post created event.
         $params = array('context' => $this->info->modulecontext, 'objectid' => $newpostid,
                         'other' => array('discussionid' => $this->prepost->discussionid,
@@ -440,30 +437,33 @@ class post_control {
         $event = \mod_moodleoverflow\event\post_created::create($params);
         $event->trigger();
 
-        // Subscribe to this thread;
-        // \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription(form, $this->info->moodleoverflow,
-                                                                        //$this->info->discussion, $this->info->modulecontext);
-        
-        // Define the location to redirect the user after successfully posting.
-        $redirectto = new \moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $this->prepost->discussionid, 'p' => $newpostid));
-        redirect(\moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
+        // Subscribe to this thread.
+        // Please be aware that in future the use of build_db_object() should be replaced with only $this->info->discussion,
+        // as the subscription class should be refactored with the new way of working with posts.
+        \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
+                                                                             $this->info->discussion->get_db_object(),
+                                                                             $this->info->modulecontext);
 
+        // Define the location to redirect the user after successfully posting.
+        $redirectto = new \moodle_url('/mod/moodleoverflow/discussion.php',
+                                      array('d' => $this->prepost->discussionid, 'p' => $newpostid));
+        redirect(\moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
 
     }
 
     private function execute_edit($form, $errordestination) {
-        global $USER;
+        global $USER, $DB;
         // Check if the user has the capability to edit his post.
         $this->check_user_can_edit_post();
-        
+
         // Update the post.
         if (!$this->info->discussion->moodleoverflow_edit_post_from_discussion($this->prepost)) {
             throw new \moodle_exception('couldnotupdate', 'moodleoverflow', $errordestination);
         }
-        
-        // The edit was successful. 
+
+        // The edit was successful.
         $redirectmessage = get_string('postupdated', 'moodleoverflow');
-        /*if ($this->prepost->userid == $USER->id) {
+        if ($this->prepost->userid == $USER->id) {
             $redirectmessage = get_string('postupdated', 'moodleoverflow');
         } else {
             if (\mod_moodleoverflow\anonymous::is_post_anonymous($this->info->discussion, $this->info->moodleoverflow,
@@ -474,7 +474,7 @@ class post_control {
                 $name = fullname($realuser);
             }
             $redirectmessage = get_string('editedpostupdated', 'moodleoverflow', $name);
-        }*/
+        }
 
         // Trigger the post updated event.
         $params = array('context' => $this->info->modulecontext, 'objectid' => $form->edit,
@@ -486,7 +486,8 @@ class post_control {
         $event->trigger();
 
         // Define the location to redirect the user after successfully editing.
-        $redirectto = new \moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $this->prepost->discussionid, 'p' => $form->edit));
+        $redirectto = new \moodle_url('/mod/moodleoverflow/discussion.php',
+                                      array('d' => $this->prepost->discussionid, 'p' => $form->edit));
         redirect(moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
     }
 
@@ -501,16 +502,18 @@ class post_control {
         }
 
         // A normal user cannot delete his post if there are direct replies.
-        if ($this->infro->replycount && !$this->info->deleteanypost) {
+        if ($this->info->replycount && !$this->info->deleteanypost) {
             throw new \moodle_exception('cannotdeletereplies', 'moodleoverflow', moodleoverflow_go_back_to($url));
         }
 
         // Check if the post is a parent post or not.
         if ($this->prepost->parentid == 0) {
+            // Save the moodleoverflowid. Then delete the discussion.
+            $moodleoverflowid = $this->info->discussion->get_moodleoverflowid();
             $this->info->discussion->moodleoverflow_delete_discussion($this->prepost);
 
             // Redirect the user back to the start page of the moodleoverflow instance.
-            redirect('view.php?m=' . $this->info->discussion->get_moodleoverflowid());
+            redirect('view.php?m=' . $moodleoverflowid);
         } else {
             $this->info->discussion->moodleoverflow_delete_post_from_discussion($this->prepost);
             $discussionurl = new \moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $this->info->discussion->get_id()));
@@ -645,13 +648,6 @@ class post_control {
         } else {
             $localmoodleoverflowid = $moodleoverflowid;
         }
-        /*
-            var_dump($moodleoverflowid);
-            var_dump($postid);
-            var_dump($this->info->relatedpost);
-            var_dump($this->info->discussion);
-            var_dump($localmoodleoverflowid);
-        */
         $this->info->moodleoverflow = $this->check_moodleoverflow_exists($localmoodleoverflowid);
         $this->info->course = $this->check_course_exists($this->info->moodleoverflow->course);
         $this->info->cm = $this->check_coursemodule_exists($this->info->moodleoverflow->id, $this->info->course->id);
@@ -796,7 +792,7 @@ class post_control {
      * Checks if a user can edit a post.
      * A user can edit if he can edit any post of if he edits his own post and has the ability to:
      * start a new discussion or to reply to a post.
-     * 
+     *
      * @return true
      * @throws moodle_exception
      */
@@ -808,6 +804,22 @@ class post_control {
         $ownpost = ($this->prepost->userid == $USER->id);
         if (!(($ownpost && ($replypost || $startdiscussion)) || $editanypost)) {
             throw new \moodle_exception('cannotupdatepost', 'moodleoverflow');
+        }
+        return true;
+    }
+
+    /**
+     * Checks if a user can edit a post.
+     * @return true
+     * @thorws moodle_exception
+     */
+    private function check_user_can_delete_post() {
+        global $USER;
+        $this->info->deleteownpost = has_capability('mod/moodleoverflow:deleteownpost', $this->info->modulecontext);
+        $this->info->deleteanypost = has_capability('mod/moodleoverflow:deleteanypost', $this->info->modulecontext);
+        if (!(($this->info->relatedpost->get_userid() == $USER->id && $this->info->deleteownpost) || $this->info->deleteanypost)) {
+
+            throw new \moodle_exception('cannotdeletepost', 'moodleoverflow');
         }
         return true;
     }

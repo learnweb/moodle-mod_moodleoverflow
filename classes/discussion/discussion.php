@@ -36,6 +36,7 @@ use mod_moodleoverflow\capabilities;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
@@ -133,42 +134,42 @@ class discussion {
             $id = $record->id;
         }
 
-        $course = null;
+        $course = 0;
         if (object_property_exists($record, 'course') && $record->course) {
             $course = $record->course;
         }
 
-        $moodleoverflow = null;
+        $moodleoverflow = 0;
         if (object_property_exists($record, 'moodleoverflow') && $record->moodleoverflow) {
             $moodleoverflow = $record->moodleoverflow;
         }
 
-        $name = null;
+        $name = '';
         if (object_property_exists($record, 'name') && $record->name) {
             $name = $record->name;
         }
 
-        $firstpost = null;
+        $firstpost = 0;
         if (object_property_exists($record, 'firstpost') && $record->firstpost) {
             $firstpost = $record->firstpost;
         }
 
-        $userid = null;
+        $userid = 0;
         if (object_property_exists($record, 'userid') && $record->userid) {
             $userid = $record->userid;
         }
 
-        $timemodified = null;
+        $timemodified = 0;
         if (object_property_exists($record, 'timemodified') && $record->timemodified) {
             $timemodified = $record->timemodified;
         }
 
-        $timestart = null;
+        $timestart = 0;
         if (object_property_exists($record, 'timestart') && $record->timestart) {
             $timestart = $record->timestart;
         }
 
-        $usermodified = null;
+        $usermodified = 0;
         if (object_property_exists($record, 'usermodified') && $record->usermodified) {
             $usermodified = $record->usermodified;
         }
@@ -215,8 +216,8 @@ class discussion {
         $this->id = $DB->insert_record('moodleoverflow_discussions', $this->build_db_object());
 
         // Create the first/parent post for the new discussion and add it do the DB.
-        $post = post::construct_without_id($this->id, 0, $prepost->userid, $prepost->timenow, $prepost->timenow, $preposts->message,
-                                           $prepost->messageformat, "", 0, $prepost->review, null, $prepost->formattachments);
+        $post = post::construct_without_id($this->id, 0, $prepost->userid, $prepost->timenow, $prepost->timenow, $prepost->message,
+                                           $prepost->messageformat, "", 0, $prepost->reviewed, null, $prepost->formattachments);
         // Add it to the DB and save the id of the first/parent post.
         $this->firstpost = $post->moodleoverflow_add_new_post();
 
@@ -230,7 +231,7 @@ class discussion {
         // Trigger event.
         $params = array(
             'context' => $prepost->modulecontext,
-            'objectid' => $post->discussion,
+            'objectid' => $this->id,
         );
         $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
         $event->trigger();
@@ -256,7 +257,7 @@ class discussion {
             $transaction = $DB->start_delegated_transaction();
 
             // Delete every post of this discussion.
-            foreach ($posts as $post) {
+            foreach ($this->posts as $post) {
                 $post->moodleoverflow_delete_post(false);
             }
 
@@ -371,7 +372,7 @@ class discussion {
             $this->timemodified = $prepost->timenow;
             $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
         }
-        $post->moodleoverflow_edit_post($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachment);
+        $post->moodleoverflow_edit_post($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachments);
 
         // The post has been edited successfully.
         return true;
@@ -388,11 +389,13 @@ class discussion {
         $this->existence_check();
 
         // Find the last reviewed post of the discussion (even if the user has review capability, because it's written to DB).
-        $sql = 'SELECT id, userid, modified
+        $sql = 'SELECT *
                 FROM {moodleoverflow_posts}
                 WHERE discussion = ' . $this->id .
                   ' AND reviewed = 1
-                    AND modified = (SELECT MAX(modified) as modified FROM {moodleoverflow_posts})';
+                    AND modified = (SELECT MAX(modified) as modified
+                                    FROM {moodleoverflow_posts}
+                                    WHERE discussion = ' . $this->id . ');';
         $record = $DB->get_record_sql($sql);
         $lastpost = post::from_record($record);
 
@@ -483,9 +486,9 @@ class discussion {
         if (!$this->postsbuild) {
             // Get the posts from the DB. Get the parent post first.
             $firstpostsql = 'SELECT * FROM {moodleoverflow_posts} posts
-                            WHERE posts.discussion = ' . $this->id . ' AND posts.parent = 0;';
+                            WHERE discussion = ' . $this->id . ' AND parent = 0;';
             $otherpostssql = 'SELECT * FROM {moodleoverflow_posts} posts
-                            WHERE posts.discussion = ' . $this->id . ' AND posts.parent != 0;';
+                            WHERE discussion = ' . $this->id . ' AND parent != 0;';
             $firstpostrecord = $DB->get_record_sql($firstpostsql);
             $otherpostsrecord = $DB->get_records_sql($otherpostssql);
 
@@ -541,16 +544,24 @@ class discussion {
         return $this->cmobject;
     }
 
+    /**
+     * This getter works as an help function in case another file/function needs the db-object of this instance (as the function
+     * is not adapted/refactored to the new way of working with discussion).
+     * @return object
+     */
+    public function get_db_object() {
+        $this->existence_check();
+        return $this->build_db_object();
+    }
+
     // Helper functions.
 
     /**
      * Builds an object from this instance that has only DB-relevant attributes.
+     * As this is an private function, it doesn't need an existence check.
      * @return object $dbobject
      */
     private function build_db_object() {
-        $this->existence_check();
-        $this->posts_check();
-
         $dbobject = new \stdClass();
         $dbobject->id = $this->id;
         $dbobject->course = $this->course;

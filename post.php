@@ -55,7 +55,6 @@ $systemcontext = context_system::instance();
 
 // Create a post_control object to control and lead the process.
 $postcontrol = new post_control();
-//$postcontrol = new post_control();
 
 // Put all interaction parameters in one object for the post_control.
 $urlparameter = new \stdClass();

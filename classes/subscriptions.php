@@ -761,6 +761,7 @@ class subscriptions {
     /**
      * Subscribes the user to the specified discussion.
      *
+     * TODO: Refactor this function to the new way of working with discussion and posts.
      * @param int             $userid     The user ID
      * @param \stdClass       $discussion The discussion record
      * @param \context_module $context    The module context
@@ -985,6 +986,7 @@ class subscriptions {
     /**
      * Given a new post, subscribes the user to the thread the post was posted in.
      *
+     * TODO: Refactor this function to the new way of working with discussion and posts.
      * @param object $fromform       The submitted form
      * @param \stdClass       $moodleoverflow The moodleoverflow record
      * @param \stdClass       $discussion     The discussion record

@@ -944,8 +944,8 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
 
     // Retrieve all posts of the discussion.
+    // This part is adapted/refactored to the new way of working with posts (use of get_id() function and discussion object).
     $posts = moodleoverflow_get_all_discussion_posts($discussionobject->get_id(), $istracked, $modulecontext);
-    //$posts = $discussionobjects->posts;
 
     $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussionobject->get_id());
 
@@ -1773,6 +1773,7 @@ function moodleoverflow_update_post($newpost) {
 /**
  * Count all replies of a post.
  *
+ * INFO: This Function is adapted to the new way of working with posts (using the post classes)
  * @param object $post The post object
  * @param bool $onlyreviewed Whether to count only reviewed posts.
  *
@@ -1781,7 +1782,7 @@ function moodleoverflow_update_post($newpost) {
 function moodleoverflow_count_replies($post, $onlyreviewed) {
     global $DB;
 
-    $conditions = ['parent' => $post->id];
+    $conditions = ['parent' => $post->get_id()];
 
     if ($onlyreviewed) {
         $conditions['reviewed'] = '1';
