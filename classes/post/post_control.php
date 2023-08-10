@@ -201,7 +201,7 @@ class post_control {
         $this->collect_information(false, $moodleoverflowid);
 
         // Check if the user can start a new discussion.
-        if (!moodleoverflow_user_can_post_discussion($this->info->moodleoverflow, $this->info->cm, $this->info->modulecontext)) {
+        if (!$this->check_user_can_create_discussion()) {
 
             // Catch unenrolled user.
             if (!isguestuser() && !is_enrolled($this->info->coursecontext)) {
@@ -306,8 +306,8 @@ class post_control {
         // Check if the post can be edited.
         $beyondtime = ((time() - $this->info->relatedpost->created) > get_config('moodleoverflow', 'maxeditingtime'));
 
-		// Please be aware that in future the use of get_db_object() should be replaced with $this->info->relatedpost,
-		// as the review class should be refactored with the new way of working with posts.
+        // Please be aware that in future the use of get_db_object() should be replaced with $this->info->relatedpost,
+        // as the review class should be refactored with the new way of working with posts.
         $alreadyreviewed = review::should_post_be_reviewed($this->info->relatedpost->get_db_object(), $this->info->moodleoverflow)
                            && $this->info->relatedpost->reviewed;
         if (($beyondtime || $alreadyreviewed) && !has_capability('mod/moodleoverflow:editanypost',
@@ -352,7 +352,7 @@ class post_control {
         $this->check_user_can_delete_post();
 
         // Count all replies of this post.
-        $this->info->replycount = moodleoverflow_count_replies($this->info->relatedpost, false);
+        $this->info->replycount = $this->info->relatedpost->moodleoverflow_count_replies(false);
         if ($this->info->replycount >= 1) {
             $this->info->deletetype = 'plural';
         } else {
@@ -539,6 +539,8 @@ class post_control {
     }
 
     /**
+     *
+     * TODO: use html_writer:: instead of writing pure html code.
      * Builds and returns a post_form object where the users enters/edits the message and attachments of the post.
      * @param array $pageparams    An object that the post.php created.
      * @return object a mod_moodleoverflow_post_form object.

@@ -270,8 +270,8 @@ class post {
         $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
-			// Please be aware that in future the use of get_db_object() should be replaced with only $this,
-			// as the readtracking class should be refactored with the new way of working with posts.
+            // Please be aware that in future the use of get_db_object() should be replaced with only $this,
+            // as the readtracking class should be refactored with the new way of working with posts.
             readtracking::moodleoverflow_mark_post_read($this->userid, $this->get_db_object());
         }
 
@@ -392,7 +392,7 @@ class post {
     }
 
     /**
-     * // RETHINK THIS FUNCTION.
+     * // TODO: RETHINK THIS FUNCTION.
      * Gets a post with all info ready for moodleoverflow_print_post.
      * Most of these joins are just to get the forum id.
      *
@@ -651,8 +651,8 @@ class post {
         $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
-			// Please be aware that in future the use of get_db_object() should be replaced with only $this,
-			// as the readtracking class should be refactored with the new way of working with posts.
+            // Please be aware that in future the use of get_db_object() should be replaced with only $this,
+            // as the readtracking class should be refactored with the new way of working with posts.
             readtracking::moodleoverflow_mark_post_read($USER->id, $this->get_db_object());
         }
     }
@@ -677,6 +677,25 @@ class post {
         $dbobject->timereviewed = $this->timereviewed;
 
         return $dbobject;
+    }
+
+    /*
+     * Count all replies of a post.
+     *
+     * @param bool $onlyreviewed Whether to count only reviewed posts.
+     * @return int Amount of replies
+     */
+    public function moodleoverflow_count_replies($onlyreviewed) {
+        global $DB;
+
+        $conditions = ['parent' => $this->id];
+
+        if ($onlyreviewed) {
+            $conditions['reviewed'] = '1';
+        }
+
+        // Return the amount of replies.
+        return $DB->count_records('moodleoverflow_posts', $conditions);
     }
 
     // Security.

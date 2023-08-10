@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../locallib.php');
 
 /**
+ * TODO: THIS TEST CLASS IS USELESS, needs to be refactored to the new way of working with posts.
  * PHP Unit test for post related functions in the locallib.
  *
  * @package   mod_moodleoverflow
@@ -34,7 +35,6 @@ require_once(__DIR__ . '/../locallib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post_test extends \advanced_testcase {
-
     /** @var \stdClass test course */
     private $course;
 

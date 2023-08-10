@@ -233,6 +233,7 @@ class discussion {
             'context' => $prepost->modulecontext,
             'objectid' => $this->id,
         );
+        // TODO: check if the event functions.
         $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
         $event->trigger();
 
@@ -532,6 +533,7 @@ class discussion {
      * @return object $cmobject
      */
     public function get_coursemodule() {
+        global $DB;
         $this->existence_check();
 
         if (empty($this->cmobject)) {

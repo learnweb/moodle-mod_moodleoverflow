@@ -78,6 +78,7 @@ if (!isloggedin() || isguestuser()) {
 }
 
 // Require a general login to post something.
+// TODO: should course or id really be zero?.
 require_login(0, false);
 
 // Now the post_control checks which interaction is wanted and builds a prepost.
