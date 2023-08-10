@@ -201,7 +201,7 @@ class readtracking {
         }
 
         // Create a new read record.
-        return self::moodleoverflow_add_read_record($userid, $post->get_id());
+        return self::moodleoverflow_add_read_record($userid, $post->id);
     }
 
     /**

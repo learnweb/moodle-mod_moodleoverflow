@@ -305,11 +305,13 @@ class post_control {
 
         // Check if the post can be edited.
         $beyondtime = ((time() - $this->info->relatedpost->created) > get_config('moodleoverflow', 'maxeditingtime'));
-        $alreadyreviewed = review::should_post_be_reviewed($this->info->relatedpost, $this->info->moodleoverflow)
+
+		// Please be aware that in future the use of get_db_object() should be replaced with $this->info->relatedpost,
+		// as the review class should be refactored with the new way of working with posts.
+        $alreadyreviewed = review::should_post_be_reviewed($this->info->relatedpost->get_db_object(), $this->info->moodleoverflow)
                            && $this->info->relatedpost->reviewed;
         if (($beyondtime || $alreadyreviewed) && !has_capability('mod/moodleoverflow:editanypost',
                                                                  $this->info->modulecontext)) {
-
             throw new \moodle_exception('maxtimehaspassed', 'moodleoverflow', '',
                 format_time(get_config('moodleoverflow', 'maxeditingtime')));
         }

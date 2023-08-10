@@ -270,7 +270,9 @@ class post {
         $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
-            readtracking::moodleoverflow_mark_post_read($this->userid, $this);
+			// Please be aware that in future the use of get_db_object() should be replaced with only $this,
+			// as the readtracking class should be refactored with the new way of working with posts.
+            readtracking::moodleoverflow_mark_post_read($this->userid, $this->get_db_object());
         }
 
         // Return the id of the created post.
@@ -614,7 +616,7 @@ class post {
      */
     public function get_db_object() {
         $this->existence_check();
-        return $this->build_db_object;
+        return $this->build_db_object();
     }
 
     // Helper Functions.
@@ -649,7 +651,9 @@ class post {
         $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
-            readtracking::moodleoverflow_mark_post_read($USER->id, $this);
+			// Please be aware that in future the use of get_db_object() should be replaced with only $this,
+			// as the readtracking class should be refactored with the new way of working with posts.
+            readtracking::moodleoverflow_mark_post_read($USER->id, $this->get_db_object());
         }
     }
 
