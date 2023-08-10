@@ -176,7 +176,11 @@ jobs:
 
       - name: PHPUnit tests
         if: ${{ always() }}
-        run: moodle-plugin-ci phpunit
+        run: |
+          moodle-plugin-ci phpunit --coverage-clover
+          moodle-plugin-ci coveralls-upload
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
 
       - name: Behat features
         if: ${{ always() }}
