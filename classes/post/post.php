@@ -361,9 +361,9 @@ class post {
 
     /**
      * Edits the message from this instance.
-     * @param timestamp $time               The time the post was modified (given from the discussion class).
+     * @param int       $time               The time the post was modified (given from the discussion class).
      * @param string    $postmessage        The new message
-     * @param object    $messageformat
+     * @param int       $messageformat
      * @param object    $formattachments    Information about attachments from the post_form
      *
      * @return true if the post has been edited successfully
