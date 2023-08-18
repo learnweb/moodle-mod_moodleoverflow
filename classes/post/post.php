@@ -574,7 +574,7 @@ class post {
 
     /**
      * Returns the parent post
-     * @return object $post
+     * @return object|false $post|false
      */
     public function moodleoverflow_get_parentpost() {
         global $DB;
@@ -596,7 +596,7 @@ class post {
     /**
      * Returns children posts (answers) as DB-records.
      *
-     * @return object children/answer posts.
+     * @return array|false children/answer posts.
      */
     public function moodleoverflow_get_childposts() {
         global $DB;
