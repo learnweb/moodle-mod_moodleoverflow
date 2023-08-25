@@ -94,7 +94,7 @@ class anonymous {
         $userids = $DB->get_records_sql(
             'SELECT userid ' .
             'FROM {moodleoverflow_posts} ' .
-            'WHERE discussion = :discussion' .
+            'WHERE discussion = :discussion ' .
             'GROUP BY userid ' .
             'ORDER BY MIN(created) ASC;', ['discussion' => $discussionid]);
 
