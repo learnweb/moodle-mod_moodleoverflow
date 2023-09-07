@@ -458,6 +458,11 @@ class post_control {
         // Check if the user has the capability to edit his post.
         $this->check_user_can_edit_post();
 
+        // If the post that is being edited is the parent post, the subject can be edited too.
+        if ($this->prepost->parentid == 0) {
+            $this->prepost->subject = $form->subject;
+        }
+
         // Update the post.
         if (!$this->info->discussion->moodleoverflow_edit_post_from_discussion($this->prepost)) {
             throw new \moodle_exception('couldnotupdate', 'moodleoverflow', $errordestination);
