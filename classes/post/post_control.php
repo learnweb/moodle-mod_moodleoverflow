@@ -390,7 +390,7 @@ class post_control {
         }
 
         // The creation was successful.
-        $redirectmessage = '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
+        $redirectmessage = \html_writer::tag('p', get_string("postaddedsuccess", "moodleoverflow"));
 
         // Trigger the discussion created event.
         $params = array( 'context' => $this->info->modulecontext, 'objectid' => $discussion->get_id());
@@ -427,9 +427,9 @@ class post_control {
         }
 
         // The creation was successful.
-        $redirectmessage = '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
-        $redirectmessage .= '<p>' . get_string("postaddedtimeleft", "moodleoverflow",
-                                               format_time(get_config('moodleoverflow', 'maxeditingtime'))) . '</p>';
+        $redirectmessage = \html_writer::tag('p', get_string("postaddedsuccess", "moodleoverflow"));
+        $redirectmessage .= \html_writer::tag('p', get_string("postaddedtimeleft", "moodleoverflow",
+                                              format_time(get_config('moodleoverflow', 'maxeditingtime'))));
 
         // Trigger the post created event.
         $params = array('context' => $this->info->modulecontext, 'objectid' => $newpostid,
@@ -540,7 +540,6 @@ class post_control {
 
     /**
      *
-     * TODO: use html_writer:: instead of writing pure html code.
      * Builds and returns a post_form object where the users enters/edits the message and attachments of the post.
      * @param array $pageparams    An object that the post.php created.
      * @return object a mod_moodleoverflow_post_form object.
@@ -572,10 +571,10 @@ class post_control {
             $data->date = userdate(time());
             $this->prepost->messageformat = editors_get_preferred_format();
             if ($this->prepost->messageformat == FORMAT_HTML) {
-                $data->name = '<a href="' . $CFG->wwwroot . '/user/view.php?id' . $USER->id . '&course=' .
-                              $this->prepost->courseid . '">' . fullname($USER) . '</a>';
-                $this->prepost->message .= '<p><span class="edited">(' . get_string('editedby', 'moodleoverflow', $data) .
-                                           ')</span></p>';
+                $data->name = \html_writer::tag('a', $CFG->wwwroot . '/user/view.php?id' . $USER->id .
+                                                '&course=' . $this->prepost->courseid . '">' . fullname($USER));
+                $this->prepost->message .= \html_writer::tag('p', \html_writer::tag('span',
+                             get_string('editedby', 'moodleoverflow', $data),array("class" => "edited") ));
             } else {
                 $data->name = fullname($USER);
                 $this->prepost->message .= "\n\n(" . get_string('editedby', 'moodleoverflow', $data) . ')';
@@ -806,7 +805,7 @@ class post_control {
         $replypost = has_capability('mod/moodleoverflow:replypost', $this->info->modulecontext);
         $startdiscussion = has_capability('mod/moodleoverflow:startdiscussion', $this->info->modulecontext);
         $ownpost = ($this->prepost->userid == $USER->id);
-        if ((($ownpost && ($replypost || $startdiscussion)) || $editanypost)) {
+        if (!(($ownpost && ($replypost || $startdiscussion)) || $editanypost)) {
             throw new \moodle_exception('cannotupdatepost', 'moodleoverflow');
         }
         return true;
@@ -815,7 +814,7 @@ class post_control {
     /**
      * Checks if a user can edit a post.
      * @return true
-     * @thorws moodle_exception
+     * @throws moodle_exception
      */
     private function check_user_can_delete_post() {
         global $USER;
