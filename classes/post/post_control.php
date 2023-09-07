@@ -579,7 +579,7 @@ class post_control {
                 $data->name = \html_writer::tag('a', $CFG->wwwroot . '/user/view.php?id' . $USER->id .
                                                 '&course=' . $this->prepost->courseid . '">' . fullname($USER));
                 $this->prepost->message .= \html_writer::tag('p', \html_writer::tag('span',
-                             get_string('editedby', 'moodleoverflow', $data),array("class" => "edited") ));
+                             get_string('editedby', 'moodleoverflow', $data), array("class" => "edited")));
             } else {
                 $data->name = fullname($USER);
                 $this->prepost->message .= "\n\n(" . get_string('editedby', 'moodleoverflow', $data) . ')';
