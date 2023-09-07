@@ -806,7 +806,7 @@ class post_control {
         $replypost = has_capability('mod/moodleoverflow:replypost', $this->info->modulecontext);
         $startdiscussion = has_capability('mod/moodleoverflow:startdiscussion', $this->info->modulecontext);
         $ownpost = ($this->prepost->userid == $USER->id);
-        if (!(($ownpost && ($replypost || $startdiscussion)) || $editanypost)) {
+        if ((($ownpost && ($replypost || $startdiscussion)) || $editanypost)) {
             throw new \moodle_exception('cannotupdatepost', 'moodleoverflow');
         }
         return true;
