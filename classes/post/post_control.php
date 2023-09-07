@@ -242,7 +242,7 @@ class post_control {
      * @param int $replypostid      The ID of the post that is being answered.
      */
     private function build_prepost_reply($replypostid) {
-        global $DB, $PAGE, $SESSION, $USER;
+        global $DB, $PAGE, $SESSION, $USER, $CFG;
 
         // Get the related poost, discussion, moodleoverflow, course, coursemodule and contexts.
         $this->collect_information($replypostid, false);
@@ -280,8 +280,15 @@ class post_control {
 
         // Append 'RE: ' to the discussions subject.
         $strre = get_string('re', 'moodleoverflow');
-        if (!(str_starts_with($this->prepost->subject, $strre))) {
-            $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
+        if ($CFG->branch > 309) {
+            if (!(str_starts_with($this->prepost->subject, $strre))) {
+                $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
+            }
+        } else {
+            // TODO: remove this else branch when support for version 3.9 ends and delete the branch check.
+            if (!(substr($this->prepost->subject, 0, strlen($strre)) == $strre)) {
+                $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
+            }
         }
 
         // Unset where the user is coming from.
