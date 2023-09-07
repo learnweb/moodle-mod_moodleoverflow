@@ -30,7 +30,7 @@ const Selectors = {
 };
 
 /**
- * Function that shows the help string.
+ * Function that shows the help icon string.
  */
 export const init = () => {
     document.addEventListener('click', event => {
