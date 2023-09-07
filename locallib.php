@@ -654,8 +654,12 @@ function moodleoverflow_get_post_full($postid) {
 
     if ($CFG->branch >= 311) {
         $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-    } else {
+    } else if ($CFG->branch > 309) {
         $allnames = implode(', ', fields::get_name_fields());
+    } else {
+        // TODO: remove this else branch when support for version 3.9 ends and replace the else if branch with 'else' only.
+        // Note that get_all_user_name_fields is a deprecated function and should not be used in newer versions.
+        $allnames = get_all_user_name_fields(true, 'u');
     }
     $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
               FROM {moodleoverflow_posts} p
