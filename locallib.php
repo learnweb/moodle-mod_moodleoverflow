@@ -655,7 +655,7 @@ function moodleoverflow_get_post_full($postid) {
     if ($CFG->branch >= 311) {
         $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
     } else {
-        $allnames = get_all_user_name_fields(true, 'u');
+        $allnames = implode(', ', fields::get_name_fields());
     }
     $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
               FROM {moodleoverflow_posts} p

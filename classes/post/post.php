@@ -392,7 +392,8 @@ class post {
     }
 
     /**
-     * // TODO: RETHINK THIS FUNCTION.
+     * // NOTE: This function replaces the get_post_full() function and is not used until the print and print-related function for
+     * // printing the discussion and a post are adapted to the new post and discussion class.
      * Gets a post with all info ready for moodleoverflow_print_post.
      * Most of these joins are just to get the forum id.
      *
