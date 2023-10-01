@@ -77,7 +77,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         $currentsetting = $this->current && property_exists($this->current, 'anonymous') ? $this->current->anonymous : 0;
         $possiblesettings = [
-                anonymous::EVERYTHING_ANONYMOUS => get_string('anonymous:everything', 'moodleoverflow')
+                anonymous::EVERYTHING_ANONYMOUS => get_string('anonymous:everything', 'moodleoverflow'),
+                anonymous::STUDENTS_ANONYMOUS => get_string('anonymous:students', 'moodleoverflow')
         ];
 
         if ($currentsetting <= anonymous::QUESTION_ANONYMOUS) {

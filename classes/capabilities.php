@@ -74,6 +74,9 @@ class capabilities {
     /** capability review post to be published*/
     const REVIEW_POST = 'mod/moodleoverflow:reviewpost';
 
+    /** capability  */
+    const NOT_ANONYMOUS = 'mod/moodleoverflow:notanonymous';
+
     /** @var array cache capabilities*/
     private static $cache = [];
 
@@ -94,11 +97,11 @@ class capabilities {
 
         $key = "$userid:$context->id:$capability";
 
-        if (!isset($cache[$key])) {
-            $cache[$key] = has_capability($capability, $context, $userid);
+        if (!isset(self::$cache[$key])) {
+            self::$cache[$key] = has_capability($capability, $context, $userid);
         }
 
-        return $cache[$key];
+        return self::$cache[$key];
     }
 
 }

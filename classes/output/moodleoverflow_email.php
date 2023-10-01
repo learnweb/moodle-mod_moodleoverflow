@@ -106,6 +106,9 @@ class moodleoverflow_email implements \renderable, \templatable {
         'viewfullnames' => true,
     );
 
+    /** @var bool $ispostanonymous Is the post anonymous? */
+    protected bool $ispostanonymous;
+
     /**
      * Builds a renderable moodleoverflow mail.
      *
@@ -127,6 +130,8 @@ class moodleoverflow_email implements \renderable, \templatable {
         $this->author = $author;
         $this->userto = $recipient;
         $this->canreply = $canreply;
+        $this->ispostanonymous = anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id,
+                        \context_module::instance($cm->id));
     }
 
     /**
@@ -358,7 +363,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_author_fullname() {
-        if (anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id)) {
+        if ($this->ispostanonymous) {
             return get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
         } else {
             return fullname($this->author, $this->viewfullnames);
@@ -521,7 +526,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_authorlink() {
-        if (anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id)) {
+        if ($this->ispostanonymous) {
             return null;
         }
 
@@ -542,7 +547,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      */
     public function get_author_picture() {
         global $OUTPUT;
-        if (anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id)) {
+        if ($this->ispostanonymous) {
             return '';
         }
 
@@ -555,7 +560,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_group_picture() {
-        if (anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id)) {
+        if ($this->ispostanonymous) {
             return '';
         }
 

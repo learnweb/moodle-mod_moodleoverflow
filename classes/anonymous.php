@@ -45,6 +45,10 @@ class anonymous {
      * Used if whole post is anonymous.
      */
     const EVERYTHING_ANONYMOUS = 2;
+    /**
+     * Used if students posts are anonymous, but teachers aren't.
+     */
+    const STUDENTS_ANONYMOUS = 3;
 
     /**
      * Checks if post is anonymous.
@@ -52,11 +56,12 @@ class anonymous {
      * @param object $discussion              moodleoverflow discussion
      * @param object $moodleoverflow
      * @param int $postinguserid        user id of posting user
+     * @param \context $context
      *
      * @return bool true if user is not logged in, everything is marked anonymous
      * and if the question is anonymous and there are no answers yet, else false
      */
-    public static function is_post_anonymous($discussion, $moodleoverflow, $postinguserid): bool {
+    public static function is_post_anonymous($discussion, $moodleoverflow, $postinguserid, $context = null): bool {
         if ($postinguserid == 0) {
             return true;
         }
@@ -69,6 +74,14 @@ class anonymous {
             return $discussion->userid == $postinguserid;
         }
 
+        if ($moodleoverflow->anonymous == self::STUDENTS_ANONYMOUS) {
+            if (!$context) {
+                $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+                $context = \context_module::instance($cm->id);
+            }
+            return !has_capability(capabilities::NOT_ANONYMOUS, $context, $postinguserid);
+        }
+
         return false;
     }
 
@@ -78,8 +91,9 @@ class anonymous {
      *
      * @param \stdClass $moodleoverflow
      * @param int $discussionid
+     * @param \context $context
      */
-    public static function get_userid_mapping($moodleoverflow, $discussionid) {
+    public static function get_userid_mapping($moodleoverflow, $discussionid, $context) {
         global $DB;
         if ($moodleoverflow->anonymous == self::NOT_ANONYMOUS) {
             return [];
@@ -103,6 +117,11 @@ class anonymous {
         $mapping[$questioner->userid] = get_string('questioner', 'moodleoverflow');
         $i = 1;
         foreach ($userids as $user) {
+            // Only map students in only students anonymous mode.
+            if ($moodleoverflow->anonymous == self::STUDENTS_ANONYMOUS
+                    && has_capability(capabilities::NOT_ANONYMOUS, $context, $user->userid)) {
+                continue;
+            }
             $mapping[$user->userid] = get_string('answerer', 'moodleoverflow', $i);
             $i++;
         }

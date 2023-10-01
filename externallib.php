@@ -125,7 +125,7 @@ class mod_moodleoverflow_external extends external_api {
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
 
-        $cannotseeowner = \mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) &&
+        $cannotseeowner = \mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id, $context) &&
             $USER->id != $postownerid;
 
         $params['postrating'] = $rating->upvotes - $rating->downvotes;

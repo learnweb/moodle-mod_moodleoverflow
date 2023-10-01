@@ -29,6 +29,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\anonymous;
+
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/locallib.php');
 
@@ -822,7 +824,7 @@ function moodleoverflow_send_mails() {
                     continue;
                 }
 
-                if (\mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
+                if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid, context_module::instance($cm->id))) {
                     $userfrom = \core_user::get_noreply_user();
                 } else {
                     // Check whether the sending user is cached already.

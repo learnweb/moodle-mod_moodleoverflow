@@ -493,7 +493,14 @@ class ratings {
         // Initiate a variable.
         $reputation = 0;
 
-        if ($moodleoverflow->anonymous != anonymous::EVERYTHING_ANONYMOUS) {
+        $isuseralwaysanonymous = $moodleoverflow->anonymous == anonymous::EVERYTHING_ANONYMOUS;
+        if ($moodleoverflow->anonymous == anonymous::STUDENTS_ANONYMOUS) {
+            $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+            $context = \context_module::instance($cm->id);
+            $isuseralwaysanonymous = !has_capability(capabilities::NOT_ANONYMOUS, $context, $userid);
+        }
+
+        if (!$isuseralwaysanonymous) {
 
             // Get all posts of this user in this module.
             // Do not count votes for own posts.

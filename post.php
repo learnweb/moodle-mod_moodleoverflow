@@ -626,7 +626,7 @@ if ($fromform = $mformpost->get_data()) {
         if ($realpost->userid == $USER->id) {
             $message .= get_string('postupdated', 'moodleoverflow');
         } else {
-            if (\mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $realpost->userid)) {
+            if (\mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $realpost->userid, $modulecontext)) {
                 $name = get_string('anonymous', 'moodleoverflow');
             } else {
                 $realuser = $DB->get_record('user', array('id' => $realpost->userid));

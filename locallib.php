@@ -163,12 +163,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         echo $OUTPUT->render($userstatsbutton);
     }
 
-    // Get all the recent discussions the user is allowed to see.
-    $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
-
-    // Get the number of replies for each discussion.
-    $replies = moodleoverflow_count_discussion_replies($cm);
-
     // Check whether the moodleoverflow instance can be tracked and is tracked.
     if ($cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
         $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
@@ -310,8 +304,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $startuser->id = $discussion->userid;
 
         // Discussion was anonymized.
-        if ($startuser->id == 0 || $moodleoverflow->anonymous != anonymous::NOT_ANONYMOUS) {
-            // Get his picture, his name and the link to his profile.
+        if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $startuser->id, $context)) {
+            // Set anonymous information.
             if ($startuser->id == $USER->id) {
                 $preparedarray[$i]['username'] = get_string('anonym_you', 'mod_moodleoverflow');
                 // Needs to be included for reputation to update properly.
@@ -350,7 +344,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $usermodified = new stdClass();
         $usermodified->id = $discussion->usermodified;
 
-        if ($usermodified->id == 0 || $moodleoverflow->anonymous) {
+        if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $usermodified->id, $context)) {
             if ($usermodified->id == $USER->id) {
                 $preparedarray[$i]['lastpostusername'] = null;
                 $preparedarray[$i]['lastpostuserlink'] = null;
@@ -929,7 +923,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
 
-    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id, $modulecontext);
 
     // Start with the parent post.
     $post = $posts[$post->id];
@@ -1197,8 +1191,10 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
     $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
 
+    $ispostanonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid, $modulecontext);
+
     // Post was anonymized.
-    if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
+    if ($ispostanonymous) {
         $postinguser->id = null;
         if ($post->userid == $USER->id) {
             $postinguser->fullname = get_string('anonym_you', 'mod_moodleoverflow');
@@ -1397,14 +1393,13 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->postid = $post->id;
     $mustachedata->subject = format_string($post->subject);
 
-    // Post was anonymized.
-    if (!anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
+    if (!$ispostanonymous) {
         // User picture.
         $mustachedata->picture = $OUTPUT->user_picture($postinguser, ['courseid' => $course->id]);
     }
 
     // The rating of the user.
-    if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
+    if ($ispostanonymous) {
         $postuserrating = null;
     } else {
         $postuserrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);

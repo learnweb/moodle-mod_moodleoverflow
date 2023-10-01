@@ -101,7 +101,8 @@ echo $OUTPUT->header();
 if ($moodleoverflow->anonymous > 0) {
     $strkeys = [
             \mod_moodleoverflow\anonymous::QUESTION_ANONYMOUS => 'desc:only_questions',
-            \mod_moodleoverflow\anonymous::EVERYTHING_ANONYMOUS => 'desc:anonymous'
+            \mod_moodleoverflow\anonymous::EVERYTHING_ANONYMOUS => 'desc:anonymous',
+            \mod_moodleoverflow\anonymous::STUDENTS_ANONYMOUS => 'desc:students_anonymous'
     ];
     echo html_writer::tag('p', get_string($strkeys[$moodleoverflow->anonymous], 'moodleoverflow'));
 }

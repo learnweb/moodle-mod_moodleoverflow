@@ -193,6 +193,8 @@ class userstats_table extends \flexible_table {
 
         $ratingdata = $this->get_rating_data();
 
+        $moodleoverflowcontexts = [];
+
         // Step 2.0: Now collect the data for every user in the course.
         foreach ($users as $user) {
             $student = $this->createstudent($user);
@@ -219,7 +221,7 @@ class userstats_table extends \flexible_table {
                 // For helpful marks: only count helpful marks if the discussion is not any kind of anonymous.
                 // Up and downvotes are always counted.
                 if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts) &&
-                    (($row->rating == RATING_SOLVED && $row->anonymoussetting != 2) ||
+                    (($row->rating == RATING_SOLVED && $row->anonymoussetting < 2) ||
                      ($row->rating == RATING_HELPFUL && $row->anonymoussetting == 0) ||
                      ($row->rating == RATING_UPVOTE) ||
                      ($row->rating == RATING_DOWNVOTE))) {
