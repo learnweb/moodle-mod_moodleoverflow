@@ -51,7 +51,7 @@ class data_export_helper {
                   FROM {moodleoverflow} mof
             INNER JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = mof.id
             LEFT JOIN {moodleoverflow_discuss_subs} dsub ON dsub.discussion = d.id
-                 WHERE mof.id ${foruminsql}
+                 WHERE mof.id {$foruminsql}
                    AND (
                         d.userid    = :discussionuserid OR
                         d.usermodified = :dmuserid OR
@@ -113,7 +113,7 @@ class data_export_helper {
             INNER JOIN {moodleoverflow_posts} p ON p.discussion = d.id
             LEFT JOIN {moodleoverflow_read} fr ON fr.postid = p.id
             LEFT JOIN {moodleoverflow_ratings} rat ON  rat.postid = p.id
-                 WHERE mof.id ${foruminsql} AND
+                 WHERE mof.id {$foruminsql} AND
                 (
                     p.userid = :postuserid OR
                     fr.userid = :readuserid OR
