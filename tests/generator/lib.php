@@ -165,7 +165,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $record->id = moodleoverflow_add_discussion($record, $modulecontext, $record->userid);
 
         if (isset($timemodified) || isset($mailed)) {
-            $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $record->id));
+            $post = $DB->get_record('moodleoverflow_posts', ['discussion' => $record->id]);
 
             if (isset($mailed)) {
                 $post->mailed = $mailed;
@@ -180,7 +180,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $DB->update_record('moodleoverflow_discussions', $record);
         }
 
-        $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $record->id));
+        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $record->id]);
 
         // Return the discussion object.
         return $discussion;
@@ -313,9 +313,9 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $record->moodleoverflow = $forum->id;
         $discussion = $this->create_discussion($record, $forum, $record);
         // Retrieve the post which was created by create_discussion.
-        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
+        $post = $DB->get_record('moodleoverflow_posts', ['discussion' => $discussion->id]);
 
-        return array($discussion, $post);
+        return [$discussion, $post];
     }
 
     /**
@@ -327,7 +327,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     public function update_post_time($post, $factor) {
         global $DB;
         // Update the post to have a created in the past.
-        $DB->set_field('moodleoverflow_posts', 'created', $post->created + $factor, array('id' => $post->id));
+        $DB->set_field('moodleoverflow_posts', 'created', $post->created + $factor, ['id' => $post->id]);
     }
 
     /**
@@ -339,9 +339,9 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      */
     public function update_subscription_time($user, $discussion, $factor) {
         global $DB;
-        $sub = $DB->get_record('moodleoverflow_discuss_subs', array('userid' => $user->id, 'discussion' => $discussion->id));
+        $sub = $DB->get_record('moodleoverflow_discuss_subs', ['userid' => $user->id, 'discussion' => $discussion->id]);
         // Update the subscription to have a preference in the past.
-        $DB->set_field('moodleoverflow_discuss_subs', 'preference', $sub->preference + $factor, array('id' => $sub->id));
+        $DB->set_field('moodleoverflow_discuss_subs', 'preference', $sub->preference + $factor, ['id' => $sub->id]);
     }
 
     /**
@@ -379,7 +379,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $record = (object) [
             'discussion' => $parent->discussion,
             'parent' => $parent->id,
-            'userid' => $author->id
+            'userid' => $author->id,
         ];
         return $this->create_post($record, $straighttodb);
     }

@@ -25,12 +25,12 @@
 namespace mod_moodleoverflow\privacy;
 
 use core_privacy\local\request\approved_userlist;
-use \core_privacy\local\request\userlist;
+use core_privacy\local\request\userlist;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\writer;
-use \core_privacy\local\request\helper as request_helper;
+use core_privacy\local\request\helper as request_helper;
 
 /**
  * Privacy Subsystem for mod_moodleoverflow implementing provider.
@@ -56,7 +56,7 @@ class provider implements
                 'name' => 'privacy:metadata:moodleoverflow_discussions:name',
                 'userid' => 'privacy:metadata:moodleoverflow_discussions:userid',
                 'timemodified' => 'privacy:metadata:moodleoverflow_discussions:timemodified',
-                'usermodified' => 'privacy:metadata:moodleoverflow_discussions:usermodified'
+                'usermodified' => 'privacy:metadata:moodleoverflow_discussions:usermodified',
             ],
             'privacy:metadata:moodleoverflow_discussions');
 
@@ -67,7 +67,7 @@ class provider implements
                 'userid' => 'privacy:metadata:moodleoverflow_posts:userid',
                 'created' => 'privacy:metadata:moodleoverflow_posts:created',
                 'modified' => 'privacy:metadata:moodleoverflow_posts:modified',
-                'message' => 'privacy:metadata:moodleoverflow_posts:message'
+                'message' => 'privacy:metadata:moodleoverflow_posts:message',
             ],
             'privacy:metadata:moodleoverflow_posts');
 
@@ -77,14 +77,14 @@ class provider implements
                 'discussionid' => 'privacy:metadata:moodleoverflow_read:discussionid',
                 'postid' => 'privacy:metadata:moodleoverflow_read:postid',
                 'firstread' => 'privacy:metadata:moodleoverflow_read:firstread',
-                'lastread' => 'privacy:metadata:moodleoverflow_read:lastread'
+                'lastread' => 'privacy:metadata:moodleoverflow_read:lastread',
             ],
             'privacy:metadata:moodleoverflow_read');
 
         $collection->add_database_table('moodleoverflow_subscriptions',
             [
                 'userid' => 'privacy:metadata:moodleoverflow_subscriptions:userid',
-                'moodleoverflow' => 'privacy:metadata:moodleoverflow_subscriptions:moodleoverflow'
+                'moodleoverflow' => 'privacy:metadata:moodleoverflow_subscriptions:moodleoverflow',
             ],
             'privacy:metadata:moodleoverflow_subscriptions');
 
@@ -92,7 +92,7 @@ class provider implements
             [
                 'userid' => 'privacy:metadata:moodleoverflow_discuss_subs:userid',
                 'discussion' => 'privacy:metadata:moodleoverflow_discuss_subs:discussion',
-                'preference' => 'privacy:metadata:moodleoverflow_discuss_subs:preference'
+                'preference' => 'privacy:metadata:moodleoverflow_discuss_subs:preference',
             ],
             'privacy:metadata:moodleoverflow_discuss_subs');
 
@@ -102,14 +102,14 @@ class provider implements
                 'postid' => 'privacy:metadata:moodleoverflow_ratings:postid',
                 'rating' => 'privacy:metadata:moodleoverflow_ratings:rating',
                 'firstrated' => 'privacy:metadata:moodleoverflow_ratings:firstrated',
-                'lastchanged' => 'privacy:metadata:moodleoverflow_ratings:lastchanged'
+                'lastchanged' => 'privacy:metadata:moodleoverflow_ratings:lastchanged',
             ],
             'privacy:metadata:moodleoverflow_ratings');
 
         $collection->add_database_table('moodleoverflow_tracking',
             [
                 'userid' => 'privacy:metadata:moodleoverflow_tracking:userid',
-                'moodleoverflowid' => 'privacy:metadata:moodleoverflow_tracking:moodleoverflowid'
+                'moodleoverflowid' => 'privacy:metadata:moodleoverflow_tracking:moodleoverflowid',
             ],
             'privacy:metadata:moodleoverflow_tracking');
 
@@ -177,7 +177,7 @@ class provider implements
             'dsuserid' => $userid,
             'rauserid' => $userid,
             'tuserid' => $userid,
-            'guserid' => $userid
+            'guserid' => $userid,
         ];
 
         $contextlist = new \core_privacy\local\request\contextlist();
@@ -225,7 +225,7 @@ class provider implements
         $params = [
             'suserid' => $userid,
             'userid' => $userid,
-            'guserid' => $userid
+            'guserid' => $userid,
         ];
         $params += $contextparams;
 
@@ -324,29 +324,29 @@ class provider implements
 
             $DB->delete_records('moodleoverflow_read', [
                 'moodleoverflowid' => $forum->id,
-                'userid' => $userid]);
+                'userid' => $userid, ]);
 
             $DB->delete_records('moodleoverflow_subscriptions', [
                 'moodleoverflow' => $forum->id,
-                'userid' => $userid]);
+                'userid' => $userid, ]);
 
             $DB->delete_records('moodleoverflow_discuss_subs', [
                 'moodleoverflow' => $forum->id,
-                'userid' => $userid]);
+                'userid' => $userid, ]);
 
             $DB->delete_records('moodleoverflow_tracking', [
                 'moodleoverflowid' => $forum->id,
-                'userid' => $userid]);
+                'userid' => $userid, ]);
             $DB->delete_records('moodleoverflow_grades', [
                     'moodleoverflowid' => $forum->id,
-                    'userid' => $userid]);
+                    'userid' => $userid, ]);
 
             // Do not delete ratings but reset userid.
             $ratingsql = "userid = :userid AND discussionid IN
             (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum)";
             $ratingparams = [
                 'forum' => $forum->id,
-                'userid' => $userid
+                'userid' => $userid,
             ];
             $DB->set_field_select('moodleoverflow_ratings', 'userid', 0, $ratingsql, $ratingparams);
 
@@ -355,7 +355,7 @@ class provider implements
             $postidsql = "SELECT p.id FROM {moodleoverflow_posts} p WHERE {$postsql}";
             $postparams = [
                 'forum' => $forum->id,
-                'userid' => $userid
+                'userid' => $userid,
             ];
 
             // Delete all files from the posts.

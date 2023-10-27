@@ -183,7 +183,7 @@ class userstats_test extends \advanced_testcase {
 
         // User1 starts a new discussion, the forum activity shouldn't change.
         $discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->user1);
-        $starterpost = $DB->get_record('moodleoverflow_posts', array('id' => $discussion[0]->firstpost), '*');
+        $starterpost = $DB->get_record('moodleoverflow_posts', ['id' => $discussion[0]->firstpost], '*');
         $newuserstats = $this->create_statstable();
         $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
         $this->assertEquals($oldactivityuser1, $newactivityuser1);
@@ -276,25 +276,25 @@ class userstats_test extends \advanced_testcase {
         global $DB;
         // Create a new course with a moodleoverflow forum.
         $this->course = $this->getDataGenerator()->create_course();
-        $location = array('course' => $this->course->id);
+        $location = ['course' => $this->course->id];
         $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $this->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->moodleoverflow->id);
 
         // Create a teacher.
-        $this->teacher = $this->getDataGenerator()->create_user(array('firstname' => 'Tamaro', 'lastname' => 'Walter'));
+        $this->teacher = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'lastname' => 'Walter']);
         $this->getDataGenerator()->enrol_user($this->teacher->id, $this->course->id, 'student');
 
         // Create 2 users and their discussions and posts.
-        $this->user1 = $this->getDataGenerator()->create_user(array('firstname' => 'Ava', 'lastname' => 'Davis'));
+        $this->user1 = $this->getDataGenerator()->create_user(['firstname' => 'Ava', 'lastname' => 'Davis']);
         $this->getDataGenerator()->enrol_user($this->user1->id, $this->course->id, 'student');
-        $this->user2 = $this->getDataGenerator()->create_user(array('firstname' => 'Ethan', 'lastname' => 'Brown'));
+        $this->user2 = $this->getDataGenerator()->create_user(['firstname' => 'Ethan', 'lastname' => 'Brown']);
         $this->getDataGenerator()->enrol_user($this->user2->id, $this->course->id, 'student');
 
         $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
         $this->discussion1 = $this->generator->post_to_forum($this->moodleoverflow, $this->user1);
         $this->discussion2 = $this->generator->post_to_forum($this->moodleoverflow, $this->user2);
-        $this->post1 = $DB->get_record('moodleoverflow_posts', array('id' => $this->discussion1[0]->firstpost), '*');
-        $this->post2 = $DB->get_record('moodleoverflow_posts', array('id' => $this->discussion1[0]->firstpost), '*');
+        $this->post1 = $DB->get_record('moodleoverflow_posts', ['id' => $this->discussion1[0]->firstpost], '*');
+        $this->post2 = $DB->get_record('moodleoverflow_posts', ['id' => $this->discussion1[0]->firstpost], '*');
         $this->answer1 = $this->generator->reply_to_post($this->discussion1[1], $this->user2, true);
         $this->answer2 = $this->generator->reply_to_post($this->discussion2[1], $this->user1, true);
     }
@@ -323,7 +323,7 @@ class userstats_test extends \advanced_testcase {
     private function create_statstable() {
         $url = new \moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->coursemodule->id,
                                                                      'courseid' => $this->course->id,
-                                                                     'mid' => $this->moodleoverflow->id]);
+                                                                     'mid' => $this->moodleoverflow->id, ]);
         $userstatstable = new userstats_table('testtable', $this->course->id, $this->moodleoverflow->id, $url);
         $userstatstable->get_table_data();
         return $userstatstable->get_usertable();
@@ -346,7 +346,7 @@ class userstats_test extends \advanced_testcase {
             'postid' => $post->id,
             'rating' => 2,
             'firstrated' => time(),
-            'lastchanged' => time()
+            'lastchanged' => time(),
         ];
         return $this->generator->create_rating($record);
     }
@@ -368,7 +368,7 @@ class userstats_test extends \advanced_testcase {
             'postid' => $post->id,
             'rating' => 1,
             'firstrated' => time(),
-            'lastchanged' => time()
+            'lastchanged' => time(),
         ];
         return $this->generator->create_rating($record);
     }
@@ -390,7 +390,7 @@ class userstats_test extends \advanced_testcase {
             'postid' => $post->id,
             'rating' => 4,
             'firstrated' => time(),
-            'lastchanged' => time()
+            'lastchanged' => time(),
         ];
         return $this->generator->create_rating($record);
     }
@@ -412,7 +412,7 @@ class userstats_test extends \advanced_testcase {
             'postid' => $post->id,
             'rating' => 3,
             'firstrated' => time(),
-            'lastchanged' => time()
+            'lastchanged' => time(),
         ];
         return $this->generator->create_rating($record);
     }

@@ -118,7 +118,7 @@ class discussion {
         $this->timemodified = $timemodified;
         $this->timestart = $timestart;
         $this->usermodified = $usermodified;
-        $this->posts = array();
+        $this->posts = [];
         $this->postsbuild = false;
     }
 
@@ -222,17 +222,17 @@ class discussion {
         $this->firstpost = $post->moodleoverflow_add_new_post();
 
         // Save the id of the first/parent post in the DB.
-        $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, array('id' => $this->id));
+        $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
 
         // Add the parent post to the $posts array.
         $this->posts[$this->firstpost] = $post;
         $this->postsbuild = true;
 
         // Trigger event.
-        $params = array(
+        $params = [
             'context' => $prepost->modulecontext,
             'objectid' => $this->id,
-        );
+        ];
         // TODO: check if the event functions.
         $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
         $event->trigger();
@@ -266,16 +266,16 @@ class discussion {
             readtracking::moodleoverflow_delete_read_records(-1, -1, $this->id);
 
             // Remove the subscriptions for the discussion.
-            $DB->delete_records('moodleoverflow_discuss_subs', array('discussion' => $this->id));
+            $DB->delete_records('moodleoverflow_discuss_subs', ['discussion' => $this->id]);
 
             // Delete the discussion from the database.
-            $DB->delete_records('moodleoverflow_discussions', array('id' => $this->id));
+            $DB->delete_records('moodleoverflow_discussions', ['id' => $this->id]);
 
             // Trigger the discussion deleted event.
-            $params = array(
+            $params = [
                 'objectid' => $this->id,
                 'context' => $prepost->modulecontext,
-            );
+            ];
 
             $event = \mod_moodleoverflow\event\discussion_deleted::create($params);
             $event->trigger();
@@ -521,7 +521,7 @@ class discussion {
         $this->existence_check();
 
         if (empty($this->moodleoverflowobject)) {
-            $this->moodleoverflowobject = $DB->get_records('moodleoverflow', array('id' => $this->moodleoverflow));
+            $this->moodleoverflowobject = $DB->get_records('moodleoverflow', ['id' => $this->moodleoverflow]);
         }
 
         return $this->moodleoverflowobject;

@@ -97,11 +97,11 @@ class discussion_test extends \advanced_testcase {
         $post = $posts[$discussion->get_firstpostid()];
 
         // The discussion and the firstpost should be in the DB.
-        $dbdiscussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussion->get_id()));
+        $dbdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->get_id()]);
         $this->assertEquals($dbdiscussion->id, $discussionid);
         $this->assertEquals('Discussion Topic', $dbdiscussion->name);
 
-        $dbpost = $DB->get_record('moodleoverflow_posts', array('id' => $discussion->get_firstpostid()));
+        $dbpost = $DB->get_record('moodleoverflow_posts', ['id' => $discussion->get_firstpostid()]);
         $this->assertEquals($dbpost->id, $post->get_id());
         $this->assertEquals($dbpost->discussion, $post->get_discussionid());
         $this->assertEquals($prepost->message, $dbpost->message);
@@ -123,10 +123,10 @@ class discussion_test extends \advanced_testcase {
         $this->discussion->moodleoverflow_delete_discussion($prepost);
 
         // The discussion and the post should not be in the DB anymore.
-        $discussion = count($DB->get_records('moodleoverflow_discussions', array('id' => $discussionid)));
+        $discussion = count($DB->get_records('moodleoverflow_discussions', ['id' => $discussionid]));
         $this->assertEquals(0, $discussion);
 
-        $post = count($DB->get_records('moodleoverflow_posts', array('id' => $postid)));
+        $post = count($DB->get_records('moodleoverflow_posts', ['id' => $postid]));
         $this->assertEquals(0, $post);
     }
 
@@ -139,13 +139,13 @@ class discussion_test extends \advanced_testcase {
         global $DB;
         // Create a new course with a moodleoverflow forum.
         $this->course = $this->getDataGenerator()->create_course();
-        $location = array('course' => $this->course->id);
+        $location = ['course' => $this->course->id];
         $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $this->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->moodleoverflow->id);
         $this->modulecontext = \context_module::instance($this->coursemodule->id);
 
         // Create a teacher.
-        $this->teacher = $this->getDataGenerator()->create_user(array('firstname' => 'Tamaro', 'lastname' => 'Walter'));
+        $this->teacher = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'lastname' => 'Walter']);
         $this->getDataGenerator()->enrol_user($this->teacher->id, $this->course->id, 'student');
 
         // Create a discussion started from the teacher.
@@ -153,8 +153,8 @@ class discussion_test extends \advanced_testcase {
         $discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->teacher);
 
         // Get the discussion and post object.
-        $discussionrecord = $DB->get_record('moodleoverflow_discussions', array('id' => $discussion[0]->id));
-        $postrecord = $DB->get_record('moodleoverflow_posts', array('id' => $discussion[1]->id));
+        $discussionrecord = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion[0]->id]);
+        $postrecord = $DB->get_record('moodleoverflow_posts', ['id' => $discussion[1]->id]);
 
         $this->discussion = discussion::from_record($discussionrecord);
         $this->post = post::from_record($postrecord);

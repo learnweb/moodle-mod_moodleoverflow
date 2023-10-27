@@ -89,7 +89,7 @@ class post_test extends \advanced_testcase {
         $post->moodleoverflow_add_new_post();
 
         // The post should be in the database.
-        $postscount = count($DB->get_records('moodleoverflow_posts', array('id' => $post->get_id())));
+        $postscount = count($DB->get_records('moodleoverflow_posts', ['id' => $post->get_id()]));
         $this->assertEquals(1, $postscount);
     }
 
@@ -100,9 +100,9 @@ class post_test extends \advanced_testcase {
         global $DB;
 
         // The post and the attachment should exist.
-        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->get_id())));
+        $numberofattachments = count($DB->get_records('files', ['itemid' => $this->post->get_id()]));
         $this->assertEquals(2, $numberofattachments); // One Attachment is saved twice in 'files'.
-        $post = count($DB->get_records('moodleoverflow_posts', array('id' => $this->post->get_id())));
+        $post = count($DB->get_records('moodleoverflow_posts', ['id' => $this->post->get_id()]));
         $this->assertEquals(1, $post);
 
         // Gather important parameters.
@@ -113,7 +113,7 @@ class post_test extends \advanced_testcase {
         $this->post->moodleoverflow_edit_post($time, $message, $this->post->messageformat, $this->post->formattachments);
 
         // The message and modified time should be changed.
-        $post = $DB->get_record('moodleoverflow_posts', array('id' => $this->post->get_id()));
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $this->post->get_id()]);
         $this->assertEquals($message,  $post->message);
         $this->assertEquals($time, $post->modified);
     }
@@ -126,9 +126,9 @@ class post_test extends \advanced_testcase {
         global $DB;
 
         // The post and the attachment should exist.
-        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->get_id())));
+        $numberofattachments = count($DB->get_records('files', ['itemid' => $this->post->get_id()]));
         $this->assertEquals(2, $numberofattachments); // One Attachment is saved twice in 'files'.
-        $post = count($DB->get_records('moodleoverflow_posts', array('id' => $this->post->get_id())));
+        $post = count($DB->get_records('moodleoverflow_posts', ['id' => $this->post->get_id()]));
         $this->assertEquals(1, $post);
 
         // Delete the post with its attachment.
@@ -137,11 +137,11 @@ class post_test extends \advanced_testcase {
         $this->post->moodleoverflow_delete_post(true);
 
         // Now try to get the attachment, it should be deleted from the database.
-        $numberofattachments = count($DB->get_records('files', array('itemid' => $postid)));
+        $numberofattachments = count($DB->get_records('files', ['itemid' => $postid]));
         $this->assertEquals(0, $numberofattachments);
 
         // Try to find the post, it should be deleted.
-        $post = count($DB->get_records('moodleoverflow_posts', array('id' => $postid)));
+        $post = count($DB->get_records('moodleoverflow_posts', ['id' => $postid]));
         $this->assertEquals(0, $post);
     }
 
@@ -154,29 +154,29 @@ class post_test extends \advanced_testcase {
         global $DB;
         // Create a new course with a moodleoverflow forum.
         $this->course = $this->getDataGenerator()->create_course();
-        $location = array('course' => $this->course->id);
+        $location = ['course' => $this->course->id];
         $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $this->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->moodleoverflow->id);
         $this->modulecontext = \context_module::instance($this->coursemodule->id);
 
         // Create a teacher.
-        $this->teacher = $this->getDataGenerator()->create_user(array('firstname' => 'Tamaro', 'lastname' => 'Walter'));
+        $this->teacher = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'lastname' => 'Walter']);
         $this->getDataGenerator()->enrol_user($this->teacher->id, $this->course->id, 'student');
 
         // Create a discussion started from the teacher.
         $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
         $discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->teacher);
-        $discussionrecord = $DB->get_record('moodleoverflow_discussions', array('id' => $discussion[0]->id));
+        $discussionrecord = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion[0]->id]);
         $this->discussion = discussion::from_record($discussionrecord);
 
         // Get a temporary post from the DB to add the attachment.
-        $temppost = $DB->get_record('moodleoverflow_posts', array('id' => $this->discussion->get_firstpostid()));
+        $temppost = $DB->get_record('moodleoverflow_posts', ['id' => $this->discussion->get_firstpostid()]);
 
         // Create an attachment by inserting it directly in the database and update the post record.
         $this->add_new_attachment($temppost, $this->modulecontext, 'world.txt', 'hello world');
 
         // Build the real post object now. That is the object that will be tested.
-        $postrecord = $DB->get_record('moodleoverflow_posts', array('id' => $this->discussion->get_firstpostid()));
+        $postrecord = $DB->get_record('moodleoverflow_posts', ['id' => $this->discussion->get_firstpostid()]);
         $this->post = post::from_record($postrecord);
     }
 

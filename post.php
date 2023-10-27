@@ -39,16 +39,11 @@ $delete = optional_param('delete', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
-$PAGE->set_url('/mod/moodleoverflow/post.php', array(
-    'moodleoverflow' => $moodleoverflow,
-    'reply' => $reply,
-    'edit' => $edit,
-    'delete' => $delete,
-    'confirm' => $confirm,
-));
+$PAGE->set_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit,
+                                                      'delete' => $delete, 'confirm' => $confirm, ]);
 
 // These params will be passed as hidden variables later in the form.
-$pageparams = array('moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit);
+$pageparams = ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit];
 
 // Get the system context instance.
 $systemcontext = context_system::instance();
@@ -124,9 +119,9 @@ $prepost = $postcontrol->get_prepost();
 // If the interaction was cancelled, the user needs to be redirected.
 if ($mformpost->is_cancelled()) {
     if (!isset($prepost->discussionid)) {
-        redirect(new moodle_url('/mod/moodleoverflow/view.php', array('m' => $prepost->moodleoverflowid)));
+        redirect(new moodle_url('/mod/moodleoverflow/view.php', ['m' => $prepost->moodleoverflowid]));
     } else {
-        redirect(new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $prepost->discussionid)));
+        redirect(new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $prepost->discussionid]));
     }
     exit;
 }

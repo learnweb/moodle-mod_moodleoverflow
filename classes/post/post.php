@@ -262,8 +262,8 @@ class post {
 
         if ($this->reviewed) {
             // Update the discussion.
-            $DB->set_field('moodleoverflow_discussions', 'timemodified', $this->modified, array('id' => $this->discussion));
-            $DB->set_field('moodleoverflow_discussions', 'usermodified', $this->userid, array('id' => $this->discussion));
+            $DB->set_field('moodleoverflow_discussions', 'timemodified', $this->modified, ['id' => $this->discussion]);
+            $DB->set_field('moodleoverflow_discussions', 'usermodified', $this->userid, ['id' => $this->discussion]);
         }
 
         // Mark the created post as read if the user is tracking the discussion.
@@ -307,10 +307,10 @@ class post {
             }
 
             // Delete the ratings.
-            $DB->delete_records('moodleoverflow_ratings', array('postid' => $this->id));
+            $DB->delete_records('moodleoverflow_ratings', ['postid' => $this->id]);
 
             // Delete the post.
-            if ($DB->delete_records('moodleoverflow_posts', array('id' => $this->id))) {
+            if ($DB->delete_records('moodleoverflow_posts', ['id' => $this->id])) {
                 // Delete the read records.
                 readtracking::moodleoverflow_delete_read_records(-1, $this->id);
 
@@ -330,14 +330,14 @@ class post {
                 }
 
                 // Trigger the post deletion event.
-                $params = array(
+                $params = [
                     'context' => $context,
                     'objectid' => $this->id,
-                    'other' => array(
+                    'other' => [
                         'discussionid' => $this->discussion,
-                        'moodleoverflowid' => $this->get_moodleoverflow()->id
-                    )
-                );
+                        'moodleoverflowid' => $this->get_moodleoverflow()->id,
+                    ],
+                ];
                 if ($this->userid !== $USER->id) {
                     $params['relateduserid'] = $this->userid;
                 }
@@ -439,7 +439,7 @@ class post {
         $present = ($info['filecount'] > 0) ? '1' : '';
         file_save_draft_area_files($this->formattachments, $context->id, 'mod_moodleoverflow', 'attachment', $this->id,
                                   \mod_moodleoverflow_post_form::attachment_options($this->get_moodleoverflow()));
-        $DB->set_field('moodleoverflow_posts', 'attachment', $present, array('id' => $this->id));
+        $DB->set_field('moodleoverflow_posts', 'attachment', $present, ['id' => $this->id]);
     }
 
     /**
@@ -453,10 +453,10 @@ class post {
         $this->existence_check();
 
         if (empty($this->attachment) || (!$context = \context_module::instance($this->get_coursemodule()->id))) {
-            return array();
+            return [];
         }
 
-        $attachments = array();
+        $attachments = [];
         $fs = get_file_storage();
 
         // We retrieve all files according to the time that they were created.  In the case that several files were uploaded
@@ -465,18 +465,18 @@ class post {
         if ($files) {
             $i = 0;
             foreach ($files as $file) {
-                $attachments[$i] = array();
+                $attachments[$i] = [];
                 $attachments[$i]['filename'] = $file->get_filename();
                 $mimetype = $file->get_mimetype();
                 $iconimage = $OUTPUT->pix_icon(file_file_icon($file),
                     get_mimetype_description($file), 'moodle',
-                    array('class' => 'icon'));
+                    ['class' => 'icon']);
                 $path = moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(),
                                                          $file->get_itemid(), $file->get_filepath(), $file->get_filename());
                 $attachments[$i]['icon'] = $iconimage;
                 $attachments[$i]['filepath'] = $path;
 
-                if (in_array($mimetype, array('image/gif', 'image/jpeg', 'image/png'))) {
+                if (in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png'])) {
                     // Image attachments don't get printed as links.
                     $attachments[$i]['image'] = true;
                 } else {
@@ -536,7 +536,7 @@ class post {
 
         if (empty($this->moodleoverflowobject)) {
             $discussion = $this->get_discussion();
-            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', array('id' => $discussion->get_moodleoverflowid()));
+            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $discussion->get_moodleoverflowid()]);
         }
 
         return $this->moodleoverflowobject;
@@ -552,7 +552,7 @@ class post {
         $this->existence_check();
 
         if (empty($this->discussionobject)) {
-            $record = $DB->get_record('moodleoverflow_discussions', array('id' => $this->discussion));
+            $record = $DB->get_record('moodleoverflow_discussions', ['id' => $this->discussion]);
             $this->discussionobject = discussion::from_record($record);
         }
         return $this->discussionobject;
@@ -588,7 +588,7 @@ class post {
         }
 
         if (empty($this->parentpost)) {
-            $parentpostrecord = $DB->get_record('moodleoverflow_post', array('id' => $this->parent));
+            $parentpostrecord = $DB->get_record('moodleoverflow_post', ['id' => $this->parent]);
             $this->parentpost = $this->from_record($parentpostrecord);
         }
         return $this->parentpost;
@@ -603,7 +603,7 @@ class post {
         global $DB;
         $this->existence_check();
 
-        if ($childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $this->id))) {
+        if ($childposts = $DB->get_records('moodleoverflow_posts', ['parent' => $this->id])) {
             return $childposts;
         }
 

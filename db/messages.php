@@ -24,8 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$messageproviders = array(
-
+$messageproviders = [
     // Ordinary single moodleoverflow posts.
-    'posts' => array(),
-);
+    'posts' => [],
+];

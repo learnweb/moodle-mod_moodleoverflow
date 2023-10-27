@@ -45,7 +45,7 @@ class userstats_table extends \flexible_table {
     private $moodleoverflowid;
 
     /** @var array table that will have objects with every user and his statistics. */
-    private $userstatsdata = array();
+    private $userstatsdata = [];
 
     /** @var \stdClass Help icon for amountofactivity-column.*/
     private $helpactivity;
@@ -75,7 +75,7 @@ class userstats_table extends \flexible_table {
                                'forumactivity',
                                'courseactivity',
                                'forumreputation',
-                               'coursereputation']);
+                               'coursereputation', ]);
         $this->define_baseurl($url);
         $this->define_headers([get_string('fullnameuser'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
@@ -83,7 +83,7 @@ class userstats_table extends \flexible_table {
                                (get_string('userstatsforumactivity', 'moodleoverflow') . $this->helpactivity->object),
                                (get_string('userstatscourseactivity', 'moodleoverflow') . $this->helpactivity->object),
                                get_string('userstatsforumreputation', 'moodleoverflow'),
-                               get_string('userstatscoursereputation', 'moodleoverflow')]);
+                               get_string('userstatscoursereputation', 'moodleoverflow'), ]);
         $this->get_table_data();
         $this->sortable(true, 'coursereputation', SORT_DESC);
         $this->no_sorting('username');
@@ -267,17 +267,17 @@ class userstats_table extends \flexible_table {
         $this->helpactivity->icon = \html_writer::img($this->helpactivity->iconurl,
                                                       get_string('helpamountofactivity', 'moodleoverflow'));
         $this->helpactivity->class = 'helpactivityclass btn btn-link';
-        $this->helpactivity->iconattributes = array('role' => 'button',
-                                                    'data-container' => 'body',
-                                                    'data-toggle' => 'popover',
-                                                    'data-placement' => 'right',
-                                                    'data-action' => 'showhelpicon',
-                                                    'data-html' => 'true',
-                                                    'data-trigger' => 'focus',
-                                                    'tabindex' => '0',
-                                                    'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
-                                                                      get_string('helpamountofactivity', 'moodleoverflow') .
-                                                                      '</p> </div>');
+        $this->helpactivity->iconattributes = ['role' => 'button',
+                                               'data-container' => 'body',
+                                               'data-toggle' => 'popover',
+                                               'data-placement' => 'right',
+                                               'data-action' => 'showhelpicon',
+                                               'data-html' => 'true',
+                                               'data-trigger' => 'focus',
+                                               'tabindex' => '0',
+                                               'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
+                                                                  get_string('helpamountofactivity', 'moodleoverflow') .
+                                                                  '</p> </div>', ];
 
         $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
                                                          $this->helpactivity->class,
@@ -381,10 +381,10 @@ class userstats_table extends \flexible_table {
         $student = new \stdClass();
         $student->id = $user->id;
         $student->name = $user->firstname . ' ' . $user->lastname;
-        $linktostudent = new \moodle_url('/user/view.php', array('id' => $student->id, 'course' => $this->courseid));
+        $linktostudent = new \moodle_url('/user/view.php', ['id' => $student->id, 'course' => $this->courseid]);
         $student->link = \html_writer::link($linktostudent->out(), $student->name);
-        $student->submittedposts = array(); // Posts written by the student. Key = postid, Value = postid.
-        $student->ratedposts = array();     // Posts that the student rated. Key = rateid, Value = rateid.
+        $student->submittedposts = []; // Posts written by the student. Key = postid, Value = postid.
+        $student->ratedposts = [];     // Posts that the student rated. Key = rateid, Value = rateid.
         $student->receivedupvotes = 0;
         $student->receiveddownvotes = 0;
         $student->forumactivity = 0;             // Number of written posts and submitted ratings in the current moodleoverflow.

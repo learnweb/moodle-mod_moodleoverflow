@@ -46,25 +46,25 @@ class mod_moodleoverflow_external extends external_api {
      */
     public static function record_vote_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'postid' => new external_value(PARAM_INT, 'id of post'),
-                'ratingid' => new external_value(PARAM_INT, 'rating')
-            )
+                'ratingid' => new external_value(PARAM_INT, 'rating'),
+            ]
         );
     }
 
     /**
      * Returns the result of the vote (new rating and reputations).
-     * @return external_multiple_structure
+     * @return external_single_structure
      */
     public static function record_vote_returns() {
         return new external_single_structure(
-            array(
+            [
                 'postrating' => new external_value(PARAM_INT, 'new post rating'),
                 'ownerreputation' => new external_value(PARAM_INT, 'new reputation of post owner'),
                 'raterreputation' => new external_value(PARAM_INT, 'new reputation of rater'),
                 'ownerid' => new external_value(PARAM_INT, 'user id of post owner'),
-            )
+            ]
         );
     }
 
@@ -79,27 +79,27 @@ class mod_moodleoverflow_external extends external_api {
         global $DB, $USER;
 
         // Parameter validation.
-        $params = self::validate_parameters(self::record_vote_parameters(), array(
+        $params = self::validate_parameters(self::record_vote_parameters(), [
             'postid' => $postid,
             'ratingid' => $ratingid,
-        ));
+        ]);
 
         $transaction = $DB->start_delegated_transaction();
 
-        $post = $DB->get_record('moodleoverflow_posts', array('id' => $params['postid']), '*', MUST_EXIST);
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $params['postid']], '*', MUST_EXIST);
 
         // Check if the discussion is valid.
-        if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion))) {
+        if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion])) {
             throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
         }
 
         // Check if the related moodleoverflow instance is valid.
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow])) {
             throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
         }
 
         // Check if the related moodleoverflow instance is valid.
-        if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
+        if (!$course = $DB->get_record('course', ['id' => $discussion->course])) {
             throw new moodle_exception('invalidcourseid');
         }
 
@@ -148,7 +148,7 @@ class mod_moodleoverflow_external extends external_api {
      */
     public static function review_approve_post_parameters() {
         return new external_function_parameters([
-            'postid' => new external_value(PARAM_INT, 'id of post')
+            'postid' => new external_value(PARAM_INT, 'id of post'),
         ]);
     }
 
@@ -210,7 +210,7 @@ class mod_moodleoverflow_external extends external_api {
     public static function review_reject_post_parameters() {
         return new external_function_parameters([
             'postid' => new external_value(PARAM_INT, 'id of post'),
-            'reason' => new external_value(PARAM_RAW, 'reason of rejection')
+            'reason' => new external_value(PARAM_RAW, 'reason of rejection'),
         ]);
     }
 

@@ -44,7 +44,7 @@ class mod_moodleoverflow_observer {
         if ($cp->lastenrol) {
 
             // Get the moodleoverflow instances from which the user was unenrolled from.
-            $moodleoverflows = $DB->get_records('moodleoverflow', array('course' => $cp->courseid), '', 'id');
+            $moodleoverflows = $DB->get_records('moodleoverflow', ['course' => $cp->courseid], '', 'id');
 
             // Do not continue if there are no connected moodleoverflow instances.
             if (!$moodleoverflows) {
@@ -93,9 +93,9 @@ class mod_moodleoverflow_observer {
                   JOIN {modules} mo ON (mo.id = cm.module)
              LEFT JOIN {moodleoverflow_subscriptions} ms ON (ms.moodleoverflow = m.id AND ms.userid = :userid)
                  WHERE m.course = :courseid AND m.forcesubscribe = :initial AND mo.name = 'moodleoverflow' AND ms.id IS NULL";
-        $params = array('courseid' => $context->instanceid,
-                                 'userid' => $userid,
-                                 'initial' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $params = ['courseid' => $context->instanceid,
+                   'userid' => $userid,
+                   'initial' => MOODLEOVERFLOW_INITIALSUBSCRIBE, ];
         $moodleoverflows = $DB->get_records_sql($sql, $params);
 
         // Loop through all moodleoverflows.
@@ -133,7 +133,7 @@ class mod_moodleoverflow_observer {
             require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
             // Create a snapshot of the created moodleoverflow record.
-            $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $event->other['instanceid']));
+            $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $event->other['instanceid']]);
 
             // Trigger the function for a created moodleoverflow instance.
             moodleoverflow_instance_created($event->get_context(), $moodleoverflow);

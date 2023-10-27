@@ -22,7 +22,7 @@
  */
 namespace mod_moodleoverflow\privacy;
 use core_privacy\local\request\transform;
-use \core_privacy\local\request\writer;
+use core_privacy\local\request\writer;
 use mod_moodleoverflow\ratings;
 
 /**
@@ -51,7 +51,7 @@ class data_export_helper {
                   FROM {moodleoverflow} mof
             INNER JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = mof.id
             LEFT JOIN {moodleoverflow_discuss_subs} dsub ON dsub.discussion = d.id
-                 WHERE mof.id ${foruminsql}
+                 WHERE mof.id {$foruminsql}
                    AND (
                         d.userid    = :discussionuserid OR
                         d.usermodified = :dmuserid OR
@@ -78,7 +78,7 @@ class data_export_helper {
                 'name' => format_string($discussion->name, true),
                 'timemodified' => transform::datetime($discussion->timemodified),
                 'creator_was_you' => transform::yesno($discussion->userid == $userid),
-                'last_modifier_was_you' => transform::yesno($discussion->usermodified == $userid)
+                'last_modifier_was_you' => transform::yesno($discussion->usermodified == $userid),
             ];
             // Store the discussion content.
             writer::with_context($context)->export_data(
@@ -113,7 +113,7 @@ class data_export_helper {
             INNER JOIN {moodleoverflow_posts} p ON p.discussion = d.id
             LEFT JOIN {moodleoverflow_read} fr ON fr.postid = p.id
             LEFT JOIN {moodleoverflow_ratings} rat ON  rat.postid = p.id
-                 WHERE mof.id ${foruminsql} AND
+                 WHERE mof.id {$foruminsql} AND
                 (
                     p.userid = :postuserid OR
                     fr.userid = :readuserid OR
@@ -164,7 +164,7 @@ class data_export_helper {
         $params = [
             'discussionid' => $discussionid,
             'readuserid' => $userid,
-            'ratinguserid' => $userid
+            'ratinguserid' => $userid,
         ];
 
         // Keep track of the forums which have data.
@@ -237,7 +237,7 @@ class data_export_helper {
         $postdata = (object) [
             'created' => transform::datetime($post->created),
             'modified' => transform::datetime($post->modified),
-            'author_was_you' => transform::yesno($post->userid == $userid)
+            'author_was_you' => transform::yesno($post->userid == $userid),
         ];
         $postdata->message = writer::with_context($context)->rewrite_pluginfile_urls(
             $postarea, 'mod_moodleoverflow', 'attachment', $post->id, $post->message);
@@ -285,11 +285,11 @@ class data_export_helper {
             'userid' => $userid,
             'postid' => $postid,
         ]);
-        $userratings = array();
+        $userratings = [];
         foreach ($ownratings as $rating) {
             $userratings[] = (object) [
                 'firstrated' => $rating->firstrated,
-                'rating' => $rating->rating
+                'rating' => $rating->rating,
             ];
         }
 
@@ -298,7 +298,7 @@ class data_export_helper {
                 'downvotes' => $ratingpost->downvotes,
                 'upvotes' => $ratingpost->upvotes,
                 'was_rated_as_helpful' => transform::yesno($ratingpost->ishelpful),
-                'was_rated_as_solved' => transform::yesno($ratingpost->issolved)
+                'was_rated_as_solved' => transform::yesno($ratingpost->issolved),
             ];
         }
         $ratingdata['your_rating'] = (object) $userratings;

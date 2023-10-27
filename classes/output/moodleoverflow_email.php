@@ -102,9 +102,9 @@ class moodleoverflow_email implements \renderable, \templatable {
      *
      * @var array $writablekeys
      */
-    protected $writablekeys = array(
+    protected $writablekeys = [
         'viewfullnames' => true,
-    );
+    ];
 
     /**
      * Builds a renderable moodleoverflow mail.
@@ -154,7 +154,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      */
     protected function export_for_template_text(\mod_moodleoverflow_renderer $renderer) {
 
-        return array(
+        return [
             'id' => html_entity_decode($this->post->id, ENT_COMPAT),
             'coursename' => html_entity_decode($this->get_coursename(), ENT_COMPAT),
             'courselink' => html_entity_decode($this->get_courselink(), ENT_COMPAT),
@@ -180,7 +180,7 @@ class moodleoverflow_email implements \renderable, \templatable {
 
             // Format some components according to the renderer.
             'message' => html_entity_decode($renderer->format_message_text($this->cm, $this->post), ENT_COMPAT),
-        );
+        ];
     }
 
     /**
@@ -188,10 +188,10 @@ class moodleoverflow_email implements \renderable, \templatable {
      *
      * @param \mod_moodleoverflow_renderer $renderer The render to be used for formatting the message and attachments
      *
-     * @return stdClass Data ready for use in a mustache template
+     * @return array Data ready for use in a mustache template
      */
     protected function export_for_template_html(\mod_moodleoverflow_renderer $renderer) {
-        return array(
+        return [
             'id' => $this->post->id,
             'coursename' => $this->get_coursename(),
             'courselink' => $this->get_courselink(),
@@ -217,7 +217,7 @@ class moodleoverflow_email implements \renderable, \templatable {
 
             // Format some components according to the renderer.
             'message' => $renderer->format_message_text($this->cm, $this->post),
-        );
+        ];
     }
 
     /**
@@ -263,7 +263,7 @@ class moodleoverflow_email implements \renderable, \templatable {
         $url = '/mod/moodleoverflow/subscribe.php';
 
         // Generate a link to unsubscribe from the discussion.
-        $link = new \moodle_url($url, array('id' => $id, 'd' => $d));
+        $link = new \moodle_url($url, ['id' => $id, 'd' => $d]);
 
         return $link->out(false);
     }
@@ -292,9 +292,9 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_coursefullname() {
-        return format_string($this->course->fullname, true, array(
+        return format_string($this->course->fullname, true, [
             'context' => \context_course::instance($this->course->id),
-        ));
+        ]);
     }
 
     /**
@@ -303,9 +303,9 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_coursename() {
-        return format_string($this->course->shortname, true, array(
+        return format_string($this->course->shortname, true, [
             'context' => \context_course::instance($this->course->id),
-        ));
+        ]);
     }
 
     /**
@@ -316,9 +316,9 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_courselink() {
         $link = new \moodle_url(
         // Posts are viewed on the topic.
-            '/course/view.php', array(
+            '/course/view.php', [
                 'id' => $this->course->id,
-            )
+            ]
         );
 
         return $link->out(false);
@@ -420,9 +420,9 @@ class moodleoverflow_email implements \renderable, \templatable {
      */
     public function get_replylink() {
         return new \moodle_url(
-            '/mod/moodleoverflow/post.php', array(
+            '/mod/moodleoverflow/post.php', [
                 'reply' => $this->post->id,
-            )
+            ]
         );
     }
 
@@ -437,9 +437,9 @@ class moodleoverflow_email implements \renderable, \templatable {
             return null;
         }
         $link = new \moodle_url(
-            '/mod/moodleoverflow/subscribe.php', array(
+            '/mod/moodleoverflow/subscribe.php', [
                 'id' => $this->moodleoverflow->id,
-            )
+            ]
         );
 
         return $link->out(false);
@@ -465,10 +465,10 @@ class moodleoverflow_email implements \renderable, \templatable {
     protected function get_discussionurl() {
         return new \moodle_url(
         // Posts are viewed on the topic.
-            '/mod/moodleoverflow/discussion.php', array(
+            '/mod/moodleoverflow/discussion.php', [
                 // Within a discussion.
                 'd' => $this->discussion->id,
-            )
+            ]
         );
     }
 
@@ -491,9 +491,9 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_moodleoverflowindexlink() {
         $link = new \moodle_url(
         // Posts are viewed on the topic.
-            '/mod/moodleoverflow/index.php', array(
+            '/mod/moodleoverflow/index.php', [
                 'id' => $this->course->id,
-            )
+            ]
         );
 
         return $link->out(false);
@@ -507,9 +507,9 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_moodleoverflowviewlink() {
         $link = new \moodle_url(
         // Posts are viewed on the topic.
-            '/mod/moodleoverflow/view.php', array(
+            '/mod/moodleoverflow/view.php', [
                 'm' => $this->moodleoverflow->id,
-            )
+            ]
         );
 
         return $link->out(false);
@@ -526,10 +526,10 @@ class moodleoverflow_email implements \renderable, \templatable {
         }
 
         $link = new \moodle_url(
-            '/user/view.php', array(
+            '/user/view.php', [
                 'id' => $this->post->userid,
                 'course' => $this->course->id,
-            )
+            ]
         );
 
         return $link->out(false);
@@ -546,7 +546,7 @@ class moodleoverflow_email implements \renderable, \templatable {
             return '';
         }
 
-        return $OUTPUT->user_picture($this->author, array('courseid' => $this->course->id));
+        return $OUTPUT->user_picture($this->author, ['courseid' => $this->course->id]);
     }
 
     /**
