@@ -56,6 +56,7 @@ $string['moodleoverflow:reviewpost'] = 'Review (approve or reject) posts';
 $string['nowallsubscribed'] = 'All forums in {$a} are subscribed.';
 $string['nowallunsubscribed'] = 'All forums in {$a} are unsubscribed.';
 $string['moodleoverflow:movetopic'] = 'Move Topic to another Moddleoverflow Forum';
+$string['moodleoverflow:viewanyrating'] = 'View total ratings that anyone received';
 
 // Strings for the view.php.
 $string['noviewdiscussionspermission'] = 'You do not have the permission to view discussions in this forum';
