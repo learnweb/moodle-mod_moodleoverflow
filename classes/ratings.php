@@ -228,9 +228,10 @@ class ratings {
     /**
      * Sort the answers of a discussion by their marks and votes.
      *
-     * @param object $posts all the posts from a discussion.
+     * @param array $posts all the posts from a discussion.
      */
     public static function moodleoverflow_sort_answers_by_ratings($posts) {
+
         // Create a copy that only has the answer posts and save the parent post.
         $answerposts = $posts;
         $parentpost = array_shift($answerposts);
@@ -847,4 +848,29 @@ class ratings {
         }
     }
 
+    private static function moodleoverflow_mergesort_post_by_votes(array &$posts, $low, $high): array {
+        $length = $high - $low;
+        if ($length <= 1) {
+            return $posts;
+        }
+        $mid = $low + (int) ($length / 2);
+
+        self::moodleoverflow_mergesort_post_by_votes($posts, $low, $mid);
+        self::moodleoverflow_mergesort_post_by_votes($posts, $mid + 1, $high);
+        return self::moodleoverflow_merge_posts($post, $low, $mid, $mid+1, $high);
+    }
+
+    private static function moodleoverflow_merge_posts(&$posts, $leftlow, $lefthigh, $rightlow, $righthigh) {
+        while ($leftlow <= $lefthigh && $rightlow <= $righthigh) {
+            // Sort after votesdifference, then sort after time created.
+            if ($posts[$leftlow]->votesdifference > $posts[$rightlow]->votesdifference) {
+                $leftlow++;
+            } else {
+                $value = $posts[$rightlow];
+                $index = $rightlow;
+
+                //Shift all the element
+            }
+        }
+    }
 }
