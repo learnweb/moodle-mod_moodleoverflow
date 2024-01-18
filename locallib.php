@@ -928,12 +928,8 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
-    /*$newpost = [];
-    foreach($posts as $posti) {
-        $newpost[] = $posti->message;
-    }
-    var_dump($newpost);
-    */$usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+
+    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
 
     // Start with the parent post.
     $post = $posts[$post->id];
