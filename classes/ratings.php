@@ -833,7 +833,7 @@ class ratings {
         $pivot = 0;
         if ($sortby == 'votesdifference') {
             $pivot = $posts[intval(($low + $high) / 2)]->votesdifference;
-        } else if ($sortby == 'modified'){
+        } else if ($sortby == 'modified') {
             $pivot = $posts[intval(($low + $high) / 2)]->modified;
         }
         do {
@@ -869,8 +869,8 @@ class ratings {
     }
 
     /**
-     * Helper function for moodleoverflow_sort_answer_by_rating. For posts that have the same mark and votesdifference, the posts are
-     * sorted by time modified
+     * Helper function for moodleoverflow_sort_answer_by_rating. For posts that have the same mark and votesdifference,
+     * the posts are sorted by time modified
      * @param array $posts  The array that will be sorted
      * @param int   $low    Startindex from where equal votes will be checked
      * @param int   $high   Endindex until where equal votes will be checked
@@ -881,10 +881,11 @@ class ratings {
             if ($posts[$low]->votesdifference == $posts[$low + 1]->votesdifference) {
                 $tempstartindex = $low;
                 $tempendindex = $tempstartindex + 1;
-                while (($tempendindex + 1 <= $high) && ($posts[$tempendindex]->votesdifference == $posts[$tempendindex + 1]->votesdifference)) {
+                while (($tempendindex + 1 <= $high) &&
+                      ($posts[$tempendindex]->votesdifference == $posts[$tempendindex + 1]->votesdifference)) {
                     $tempendindex++;
                 }
-                self::moodleoverflow_quicksort_posts($posts,$tempstartindex, $tempendindex, 'modified');
+                self::moodleoverflow_quicksort_posts($posts, $tempstartindex, $tempendindex, 'modified');
                 $low = $tempendindex + 1;
             } else {
                 $low++;
