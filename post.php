@@ -490,6 +490,14 @@ file_prepare_draft_area($draftitemid,
     empty($post->id) ? null : $post->id,
     mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
 
+if ($draftitemid && $edit && \mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid) && $post->userid != $USER->id) {
+    $usercontext = context_user::instance($USER->id);
+    $anonymousstr = get_string('anonymous', 'moodleoverflow');
+    foreach (get_file_storage()->get_area_files($usercontext->id, 'user', 'draft', $draftitemid) as $file) {
+        $file->set_author($anonymousstr);
+    }
+}
+
 // Prepare the form.
 $formarray = array(
     'course' => $course,
