@@ -82,7 +82,7 @@ class send_daily_mail extends \core\task\scheduled_task {
                                                                                      'linktoforum' => $linktoforum,
                                                                                      'linktodiscussion' => $linktodiscussion,
                                                                                      'unreadposts' => $unreadposts));
-                array_push($mail, $string);
+                $mail[] = $string;
             }
             // Build the final message and send it to user. Then remove the sent records.
             $message = implode('<br>', $mail);
