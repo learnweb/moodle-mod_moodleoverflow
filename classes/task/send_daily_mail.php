@@ -58,7 +58,7 @@ class send_daily_mail extends \core\task\scheduled_task {
             foreach ($userdata as $row) {
                 $currentcourse = $DB->get_record('course', array('id' => $row->courseid), 'fullname, id');
                 // Check if the user is enrolled in the course, if not, go to the next row.
-                if (!is_enrolled(\context_course::instance($row->courseid), $user->userid, '')) {
+                if (!is_enrolled(\context_course::instance($row->courseid), $user->userid, '', true)) {
                     continue;
                 }
 
