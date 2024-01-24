@@ -52,7 +52,7 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
     if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modcontext)) {
-        return array();
+        return [];
     }
 
     // Filter some defaults.
@@ -181,7 +181,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $unreads = moodleoverflow_get_discussions_unread($cm);
         $markallread = $CFG->wwwroot . '/mod/moodleoverflow/markposts.php?m=' . $moodleoverflow->id;
     } else {
-        $unreads = array();
+        $unreads = [];
         $markallread = null;
     }
 
@@ -223,9 +223,9 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
     // Iterate through every visible discussion.
     $i = 0;
-    $preparedarray = array();
+    $preparedarray = [];
     foreach ($discussions as $discussion) {
-        $preparedarray[$i] = array();
+        $preparedarray[$i] = [];
 
         // Handle anonymized discussions.
         if ($discussion->userid == 0) {
@@ -324,8 +324,8 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             }
         } else {
             // Get his picture, his name and the link to his profile.
-            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, array('courseid' => $moodleoverflow->course,
-                                                                                    'link' => false));
+            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course,
+                                                                                    'link' => false]);
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
             $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;
@@ -384,7 +384,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             $reviewinfo = review::get_short_review_info_for_discussion($discussion->discussion);
             $preparedarray[$i]['needreview'] = $reviewinfo->count;
             $preparedarray[$i]['reviewlink'] = (new moodle_url('/mod/moodleoverflow/discussion.php', [
-                'd' => $discussion->discussion
+                'd' => $discussion->discussion,
             ], 'p' . $reviewinfo->first))->out(false);
         }
 
@@ -447,10 +447,10 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
  */
 function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     global $CFG, $DB, $PAGE;
-    $forumarray = array(array());
-    $currentforum = $DB->get_record('moodleoverflow_discussions', array('id' => $movetopopup), 'moodleoverflow');
-    $currentdiscussion = $DB->get_record('moodleoverflow_discussions', array('id' => $movetopopup), 'name');
-    $forums = $DB->get_records('moodleoverflow', array('course' => $course->id));
+    $forumarray = [[]];
+    $currentforum = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'moodleoverflow');
+    $currentdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'name');
+    $forums = $DB->get_records('moodleoverflow', ['course' => $course->id]);
     $amountforums = count($forums);
 
     if ($amountforums > 1) {
@@ -599,7 +599,7 @@ function moodleoverflow_get_discussions_unread($cm) {
     $params = [
             'userid' => $USER->id,
             'instance' => $cm->instance,
-            'cutoffdate' => $cutoffdate
+            'cutoffdate' => $cutoffdate,
     ];
 
     if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
@@ -627,7 +627,7 @@ function moodleoverflow_get_discussions_unread($cm) {
     } else {
 
         // If there are no unread messages, return an empty array.
-        return array();
+        return [];
     }
 }
 
@@ -652,7 +652,7 @@ function moodleoverflow_get_post_full($postid) {
                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
               LEFT JOIN {user} u ON p.userid = u.id
                   WHERE p.id = :postid";
-    $params = array();
+    $params = [];
     $params['postid'] = $postid;
 
     $post = $DB->get_record_sql($sql, $params);
@@ -682,7 +682,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
     // Fetch the moodleoverflow instance object.
     if (is_numeric($moodleoverflow)) {
         debugging('missing full moodleoverflow', DEBUG_DEVELOPER);
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
+        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow])) {
             return false;
         }
     }
@@ -690,7 +690,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
     // Fetch the discussion object.
     if (is_numeric($discussion)) {
         debugging('missing full discussion', DEBUG_DEVELOPER);
-        if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussion))) {
+        if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion])) {
             return false;
         }
     }
@@ -698,7 +698,7 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
     // Fetch the post object.
     if (is_numeric($post)) {
         debugging('missing full post', DEBUG_DEVELOPER);
-        if (!$post = $DB->get_record('moodleoverflow_posts', array('id' => $post))) {
+        if (!$post = $DB->get_record('moodleoverflow_posts', ['id' => $post])) {
             return false;
         }
     }
@@ -746,7 +746,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
     // Retrieve the moodleoverflow object.
     if (is_numeric($moodleoverflow)) {
         debugging('missing full moodleoverflow', DEBUG_DEVELOPER);
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow))) {
+        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow])) {
             return false;
         }
     }
@@ -754,7 +754,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
     // Retrieve the discussion object.
     if (is_numeric($discussion)) {
         debugging('missing full discussion', DEBUG_DEVELOPER);
-        if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussion))) {
+        if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion])) {
             return false;
         }
     }
@@ -791,7 +791,7 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     // as a real post. The discussion links to it.
 
     // Retrieve the module instance.
-    if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+    if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow])) {
         return false;
     }
 
@@ -836,7 +836,7 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     $post->discussion = $DB->insert_record('moodleoverflow_discussions', $discussionobject);
 
     // Link the post to the discussion.
-    $DB->set_field('moodleoverflow_posts', 'discussion', $post->discussion, array('id' => $post->id));
+    $DB->set_field('moodleoverflow_posts', 'discussion', $post->discussion, ['id' => $post->id]);
 
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
@@ -848,10 +848,10 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     }
 
     // Trigger event.
-    $params = array(
+    $params = [
         'context' => $modulecontext,
         'objectid' => $post->discussion,
-    );
+    ];
 
     $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
     $event->trigger();
@@ -928,8 +928,12 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
-
-    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+    /*$newpost = [];
+    foreach($posts as $posti) {
+        $newpost[] = $posti->message;
+    }
+    var_dump($newpost);
+    */$usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
 
     // Start with the parent post.
     $post = $posts[$post->id];
@@ -1000,10 +1004,10 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
     global $DB, $USER, $CFG;
 
     // Initiate tracking settings.
-    $params = array();
+    $params = [];
     $trackingselector = "";
     $trackingjoin = "";
-    $params = array();
+    $params = [];
 
     // If tracking is enabled, another join is needed.
     if ($tracking) {
@@ -1039,7 +1043,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
     // Return an empty array, if there are no posts.
     if (!$posts = $DB->get_records_sql($sql, $params)) {
-        return array();
+        return [];
     }
 
     // Load all ratings.
@@ -1082,7 +1086,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
         // Create the children array.
         if (!isset($posts[$post->parent]->children)) {
-            $posts[$post->parent]->children = array();
+            $posts[$post->parent]->children = [];
         }
 
         // Increase the level of the current post.
@@ -1186,7 +1190,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
 
     // Get the current link without unnecessary parameters.
-    $discussionlink = new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $post->discussion));
+    $discussionlink = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $post->discussion]);
 
     // Build the object that represents the posting user.
     $postinguser = new stdClass();
@@ -1202,19 +1206,19 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $postinguser->id = null;
         if ($post->userid == $USER->id) {
             $postinguser->fullname = get_string('anonym_you', 'mod_moodleoverflow');
-            $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
+            $postinguser->profilelink = new moodle_url('/user/view.php', ['id' => $post->userid, 'course' => $course->id]);
         } else {
             $postinguser->fullname = $usermapping[(int) $post->userid];
             $postinguser->profilelink = null;
         }
     } else {
         $postinguser->fullname = fullname($postinguser, capabilities::has('moodle/site:viewfullnames', $modulecontext));
-        $postinguser->profilelink = new moodle_url('/user/view.php', array('id' => $post->userid, 'course' => $course->id));
+        $postinguser->profilelink = new moodle_url('/user/view.php', ['id' => $post->userid, 'course' => $course->id]);
         $postinguser->id = $post->userid;
     }
 
     // Prepare an array of commands.
-    $commands = array();
+    $commands = [];
 
     // Create a permalink.
     $permalink = new moodle_url($discussionlink);
@@ -1236,15 +1240,15 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->markedhelpful) {
             $commands[] = html_writer::tag('a', $str->marknothelpful,
-                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
+                    ['class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful']);
         } else {
             // If there are already marked posts, change the string of the button.
             if ($helpfulposts) {
                 $commands[] = html_writer::tag('a', $str->alsomarkhelpful,
-                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
+                    ['class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful']);
             } else {
                 $commands[] = html_writer::tag('a', $str->markhelpful,
-                    array('class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful'));
+                    ['class' => 'markhelpful onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'helpful']);
             }
         }
     }
@@ -1258,15 +1262,15 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         $link = '/mod/moodleoverflow/discussion.php';
         if ($post->markedsolution) {
             $commands[] = html_writer::tag('a', $str->marknotsolved,
-                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved'));
+                    ['class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved']);
         } else {
             // If there are already marked posts, change the string of the button.
             if ($solvedposts) {
                 $commands[] = html_writer::tag('a', $str->alsomarksolved,
-                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved'));
+                    ['class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved']);
             } else {
                 $commands[] = html_writer::tag('a', $str->marksolved,
-                    array('class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved'));
+                    ['class' => 'marksolved onlyifreviewed', 'role' => 'button', 'data-moodleoverflow-action' => 'solved']);
             }
         }
     }
@@ -1279,8 +1283,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                     (!review::should_post_be_reviewed($post, $moodleoverflow) || !$post->reviewed))
         || capabilities::has(capabilities::EDIT_ANY_POST, $modulecontext)
     ) {
-        $editurl = new moodle_url('/mod/moodleoverflow/post.php', array('edit' => $post->id));
-        $commands[] = array('url' => $editurl, 'text' => $str->edit);
+        $editurl = new moodle_url('/mod/moodleoverflow/post.php', ['edit' => $post->id]);
+        $commands[] = ['url' => $editurl, 'text' => $str->edit];
     }
 
     // Give the option to delete a post.
@@ -1289,30 +1293,30 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         capabilities::has(capabilities::DELETE_ANY_POST, $modulecontext)) {
 
         $link = '/mod/moodleoverflow/post.php';
-        $commands[] = array('url' => new moodle_url($link, array('delete' => $post->id)), 'text' => $str->delete);
+        $commands[] = ['url' => new moodle_url($link, ['delete' => $post->id]), 'text' => $str->delete];
     }
 
     // Give the option to reply to a post.
     if (moodleoverflow_user_can_post($modulecontext, $post, false)) {
 
         $attributes = [
-                'class' => 'onlyifreviewed'
+                'class' => 'onlyifreviewed',
         ];
 
         // Answer to the parent post.
         if (empty($post->parent)) {
-            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-            $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);
+            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
+            $commands[] = ['url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes];
 
             // If the post is a comment, answer to the parent post.
         } else if (!$iscomment) {
-            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-            $commands[] = array('url' => $replyurl, 'text' => $str->reply, 'attributes' => $attributes);
+            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
+            $commands[] = ['url' => $replyurl, 'text' => $str->reply, 'attributes' => $attributes];
 
             // Else simple respond to the answer.
         } else {
-            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $iscomment));
-            $commands[] = array('url' => $replyurl, 'text' => $str->reply, 'attributes' => $attributes);
+            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $iscomment]);
+            $commands[] = ['url' => $replyurl, 'text' => $str->reply, 'attributes' => $attributes];
         }
     }
 
@@ -1448,7 +1452,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->attachments = get_attachments($post, $cm);
 
     // Output the commands.
-    $commandhtml = array();
+    $commandhtml = [];
     foreach ($commands as $command) {
         if (is_array($command)) {
             $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
@@ -1562,14 +1566,14 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
  */
 function get_attachments($post, $cm) {
     global $CFG, $OUTPUT;
-    $attachments = array();
+    $attachments = [];
 
     if (empty($post->attachment)) {
-        return array();
+        return [];
     }
 
     if (!$context = context_module::instance($cm->id)) {
-        return array();
+        return [];
     }
 
     $fs = get_file_storage();
@@ -1580,20 +1584,20 @@ function get_attachments($post, $cm) {
     if ($files) {
         $i = 0;
         foreach ($files as $file) {
-            $attachments[$i] = array();
+            $attachments[$i] = [];
             $attachments[$i]['filename'] = $file->get_filename();
 
             $mimetype = $file->get_mimetype();
             $iconimage = $OUTPUT->pix_icon(file_file_icon($file),
                 get_mimetype_description($file), 'moodle',
-                array('class' => 'icon'));
+                ['class' => 'icon']);
             $path = moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(),
                                                      $file->get_itemid(), $file->get_filepath(), $file->get_filename());
 
             $attachments[$i]['icon'] = $iconimage;
             $attachments[$i]['filepath'] = $path;
 
-            if (in_array($mimetype, array('image/gif', 'image/jpeg', 'image/png'))) {
+            if (in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png'])) {
                 // Image attachments don't get printed as links.
                 $attachments[$i]['image'] = true;
             } else {
@@ -1628,7 +1632,7 @@ function moodleoverflow_add_attachment($post, $forum, $cm) {
     file_save_draft_area_files($post->attachments, $context->id, 'mod_moodleoverflow', 'attachment', $post->id,
         mod_moodleoverflow_post_form::attachment_options($forum));
 
-    $DB->set_field('moodleoverflow_posts', 'attachment', $present, array('id' => $post->id));
+    $DB->set_field('moodleoverflow_posts', 'attachment', $present, ['id' => $post->id]);
 
     return true;
 }
@@ -1645,8 +1649,8 @@ function moodleoverflow_add_new_post($post) {
 
     // We do not check if these variables exist because this function
     // is just called from one function which checks all these variables.
-    $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion));
-    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow));
+    $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
+    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
     $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
 
     // Add some variables to the post.
@@ -1666,13 +1670,13 @@ function moodleoverflow_add_new_post($post) {
 
     // Add the post to the database.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
-    $DB->set_field('moodleoverflow_posts', 'message', $post->message, array('id' => $post->id));
+    $DB->set_field('moodleoverflow_posts', 'message', $post->message, ['id' => $post->id]);
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
     if ($post->reviewed) {
         // Update the discussion.
-        $DB->set_field('moodleoverflow_discussions', 'timemodified', $post->modified, array('id' => $post->discussion));
-        $DB->set_field('moodleoverflow_discussions', 'usermodified', $post->userid, array('id' => $post->discussion));
+        $DB->set_field('moodleoverflow_discussions', 'timemodified', $post->modified, ['id' => $post->discussion]);
+        $DB->set_field('moodleoverflow_discussions', 'usermodified', $post->userid, ['id' => $post->discussion]);
     }
 
     // Mark the created post as read if the user is tracking the discussion.
@@ -1699,9 +1703,9 @@ function moodleoverflow_update_post($newpost) {
     global $DB, $USER;
 
     // Retrieve not submitted variables.
-    $post = $DB->get_record('moodleoverflow_posts', array('id' => $newpost->id));
-    $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $post->discussion));
-    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow));
+    $post = $DB->get_record('moodleoverflow_posts', ['id' => $newpost->id]);
+    $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
+    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
 
     // Allowed modifiable fields.
     $modifiablefields = [
@@ -1784,7 +1788,7 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
     $result = true;
 
     // Get all posts related to the discussion.
-    if ($posts = $DB->get_records('moodleoverflow_posts', array('discussion' => $discussion->id))) {
+    if ($posts = $DB->get_records('moodleoverflow_posts', ['discussion' => $discussion->id])) {
 
         // Iterate through them and delete each one.
         foreach ($posts as $post) {
@@ -1802,8 +1806,8 @@ function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleover
     readtracking::moodleoverflow_delete_read_records(-1, -1, $discussion->id);
 
     // Remove the subscriptions for this discussion.
-    $DB->delete_records('moodleoverflow_discuss_subs', array('discussion' => $discussion->id));
-    if (!$DB->delete_records('moodleoverflow_discussions', array('id' => $discussion->id))) {
+    $DB->delete_records('moodleoverflow_discuss_subs', ['discussion' => $discussion->id]);
+    if (!$DB->delete_records('moodleoverflow_discussions', ['id' => $discussion->id])) {
         $result = false;
     }
 
@@ -1830,7 +1834,7 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
     try {
         $transaction = $DB->start_delegated_transaction();
 
-        $childposts = $DB->get_records('moodleoverflow_posts', array('parent' => $post->id));
+        $childposts = $DB->get_records('moodleoverflow_posts', ['parent' => $post->id]);
         if ($deletechildren && $childposts) {
             foreach ($childposts as $childpost) {
                 moodleoverflow_delete_post($childpost, true, $cm, $moodleoverflow);
@@ -1838,10 +1842,10 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
         }
 
         // Delete the ratings.
-        $DB->delete_records('moodleoverflow_ratings', array('postid' => $post->id));
+        $DB->delete_records('moodleoverflow_ratings', ['postid' => $post->id]);
 
         // Delete the post.
-        if ($DB->delete_records('moodleoverflow_posts', array('id' => $post->id))) {
+        if ($DB->delete_records('moodleoverflow_posts', ['id' => $post->id])) {
             // Delete the read records.
             readtracking::moodleoverflow_delete_read_records(-1, $post->id);
 
@@ -1868,14 +1872,14 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             $modulecontext = context_module::instance($cm->id);
 
             // Trigger the post deletion event.
-            $params = array(
+            $params = [
                 'context' => $modulecontext,
                 'objectid' => $post->id,
-                'other' => array(
+                'other' => [
                     'discussionid' => $post->discussion,
-                    'moodleoverflowid' => $moodleoverflow->id
-                )
-            );
+                    'moodleoverflowid' => $moodleoverflow->id,
+                ],
+            ];
             if ($post->userid !== $USER->id) {
                 $params['relateduserid'] = $post->userid;
             }
@@ -1905,7 +1909,7 @@ function moodleoverflow_discussion_update_last_post($discussionid) {
     global $DB;
 
     // Check if the given discussion exists.
-    if (!$DB->record_exists('moodleoverflow_discussions', array('id' => $discussionid))) {
+    if (!$DB->record_exists('moodleoverflow_discussions', ['id' => $discussionid])) {
         return false;
     }
 
@@ -1917,7 +1921,7 @@ function moodleoverflow_discussion_update_last_post($discussionid) {
           ORDER BY modified DESC";
 
     // Find the new last post of the discussion.
-    if (($lastposts = $DB->get_records_sql($sql, array($discussionid), 0, 1))) {
+    if (($lastposts = $DB->get_records_sql($sql, [$discussionid], 0, 1))) {
         $lastpost = reset($lastposts);
 
         // Create an discussion object.
@@ -1965,10 +1969,10 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
     global $CFG, $DB;
 
     // Create a cache.
-    static $cache = array();
+    static $cache = [];
 
     // Initiate variables.
-    $params = array($course->id);
+    $params = [$course->id];
 
     // Check whether the cache for the moodleoverflow is set.
     if (!isset($cache[$course->id])) {
@@ -1996,7 +2000,7 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
             // There are no records.
 
             // Save the result into the cache.
-            $cache[$course->id] = array();
+            $cache[$course->id] = [];
         }
     }
 
@@ -2012,7 +2016,7 @@ function moodleoverflow_count_discussions($moodleoverflow, $course) {
     $sql = "SELECT COUNT(d.id)
             FROM {moodleoverflow_discussions} d
             WHERE d.moodleoverflow = ?";
-    $amount = $DB->get_field_sql($sql, array($moodleoverflow->id));
+    $amount = $DB->get_field_sql($sql, [$moodleoverflow->id]);
 
     // Return the amount.
     return $amount;
@@ -2054,10 +2058,10 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     }
 
     // Save updated grade on local table.
-    if ($DB->record_exists('moodleoverflow_grades', array('userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id))) {
+    if ($DB->record_exists('moodleoverflow_grades', ['userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id])) {
 
-        $DB->set_field('moodleoverflow_grades', 'grade', $grade, array('userid' => $userid,
-            'moodleoverflowid' => $moodleoverflow->id));
+        $DB->set_field('moodleoverflow_grades', 'grade', $grade, ['userid' => $userid,
+            'moodleoverflowid' => $moodleoverflow->id]);
 
     } else {
 
@@ -2081,7 +2085,7 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
 function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
     global $DB;
 
-    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid));
+    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid]);
 
     // Check whether moodleoverflow object has the added params.
     if ($moodleoverflow->grademaxgrade > 0 && $moodleoverflow->gradescalefactor > 0) {

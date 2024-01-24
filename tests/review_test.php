@@ -112,8 +112,8 @@ class review_test extends \advanced_testcase {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
 
-        $options = array('course' => $this->course->id, 'needsreview' => review::EVERYTHING,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
 
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
@@ -177,8 +177,8 @@ class review_test extends \advanced_testcase {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
 
-        $options = array('course' => $this->course->id, 'needsreview' => review::QUESTIONS,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $options = ['course' => $this->course->id, 'needsreview' => review::QUESTIONS,
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
@@ -215,8 +215,8 @@ class review_test extends \advanced_testcase {
      * Test reviews functionality when reviewing is allowed in admin settings.
      */
     public function test_forum_review_disallowed() {
-        $options = array('course' => $this->course->id, 'needsreview' => review::EVERYTHING,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
 
         set_config('allowreview', 0, 'moodleoverflow');
 
@@ -276,7 +276,7 @@ class review_test extends \advanced_testcase {
         list(, $teacherpost) = $this->generator->post_to_forum($moodleoverflow, $this->teacher);
         list(, $studentpost) = $this->generator->post_to_forum($moodleoverflow, $this->student);
 
-        return array('teacherpost' => $teacherpost, 'studentpost' => $studentpost);
+        return ['teacherpost' => $teacherpost, 'studentpost' => $studentpost];
     }
 
     /**

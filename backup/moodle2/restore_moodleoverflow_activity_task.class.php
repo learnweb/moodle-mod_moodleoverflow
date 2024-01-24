@@ -59,10 +59,10 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
      * processed by the link decoder
      */
     public static function define_decode_contents() {
-        $contents = array();
+        $contents = [];
 
-        $contents[] = new restore_decode_content('moodleoverflow', array('intro'), 'moodleoverflow');
-        $contents[] = new restore_decode_content('moodleoverflow_posts', array('message'), 'moodleoverflow_post');
+        $contents[] = new restore_decode_content('moodleoverflow', ['intro'], 'moodleoverflow');
+        $contents[] = new restore_decode_content('moodleoverflow_posts', ['message'], 'moodleoverflow_post');
 
         return $contents;
     }
@@ -72,7 +72,7 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
      * to the activity to be executed by the link decoder
      */
     public static function define_decode_rules() {
-        $rules = array();
+        $rules = [];
 
         $rules[] = new restore_decode_rule('MOODLEOVERFLOWVIEWBYID', '/mod/moodleoverflow/view.php?id=$1', 'course_module');
         $rules[] = new restore_decode_rule('MOODLEOVERFLOWINDEX', '/mod/moodleoverflow/index.php?id=$1', 'course');
@@ -85,9 +85,9 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
         // Link to discussion with parent and with anchor posts.
         $rules[] = new restore_decode_rule('MOODLEOVERFLOWDISCUSSIONVIEWPARENT',
             '/mod/moodleoverflow/discussion.php?d=$1&parent=$2',
-            array('moodleoverflow_discussion', 'moodleoverflow_post'));
+            ['moodleoverflow_discussion', 'moodleoverflow_post']);
         $rules[] = new restore_decode_rule('MOODLEOVERFLOWDISCUSSIONVIEWINSIDE', '/mod/moodleoverflow/discussion.php?d=$1#$2',
-            array('moodleoverflow_discussion', 'moodleoverflow_post'));
+            ['moodleoverflow_discussion', 'moodleoverflow_post']);
 
         return $rules;
 
@@ -100,7 +100,7 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
      * of { restore_log_rule} objects
      */
     public static function define_restore_log_rules() {
-        $rules = array();
+        $rules = [];
 
         $rules[] = new restore_log_rule('moodleoverflow', 'add',
             'view.php?id={course_module}', '{moodleoverflow}');
@@ -160,7 +160,7 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
      * activity level. All them are rules not linked to any module instance (cmid = 0)
      */
     public static function define_restore_log_rules_for_course() {
-        $rules = array();
+        $rules = [];
 
         $rules[] = new restore_log_rule('moodleoverflow', 'view all', 'index.php?id={course}', null);
 
