@@ -359,7 +359,7 @@ class ratings_test extends \advanced_testcase {
     private function set_ratingpreferences($preference) {
         if ($preference == 0 || $preference == 1) {
             $this->post->ratingpreference = $preference;
-            foreach([$this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6] as $answer) {
+            foreach ([$this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6] as $answer) {
                 $answer->ratingpreference = $preference;
             }
         }
@@ -512,11 +512,11 @@ class ratings_test extends \advanced_testcase {
      */
     private function create_twogroups($group1, $group2) {
         // Set the first 3 answers to the first group of rating.
-        foreach([$this->answer1, $this->answer2, $this->answer3] as $answer) {
+        foreach ([$this->answer1, $this->answer2, $this->answer3] as $answer) {
             $this->set_group($group1, $answer);
         }
         // Set the last 3 answers to the second group of rating.
-        foreach([$this->answer4, $this->answer5, $this->answer6] as $answer) {
+        foreach ([$this->answer4, $this->answer5, $this->answer6] as $answer) {
             $this->set_group($group2, $answer);
         }
 
