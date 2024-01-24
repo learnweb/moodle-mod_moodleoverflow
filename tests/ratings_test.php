@@ -359,12 +359,9 @@ class ratings_test extends \advanced_testcase {
     private function set_ratingpreferences($preference) {
         if ($preference == 0 || $preference == 1) {
             $this->post->ratingpreference = $preference;
-            $this->answer1->ratingpreference = $preference;
-            $this->answer2->ratingpreference = $preference;
-            $this->answer3->ratingpreference = $preference;
-            $this->answer4->ratingpreference = $preference;
-            $this->answer5->ratingpreference = $preference;
-            $this->answer6->ratingpreference = $preference;
+            foreach([$this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6] as $answer) {
+                $answer->ratingpreference = $preference;
+            }
         }
     }
 
@@ -375,24 +372,11 @@ class ratings_test extends \advanced_testcase {
      * @return void
      */
     private function set_votesdifference() {
-        $this->answer1->upvotes = 3;
-        $this->answer1->downvotes = 3;
-        $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes;
-        $this->answer2->upvotes = 4;
-        $this->answer2->downvotes = 4;
-        $this->answer2->votesdifference = $this->answer2->upvotes - $this->answer2->downvotes;
-        $this->answer3->upvotes = 1;
-        $this->answer3->downvotes = 1;
-        $this->answer3->votesdifference = $this->answer3->upvotes - $this->answer3->downvotes;
-        $this->answer4->upvotes = 2;
-        $this->answer4->downvotes = 2;
-        $this->answer4->votesdifference = $this->answer4->upvotes - $this->answer4->downvotes;
-        $this->answer5->upvotes = 5;
-        $this->answer5->downvotes = 5;
-        $this->answer5->votesdifference = $this->answer5->upvotes - $this->answer5->downvotes;
-        $this->answer6->upvotes = 6;
-        $this->answer6->downvotes = 6;
-        $this->answer6->votesdifference = $this->answer6->upvotes - $this->answer6->downvotes;
+        foreach ([$this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6] as $answer) {
+            $answer->upvotes = 1;
+            $answer->downvotes = 1;
+            $answer->votesdifference = $answer->upvotes - $answer->downvotes;;
+        }
     }
 
     // Creation functions, that create different rating situations of the posts in a discussion.
@@ -528,106 +512,21 @@ class ratings_test extends \advanced_testcase {
      */
     private function create_twogroups($group1, $group2) {
         // Set the first 3 answers to the first group of rating.
-        switch ($group1) {
-            case 'sh':
-                $this->answer1->markedhelpful = 1;
-                $this->answer1->markedsolution = 1;
-                $this->answer2->markedhelpful = 1;
-                $this->answer2->markedsolution = 1;
-                $this->answer3->markedhelpful = 1;
-                $this->answer3->markedsolution = 1;
-                break;
-            case 's':
-                $this->answer1->markedhelpful = 0;
-                $this->answer1->markedsolution = 1;
-                $this->answer2->markedhelpful = 0;
-                $this->answer2->markedsolution = 1;
-                $this->answer3->markedhelpful = 0;
-                $this->answer3->markedsolution = 1;
-                break;
-            case 'h':
-                $this->answer1->markedhelpful = 1;
-                $this->answer1->markedsolution = 0;
-                $this->answer2->markedhelpful = 1;
-                $this->answer2->markedsolution = 0;
-                $this->answer3->markedhelpful = 1;
-                $this->answer3->markedsolution = 0;
-                break;
-            case 'o':
-                $this->answer1->markedhelpful = 0;
-                $this->answer1->markedsolution = 0;
-                $this->answer2->markedhelpful = 0;
-                $this->answer2->markedsolution = 0;
-                $this->answer3->markedhelpful = 0;
-                $this->answer3->markedsolution = 0;
-                break;
+        foreach([$this->answer1, $this->answer2, $this->answer3] as $answer) {
+            $this->set_group($group1, $answer);
         }
-
-        switch ($group2) {
-            case 'sh':
-                $this->answer4->markedhelpful = 1;
-                $this->answer4->markedsolution = 1;
-                $this->answer5->markedhelpful = 1;
-                $this->answer5->markedsolution = 1;
-                $this->answer6->markedhelpful = 1;
-                $this->answer6->markedsolution = 1;
-                break;
-            case 's':
-                $this->answer4->markedhelpful = 0;
-                $this->answer4->markedsolution = 1;
-                $this->answer5->markedhelpful = 0;
-                $this->answer5->markedsolution = 1;
-                $this->answer6->markedhelpful = 0;
-                $this->answer6->markedsolution = 1;
-                break;
-            case 'h':
-                $this->answer4->markedhelpful = 1;
-                $this->answer4->markedsolution = 0;
-                $this->answer5->markedhelpful = 1;
-                $this->answer5->markedsolution = 0;
-                $this->answer6->markedhelpful = 1;
-                $this->answer6->markedsolution = 0;
-                break;
-            case 'o':
-                $this->answer4->markedhelpful = 0;
-                $this->answer4->markedsolution = 0;
-                $this->answer5->markedhelpful = 0;
-                $this->answer5->markedsolution = 0;
-                $this->answer6->markedhelpful = 0;
-                $this->answer6->markedsolution = 0;
-                break;
+        // Set the last 3 answers to the second group of rating.
+        foreach([$this->answer4, $this->answer5, $this->answer6] as $answer) {
+            $this->set_group($group2, $answer);
         }
 
         // Now set the up and downvotes for every answer.
-        // Answer1.
-        $this->answer1->upvotes = 3;
-        $this->answer1->downvotes = 4;
-        $this->answer1->votesdifference = $this->answer1->upvotes - $this->answer1->downvotes; // Vd = -1.
-
-        // Answer2.
-        $this->answer2->upvotes = 4;
-        $this->answer2->downvotes = 1;
-        $this->answer2->votesdifference = $this->answer2->upvotes - $this->answer2->downvotes; // Vd = 3.
-
-        // Answer3.
-        $this->answer3->upvotes = 0;
-        $this->answer3->downvotes = 2;
-        $this->answer3->votesdifference = $this->answer3->upvotes - $this->answer3->downvotes; // Vd = -2.
-
-        // Answer4.
-        $this->answer4->upvotes = 5;
-        $this->answer4->downvotes = 5;
-        $this->answer4->votesdifference = $this->answer4->upvotes - $this->answer4->downvotes; // Vd = 0.
-
-        // Answer5.
-        $this->answer5->upvotes = 6;
-        $this->answer5->downvotes = 5;
-        $this->answer5->votesdifference = $this->answer5->upvotes - $this->answer5->downvotes; // Vd = 1.
-
-        // Answer6.
-        $this->answer6->upvotes = 4;
-        $this->answer6->downvotes = 2;
-        $this->answer6->votesdifference = $this->answer6->upvotes - $this->answer6->downvotes; // Vd = 2.
+        $this->set_votes($this->answer1, 3, 4); // Votesdifference = -1.
+        $this->set_votes($this->answer2, 4, 1); // Votesdifference = -3.
+        $this->set_votes($this->answer3, 0, 2); // Votesdifference = -2.
+        $this->set_votes($this->answer4, 5, 5); // Votesdifference = 0.
+        $this->set_votes($this->answer5, 6, 5); // Votesdifference = 1.
+        $this->set_votes($this->answer6, 4, 2); // Votesdifference = 2.
 
         // The Rightorder depends now on the group parameter.
         // Rightorder (sh,s) = answer2, answer1, answer3, answer6, answer5, answer4.
@@ -637,7 +536,6 @@ class ratings_test extends \advanced_testcase {
         // Rightorder (s,h) = answer2, answer1, answer3, answer6, answer5, answer4. with ratingpreference = 1
         // Rightorder (s,o) = answer2, answer1, answer3, answer6, answer5, answer4.
         // Rightorder (h,o) = answer2, answer1, answer3, answer6, answer5, answer4.
-
     }
 
     /**
@@ -656,5 +554,45 @@ class ratings_test extends \advanced_testcase {
         }
         $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
+    }
+
+    /**
+     * Sets a post to a group of mark.
+     * @param String $group Group can be: solved+helpful, solved, helpful, not marked
+     * @param $answer
+     * @return void
+     */
+    private function set_group(String $group, $answer) {
+        switch($group) {
+            case 'sh':
+                $answer->markedhelpful = 1;
+                $answer->markedsolution = 1;
+                break;
+            case 's':
+                $answer->markedhelpful = 0;
+                $answer->markedsolution = 1;
+                break;
+            case 'h':
+                $answer->markedhelpful = 1;
+                $answer->markedsolution = 0;
+                break;
+            case 'o':
+                $answer->markedhelpful = 0;
+                $answer->markedsolution = 0;
+                break;
+        }
+    }
+
+    /**
+     * Sets the votes and votesdifference of a post.
+     * @param mixed $answer     The post
+     * @param int $upvotes
+     * @param int $downvotes
+     * @return void
+     */
+    private function set_votes($answer, $upvotes, $downvotes) {
+        $answer->upvotes = $upvotes;
+        $answer->downvotes = $downvotes;
+        $answer->votesdifference = $answer->upvotes - $answer->downvotes;
     }
 }
