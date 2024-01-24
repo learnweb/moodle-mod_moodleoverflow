@@ -40,7 +40,7 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
      */
     protected function define_structure() {
 
-        $paths = array();
+        $paths = [];
         $userinfo = $this->get_setting_value('userinfo');
 
         $paths[] = new restore_path_element('moodleoverflow', '/activity/moodleoverflow');
@@ -138,7 +138,7 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
 
         // If !post->parent, it's the 1st post. Set it in discussion.
         if (empty($data->parent)) {
-            $DB->set_field('moodleoverflow_discussions', 'firstpost', $newitemid, array('id' => $data->discussion));
+            $DB->set_field('moodleoverflow_discussions', 'firstpost', $newitemid, ['id' => $data->discussion]);
         }
     }
 

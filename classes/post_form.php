@@ -133,13 +133,13 @@ class mod_moodleoverflow_post_form extends moodleform {
         global $COURSE, $PAGE, $CFG;
         $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes, $moodleoverflow->maxbytes);
 
-        return array(
+        return [
             'subdirs' => 0,
             'maxbytes' => $maxbytes,
             'maxfiles' => $moodleoverflow->maxattachments,
             'accepted_types' => '*',
-            'return_types' => FILE_INTERNAL | FILE_CONTROLLED_LINK
-        );
+            'return_types' => FILE_INTERNAL | FILE_CONTROLLED_LINK,
+        ];
     }
 }
 
