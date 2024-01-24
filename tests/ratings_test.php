@@ -235,7 +235,7 @@ class ratings_test extends \advanced_testcase {
         $group = 'sh';
         $this->create_onegroup($group);
         $posts = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
-        $rightorder = [$this->post, $this->answer4, $this->answer6, $this->answer3,$this->answer1, $this->answer2, $this->answer5];
+        $rightorder = [$this->post, $this->answer4, $this->answer6, $this->answer3, $this->answer1, $this->answer2, $this->answer5];
         $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
