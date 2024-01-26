@@ -60,6 +60,9 @@ class ratings_test extends \advanced_testcase {
     /** @var stdClass answer from user 2 */
     private $answer6;
 
+    /** @var array The whole Discussion */
+    private $discussion;
+
     /**
      * Test setUp.
      */
@@ -89,13 +92,12 @@ class ratings_test extends \advanced_testcase {
         $this->create_everygroup();
 
         // Create a array of the posts, save the sorted post and compare them to the order that they should have.
-        $posts = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
         $rightorder = [$this->post, $this->answer1, $this->answer3, $this->answer2, $this->answer4, $this->answer6, $this->answer5];
-        $this->process_every_and_three_groups($posts, $rightorder, 0);
+        $this->process_every_and_three_groups($this->discussion, $rightorder, 0);
 
         // Change the rating preference of the teacher and sort again.
         $rightorder = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer6, $this->answer5];
-        $this->process_every_and_three_groups($posts, $rightorder, 1);
+        $this->process_every_and_three_groups($this->discussion, $rightorder, 1);
     }
 
     /**
@@ -176,24 +178,20 @@ class ratings_test extends \advanced_testcase {
     public function test_answersorting_onegroup() {
         $this->set_ratingpreferences(0);
 
-        // Define the posts that will be sorted.
-        $posts = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
-
-        // Define the two right order of posts that will be used in this function.
+        // Define the right order of posts that will be used in this function.
         $order1 = [$this->post, $this->answer4, $this->answer6, $this->answer3, $this->answer1, $this->answer2, $this->answer5];
-        $order2 = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
 
         // Test case 1: only solved and helpful posts.
-        $this->process_one_group($posts, $order1, $order2, 'sh');
+        $this->process_one_group($this->discussion, $order1, $this->discussion, 'sh');
 
         // Test case 2: only solvedposts.
-        $this->process_one_group($posts, $order1, $order2, 's');
+        $this->process_one_group($this->discussion, $order1, $this->discussion, 's');
 
         // Test case 3: only helpful posts.
-        $this->process_one_group($posts, $order1, $order2, 'h');
+        $this->process_one_group($this->discussion, $order1, $this->discussion, 'h');
 
         // Test case 4: only not marked posts.
-        $this->process_one_group($posts, $order1, $order2, 'o');
+        $this->process_one_group($this->discussion, $order1, $this->discussion, 'o');
     }
 
     // End of Test Functions.
@@ -225,13 +223,13 @@ class ratings_test extends \advanced_testcase {
         // Create a discussion, a parent post and six answers.
         $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
         $discussion = $generator->post_to_forum($moodleoverflow, $teacher);
-        $this->post = $DB->get_record('moodleoverflow_posts', ['id' => $discussion[0]->firstpost], '*');
-        $this->answer1 = $generator->reply_to_post($discussion[1], $user1);
-        $this->answer2 = $generator->reply_to_post($discussion[1], $user1);
-        $this->answer3 = $generator->reply_to_post($discussion[1], $user1);
-        $this->answer4 = $generator->reply_to_post($discussion[1], $user2);
-        $this->answer5 = $generator->reply_to_post($discussion[1], $user2);
-        $this->answer6 = $generator->reply_to_post($discussion[1], $user2);
+        $this->discussion[] = $this->post = $DB->get_record('moodleoverflow_posts', ['id' => $discussion[0]->firstpost], '*');
+        $this->discussion[] = $this->answer1 = $generator->reply_to_post($discussion[1], $user1);
+        $this->discussion[] = $this->answer2 = $generator->reply_to_post($discussion[1], $user1);
+        $this->discussion[] = $this->answer3 = $generator->reply_to_post($discussion[1], $user1);
+        $this->discussion[] = $this->answer4 = $generator->reply_to_post($discussion[1], $user2);
+        $this->discussion[] = $this->answer5 = $generator->reply_to_post($discussion[1], $user2);
+        $this->discussion[] = $this->answer6 = $generator->reply_to_post($discussion[1], $user2);
     }
 
 
@@ -376,12 +374,11 @@ class ratings_test extends \advanced_testcase {
      */
     private function process_two_groups(String $group1, string $group2, array $orderposts = null) {
         $this->create_twogroups($group1, $group2);
-        $posts = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
         $rightorder = [$this->post, $this->answer2, $this->answer1, $this->answer3, $this->answer6, $this->answer5, $this->answer4];
         if ($orderposts) {
             $rightorder = $orderposts;
         }
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($this->discussion), $rightorder);
         $this->assertEquals(1, $result);
     }
 
@@ -389,8 +386,8 @@ class ratings_test extends \advanced_testcase {
      * Function to execute the sort function and comparing the sorted to the expected order
      * Helper function for test function test_answersorting_onegroup
      * @param array $posts               Posts that will be sorted.
-     * @param array $rightorder1        First Expected order.
-     * @param array $rightorder2        Second Expected order.
+     * @param array $rightorder1         First Expected order.
+     * @param array $rightorder2         Second Expected order.
      * @return void
      */
     private function process_one_group($posts, $rightorder1, $rightorder2, $group) {
