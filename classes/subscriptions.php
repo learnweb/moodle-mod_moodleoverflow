@@ -438,7 +438,11 @@ class subscriptions {
                 WHERE m.forcesubscribe <> :forcesubscribe AND ms.id IS NOT NULL AND cm.course $coursesql";
         $params = ['modulename' => 'moodleoverflow',
                                  'userid' => $USER->id,
+<<<<<<< HEAD
                                  'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
+=======
+                                 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
+>>>>>>> master
         $mergedparams = array_merge($courseparams, $params);
         $moodleoverflows = $DB->get_recordset_sql($sql, $mergedparams);
 
@@ -670,7 +674,11 @@ class subscriptions {
             $params = [
                 'userid' => $userid,
                 'moodleoverflowid' => $moodleoverflow->id,
+<<<<<<< HEAD
                 'preference' => self::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED, ];
+=======
+                'preference' => self::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED];
+>>>>>>> master
             $where = 'userid = :userid AND moodleoverflow = :moodleoverflowid AND preference <> :preference';
             $DB->delete_records_select('moodleoverflow_discuss_subs', $where, $params);
 

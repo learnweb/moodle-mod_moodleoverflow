@@ -57,7 +57,11 @@ class ratings {
         // Is the submitted rating valid?
         $possibleratings = [RATING_NEUTRAL, RATING_DOWNVOTE, RATING_UPVOTE, RATING_SOLVED,
             RATING_HELPFUL, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE,
+<<<<<<< HEAD
             RATING_REMOVE_SOLVED, RATING_REMOVE_HELPFUL, ];
+=======
+            RATING_REMOVE_SOLVED, RATING_REMOVE_HELPFUL];
+>>>>>>> master
         if (!in_array($rating, $possibleratings)) {
             throw new moodle_exception('invalidratingid', 'moodleoverflow');
         }

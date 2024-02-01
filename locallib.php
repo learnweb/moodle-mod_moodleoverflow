@@ -325,7 +325,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         } else {
             // Get his picture, his name and the link to his profile.
             $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course,
-                                                                                    'link' => false, ]);
+                                                                                         'link' => false, ]);
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
             $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;
@@ -928,12 +928,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
-    /*$newpost = [];
-    foreach($posts as $posti) {
-        $newpost[] = $posti->message;
-    }
-    var_dump($newpost);
-    */$usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
 
     // Start with the parent post.
     $post = $posts[$post->id];
@@ -2061,7 +2056,11 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     if ($DB->record_exists('moodleoverflow_grades', ['userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id])) {
 
         $DB->set_field('moodleoverflow_grades', 'grade', $grade, ['userid' => $userid,
+<<<<<<< HEAD
             'moodleoverflowid' => $moodleoverflow->id, ]);
+=======
+            'moodleoverflowid' => $moodleoverflow->id]);
+>>>>>>> master
 
     } else {
 
