@@ -38,7 +38,7 @@ $sesskey = optional_param('sesskey', null, PARAM_RAW);
 $returnurl = optional_param('returnurl', null, PARAM_RAW);
 
 // Set the url to return to the same action.
-$url = new moodle_url('/mod/moodleoverflow/subscribe.php', array('id' => $id));
+$url = new moodle_url('/mod/moodleoverflow/subscribe.php', ['id' => $id]);
 if (!is_null($mode)) {
     $url->param('mode', $mode);
 }
@@ -50,7 +50,7 @@ if (!is_null($sesskey)) {
 }
 if (!is_null($discussionid)) {
     $url->param('d', $discussionid);
-    if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $discussionid, 'moodleoverflow' => $id))) {
+    if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid, 'moodleoverflow' => $id])) {
         throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
     }
 }
@@ -59,16 +59,16 @@ if (!is_null($discussionid)) {
 $PAGE->set_url($url);
 
 // Get all necessary objects.
-$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $id), '*', MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $moodleoverflow->course), '*', MUST_EXIST);
+$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $id], '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $moodleoverflow->course], '*', MUST_EXIST);
 $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
 $context = context_module::instance($cm->id);
 
 // Define variables.
-$notify = array();
+$notify = [];
 $notify['success'] = \core\output\notification::NOTIFY_SUCCESS;
 $notify['error'] = \core\output\notification::NOTIFY_ERROR;
-$strings = array();
+$strings = [];
 $strings['subscribeenrolledonly'] = get_string('subscribeenrolledonly', 'moodleoverflow');
 $strings['everyonecannowchoose'] = get_string('everyonecannowchoose', 'moodleoverflow');
 $strings['everyoneisnowsubscribed'] = get_string('everyoneisnowsubscribed', 'moodleoverflow');
@@ -88,7 +88,7 @@ if ($user) {
     }
 
     // Retrieve the user from the database.
-    $user = $DB->get_record('user', array('id' => $user), '*', MUST_EXIST);
+    $user = $DB->get_record('user', ['id' => $user], '*', MUST_EXIST);
 
 } else {
 
@@ -114,13 +114,13 @@ if (is_null($mode) && !$isenrolled) {
     if (isguestuser()) {
         echo $OUTPUT->header();
         $message = $strings['subscribeenrolledonly'] . '<br /></ br>' . get_string('liketologin');
-        $url = new moodle_url('/mod/moodleoverflow/view.php', array('m' => $id));
+        $url = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $id]);
         echo $OUTPUT->confirm($message, get_login_url(), $url);
         echo $OUTPUT->footer;
         exit;
     } else {
         // There should not be any links leading to this place. Just redirect.
-        $url = new moodle_url('/mod/moodleoverflow/view.php', array('m' => $id));
+        $url = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $id]);
         redirect($url, $strings['subscribeenrolledonly'], null, $notify['error']);
     }
 }
@@ -207,7 +207,7 @@ if ($issubscribed) {
         echo $OUTPUT->header();
 
         // Create an url to get back to the view.
-        $viewurl = new moodle_url('/mod/moodleoverflow/view.php', array('m' => $id));
+        $viewurl = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $id]);
 
         // Was a discussion id submitted?
         if ($discussionid) {
@@ -262,7 +262,7 @@ if ($issubscribed) {
     // The user needs to be subscribed.
 
     // Check the capabilities.
-    $capabilities = array();
+    $capabilities = [];
     $capabilities['managesubscriptions'] = has_capability('mod/moodleoverflow:managesubscriptions', $context);
     $capabilities['viewdiscussion'] = has_capability('mod/moodleoverflow:viewdiscussion', $context);
     require_sesskey();
@@ -287,7 +287,7 @@ if ($issubscribed) {
         echo $OUTPUT->header();
 
         // Create the url to redirect the user back to.
-        $viewurl = new moodle_url('/mod/moodleoverflow/view.php', array('m' => $id));
+        $viewurl = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $id]);
 
         // Check whether a discussion is referenced.
         if ($discussionid) {

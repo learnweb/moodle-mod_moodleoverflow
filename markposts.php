@@ -32,7 +32,7 @@ $discussionid = optional_param('d', 0, PARAM_INT);      // The discussion to mar
 $returndiscussion = optional_param('return', 0, PARAM_INT); // The page to return to.
 
 // Prepare the array that should be used to return to this page.
-$url = new moodle_url('/mod/moodleoverflow/markposts.php', array('m' => $moodleoverflowid));
+$url = new moodle_url('/mod/moodleoverflow/markposts.php', ['m' => $moodleoverflowid]);
 
 // Check the optional params.
 if ($discussionid !== 0) {
@@ -46,12 +46,12 @@ if ($returndiscussion !== 0) {
 $PAGE->set_url($url);
 
 // Retrieve the connected moodleoverflow instance.
-if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflowid))) {
+if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid])) {
     throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Retrieve the connected course.
-if (!$course = $DB->get_record('course', array('id' => $moodleoverflow->course))) {
+if (!$course = $DB->get_record('course', ['id' => $moodleoverflow->course])) {
     throw new moodle_exception('invalidcourseid');
 }
 
@@ -70,12 +70,12 @@ require_login($course, false, $cm);
 if ($returndiscussion === 0) {
 
     // If no parameter is set, relink to the view.
-    $returnto = new moodle_url("/mod/moodleoverflow/view.php", array('m' => $moodleoverflow->id));
+    $returnto = new moodle_url("/mod/moodleoverflow/view.php", ['m' => $moodleoverflow->id]);
 
 } else {
 
     // Else relink back to the discussion we are coming from.
-    $returnto = new moodle_url("/mod/moodleoverflow/discussion.php", array('d' => $returndiscussion));
+    $returnto = new moodle_url("/mod/moodleoverflow/discussion.php", ['d' => $returndiscussion]);
 }
 
 // Guests can't mark posts as read.
@@ -99,7 +99,7 @@ if (isguestuser()) {
 if (!empty($discussionid)) {
 
     // Check if the discussion exists.
-    $options = array('id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id);
+    $options = ['id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id];
     $discussion = $DB->get_record('moodleoverflow_discussions', $options);
     if (!$discussion) {
         throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');

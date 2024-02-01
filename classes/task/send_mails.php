@@ -79,7 +79,7 @@ class send_mails extends \core\task\scheduled_task {
             "ORDER BY d.course, d.moodleoverflow, d.id",
             [
                 'mailpending' => MOODLEOVERFLOW_MAILED_PENDING,
-                'timecutoff' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime')
+                'timecutoff' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime'),
             ]
         );
 
@@ -109,7 +109,7 @@ class send_mails extends \core\task\scheduled_task {
                 $userswithcapability = get_users_by_capability($modulecontext, 'mod/moodleoverflow:reviewpost');
                 $coursecontext = \context_course::instance($course->id);
                 $usersenrolled = get_enrolled_users($coursecontext);
-                $usersto = array();
+                $usersto = [];
                 foreach ($userswithcapability as $user) {
                     if (in_array($user, $usersenrolled)) {
                         array_push($usersto, $user);

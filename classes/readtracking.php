@@ -106,7 +106,7 @@ class readtracking {
 
         // Check the preferences of the user.
         $userpreference = $DB->get_record('moodleoverflow_tracking',
-            array('userid' => $user->id, 'moodleoverflowid' => $moodleoverflow->id));
+            ['userid' => $user->id, 'moodleoverflowid' => $moodleoverflow->id]);
 
         // Return the boolean.
         if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
@@ -242,7 +242,7 @@ class readtracking {
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600);
 
         // Check for read records for this user an this post.
-        $oldrecord = $DB->get_record('moodleoverflow_read', array('postid' => $postid, 'userid' => $userid));
+        $oldrecord = $DB->get_record('moodleoverflow_read', ['postid' => $postid, 'userid' => $userid]);
         if (!$oldrecord) {
 
             // If there are no old records, create a new one.
@@ -252,7 +252,7 @@ class readtracking {
                         JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
                   WHERE p.id = ? AND p.modified >= ?";
 
-            return $DB->execute($sql, array($userid, $now, $now, $postid, $cutoffdate));
+            return $DB->execute($sql, [$userid, $now, $now, $postid, $cutoffdate]);
         }
 
         // Else update the existing one.
@@ -260,7 +260,7 @@ class readtracking {
                    SET lastread = ?
                  WHERE userid = ? AND postid = ?";
 
-        return $DB->execute($sql, array($now, $userid, $userid));
+        return $DB->execute($sql, [$now, $userid, $userid]);
     }
 
     /**
@@ -278,7 +278,7 @@ class readtracking {
         global $DB;
 
         // Initiate variables.
-        $params = array();
+        $params = [];
         $select = '';
 
         // Create the sql-Statement depending on the submitted parameters.
@@ -351,7 +351,7 @@ class readtracking {
                 WHERE postid IN (SELECT p.id
                                  FROM {moodleoverflow_posts} p
                                  WHERE p.modified >= ? AND p.modified < ?)";
-        $DB->execute($sql, array($first, $cutoffdate));
+        $DB->execute($sql, [$first, $cutoffdate]);
     }
 
     /**
@@ -371,7 +371,7 @@ class readtracking {
         }
 
         // Check if the user already stopped to track the moodleoverflow.
-        $params = array('userid' => $userid, 'moodleoverflowid' => $moodleoverflowid);
+        $params = ['userid' => $userid, 'moodleoverflowid' => $moodleoverflowid];
         $isstopped = $DB->record_exists('moodleoverflow_tracking', $params);
 
         // Stop tracking the moodleoverflow if not already stopped.
@@ -410,7 +410,7 @@ class readtracking {
         }
 
         // Delete the tracking setting of this user for this moodleoverflow.
-        return $DB->delete_records('moodleoverflow_tracking', array('userid' => $userid, 'moodleoverflowid' => $moodleoverflowid));
+        return $DB->delete_records('moodleoverflow_tracking', ['userid' => $userid, 'moodleoverflowid' => $moodleoverflowid]);
     }
 
     /**
@@ -446,11 +446,11 @@ class readtracking {
                  WHERE m.course = ? $trackingsql";
 
         // Get all untracked moodleoverflows from the database.
-        $moodleoverflows = $DB->get_records_sql($sql, array($userid, $courseid, $userid));
+        $moodleoverflows = $DB->get_records_sql($sql, [$userid, $courseid, $userid]);
 
         // Check whether there are no untracked moodleoverflows.
         if (!$moodleoverflows) {
-            return array();
+            return [];
         }
 
         // Loop through all moodleoverflows.
@@ -491,7 +491,7 @@ class readtracking {
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Define a sql-query.
-        $params = array($USER->id, $cm->instance, $cutoffdate);
+        $params = [$USER->id, $cm->instance, $cutoffdate];
         $sql = "SELECT COUNT(p.id)
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id

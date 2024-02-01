@@ -72,7 +72,7 @@ class dailymail_test extends \advanced_testcase {
         $this->redirectMessages();
         // Create a new course with a moodleoverflow forum.
         $this->course = $this->getDataGenerator()->create_course();
-        $location = array('course' => $this->course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $location = ['course' => $this->course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $this->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->moodleoverflow->id);
     }
@@ -94,7 +94,7 @@ class dailymail_test extends \advanced_testcase {
      */
     public function helper_create_user_and_discussion($maildigest) {
         // Create a user enrolled in the course as student.
-        $this->user = $this->getDataGenerator()->create_user(array('firstname' => 'Tamaro', 'maildigest' => $maildigest));
+        $this->user = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'maildigest' => $maildigest]);
         $this->getDataGenerator()->enrol_user($this->user->id, $this->course->id, 'student');
 
         // Create a new discussion and post within the moodleoverflow.
@@ -215,7 +215,7 @@ class dailymail_test extends \advanced_testcase {
         $this->helper_run_send_daily_mail();
 
         // Now check the database if the records of the users are deleted.
-        $records = $DB->get_records('moodleoverflow_mail_info', array('userid' => $this->user->id));
+        $records = $DB->get_records('moodleoverflow_mail_info', ['userid' => $this->user->id]);
         $this->assertEmpty($records);
     }
 }

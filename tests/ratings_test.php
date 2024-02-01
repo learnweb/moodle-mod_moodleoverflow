@@ -270,22 +270,22 @@ class ratings_test extends \advanced_testcase {
      */
     private function create_everygroup() {
         $this->set_group('sh', $this->answer1);
-        $this->set_votes($this->answer1, 0,0); // Votesdifference = 0.
+        $this->set_votes($this->answer1, 0, 0); // Votesdifference = 0.
 
         $this->set_group('s', $this->answer2);
-        $this->set_votes($this->answer2, 0,0); // Votesdifference = 0.
+        $this->set_votes($this->answer2, 0, 0); // Votesdifference = 0.
 
         $this->set_group('h', $this->answer3);
-        $this->set_votes($this->answer3, 0,0); // Votesdifference = 0.
+        $this->set_votes($this->answer3, 0, 0); // Votesdifference = 0.
 
         $this->set_group('o', $this->answer4);
-        $this->set_votes($this->answer4, 1,0); // Votesdifference = 1.
+        $this->set_votes($this->answer4, 1, 0); // Votesdifference = 1.
 
         $this->set_group('o', $this->answer5);
-        $this->set_votes($this->answer5, 0,1); // Votesdifference = -1.
+        $this->set_votes($this->answer5, 0, 1); // Votesdifference = -1.
 
         $this->set_group('o', $this->answer6);
-        $this->set_votes($this->answer6, 0,0); // Votesdifference = 0.
+        $this->set_votes($this->answer6, 0, 0); // Votesdifference = 0.
     }
 
     /**
@@ -305,12 +305,12 @@ class ratings_test extends \advanced_testcase {
         }
 
         // Votes for the answerposts, Rightorder = answer4 , answer6, answer3, answer1, answer2, answer5.
-        $this->set_votes($this->answer1, 4,4); // Votesdifference = 0.
-        $this->set_votes($this->answer2, 1,2); // Votesdifference = -1.
-        $this->set_votes($this->answer3, 3,2); // Votesdifference = 1.
-        $this->set_votes($this->answer4, 5,0); // Votesdifference = 5.
-        $this->set_votes($this->answer5, 0,2); // Votesdifference = -2.
-        $this->set_votes($this->answer6, 4,2); // Votesdifference = 2.
+        $this->set_votes($this->answer1, 4, 4); // Votesdifference = 0.
+        $this->set_votes($this->answer2, 1, 2); // Votesdifference = -1.
+        $this->set_votes($this->answer3, 3, 2); // Votesdifference = 1.
+        $this->set_votes($this->answer4, 5, 0); // Votesdifference = 5.
+        $this->set_votes($this->answer5, 0, 2); // Votesdifference = -2.
+        $this->set_votes($this->answer6, 4, 2); // Votesdifference = 2.
     }
 
     /**
@@ -326,11 +326,11 @@ class ratings_test extends \advanced_testcase {
      */
     private function create_twogroups($group1, $group2) {
         // Set the first 3 answers to the first group of rating.
-        foreach([$this->answer1, $this->answer2, $this->answer3] as $answer) {
+        foreach ([$this->answer1, $this->answer2, $this->answer3] as $answer) {
             $this->set_group($group1, $answer);
         }
         // Set the last 3 answers to the second group of rating.
-        foreach([$this->answer4, $this->answer5, $this->answer6] as $answer) {
+        foreach ([$this->answer4, $this->answer5, $this->answer6] as $answer) {
             $this->set_group($group2, $answer);
         }
 
@@ -348,7 +348,7 @@ class ratings_test extends \advanced_testcase {
         // Rightorder (s,h) = answer2, answer1, answer3, answer6, answer5, answer4. with ratingpreference = 1.
     }
 
-    //  Little function to improve readability.
+    // Little function to improve readability.
 
     /**
      * Function to execute the sort function and comparing the sorted to the expected order
@@ -462,7 +462,7 @@ class ratings_test extends \advanced_testcase {
     private function set_ratingpreferences($preference) {
         if ($preference == 0 || $preference == 1) {
             $this->post->ratingpreference = $preference;
-            foreach([$this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6] as $answer) {
+            foreach ([$this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6] as $answer) {
                 $answer->ratingpreference = $preference;
             }
         }

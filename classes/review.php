@@ -72,7 +72,7 @@ class review {
                 'FROM {moodleoverflow_posts} ' .
                 'WHERE discussion = :discussionid AND reviewed = 0 AND created < :cutofftime', [
                         'discussionid' => $discussionid,
-                        'cutofftime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime')
+                        'cutofftime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime'),
                 ]
         );
     }
@@ -89,7 +89,7 @@ class review {
 
         $params = [
                 'moodleoverflowid' => $moodleoverflowid,
-                'reviewtime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime')
+                'reviewtime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime'),
         ];
         $orderby = '';
         $addwhere = '';
@@ -117,7 +117,7 @@ class review {
         );
         if ($record) {
             return (new \moodle_url('/mod/moodleoverflow/discussion.php', [
-                'd' => $record->discussionid
+                'd' => $record->discussionid,
             ], 'p' . $record->postid))->out(false);
         } else {
             return null;
@@ -162,7 +162,7 @@ class review {
                 'JOIN {moodleoverflow_discussions} d ON d.id = p.discussion ' .
                 'WHERE d.moodleoverflow = :moodleoverflowid AND p.created < :cutofftime AND reviewed = 0', [
                         'moodleoverflowid' => $moodleoverflowid,
-                        'cutofftime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime')
+                        'cutofftime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime'),
                 ]
         );
     }

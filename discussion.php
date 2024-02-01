@@ -33,28 +33,28 @@ $ratingid = optional_param('r', 0, PARAM_INT);
 $ratedpost = optional_param('rp', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
-$PAGE->set_url('/mod/moodleoverflow/discussion.php', array('d' => $d));
+$PAGE->set_url('/mod/moodleoverflow/discussion.php', ['d' => $d]);
 
 // The page should not be large, only pages containing broad tables are usually.
 $PAGE->add_body_class('limitedwidth');
 
 // Check if the discussion is valid.
-if (!$discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $d))) {
+if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $d])) {
     throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
 }
 
 // Check if the related moodleoverflow instance is valid.
-if (!$moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $discussion->moodleoverflow))) {
+if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow])) {
     throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Check if the related moodleoverflow instance is valid.
-if (!$course = $DB->get_record('course', array('id' => $discussion->course))) {
+if (!$course = $DB->get_record('course', ['id' => $discussion->course])) {
     throw new moodle_exception('invalidcourseid');
 }
 
 // Save the allowmultiplemarks setting.
-$marksetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'allowmultiplemarks');
+$marksetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'allowmultiplemarks');
 $multiplemarks = false;
 if ($marksetting->allowmultiplemarks == 1) {
     $multiplemarks = true;
@@ -81,7 +81,7 @@ if (!$canviewdiscussion) {
 if ($ratingid) {
     require_sesskey();
 
-    if (in_array($ratingid, array(RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL))) {
+    if (in_array($ratingid, [RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL])) {
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
@@ -94,10 +94,10 @@ if ($ratingid) {
 }
 
 // Trigger the discussion viewed event.
-$params = array(
+$params = [
     'context' => $modulecontext,
     'objectid' => $discussion->id,
-);
+];
 $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
 $event->trigger();
 
@@ -130,7 +130,7 @@ if ($discussion->userid === '0') {
 }
 
 $node = $forumnode->add(format_string($discussion->name),
-    new moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id)));
+    new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id]));
 $node->display = false;
 if ($node && ($post->id != $discussion->firstpost)) {
     $node->add(format_string($post->subject), $PAGE->url);

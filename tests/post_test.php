@@ -79,14 +79,14 @@ class post_test extends \advanced_testcase {
         global $DB;
 
         // The attachment should exist.
-        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->id)));
+        $numberofattachments = count($DB->get_records('files', ['itemid' => $this->post->id]));
         $this->assertEquals(2, $numberofattachments);
 
         // Delete the post from the teacher with its attachment.
         moodleoverflow_delete_post($this->post, false, $this->coursemodule, $this->moodleoverflow);
 
         // Now try to get the attachment.
-        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->id)));
+        $numberofattachments = count($DB->get_records('files', ['itemid' => $this->post->id]));
 
         $this->assertEquals(0, $numberofattachments);
     }
@@ -98,14 +98,14 @@ class post_test extends \advanced_testcase {
     public function test_moodleoverflow_delete_discussion() {
         global $DB;
 
-        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->id, 'filearea' => 'attachment')));
+        $numberofattachments = count($DB->get_records('files', ['itemid' => $this->post->id, 'filearea' => 'attachment']));
         $this->assertEquals(2, $numberofattachments);
 
         // Delete the post from the teacher with its attachment.
         moodleoverflow_delete_discussion($this->discussion[0], $this->course, $this->coursemodule, $this->moodleoverflow);
 
         // Now try to get the attachment.
-        $numberofattachments = count($DB->get_records('files', array('itemid' => $this->post->id)));
+        $numberofattachments = count($DB->get_records('files', ['itemid' => $this->post->id]));
         $this->assertEquals(0, $numberofattachments);
     }
 
@@ -118,18 +118,18 @@ class post_test extends \advanced_testcase {
         global $DB;
         // Create a new course with a moodleoverflow forum.
         $this->course = $this->getDataGenerator()->create_course();
-        $location = array('course' => $this->course->id);
+        $location = ['course' => $this->course->id];
         $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $this->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->moodleoverflow->id);
 
         // Create a teacher.
-        $this->teacher = $this->getDataGenerator()->create_user(array('firstname' => 'Tamaro', 'lastname' => 'Walter'));
+        $this->teacher = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'lastname' => 'Walter']);
         $this->getDataGenerator()->enrol_user($this->teacher->id, $this->course->id, 'student');
 
         // Create a discussion started from the teacher.
         $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
         $this->discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->teacher);
-        $this->post = $DB->get_record('moodleoverflow_posts', array('id' => $this->discussion[0]->firstpost), '*');
+        $this->post = $DB->get_record('moodleoverflow_posts', ['id' => $this->discussion[0]->firstpost], '*');
 
         // Create an attachment by inserting it directly in the database and update the post record.
 

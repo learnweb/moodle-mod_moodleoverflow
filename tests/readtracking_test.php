@@ -49,13 +49,13 @@ class readtracking_test extends advanced_testcase {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF); // Off.
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF]; // Off.
         $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED); // On.
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED]; // On.
         $moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL); // Optional.
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL]; // Optional.
         $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Allow force.
@@ -98,13 +98,13 @@ class readtracking_test extends advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL);
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL];
         $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED);
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED];
         $moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF);
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF];
         $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Allow force.

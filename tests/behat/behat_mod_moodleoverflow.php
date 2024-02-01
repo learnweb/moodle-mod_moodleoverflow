@@ -103,7 +103,7 @@ class behat_mod_moodleoverflow extends behat_base {
 
         // Navigate to moodleoverflow.
         $this->execute('behat_navigation::i_am_on_page_instance', [$this->escape($moodleoverflowname),
-            'moodleoverflow activity']);
+            'moodleoverflow activity', ]);
         $this->execute('behat_forms::press_button', $buttonstr);
 
         // Fill form and post.
