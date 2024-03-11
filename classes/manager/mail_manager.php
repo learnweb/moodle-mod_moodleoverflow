@@ -406,7 +406,7 @@ class mail_manager {
                 ['userid' => $dataobject->userid,
                     'courseid' => $dataobject->courseid,
                     'forumid' => $dataobject->forumid,
-                    'forumdiscussionid' => $dataobject->forumdiscussionid],
+                    'forumdiscussionid' => $dataobject->forumdiscussionid, ],
                 'numberofposts, id');
             if (is_object($record)) {
                 $dataset = $record;
@@ -497,6 +497,7 @@ class mail_manager {
         // Preapare to actually send the post now. Build up the content.
         $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
         $coursecontext = context_course::instance($course->id);
+        // TODO: deprecated, option array should not contain context objects.
         $shortname = format_string($course->shortname, true, ['context' => $coursecontext]);
 
         // Define a header to make mails easier to track.

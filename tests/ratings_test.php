@@ -107,7 +107,7 @@ class ratings_test extends \advanced_testcase {
      * Test case: Every group of rating exists (helful and solved posts, only helpful/solved and none)
      * @covers \ratings::moodleoverflow_sort_answer_by_ratings()
      */
-    public function test_answersorting_everygroup() {
+    public function test_answersorting_everygroup(): void {
         // Create helpful, solved, up and downvotes ratings.
         $this->create_everygroup();
 
@@ -132,7 +132,7 @@ class ratings_test extends \advanced_testcase {
      * Test case: One group of rating does not exist
      * @covers \ratings::moodleoverflow_sort_answer_by_ratings()
      */
-    public function test_answersorting_threegroups() {
+    public function test_answersorting_threegroups(): void {
         // Create helpful, solved, up and downvotes ratings.
         $this->create_everygroup();
 
@@ -178,7 +178,7 @@ class ratings_test extends \advanced_testcase {
      * Test case: two groups of rating do not exist
      * @covers \ratings::moodleoverflow_sort_answer_by_ratings()
      */
-    public function test_answersorting_twogroups() {
+    public function test_answersorting_twogroups(): void {
         $this->set_ratingpreferences(0);
 
         // Test case 1: helpful and solved post, only solved posts.
@@ -228,7 +228,7 @@ class ratings_test extends \advanced_testcase {
      * Extended Test Case: If the votesdifference is the same, the post should be sorted by their time of creation/modification.
      * @covers \ratings::moodleoverflow_sort_answer_by_ratings()
      */
-    public function test_answersorting_onegroup() {
+    public function test_answersorting_onegroup(): void {
         $this->set_ratingpreferences(0);
 
         // Test case 1: only solved and helpful posts.

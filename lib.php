@@ -788,7 +788,7 @@ function moodleoverflow_send_mails() {
                                                 ['userid' => $dataobject->userid,
                                                       'courseid' => $dataobject->courseid,
                                                       'forumid' => $dataobject->forumid,
-                                                      'forumdiscussionid' => $dataobject->forumdiscussionid],
+                                                      'forumdiscussionid' => $dataobject->forumdiscussionid, ],
                                                       'numberofposts, id');
                     if (is_object($record)) {
                         $dataset = $record;
@@ -884,6 +884,7 @@ function moodleoverflow_send_mails() {
                 // Preapare to actually send the post now. Build up the content.
                 $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
                 $coursecontext = context_course::instance($course->id);
+                // TODO: Deprecated, options should not contain a context object.
                 $shortname = format_string($course->shortname, true, ['context' => $coursecontext]);
 
                 // Define a header to make mails easier to track.

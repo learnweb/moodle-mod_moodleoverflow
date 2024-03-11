@@ -108,12 +108,12 @@ class review_test extends \advanced_testcase {
      *
      * @runInSeparateProcess
      */
-    public function test_forum_review_everything() {
+    public function test_forum_review_everything(): void {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
 
         $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
 
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
@@ -173,12 +173,12 @@ class review_test extends \advanced_testcase {
      *
      * @runInSeparateProcess
      */
-    public function test_forum_review_only_questions() {
+    public function test_forum_review_only_questions(): void {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
 
         $options = ['course' => $this->course->id, 'needsreview' => review::QUESTIONS,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
@@ -214,9 +214,9 @@ class review_test extends \advanced_testcase {
     /**
      * Test reviews functionality when reviewing is allowed in admin settings.
      */
-    public function test_forum_review_disallowed() {
+    public function test_forum_review_disallowed(): void {
         $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
 
         set_config('allowreview', 0, 'moodleoverflow');
 
