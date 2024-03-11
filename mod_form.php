@@ -266,23 +266,6 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
     }
 
-    public function get_data() {
-        $data = parent::get_data();
-        if ($data) {
-            $itemname = 'moodleoverflow';
-            $component = 'mod_moodleoverflow';
-            $gradepassfieldname = component_gradeitems::get_field_name_for_itemname($component, $itemname, 'gradepass');
-
-            // Convert the grade pass value - we may be using a language which uses commas,
-            // rather than decimal points, in numbers. These need to be converted so that
-            // they can be added to the DB.
-            if (isset($data->{$gradepassfieldname})) {
-                $data->{$gradepassfieldname} = unformat_float($data->{$gradepassfieldname});
-            }
-        }
-
-        return $data;
-    }
     public function data_preprocessing(&$default_values) {
         parent::data_preprocessing($default_values);
     }
