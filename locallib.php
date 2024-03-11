@@ -2056,11 +2056,7 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     if ($DB->record_exists('moodleoverflow_grades', ['userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id])) {
 
         $DB->set_field('moodleoverflow_grades', 'grade', $grade, ['userid' => $userid,
-<<<<<<< HEAD
             'moodleoverflowid' => $moodleoverflow->id, ]);
-=======
-            'moodleoverflowid' => $moodleoverflow->id]);
->>>>>>> master
 
     } else {
 

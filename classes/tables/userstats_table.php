@@ -277,11 +277,7 @@ class userstats_table extends \flexible_table {
                                                     'tabindex' => '0',
                                                     'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
                                                                       get_string('helpamountofactivity', 'moodleoverflow') .
-<<<<<<< HEAD
                                                                       '</p> </div>', ];
-=======
-                                                                      '</p> </div>'];
->>>>>>> master
 
         $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
                                                          $this->helpactivity->class,

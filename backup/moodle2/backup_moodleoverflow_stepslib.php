@@ -47,39 +47,23 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $moodleoverflow = new backup_nested_element('moodleoverflow', ['id'], [
             'name', 'intro', 'introformat', 'maxbytes', 'maxattachments',
             'forcesubscribe', 'trackingtype', 'timecreated', 'timemodified',
-<<<<<<< HEAD
             'ratingpreference', 'coursewidereputation', 'allownegativereputation', ]);
-=======
-            'ratingpreference', 'coursewidereputation', 'allownegativereputation']);
->>>>>>> master
 
         // Define each element separated.
         $discussions = new backup_nested_element('discussions');
         $discussion = new backup_nested_element('discussion', ['id'], [
-<<<<<<< HEAD
             'name', 'firstpost', 'userid', 'timemodified', 'usermodified', 'timestart', ]);
-=======
-            'name', 'firstpost', 'userid', 'timemodified', 'usermodified', 'timestart']);
->>>>>>> master
 
         $posts = new backup_nested_element('posts');
 
         $post = new backup_nested_element('post', ['id'], [
             'parent', 'userid', 'created', 'modified',
-<<<<<<< HEAD
             'mailed', 'message', 'messageformat', 'attachment', ]);
-=======
-            'mailed', 'message', 'messageformat', 'attachment']);
->>>>>>> master
 
         $ratings = new backup_nested_element('ratings');
 
         $rating = new backup_nested_element('rating', ['id'], [
-<<<<<<< HEAD
             'userid', 'rating', 'firstrated', 'lastchanged', ]);
-=======
-            'userid', 'rating', 'firstrated', 'lastchanged']);
->>>>>>> master
 
         $discussionsubs = new backup_nested_element('discuss_subs');
 
@@ -91,30 +75,18 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $subscriptions = new backup_nested_element('subscriptions');
 
         $subscription = new backup_nested_element('subscription', ['id'], [
-<<<<<<< HEAD
             'userid', ]);
-=======
-            'userid']);
->>>>>>> master
 
         $readposts = new backup_nested_element('readposts');
 
         $read = new backup_nested_element('read', ['id'], [
             'userid', 'discussionid', 'postid', 'firstread',
-<<<<<<< HEAD
             'lastread', ]);
-=======
-            'lastread']);
->>>>>>> master
 
         $tracking = new backup_nested_element('tracking');
 
         $track = new backup_nested_element('track', ['id'], [
-<<<<<<< HEAD
             'userid', ]);
-=======
-            'userid']);
->>>>>>> master
 
         // Build the tree.
         $moodleoverflow->add_child($discussions);
