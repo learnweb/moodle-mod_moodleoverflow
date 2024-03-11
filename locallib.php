@@ -1446,6 +1446,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
+    // TODO: Deprecated $courseiddonotuse deprecated course id, use context option instead.
     $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
 
     // Load the attachments.
