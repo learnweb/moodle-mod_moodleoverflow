@@ -497,8 +497,7 @@ class mail_manager {
 
         // Preapare to actually send the post now. Build up the content.
         $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
-        $formatter = \core\di::get(\core\formatting::class);
-        $shortname = $formatter->format_string($course->shortname, true, course::instance($course->id));
+        $shortname = format_string($course->shortname, true, ['context' => course::instance($course->id)]);
 
         // Define a header to make mails easier to track.
         $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);

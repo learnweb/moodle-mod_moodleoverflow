@@ -1434,8 +1434,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
-    $formatter = \core\di::get(\core\formatting::class);
-    $mustachedata->postcontent = $formatter->format_text($post->message, $post->messageformat, context_module::instance($cm->id));
+    $mustachedata->postcontent = format_text($post->message, $post->messageformat, context_module::instance($cm->id));
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
