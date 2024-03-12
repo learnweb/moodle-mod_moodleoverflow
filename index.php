@@ -216,7 +216,7 @@ if (!is_null($subscribe)) {
     $returnto = moodleoverflow_go_back_to($url);
 
     // Prepare the message to be displayed.
-    $shortname = format_string($course->shortname, true, ['context' => course::instance($course->id)]);
+    $shortname = format_string($course->shortname, true, ['context' => context_course::instance($course->id)]);
     $notification = \core\output\notification::NOTIFY_SUCCESS;
 
     // Redirect the user depending on the subscription state.
