@@ -1397,6 +1397,7 @@ class subscriptions_test extends advanced_testcase {
      * @param array $options
      *
      * @dataProvider is_subscribable_provider
+     * @return void
      */
     public function test_is_subscribable_logged_out($options): void {
         $this->resetAfterTest(true);
@@ -1416,6 +1417,7 @@ class subscriptions_test extends advanced_testcase {
      * @param array $options
      *
      * @dataProvider is_subscribable_provider
+     * @return void
      */
     public function test_is_subscribable_is_guest($options): void {
         global $DB;

@@ -24,7 +24,6 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
@@ -928,12 +927,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
-    /*$newpost = [];
-    foreach($posts as $posti) {
-        $newpost[] = $posti->message;
-    }
-    var_dump($newpost);
-    */$usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
 
     // Start with the parent post.
     $post = $posts[$post->id];
@@ -1432,12 +1426,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
     $mustachedata->questioner = $post->userid == $discussion->userid ? 'questioner' : '';
 
-    // Set options for the post.
-    $options = new stdClass();
-    $options->para = false;
-    $options->trusted = false;
-    $options->context = $modulecontext;
-
     $reviewdelay = get_config('moodleoverflow', 'reviewpossibleaftertime');
     $mustachedata->reviewdelay = format_time($reviewdelay);
     $mustachedata->needsreview = !$post->reviewed;
@@ -1446,8 +1434,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
-    // TODO: Deprecated $courseiddonotuse deprecated course id, use context option instead.
-    $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
+    $formatter = \core\di::get(\core\formatting::class);
+    $mustachedata->postcontent = $formatter->format_text($post->message, $post->messageformat, context_module::instance($cm->id));
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
@@ -1857,10 +1845,10 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
                 $post->id, "filename", true);
             foreach ($attachments as $attachment) {
-                // Get file
+                // Get file.
                 $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
                     $attachment->get_filepath(), $attachment->get_filename());
-                // Delete it if it exists
+                // Delete it if it exists.
                 if ($file) {
                     $file->delete();
                 }

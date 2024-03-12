@@ -23,6 +23,8 @@
  */
 
 // Require needed files.
+use core\context\course;
+
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 require_once($CFG->dirroot . '/course/lib.php');
@@ -214,8 +216,8 @@ if (!is_null($subscribe)) {
     $returnto = moodleoverflow_go_back_to($url);
 
     // Prepare the message to be displayed.
-    // TODO: Deprecated, options should not contain a context object.
-    $shortname = format_string($course->shortname, true, ['context' => context_course::instance($course->id)]);
+    $formatter = \core\di::get(\core\formatting::class);
+    $shortname = $formatter->format_string($course->shortname, true, course::instance($course->id));
     $notification = \core\output\notification::NOTIFY_SUCCESS;
 
     // Redirect the user depending on the subscription state.

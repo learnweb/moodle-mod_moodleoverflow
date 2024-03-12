@@ -26,6 +26,7 @@ namespace mod_moodleoverflow\manager;
 
 use context_course;
 use context_module;
+use core\context\course;
 use core_php_time_limit;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
@@ -496,9 +497,8 @@ class mail_manager {
 
         // Preapare to actually send the post now. Build up the content.
         $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
-        $coursecontext = context_course::instance($course->id);
-        // TODO: deprecated, option array should not contain context objects.
-        $shortname = format_string($course->shortname, true, ['context' => $coursecontext]);
+        $formatter = \core\di::get(\core\formatting::class);
+        $shortname = $formatter->format_string($course->shortname, true, course::instance($course->id));
 
         // Define a header to make mails easier to track.
         $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);
