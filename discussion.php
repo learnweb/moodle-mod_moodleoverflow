@@ -25,6 +25,7 @@
 // Include config and locallib.
 require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
+require_once($CFG->dirroot . '/course/modlib.php');
 
 // Declare optional parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
@@ -160,8 +161,9 @@ echo "<br>";
 
 echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
 
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks);
-
+//moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks);
+$processingdata = get_moduleinfo_data($cm, $course);
+var_dump($processingdata);
 echo '</div></div>';
 
 echo $OUTPUT->footer();

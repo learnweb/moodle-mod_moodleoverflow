@@ -266,7 +266,15 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
     }
 
+    /**
+     * Set
+     * @param $default_values
+     * @return void
+     */
     public function data_preprocessing(&$default_values) {
         parent::data_preprocessing($default_values);
+
+        // Fill the anonymous and the grade options with the values that were set.
+
     }
 }
