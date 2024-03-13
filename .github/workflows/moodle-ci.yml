@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         php: ['8.2']
-        moodle-branch: ['master']
+        moodle-branch: ['MOODLE_403_STABLE']
         database: ['pgsql']
 
     steps:
@@ -115,17 +115,17 @@ jobs:
         database: ['mariadb', 'pgsql']
         include:
           - php: '8.2'
-              moodle-branch: 'MOODLE_402_STABLE'
-              database: 'mariadb'
+            moodle-branch: 'MOODLE_402_STABLE'
+            database: 'mariadb'
           - php: '8.2'
-              moodle-branch: 'MOODLE_402_STABLE'
-              database: 'pgsql'
+            moodle-branch: 'MOODLE_402_STABLE'
+            database: 'pgsql'
           - php: '8.2'
-              moodle-branch: 'MOODLE_403_STABLE'
-              database: 'mariadb'
+            moodle-branch: 'MOODLE_403_STABLE'
+            database: 'mariadb'
           - php: '8.2'
-              moodle-branch: 'MOODLE_403_STABLE'
-              database: 'pgsql'
+            moodle-branch: 'MOODLE_403_STABLE'
+            database: 'pgsql'
 
     steps:
       - name: Start MariaDB
