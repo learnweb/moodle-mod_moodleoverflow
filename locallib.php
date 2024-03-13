@@ -157,7 +157,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $userstatsbuttontext = get_string('seeuserstats', 'moodleoverflow');
         $userstatsbuttonurl = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
                                                                            'courseid' => $moodleoverflow->course,
-                                                                           'mid' => $moodleoverflow->id]);
+                                                                           'mid' => $moodleoverflow->id, ]);
         $userstatsbutton = new single_button($userstatsbuttonurl, $userstatsbuttontext, 'get');
         $userstatsbutton->class = 'singlebutton align-middle m-2';
         echo $OUTPUT->render($userstatsbutton);
@@ -325,7 +325,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         } else {
             // Get his picture, his name and the link to his profile.
             $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course,
-                                                                                    'link' => false]);
+                                                                                    'link' => false, ]);
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
             $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;
@@ -2061,7 +2061,7 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     if ($DB->record_exists('moodleoverflow_grades', ['userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id])) {
 
         $DB->set_field('moodleoverflow_grades', 'grade', $grade, ['userid' => $userid,
-            'moodleoverflowid' => $moodleoverflow->id]);
+            'moodleoverflowid' => $moodleoverflow->id, ]);
 
     } else {
 

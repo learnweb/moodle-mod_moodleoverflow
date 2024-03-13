@@ -161,9 +161,7 @@ echo "<br>";
 
 echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
 
-//moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks);
-$processingdata = get_moduleinfo_data($cm, $course);
-var_dump($processingdata);
+moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks);
 echo '</div></div>';
 
 echo $OUTPUT->footer();

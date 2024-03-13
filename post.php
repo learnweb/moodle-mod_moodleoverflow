@@ -653,7 +653,7 @@ if ($fromform = $mformpost->get_data()) {
             'other' => [
                 'discussionid' => $discussion->id,
                 'moodleoverflowid' => $moodleoverflow->id,
-            ]];
+            ], ];
 
         // If the editing user is not the original author, add the original author to the params.
         if ($realpost->userid != $USER->id) {
@@ -705,7 +705,7 @@ if ($fromform = $mformpost->get_data()) {
                 'other' => [
                     'discussionid' => $discussion->id,
                     'moodleoverflowid' => $moodleoverflow->id,
-                ]];
+                ], ];
             $event = \mod_moodleoverflow\event\post_created::create($params);
             $event->trigger();
             redirect(
