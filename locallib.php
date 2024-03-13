@@ -928,12 +928,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
-    /*$newpost = [];
-    foreach($posts as $posti) {
-        $newpost[] = $posti->message;
-    }
-    var_dump($newpost);
-    */$usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
 
     // Start with the parent post.
     $post = $posts[$post->id];
@@ -1856,10 +1851,10 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
                 $post->id, "filename", true);
             foreach ($attachments as $attachment) {
-                // Get file
+                // Get file.
                 $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
                     $attachment->get_filepath(), $attachment->get_filename());
-                // Delete it if it exists
+                // Delete it if it exists.
                 if ($file) {
                     $file->delete();
                 }

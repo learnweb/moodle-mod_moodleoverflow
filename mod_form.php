@@ -265,16 +265,4 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $data->coursewidereputation = false;
         }
     }
-
-    /**
-     * Set
-     * @param $default_values
-     * @return void
-     */
-    public function data_preprocessing(&$defaultvalues) {
-        parent::data_preprocessing($defaultvalues);
-
-        // Fill the anonymous and the grade options with the values that were set.
-
-    }
 }
