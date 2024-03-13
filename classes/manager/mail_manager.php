@@ -26,6 +26,7 @@ namespace mod_moodleoverflow\manager;
 
 use context_course;
 use context_module;
+use core\context\course;
 use core_php_time_limit;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
@@ -406,7 +407,7 @@ class mail_manager {
                 ['userid' => $dataobject->userid,
                     'courseid' => $dataobject->courseid,
                     'forumid' => $dataobject->forumid,
-                    'forumdiscussionid' => $dataobject->forumdiscussionid],
+                    'forumdiscussionid' => $dataobject->forumdiscussionid, ],
                 'numberofposts, id');
             if (is_object($record)) {
                 $dataset = $record;
@@ -496,8 +497,7 @@ class mail_manager {
 
         // Preapare to actually send the post now. Build up the content.
         $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
-        $coursecontext = context_course::instance($course->id);
-        $shortname = format_string($course->shortname, true, ['context' => $coursecontext]);
+        $shortname = format_string($course->shortname, true, ['context' => context_course::instance($course->id)]);
 
         // Define a header to make mails easier to track.
         $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);

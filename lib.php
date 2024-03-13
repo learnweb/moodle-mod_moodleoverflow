@@ -29,6 +29,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\context\course;
+
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/locallib.php');
 
@@ -788,7 +790,7 @@ function moodleoverflow_send_mails() {
                                                 ['userid' => $dataobject->userid,
                                                       'courseid' => $dataobject->courseid,
                                                       'forumid' => $dataobject->forumid,
-                                                      'forumdiscussionid' => $dataobject->forumdiscussionid],
+                                                      'forumdiscussionid' => $dataobject->forumdiscussionid, ],
                                                       'numberofposts, id');
                     if (is_object($record)) {
                         $dataset = $record;
@@ -883,8 +885,7 @@ function moodleoverflow_send_mails() {
 
                 // Preapare to actually send the post now. Build up the content.
                 $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
-                $coursecontext = context_course::instance($course->id);
-                $shortname = format_string($course->shortname, true, ['context' => $coursecontext]);
+                $shortname = format_string($course->shortname, true, ['context' => context_course::instance($course->id)]);
 
                 // Define a header to make mails easier to track.
                 $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);

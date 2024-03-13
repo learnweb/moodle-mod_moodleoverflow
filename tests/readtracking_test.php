@@ -43,7 +43,7 @@ class readtracking_test extends advanced_testcase {
     /**
      * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.
      */
-    public function test_moodleoverflow_can_track_moodleoverflows() {
+    public function test_moodleoverflow_can_track_moodleoverflows(): void {
 
         // Reset after testing.
         $this->resetAfterTest();
@@ -92,7 +92,7 @@ class readtracking_test extends advanced_testcase {
     /**
      * Test the logic in the test_forum_tp_is_tracked() function.
      */
-    public function test_moodleoverflow_is_tracked() {
+    public function test_moodleoverflow_is_tracked(): void {
 
         $this->resetAfterTest();
 
