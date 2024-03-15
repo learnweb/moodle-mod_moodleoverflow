@@ -25,7 +25,6 @@
 // Include config and locallib.
 require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-require_once($CFG->dirroot . '/course/modlib.php');
 
 // Declare optional parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
