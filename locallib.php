@@ -157,7 +157,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $userstatsbuttontext = get_string('seeuserstats', 'moodleoverflow');
         $userstatsbuttonurl = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
                                                                            'courseid' => $moodleoverflow->course,
-                                                                           'mid' => $moodleoverflow->id]);
+                                                                           'mid' => $moodleoverflow->id, ]);
         $userstatsbutton = new single_button($userstatsbuttonurl, $userstatsbuttontext, 'get');
         $userstatsbutton->class = 'singlebutton align-middle m-2';
         echo $OUTPUT->render($userstatsbutton);
@@ -325,7 +325,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         } else {
             // Get his picture, his name and the link to his profile.
             $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course,
-                                                                                    'link' => false]);
+                                                                                    'link' => false, ]);
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
             $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;
@@ -928,12 +928,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Retrieve all posts of the discussion.
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
-    /*$newpost = [];
-    foreach($posts as $posti) {
-        $newpost[] = $posti->message;
-    }
-    var_dump($newpost);
-    */$usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
+    $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
 
     // Start with the parent post.
     $post = $posts[$post->id];
@@ -1856,10 +1851,10 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
                 $post->id, "filename", true);
             foreach ($attachments as $attachment) {
-                // Get file
+                // Get file.
                 $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
                     $attachment->get_filepath(), $attachment->get_filename());
-                // Delete it if it exists
+                // Delete it if it exists.
                 if ($file) {
                     $file->delete();
                 }
@@ -2061,7 +2056,7 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     if ($DB->record_exists('moodleoverflow_grades', ['userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id])) {
 
         $DB->set_field('moodleoverflow_grades', 'grade', $grade, ['userid' => $userid,
-            'moodleoverflowid' => $moodleoverflow->id]);
+            'moodleoverflowid' => $moodleoverflow->id, ]);
 
     } else {
 

@@ -75,7 +75,7 @@ class post_test extends \advanced_testcase {
      * Test if a post and its attachment are deleted successfully.
      * @covers ::moodleoverflow_delete_post
      */
-    public function test_moodleoverflow_delete_post() {
+    public function test_moodleoverflow_delete_post(): void {
         global $DB;
 
         // The attachment should exist.
@@ -95,7 +95,7 @@ class post_test extends \advanced_testcase {
      * Test if a post and its attachment are deleted successfully.
      * @covers ::moodleoverflow_delete_discussion
      */
-    public function test_moodleoverflow_delete_discussion() {
+    public function test_moodleoverflow_delete_discussion(): void {
         global $DB;
 
         $numberofattachments = count($DB->get_records('files', ['itemid' => $this->post->id, 'filearea' => 'attachment']));
