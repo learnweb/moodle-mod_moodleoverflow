@@ -110,7 +110,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test to set subscription modes.
      */
-    public function test_subscription_modes() {
+    public function test_subscription_modes(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -162,7 +162,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test fetching unsubscribable moodleoverflows.
      */
-    public function test_unsubscribable_moodleoverflows() {
+    public function test_unsubscribable_moodleoverflows(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -211,7 +211,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that toggeling the moodleoverflow-level subscription for a different user does not affect their discussion-level.
      */
-    public function test_moodleoverflow_toggle_as_other() {
+    public function test_moodleoverflow_toggle_as_other(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -384,7 +384,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that a user unsubscribed from a moodleoverflow is not subscribed to it's discussions by default.
      */
-    public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed() {
+    public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed(): void {
         // Reset the database after the test.
         $this->resetAfterTest(true);
 
@@ -411,7 +411,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the act of subscribing to a moodleoverflow subscribes the user to it's discussions by default.
      */
-    public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed() {
+    public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -450,7 +450,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that a user unsubscribed from a moodleoverflow can be subscribed to a discussion.
      */
-    public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed_discussion_subscribed() {
+    public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed_discussion_subscribed(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -494,7 +494,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that a user subscribed to a moodleoverflow can be unsubscribed from a discussion.
      */
-    public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed_discussion_unsubscribed() {
+    public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed_discussion_unsubscribed(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -536,7 +536,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test the effect of toggling the discussion subscription status when subscribed to the moodleoverflow.
      */
-    public function test_moodleoverflow_discussion_toggle_moodleoverflow_subscribed() {
+    public function test_moodleoverflow_discussion_toggle_moodleoverflow_subscribed(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -715,7 +715,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test the effect of toggling the discussion subscription status when unsubscribed from the moodleoverflow.
      */
-    public function test_moodleoverflow_discussion_toggle_moodleoverflow_unsubscribed() {
+    public function test_moodleoverflow_discussion_toggle_moodleoverflow_unsubscribed(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -816,7 +816,7 @@ class subscriptions_test extends advanced_testcase {
      * Test that the correct users are returned when fetching subscribed users
      * from a moodleoverflow where users can choose to subscribe and unsubscribe.
      */
-    public function test_fetch_subscribed_users_subscriptions() {
+    public function test_fetch_subscribed_users_subscriptions(): void {
         global $CFG;
 
         // Reset the database after testing.
@@ -859,7 +859,7 @@ class subscriptions_test extends advanced_testcase {
      * Test that the correct users are returned hwen fetching subscribed users from a moodleoverflow where users are forcibly
      * subscribed.
      */
-    public function test_fetch_subscribed_users_forced() {
+    public function test_fetch_subscribed_users_forced(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
@@ -884,7 +884,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that unusual combinations of discussion subscriptions do not affect the subscribed user list.
      */
-    public function test_fetch_subscribed_users_discussion_subscriptions() {
+    public function test_fetch_subscribed_users_discussion_subscriptions(): void {
         global $DB;
 
         // Reset after testing.
@@ -970,7 +970,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test whether a user is force-subscribed to a moodleoverflow.
      */
-    public function test_force_subscribed_to_moodleoverflow() {
+    public function test_force_subscribed_to_moodleoverflow(): void {
         global $DB;
 
         // Reset database after testing.
@@ -1003,7 +1003,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the subscription cache can be pre-filled.
      */
-    public function test_subscription_cache_prefill() {
+    public function test_subscription_cache_prefill(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1037,7 +1037,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the subscription cache can filled user-at-a-time.
      */
-    public function test_subscription_cache_fill() {
+    public function test_subscription_cache_fill(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1069,7 +1069,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the discussion subscription cache can filled course-at-a-time.
      */
-    public function test_discussion_subscription_cache_fill_for_course() {
+    public function test_discussion_subscription_cache_fill_for_course(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1122,7 +1122,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the discussion subscription cache can be forcibly updated for a user.
      */
-    public function test_discussion_subscription_cache_prefill() {
+    public function test_discussion_subscription_cache_prefill(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1189,7 +1189,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the discussion subscription cache can filled user-at-a-time.
      */
-    public function test_discussion_subscription_cache_fill() {
+    public function test_discussion_subscription_cache_fill(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1262,7 +1262,7 @@ class subscriptions_test extends advanced_testcase {
      * Test that after toggling the moodleoverflow subscription as another user,
      * the discussion subscription functionality works as expected.
      */
-    public function test_moodleoverflow_subscribe_toggle_as_other_repeat_subscriptions() {
+    public function test_moodleoverflow_subscribe_toggle_as_other_repeat_subscriptions(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1397,8 +1397,9 @@ class subscriptions_test extends advanced_testcase {
      * @param array $options
      *
      * @dataProvider is_subscribable_provider
+     * @return void
      */
-    public function test_is_subscribable_logged_out($options) {
+    public function test_is_subscribable_logged_out($options): void {
         $this->resetAfterTest(true);
 
         // Create a course, with a moodleoverflow.
@@ -1416,8 +1417,9 @@ class subscriptions_test extends advanced_testcase {
      * @param array $options
      *
      * @dataProvider is_subscribable_provider
+     * @return void
      */
-    public function test_is_subscribable_is_guest($options) {
+    public function test_is_subscribable_is_guest($options): void {
         global $DB;
         $this->resetAfterTest(true);
 
@@ -1466,8 +1468,9 @@ class subscriptions_test extends advanced_testcase {
      * @param bool  $expect
      *
      * @dataProvider is_subscribable_loggedin_provider
+     * @return void
      */
-    public function test_is_subscribable_loggedin($options, $expect) {
+    public function test_is_subscribable_loggedin($options, $expect): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 

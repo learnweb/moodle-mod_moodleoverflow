@@ -490,7 +490,8 @@ file_prepare_draft_area($draftitemid,
     empty($post->id) ? null : $post->id,
     mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
 
-if ($draftitemid && $edit && \mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid) && $post->userid != $USER->id) {
+if ($draftitemid && $edit && \mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)
+    && $post->userid != $USER->id) {
     $usercontext = context_user::instance($USER->id);
     $anonymousstr = get_string('anonymous', 'moodleoverflow');
     foreach (get_file_storage()->get_area_files($usercontext->id, 'user', 'draft', $draftitemid) as $file) {
@@ -653,7 +654,7 @@ if ($fromform = $mformpost->get_data()) {
             'other' => [
                 'discussionid' => $discussion->id,
                 'moodleoverflowid' => $moodleoverflow->id,
-            ]];
+            ], ];
 
         // If the editing user is not the original author, add the original author to the params.
         if ($realpost->userid != $USER->id) {
@@ -705,7 +706,7 @@ if ($fromform = $mformpost->get_data()) {
                 'other' => [
                     'discussionid' => $discussion->id,
                     'moodleoverflowid' => $moodleoverflow->id,
-                ]];
+                ], ];
             $event = \mod_moodleoverflow\event\post_created::create($params);
             $event->trigger();
             redirect(

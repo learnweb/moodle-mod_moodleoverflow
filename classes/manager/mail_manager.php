@@ -406,7 +406,7 @@ class mail_manager {
                 ['userid' => $dataobject->userid,
                     'courseid' => $dataobject->courseid,
                     'forumid' => $dataobject->forumid,
-                    'forumdiscussionid' => $dataobject->forumdiscussionid],
+                    'forumdiscussionid' => $dataobject->forumdiscussionid, ],
                 'numberofposts, id');
             if (is_object($record)) {
                 $dataset = $record;
