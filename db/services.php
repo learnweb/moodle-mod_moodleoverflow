@@ -24,30 +24,30 @@
  */
 defined('MOODLE_INTERNAL') || die;
 
-$functions = array(
-    'mod_moodleoverflow_record_vote' => array(
+$functions = [
+    'mod_moodleoverflow_record_vote' => [
         'classname' => 'mod_moodleoverflow_external',
         'methodname' => 'record_vote',
         'classpath' => 'mod/moodleoverflow/externallib.php',
         'description' => 'Records a vote and updates the reputation of a user',
         'type' => 'write',
         'ajax' => true,
-        'capabilities' => 'mod/moodleoverflow:ratepost'
-    ),
-    'mod_moodleoverflow_review_approve_post' => array(
+        'capabilities' => 'mod/moodleoverflow:ratepost',
+    ],
+    'mod_moodleoverflow_review_approve_post' => [
         'classname' => 'mod_moodleoverflow_external',
         'methodname' => 'review_approve_post',
         'classpath' => 'mod/moodleoverflow/externallib.php',
         'description' => 'Approves a post',
         'type' => 'write',
         'ajax' => true,
-    ),
-    'mod_moodleoverflow_review_reject_post' => array(
+    ],
+    'mod_moodleoverflow_review_reject_post' => [
         'classname' => 'mod_moodleoverflow_external',
         'methodname' => 'review_reject_post',
         'classpath' => 'mod/moodleoverflow/externallib.php',
         'description' => 'Rejects a post',
         'type' => 'write',
         'ajax' => true,
-    ),
-);
+    ],
+];

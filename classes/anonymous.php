@@ -87,7 +87,7 @@ class anonymous {
         if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
             return [
                 $DB->get_field('moodleoverflow_posts', 'userid',
-                    ['parent' => 0, 'discussion' => $discussionid]) => get_string('questioner', 'mod_moodleoverflow')
+                    ['parent' => 0, 'discussion' => $discussionid]) => get_string('questioner', 'mod_moodleoverflow'),
             ];
         }
 

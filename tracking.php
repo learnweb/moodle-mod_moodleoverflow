@@ -34,12 +34,12 @@ $returnpage = optional_param('returnpage', 'index.php', PARAM_FILE); // The page
 require_sesskey();
 
 // Retrieve the moodleoverflow instance to track or untrack.
-if (!$moodleoverflow = $DB->get_record("moodleoverflow", array("id" => $id))) {
+if (!$moodleoverflow = $DB->get_record("moodleoverflow", ["id" => $id])) {
     throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
 }
 
 // Retrieve the course of the instance.
-if (!$course = $DB->get_record("course", array("id" => $moodleoverflow->course))) {
+if (!$course = $DB->get_record("course", ["id" => $moodleoverflow->course])) {
     throw new moodle_exception('invalidcoursemodule');
 }
 
@@ -53,7 +53,7 @@ require_login($course, false, $cm);
 
 // Set the page to return to.
 $url = '/mod/moodleoverflow/' . $returnpage;
-$params = array('id' => $course->id, 'm' => $moodleoverflow->id);
+$params = ['id' => $course->id, 'm' => $moodleoverflow->id];
 $returnpageurl = new moodle_url($url, $params);
 $returnto = moodleoverflow_go_back_to($returnpageurl);
 
@@ -72,11 +72,11 @@ $info->name = fullname($USER);
 $info->moodleoverflow = format_string($moodleoverflow->name);
 
 // Set parameters for an event.
-$eventparams = array(
+$eventparams = [
     'context' => context_module::instance($cm->id),
     'relateduserid' => $USER->id,
-    'other' => array('moodleoverflowid' => $moodleoverflow->id),
-);
+    'other' => ['moodleoverflowid' => $moodleoverflow->id],
+];
 
 // Check whether the moodleoverflow is tracked.
 $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
