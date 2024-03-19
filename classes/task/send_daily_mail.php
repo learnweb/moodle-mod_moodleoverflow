@@ -81,7 +81,7 @@ class send_daily_mail extends \core\task\scheduled_task {
                 $string = get_string('digestunreadpost', 'mod_moodleoverflow', ['linktocourse' => $linktocourse,
                                                                                      'linktoforum' => $linktoforum,
                                                                                      'linktodiscussion' => $linktodiscussion,
-                                                                                     'unreadposts' => $unreadposts));
+                                                                                     'unreadposts' => $unreadposts, ]);
                 $mail[] = $string;
             }
             // Build the final message and send it to user. Then remove the sent records.
