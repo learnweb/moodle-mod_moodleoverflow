@@ -174,7 +174,7 @@ class dailymail_test extends \advanced_testcase {
         $this->helper_run_send_daily_mail();
         $messages = $this->sink->count();
         $content = $this->sink->get_messages();
-        var_dump($content);
+
         // There should be 2 mails.
         $this->assertEquals(2, $messages);
 
