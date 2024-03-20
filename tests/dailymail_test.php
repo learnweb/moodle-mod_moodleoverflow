@@ -164,7 +164,6 @@ class dailymail_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $location = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
-        $coursemodule = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $student = $this->getDataGenerator()->create_user(['firstname' => 'Ethan', 'email' => 'ethanmail@example.com',
                                                            'maildigest' => '1']);
         $this->getDataGenerator()->enrol_user($student->id, $course->id, 'teacher');
@@ -186,7 +185,7 @@ class dailymail_test extends \advanced_testcase {
             $this->assertStringContainsString($this->discussion[0]->name, $firstmail->body);
             $this->assertStringNotContainsString($discussion[0]->name, $firstmail->body);
         } else {
-            $this->assertEquals('petermail@example.com', $secondmail->to);
+            $this->assertEquals('ethanmail@example.com', $secondmail->to);
             $this->assertStringContainsString($discussion[0]->name, $secondmail->body);
             $this->assertStringNotContainsString($this->discussion[0]->name, $secondmail->body);
         }
