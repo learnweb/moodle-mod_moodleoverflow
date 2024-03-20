@@ -181,13 +181,21 @@ class dailymail_test extends \advanced_testcase {
         // Check the recipient of the mails and the discussion that is addressed. There should be no false addressed discussions.
         $firstmail = $content[0];
         $secondmail = $content[1];
-        $this->assertEquals('tamaromail@example.com', $firstmail->to);
-        $this->assertStringContainsString($this->discussion[0]->name, $firstmail->body);
-        $this->assertStringNotContainsString($discussion[0]->name, $firstmail->body);
-
-        $this->assertEquals('ethanmail@example.com', $secondmail->to);
-        $this->assertStringContainsString($discussion[0]->name, $secondmail->body);
-        $this->assertStringNotContainsString($this->discussion[0]->name, $secondmail->body);
+        // Depending on the order of the mails, check the recipient and the discussion that is addressed.
+        if ($firstmail->to == "tamaromail@example.com") {
+            $this->assertStringContainsString($this->discussion[0]->name, $firstmail->body);
+            $this->assertStringNotContainsString($discussion[0]->name, $firstmail->body);
+            $this->assertEquals('ethanmail@example.com', $secondmail->to);
+            $this->assertStringContainsString($discussion[0]->name, $secondmail->body);
+            $this->assertStringNotContainsString($this->discussion[0]->name, $secondmail->body);
+        } else {
+            $this->assertEquals('ethanmail@example.com', $firstmail->to);
+            $this->assertStringContainsString($discussion[0]->name, $firstmail->body);
+            $this->assertStringNotContainsString($this->discussion[0]->name, $firstmail->body);
+            $this->assertEquals('tamaromail@example.com', $secondmail->to);
+            $this->assertStringContainsString($this->discussion[0]->name, $secondmail->body);
+            $this->assertStringNotContainsString($discussion[0]->name, $secondmail->body);
+        }
     }
 
 
