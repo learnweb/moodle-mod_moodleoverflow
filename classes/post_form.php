@@ -58,7 +58,8 @@ class mod_moodleoverflow_post_form extends moodleform {
         $modform->addRule('subject', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
         // The message.
-        $modform->addElement('editor', 'message', get_string('message', 'moodleoverflow'), null, self::editor_options($modcontext, (empty($post->id) ? null : $post->id)));
+        $modform->addElement('editor', 'message', get_string('message', 'moodleoverflow'), null,
+                             self::editor_options($modcontext, (empty($post->id) ? null : $post->id)));
         $modform->setType('message', PARAM_RAW);
         $modform->addRule('message', get_string('required'), 'required', null, 'client');
 
@@ -152,13 +153,13 @@ class mod_moodleoverflow_post_form extends moodleform {
     public static function editor_options(context_module $context, $postid) {
         global $COURSE, $PAGE, $CFG;
         $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes);
-        return array(
+        return [
             'maxfiles' => EDITOR_UNLIMITED_FILES,
             'maxbytes' => $maxbytes,
-            'trusttext'=> true,
-            'return_types'=> FILE_INTERNAL | FILE_EXTERNAL,
-            'subdirs' => file_area_contains_subdirs($context, 'mod_forum', 'post', $postid)
-        );
+            'trusttext' => true,
+            'return_types' => FILE_INTERNAL | FILE_EXTERNAL,
+            'subdirs' => file_area_contains_subdirs($context, 'mod_forum', 'post', $postid),
+        ];
     }
 }
 
