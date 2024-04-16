@@ -19,7 +19,7 @@ Feature: Add moodleoverflow activities and discussions
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I turn editing mode on
-    And I add a "Moodleoverflow" activity to course "C1" section "1" and I fill the form with:
+    And I add a "moodleoverflow" activity to course "C1" section "1" and I fill the form with:
       | Moodleoverflow name | Test moodleoverflow name |
       | Description | Test forum description |
     And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
