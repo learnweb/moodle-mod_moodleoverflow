@@ -179,11 +179,11 @@
     <TABLE NAME="moodleoverflow_mail_info" COMMENT="represent the content of the digest mail">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true"/>
-        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true"/>
-        <FIELD NAME="forumid" TYPE="int" LENGTH="10" NOTNULL="true"/>
-        <FIELD NAME="forumdiscussionid" TYPE="int" LENGTH="10" NOTNULL="true"/>
-        <FIELD NAME="numberofposts" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="forumid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="forumdiscussionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="numberofposts" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
