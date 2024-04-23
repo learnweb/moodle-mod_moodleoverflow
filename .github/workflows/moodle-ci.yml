@@ -8,8 +8,8 @@ jobs:
 
     strategy:
       matrix:
-        php: ['8.2']
-        moodle-branch: ['MOODLE_403_STABLE']
+        php: ['8.3']
+        moodle-branch: ['MOODLE_404_STABLE']
         database: ['pgsql']
 
     steps:
