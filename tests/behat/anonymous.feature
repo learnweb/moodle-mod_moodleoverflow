@@ -35,4 +35,4 @@ Feature: Use moodleoverflow anonymously
     And I should see "Questioner"
     Given I follow "Edit"
     And I click on "NH.jpg" "link"
-    Then the field "Author" matches value "Anonymous"
+    Then the field "Author" matches value "Questioner"
