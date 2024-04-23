@@ -166,16 +166,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     // Get all the recent discussions the user is allowed to see.
     $discussions = moodleoverflow_get_discussions($cm, $page, $perpage);
 
-    // If we want paging.
-    if ($page != -1) {
-
-        // Get the number of discussions.
-        $numberofdiscussions = moodleoverflow_get_discussions_count($cm);
-
-        // Show the paging bar.
-        echo $OUTPUT->paging_bar($numberofdiscussions, $page, $perpage, "view.php?id=$cm->id");
-    }
-
     // Get the number of replies for each discussion.
     $replies = moodleoverflow_count_discussion_replies($cm);
 
@@ -945,7 +935,6 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     // Retrieve all posts of the discussion.
     // This part is adapted/refactored to the new way of working with posts (use of get_id() function and discussion object).
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
-
     $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
 
     // Start with the parent post.

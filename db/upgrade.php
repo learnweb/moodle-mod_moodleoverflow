@@ -94,7 +94,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         $table->add_field('grade', XMLDB_TYPE_FLOAT, '10', null, XMLDB_NOTNULL, null, '0');
 
         // Adding keys to table moodleoverflow_grades.
-        $table->add_key('primary', XMLDB_KEY_PRIMARY,  ['id']);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('moodleoverflowid', XMLDB_KEY_FOREIGN, ['moodleoverflowid'], 'moodleoverflow', ['id']);
 
         // Conditionally launch create table for moodleoverflow_grades.

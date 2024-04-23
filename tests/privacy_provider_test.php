@@ -1456,14 +1456,16 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         self::assertContains("$context->id", $contextlist->get_contextids());
         provider::delete_data_for_user($contextlist);
         moodleoverflow_update_all_grades_for_cm($forum->id);
-        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade');
+        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null,
+                'userid, grade');
         self::assertEquals(2.5, $grades[$user->id]->grade);
         self::assertArrayNotHasKey($user2->id, $grades);
 
         // Test delete context.
         provider::delete_data_for_all_users_in_context($context);
         moodleoverflow_update_all_grades_for_cm($forum->id);
-        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade');
+        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null,
+                'userid, grade');
         self::assertEmpty($grades);
     }
 }
