@@ -26,6 +26,7 @@
 namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
+use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\review;
 
@@ -479,8 +480,7 @@ class post_control {
         if ($this->prepost->userid == $USER->id) {
             $redirectmessage = get_string('postupdated', 'moodleoverflow');
         } else {
-            if (\mod_moodleoverflow\anonymous::is_post_anonymous($this->info->discussion, $this->info->moodleoverflow,
-                                                                 $this->prepost->userid)) {
+            if (anonymous::is_post_anonymous($this->info->discussion, $this->info->moodleoverflow, $this->prepost->userid)) {
                 $name = get_string('anonymous', 'moodleoverflow');
             } else {
                 $realuser = $DB->get_record('user', ['id' => $this->prepost->userid]);
@@ -566,6 +566,16 @@ class post_control {
         file_prepare_draft_area($draftitemid, $this->info->modulecontext->id, 'mod_moodleoverflow', 'attachment',
                                 empty($this->prepost->postid) ? null : $this->prepost->postid,
                                 \mod_moodleoverflow_post_form::attachment_options($this->info->moodleoverflow));
+
+        // If the post is anonymous, attachments should have an anonymous author when editing the attachment.
+        if ($draftitemid && $this->interaction == 'edit' && anonymous::is_post_anonymous($this->info->discussion,
+                $this->info->moodleoverflow, $this->prepost->userid)) {
+            $usercontext = \context_user::instance($USER->id);
+            $anonymousstr = get_string('anonymous', 'moodleoverflow');
+            foreach (get_file_storage()->get_area_files($usercontext->id, 'user', 'draft', $draftitemid) as $file) {
+                $file->set_author($anonymousstr);
+            }
+        }
 
         // Prepare the form.
         $edit = $this->interaction == 'edit';

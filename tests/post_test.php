@@ -109,6 +109,7 @@ class post_test extends \advanced_testcase {
         $message = 'a new message';
 
         $time = time();
+
         // Update the post.
         $this->post->moodleoverflow_edit_post($time, $message, $this->post->messageformat, $this->post->formattachments);
 
