@@ -62,4 +62,15 @@ class rating_created extends \core\event\base {
     public static function get_name() {
         return get_string('eventratingcreated', 'mod_moodleoverflow');
     }
+
+    public static function get_objectid_mapping() {
+        return ['db' => 'moodleoverflow_ratings', 'restore' => 'moodleoverflow_ratings'];
+    }
+
+    public static function get_other_mapping() {
+        $othermapped = [];
+        $othermapped['moodleoverflowid'] = ['db' => 'moodleoverflow', 'restore' => 'moodleoverflow'];
+        $othermapped['discussionid'] = ['db' => 'moodleoverflow_discussions', 'restore' => 'moodleoverflow_discussions'];
+        return $othermapped;
+    }
 }

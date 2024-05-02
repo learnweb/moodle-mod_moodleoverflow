@@ -68,4 +68,14 @@ class subscription_created extends \core\event\base {
         return get_string('eventsubscriptioncreated', 'mod_moodleoverflow');
     }
 
+    public static function get_objectid_mapping() {
+        return ['db' => 'moodleoverflow_subscriptions', 'restore' => 'moodleoverflow_subscriptions'];
+    }
+
+    public static function get_other_mapping() {
+        $othermapped = [];
+        $othermapped['moodleoverflowid'] = ['db' => 'moodleoverflow', 'restore' => 'moodleoverflow'];
+        return $othermapped;
+    }
+
 }

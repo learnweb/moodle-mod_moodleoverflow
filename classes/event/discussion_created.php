@@ -68,4 +68,13 @@ class discussion_created extends \core\event\base {
         return get_string('eventdiscussioncreated', 'mod_moodleoverflow');
     }
 
+    public static function get_objectid_mapping() {
+        return ['db' => 'moodleoverflow_discussions', 'restore' => 'moodleoverflow_discussions'];
+    }
+
+    public static function get_other_mappint() {
+        $othermapped = [];
+        $othermapped['moodleoverflowid'] = ['db' => 'moodleoverflow', 'restore' => 'moodleoverflow'];
+        return $othermapped;
+    }
 }

@@ -62,5 +62,9 @@ class discussion_viewed extends \core\event\base {
     public static function get_name() {
         return get_string('eventdiscussionviewed', 'mod_moodleoverflow');
     }
+
+    public static function get_objectid_mapping() {
+        return ['db' => 'moodleoverflow_discussions', 'restore' => 'moodleoverflow_discussions'];
+    }
 }
 
