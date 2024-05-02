@@ -58,7 +58,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $posts = new backup_nested_element('posts');
         $post = new backup_nested_element('post', ['id'], [
             'parent', 'userid', 'created', 'modified',
-            'message', 'messageformat', 'attachment', 'mailed', ]);
+            'message', 'messageformat', 'attachment', 'mailed', 'reviewed', 'timereviewed', ]);
 
         $ratings = new backup_nested_element('ratings');
         $rating = new backup_nested_element('rating', ['id'], [
