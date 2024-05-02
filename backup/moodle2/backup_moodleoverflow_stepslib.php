@@ -53,7 +53,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         // Define each element separated.
         $discussions = new backup_nested_element('discussions');
         $discussion = new backup_nested_element('discussion', ['id'], [
-            'name', 'firstpost', 'userid', 'timestart', 'timemodified', 'usermodified', ]);
+            'name', 'userid', 'timestart', 'timemodified', 'usermodified', ]);
 
         $posts = new backup_nested_element('posts');
         $post = new backup_nested_element('post', ['id'], [
@@ -74,6 +74,9 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $readposts = new backup_nested_element('readposts');
         $read = new backup_nested_element('read', ['id'], [
             'userid', 'discussionid', 'postid', 'firstread', 'lastread', ]);
+
+        $grades = new backup_nested_element('grades');
+        $grade = new backup_nested_element('grade', ['id'], ['userid', 'grade']);
 
         $tracking = new backup_nested_element('tracking');
         $track = new backup_nested_element('track', ['id'], ['userid']);
