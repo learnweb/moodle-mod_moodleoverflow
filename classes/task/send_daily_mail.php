@@ -56,8 +56,13 @@ class send_daily_mail extends \core\task\scheduled_task {
             $mail = [];
             // Fill the $mail array.
             foreach ($userdata as $row) {
-                $currentcourse = $DB->get_record('course', ['id' => $row->courseid], 'fullname, id');
-                $currentforum = $DB->get_record('moodleoverflow', ['id' => $row->forumid], 'name, id');
+                $currentcourse = $DB->get_record('course', array('id' => $row->courseid), 'fullname, id');
+                // Check if the user is enrolled in the course, if not, go to the next row.
+                if (!is_enrolled(\context_course::instance($row->courseid), $user->userid, '', true)) {
+                    continue;
+                }
+
+                $currentforum = $DB->get_record('moodleoverflow', array('id' => $row->forumid), 'name, id');
                 $coursemoduleid = get_coursemodule_from_instance('moodleoverflow', $row->forumid);
                 $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $row->forumdiscussionid], 'name, id');
                 $unreadposts = $row->numberofposts;
@@ -77,7 +82,7 @@ class send_daily_mail extends \core\task\scheduled_task {
                                                                                      'linktoforum' => $linktoforum,
                                                                                      'linktodiscussion' => $linktodiscussion,
                                                                                      'unreadposts' => $unreadposts, ]);
-                array_push($mail, $string);
+                $mail[] = $string;
             }
             // Build the final message and send it to user. Then remove the sent records.
             $message = implode('<br>', $mail);
