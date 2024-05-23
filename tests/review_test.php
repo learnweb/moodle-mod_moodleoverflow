@@ -260,7 +260,7 @@ class review_test extends \advanced_testcase {
         $expected = (array)$expected;
         $actual = (object)$actual;
         foreach ($expected as $key => $value) {
-            $this->assertObjectHasAttribute($key, $actual, "Failed asserting that attribute '$key' exists.");
+            $this->assertObjectHasProperty($key, $actual, "Failed asserting that attribute '$key' exists.");
             $this->assertEquals($value, $actual->$key, "Failed asserting that \$obj->$key '" . $actual->$key . "' equals '$value'");
         }
     }
