@@ -42,6 +42,31 @@ use Behat\Mink\Exception\ExpectationException;
 class behat_mod_moodleoverflow extends behat_base {
 
     /**
+     * Adds a new moodleoverflow to the specified course and section.
+     *
+     * @Given I add a moodleoverflow to course :coursefullname section :sectionnum and I fill the form with:
+     * @param $courseshortname
+     * @param $sectionnumber
+     * @param $data
+     * @return void
+     */
+    public function i_add_a_moodleoverflow_to_course_section_and_fill_form($courseshortname, $sectionnumber, TableNode $data) {
+        global $CFG;
+
+        if ($CFG->branch >= 404) {
+            $this->execute(
+                "behat_course::i_add_to_course_section_and_i_fill_the_form_with",
+                [$this->escape('moodleoverflow'), $this->escape($courseshortname), $this->escape($sectionnumber), $data]
+            );
+        } else {
+            $this->execute(
+                "behat_course_deprecated::i_add_to_section_and_i_fill_the_form_with",
+                [$this->escape('moodleoverflow'), $this->escape($sectionnumber), $data]
+            );
+        }
+    }
+
+    /**
      * Adds a topic to the moodleoverflow specified by it's name. Useful for the Announcements and blog-style moodleoverflow.
      *
      * @Given /^I add a new topic to "(?P<moodleoverflow_name_string>(?:[^"]|\\")*)" moodleoverflow with:$/
