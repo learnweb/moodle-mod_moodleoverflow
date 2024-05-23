@@ -53,7 +53,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         // Define each element separated.
         $discussions = new backup_nested_element('discussions');
         $discussion = new backup_nested_element('discussion', ['id'], [
-            'name','firstpost', 'userid', 'timestart', 'timemodified', 'usermodified', ]);
+            'name', 'firstpost', 'userid', 'timestart', 'timemodified', 'usermodified', ]);
 
         $posts = new backup_nested_element('posts');
         $post = new backup_nested_element('post', ['id'], [

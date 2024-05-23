@@ -1382,7 +1382,7 @@ class subscriptions_test extends advanced_testcase {
      *
      * @return array
      */
-    public function is_subscribable_provider() {
+    public function is_subscribable_provider(): array {
         $data = [];
         foreach ($this->is_subscribable_moodleoverflows() as $moodleoverflow) {
             $data[] = [$moodleoverflow];
@@ -1440,7 +1440,7 @@ class subscriptions_test extends advanced_testcase {
      * Returns subscription obtions.
      * @return array
      */
-    public function is_subscribable_loggedin_provider() {
+    public function is_subscribable_loggedin_provider(): array {
         return [
             [
                 ['forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE],
