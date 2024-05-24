@@ -118,9 +118,6 @@ class review_test extends \advanced_testcase {
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
-        if ($CFG->branch >= 404) {
-            sleep(1); // Added delay
-        }
         $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
         $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
 
@@ -185,9 +182,6 @@ class review_test extends \advanced_testcase {
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
-        if ($CFG->branch >= 404) {
-            sleep(1); // Added delay
-        }
         $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
         $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
 
@@ -221,7 +215,6 @@ class review_test extends \advanced_testcase {
      * Test reviews functionality when reviewing is allowed in admin settings.
      */
     public function test_forum_review_disallowed(): void {
-        global $CFG;
         $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
 
@@ -230,9 +223,6 @@ class review_test extends \advanced_testcase {
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
 
-        if ($CFG->branch >= 404) {
-            sleep(1); // Added delay
-        }
         $this->assertEquals(0, $this->mailsink->count()); // Teacher has to approve student message.
         $this->assertEquals(4, $this->messagesink->count()); // Student and teacher get notification for student message.
 
