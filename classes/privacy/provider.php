@@ -324,22 +324,22 @@ class provider implements
 
             $DB->delete_records('moodleoverflow_read', [
                 'moodleoverflowid' => $forum->id,
-                'userid' => $userid]);
+                'userid' => $userid, ]);
 
             $DB->delete_records('moodleoverflow_subscriptions', [
                 'moodleoverflow' => $forum->id,
-                'userid' => $userid]);
+                'userid' => $userid, ]);
 
             $DB->delete_records('moodleoverflow_discuss_subs', [
                 'moodleoverflow' => $forum->id,
-                'userid' => $userid]);
+                'userid' => $userid, ]);
 
             $DB->delete_records('moodleoverflow_tracking', [
                 'moodleoverflowid' => $forum->id,
-                'userid' => $userid]);
+                'userid' => $userid, ]);
             $DB->delete_records('moodleoverflow_grades', [
                     'moodleoverflowid' => $forum->id,
-                    'userid' => $userid]);
+                    'userid' => $userid, ]);
 
             // Do not delete ratings but reset userid.
             $ratingsql = "userid = :userid AND discussionid IN
