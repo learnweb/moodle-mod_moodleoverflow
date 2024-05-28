@@ -262,6 +262,7 @@ class userstats_table extends \flexible_table {
      * Setup the help icon for amount of activity
      */
     public function set_helpactivity() {
+        global $CFG;
         $htmlclass = 'helpactivityclass btn btn-link';
         $content = get_string('helpamountofactivity', 'moodleoverflow');
         $helpobject = new helpicon($htmlclass, $content);
