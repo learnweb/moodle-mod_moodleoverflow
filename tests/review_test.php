@@ -307,23 +307,23 @@ class review_test extends \advanced_testcase {
         global $DB;
 
         // Fetch the posts directly after creation
-        $teacherpostDB = $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]);
-        $studentpostDB = $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]);
+        $teacherpostdb = $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]);
+        $studentpostdb = $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]);
 
         // Assert initial state
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review1, 'timereviewed' => null], $teacherpostDB);
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review2, 'timereviewed' => null], $studentpostDB);
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review1, 'timereviewed' => null], $teacherpostdb);
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review2, 'timereviewed' => null], $studentpostdb);
 
         $this->run_send_mails();
         $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
 
         // Fetch the posts after mailing
-        $teacherpostDB = $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]);
-        $studentpostDB = $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]);
+        $teacherpostdb = $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]);
+        $studentpostdb = $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]);
 
         // Assert post-mail state
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => $review1, 'timereviewed' => null], $teacherpostDB);
-        $this->assert_matches_properties(['mailed' => $mailed, 'reviewed' => $review2, 'timereviewed' => null], $studentpostDB);
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => $review1, 'timereviewed' => null], $teacherpostdb);
+        $this->assert_matches_properties(['mailed' => $mailed, 'reviewed' => $review2, 'timereviewed' => null], $studentpostdb);
     }
 
 }
