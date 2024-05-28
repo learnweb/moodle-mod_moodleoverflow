@@ -24,38 +24,38 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
+$tasks = [
 
     // Deliver mail notification about new posts.
-    array(
+    [
         'classname' => 'mod_moodleoverflow\task\send_mails',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',
         'day' => '*',
         'month' => '*',
-        'dayofweek' => '*'
-    ),
+        'dayofweek' => '*',
+    ],
 
     // Clean old read records.
-    array(
+    [
         'classname' => 'mod_moodleoverflow\task\clean_readrecords',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',
         'day' => '*',
         'month' => '*',
-        'dayofweek' => '*'
-    ),
+        'dayofweek' => '*',
+    ],
 
     // Clean old read records.
-    array(
+    [
         'classname' => 'mod_moodleoverflow\task\send_daily_mail',
         'blocking' => 0,
         'minute' => '0',
         'hour' => '17',
         'day' => '*',
         'month' => '*',
-        'dayofweek' => '*'
-    )
-);
+        'dayofweek' => '*',
+    ],
+];

@@ -27,8 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 
 use core_privacy\local\request\approved_contextlist;
-use \core_privacy\local\request\userlist;
-use \mod_moodleoverflow\privacy\provider;
+use core_privacy\local\request\userlist;
+use mod_moodleoverflow\privacy\provider;
 use mod_moodleoverflow\privacy\data_export_helper;
 
 /**
@@ -39,6 +39,7 @@ use mod_moodleoverflow\privacy\data_export_helper;
  * @group mod_moodleoverflow
  * @group mod_moodleoverflow_privacy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \provider
  */
 class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
@@ -306,7 +307,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
         // Rate the other users content.
-        $rating = array();
+        $rating = [];
         $rating['moodleoverflowid'] = $forum->id;
         $rating['discussionid'] = $discussion->id;
         $rating['userid'] = $user->id;
@@ -350,7 +351,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $context = \context_module::instance($cm->id);
         // Other users rate my content.
         // Rate the other users content.
-        $rating = array();
+        $rating = [];
         $rating['moodleoverflowid'] = $forum->id;
         $rating['discussionid'] = $discussion->id;
         $rating['userid'] = $otheruser->id;
@@ -644,7 +645,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
             if ($post->userid != $user->id) {
                 $ratedposts[$post->id] = $post;
 
-                $rating = array();
+                $rating = [];
                 $rating['moodleoverflowid'] = $forum->id;
                 $rating['discussionid'] = $discussion->id;
                 $rating['userid'] = $user->id;
@@ -686,7 +687,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         }
         // All ratings should have been deleted.
         foreach ($postsinforum as $post) {
-            $ratings = $DB->get_records('moodleoverflow_ratings', array('postid' => $post->id));
+            $ratings = $DB->get_records('moodleoverflow_ratings', ['postid' => $post->id]);
             $this->assertEmpty($ratings);
         }
 
@@ -715,7 +716,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
             if (!isset($ratedposts[$post->id])) {
                 continue;
             }
-            $ratings = $DB->get_records('moodleoverflow_ratings', array('postid' => $post->id));
+            $ratings = $DB->get_records('moodleoverflow_ratings', ['postid' => $post->id]);
             $this->assertNotEmpty($ratings);
         }
     }
@@ -796,7 +797,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
                 if ($post->userid != $user->id) {
                     $ratedposts[$post->id] = $post;
 
-                    $rating = array();
+                    $rating = [];
                     $rating['moodleoverflowid'] = $forum->id;
                     $rating['discussionid'] = $discussion->id;
                     $rating['userid'] = $user->id;
@@ -867,7 +868,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         ));
 
         // Ratings should have been anonymized.
-        $this->assertCount(16, $DB->get_records('moodleoverflow_ratings', array('userid' => 0)));
+        $this->assertCount(16, $DB->get_records('moodleoverflow_ratings', ['userid' => 0]));
 
         // File count: (5 users * 2 forums * 1 file) = 10.
         // Files for the affected posts should be removed.
@@ -891,7 +892,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
             $forum = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
         }
 
-        return array($course, $forum);
+        return [$course, $forum];
     }
 
     /**
@@ -905,7 +906,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
      * @return array The users created
      */
     protected function create_users($course, $count) {
-        $users = array();
+        $users = [];
         for ($i = 0; $i < $count; $i++) {
             $user = $this->getDataGenerator()->create_user();
             $this->getDataGenerator()->enrol_user($user->id, $course->id);
@@ -924,7 +925,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
      * @return array The users created
      */
     protected function create_and_enrol_users($course, $count) {
-        $users = array();
+        $users = [];
         for ($i = 0; $i < $count; $i++) {
             $users[$i] = $this->getDataGenerator()->create_user();
             $this->getDataGenerator()->enrol_user($users[$i]->id, $course->id);
@@ -1038,7 +1039,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
                         'moodleoverflowid' => $moodleoverflow->id,
                         'rating' => 1,
                         'firstrated' => $time,
-                        'lastchanged' => $time
+                        'lastchanged' => $time,
                     ];
                     // Inserts a rating into the table.
                     $DB->insert_record('moodleoverflow_ratings', $rating);
@@ -1212,7 +1213,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
             'moodleoverflowid' => $moodleoverflow->id,
             'rating' => 1,
             'firstrated' => $time,
-            'lastchanged' => $time
+            'lastchanged' => $time,
         ];
         // Inserts a rating into the table.
         $DB->insert_record('moodleoverflow_ratings', $rating);
@@ -1428,7 +1429,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
                 'course' => $course->id,
                 'scale' => 100,
                 'grademaxgrade' => 50,
-                'gradescalefactor' => 2
+                'gradescalefactor' => 2,
         ]);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
@@ -1438,7 +1439,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         \mod_moodleoverflow\ratings::moodleoverflow_add_rating($forum, $post->id, RATING_UPVOTE, $cm, $user2->id);
         moodleoverflow_update_all_grades_for_cm($forum->id);
         $grades = grade_get_grades($course->id, 'mod', 'moodleoverflow', $forum->id,
-                array($user->id, $user2->id));
+                [$user->id, $user2->id]);
         self::assertEquals("2.50", $grades->items[0]->grades[$user->id]->str_grade);
         self::assertEquals("0.50", $grades->items[0]->grades[$user2->id]->str_grade);
 
@@ -1455,7 +1456,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         self::assertContains("$context->id", $contextlist->get_contextids());
         provider::delete_data_for_user($contextlist);
         moodleoverflow_update_all_grades_for_cm($forum->id);
-        $grades = $DB->get_records('moodleoverflow_grades', array('moodleoverflowid' => $forum->id), null,
+        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null,
                 'userid, grade');
         self::assertEquals(2.5, $grades[$user->id]->grade);
         self::assertArrayNotHasKey($user2->id, $grades);
@@ -1463,7 +1464,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         // Test delete context.
         provider::delete_data_for_all_users_in_context($context);
         moodleoverflow_update_all_grades_for_cm($forum->id);
-        $grades = $DB->get_records('moodleoverflow_grades', array('moodleoverflowid' => $forum->id), null,
+        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null,
                 'userid, grade');
         self::assertEmpty($grades);
     }

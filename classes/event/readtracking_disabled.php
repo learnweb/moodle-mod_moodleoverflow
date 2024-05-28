@@ -74,6 +74,6 @@ class readtracking_disabled extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/mod/moodleoverflow/view.php', array('m' => $this->other['moodleoverflowid']));
+        return new \moodle_url('/mod/moodleoverflow/view.php', ['m' => $this->other['moodleoverflowid']]);
     }
 }

@@ -57,7 +57,7 @@ class locallib_test extends advanced_testcase {
 
         $usercount = 5;
         $course = $this->getDataGenerator()->create_course();
-        $users = array();
+        $users = [];
 
         for ($i = 0; $i < $usercount; $i++) {
             $user = $this->getDataGenerator()->create_user();
@@ -65,11 +65,11 @@ class locallib_test extends advanced_testcase {
             $this->getDataGenerator()->enrol_user($user->id, $course->id);
         }
 
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE); // Automatic Subscription.
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE]; // Automatic Subscription.
         $mo = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
-        $cm = $DB->get_record('course_modules', array('id' => $mo->cmid));
+        $cm = $DB->get_record('course_modules', ['id' => $mo->cmid]);
         $context = \context_module::instance($cm->id);
 
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
@@ -90,7 +90,7 @@ class locallib_test extends advanced_testcase {
 
         $usercount = 5;
         $course = $this->getDataGenerator()->create_course();
-        $users = array();
+        $users = [];
 
         for ($i = 0; $i < $usercount; $i++) {
             $user = $this->getDataGenerator()->create_user();
@@ -98,10 +98,10 @@ class locallib_test extends advanced_testcase {
             $this->getDataGenerator()->enrol_user($user->id, $course->id);
         }
 
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $mo = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $cm = $DB->get_record('course_modules', array('id' => $mo->cmid));
+        $cm = $DB->get_record('course_modules', ['id' => $mo->cmid]);
         $context = \context_module::instance($cm->id);
 
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
@@ -122,7 +122,7 @@ class locallib_test extends advanced_testcase {
 
         $usercount = 5;
         $course = $this->getDataGenerator()->create_course();
-        $users = array();
+        $users = [];
 
         for ($i = 0; $i < $usercount; $i++) {
             $user = $this->getDataGenerator()->create_user();
@@ -130,9 +130,9 @@ class locallib_test extends advanced_testcase {
             $this->getDataGenerator()->enrol_user($user->id, $course->id);
         }
 
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE); // Subscription optional.
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE]; // Subscription optional.
         $mo = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $cm = $DB->get_record('course_modules', array('id' => $mo->cmid));
+        $cm = $DB->get_record('course_modules', ['id' => $mo->cmid]);
         $context = \context_module::instance($cm->id);
 
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
@@ -153,7 +153,7 @@ class locallib_test extends advanced_testcase {
 
         $usercount = 5;
         $course = $this->getDataGenerator()->create_course();
-        $users = array();
+        $users = [];
 
         for ($i = 0; $i < $usercount; $i++) {
             $user = $this->getDataGenerator()->create_user();
@@ -161,9 +161,9 @@ class locallib_test extends advanced_testcase {
             $this->getDataGenerator()->enrol_user($user->id, $course->id);
         }
 
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE); // Subscription prevented.
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE]; // Subscription prevented.
         $mo = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $cm = $DB->get_record('course_modules', array('id' => $mo->cmid));
+        $cm = $DB->get_record('course_modules', ['id' => $mo->cmid]);
         $context = \context_module::instance($cm->id);
 
         $result = \mod_moodleoverflow\subscriptions::get_subscribed_users($mo, $context);
@@ -172,6 +172,5 @@ class locallib_test extends advanced_testcase {
             $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo, $context));
         }
     }
-
 
 }

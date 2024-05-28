@@ -38,13 +38,13 @@ $mid = required_param('mid', PARAM_INT);             // Moodleoveflow ID, Moodle
 
 // Define important variables.
 if ($courseid) {
-    $course = $DB->get_record('course', array('id' => $courseid), '*');
+    $course = $DB->get_record('course', ['id' => $courseid], '*');
 }
 if ($cmid) {
     $cm = get_coursemodule_from_id('moodleoverflow', $cmid, $course->id, false, MUST_EXIST);
 }
 if ($mid) {
-    $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $mid), '*');
+    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $mid], '*');
 }
 // Require a login.
 require_login($course, true, $cm);
@@ -54,10 +54,10 @@ $context = context_module::instance($cm->id);
 $PAGE->set_context($context);
 
 // Do a capability check, in case a user iserts the userstats-url manually.
-if (has_capability('mod/moodleoverflow:viewanyrating', $context)) {
+if (has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('moodleoverflow', 'showuserstats')) {
     // Print the page header.
-    $PAGE->set_url('/mod/moodleoverflow/userstats.php', array('id' => $cm->id,
-    'courseid' => $course->id, 'mid' => $moodleoverflow->id));
+    $PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
+    'courseid' => $course->id, 'mid' => $moodleoverflow->id]);
     $PAGE->set_title(format_string('User statistics'));
     $PAGE->set_heading(format_string('User statistics of course: ' . $course->fullname));
 
@@ -65,6 +65,9 @@ if (has_capability('mod/moodleoverflow:viewanyrating', $context)) {
     echo $OUTPUT->header();
     echo $OUTPUT->heading('');
     $table = new userstats_table('statisticstable' , $course->id, $moodleoverflow->id, $PAGE->url);
-    echo $table->out();
+    $table->out();
     echo $OUTPUT->footer();
+} else {
+    redirect(new moodle_url('/'));
 }
+

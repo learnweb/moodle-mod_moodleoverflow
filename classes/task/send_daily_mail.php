@@ -52,20 +52,25 @@ class send_daily_mail extends \core\task\scheduled_task {
         // Go through each user that has unread posts.
         foreach ($users as $user) {
             // Sorts the records with "Order by courseid".
-            $userdata = $DB->get_records('moodleoverflow_mail_info', array('userid' => $user->userid), 'courseid, forumid');
-            $mail = array();
+            $userdata = $DB->get_records('moodleoverflow_mail_info', ['userid' => $user->userid], 'courseid, forumid');
+            $mail = [];
             // Fill the $mail array.
             foreach ($userdata as $row) {
                 $currentcourse = $DB->get_record('course', array('id' => $row->courseid), 'fullname, id');
+                // Check if the user is enrolled in the course, if not, go to the next row.
+                if (!is_enrolled(\context_course::instance($row->courseid), $user->userid, '', true)) {
+                    continue;
+                }
+
                 $currentforum = $DB->get_record('moodleoverflow', array('id' => $row->forumid), 'name, id');
                 $coursemoduleid = get_coursemodule_from_instance('moodleoverflow', $row->forumid);
-                $discussion = $DB->get_record('moodleoverflow_discussions', array('id' => $row->forumdiscussionid), 'name, id');
+                $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $row->forumdiscussionid], 'name, id');
                 $unreadposts = $row->numberofposts;
 
                 // Build url to the course, forum, and discussion.
-                $linktocourse = new \moodle_url('/course/view.php', array('id' => $currentcourse->id));
-                $linktoforum = new \moodle_url('/mod/moodleoverflow/view.php', array('id' => $coursemoduleid->id));
-                $linktodiscussion = new \moodle_url('/mod/moodleoverflow/discussion.php', array('d' => $discussion->id));
+                $linktocourse = new \moodle_url('/course/view.php', ['id' => $currentcourse->id]);
+                $linktoforum = new \moodle_url('/mod/moodleoverflow/view.php', ['id' => $coursemoduleid->id]);
+                $linktodiscussion = new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id]);
 
                 // Now change the url to a clickable html link.
                 $linktocourse = \html_writer::link($linktocourse->out(), $currentcourse->fullname);
@@ -73,19 +78,19 @@ class send_daily_mail extends \core\task\scheduled_task {
                 $linktodiscussion = \html_writer::link($linktodiscussion->out(), $discussion->name);
 
                 // Build a single line string with the digest information and add it to the mailarray.
-                $string = get_string('digestunreadpost', 'mod_moodleoverflow', array('linktocourse' => $linktocourse,
+                $string = get_string('digestunreadpost', 'mod_moodleoverflow', ['linktocourse' => $linktocourse,
                                                                                      'linktoforum' => $linktoforum,
                                                                                      'linktodiscussion' => $linktodiscussion,
-                                                                                     'unreadposts' => $unreadposts));
-                array_push($mail, $string);
+                                                                                     'unreadposts' => $unreadposts, ]);
+                $mail[] = $string;
             }
             // Build the final message and send it to user. Then remove the sent records.
             $message = implode('<br>', $mail);
-            $userto = $DB->get_record('user', array('id' => $user->userid));
+            $userto = $DB->get_record('user', ['id' => $user->userid]);
             $from = \core_user::get_noreply_user();
             $subject = get_string('tasksenddailymail', 'mod_moodleoverflow');
             email_to_user($userto, $from, $subject, $message);
-            $DB->delete_records('moodleoverflow_mail_info', array('userid' => $user->userid));
+            $DB->delete_records('moodleoverflow_mail_info', ['userid' => $user->userid]);
         }
     }
 }

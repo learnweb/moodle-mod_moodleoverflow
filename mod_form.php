@@ -59,7 +59,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
         // Adding the standard "name" field.
-        $mform->addElement('text', 'name', get_string('moodleoverflowname', 'moodleoverflow'), array('size' => '64'));
+        $mform->addElement('text', 'name', get_string('moodleoverflowname', 'moodleoverflow'), ['size' => '64']);
         if (!empty(get_config('moodleoverflow', 'formatstringstriptags'))) {
             $mform->setType('name', PARAM_TEXT);
         } else {
@@ -77,7 +77,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         $currentsetting = $this->current && property_exists($this->current, 'anonymous') ? $this->current->anonymous : 0;
         $possiblesettings = [
-                anonymous::EVERYTHING_ANONYMOUS => get_string('anonymous:everything', 'moodleoverflow')
+                anonymous::EVERYTHING_ANONYMOUS => get_string('anonymous:everything', 'moodleoverflow'),
         ];
 
         if ($currentsetting <= anonymous::QUESTION_ANONYMOUS) {
@@ -98,7 +98,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $possiblesettings = [
                     review::NOTHING => get_string('nothing', 'moodleoverflow'),
                     review::QUESTIONS => get_string('questions', 'moodleoverflow'),
-                    review::EVERYTHING => get_string('questions_and_posts', 'moodleoverflow')
+                    review::EVERYTHING => get_string('questions_and_posts', 'moodleoverflow'),
             ];
 
             $mform->addElement('select', 'needsreview', get_string('review', 'moodleoverflow'), $possiblesettings);
@@ -115,7 +115,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('maxbytes', 'maxattachmentsize', 'moodleoverflow');
         $mform->setDefault('maxbytes', get_config('moodleoverflow', 'maxbytes'));
 
-        $choices = array(
+        $choices = [
             0 => 0,
             1 => 1,
             2 => 2,
@@ -129,8 +129,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             10 => 10,
             20 => 20,
             50 => 50,
-            100 => 100
-        );
+            100 => 100,
+        ];
         $mform->addElement('select', 'maxattachments', get_string('maxattachments', 'moodleoverflow'), $choices);
         $mform->addHelpButton('maxattachments', 'maxattachments', 'moodleoverflow');
         $mform->setDefault('maxattachments', get_config('moodleoverflow', 'maxattachments'));
@@ -139,7 +139,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('header', 'subscriptiontrackingheader', get_string('subscriptiontrackingheader', 'moodleoverflow'));
 
         // Prepare the array with options for the subscription state.
-        $options = array();
+        $options = [];
         $options[MOODLEOVERFLOW_CHOOSESUBSCRIBE] = get_string('subscriptionoptional', 'moodleoverflow');
         $options[MOODLEOVERFLOW_FORCESUBSCRIBE] = get_string('subscriptionforced', 'moodleoverflow');
         $options[MOODLEOVERFLOW_INITIALSUBSCRIBE] = get_string('subscriptionauto', 'moodleoverflow');
@@ -150,7 +150,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('forcesubscribe', 'subscriptionmode', 'moodleoverflow');
 
         // Set the options for the default readtracking.
-        $options = array();
+        $options = [];
         $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
         $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
         if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
@@ -194,7 +194,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('header', 'ratingheading', get_string('ratingheading', 'moodleoverflow'));
 
         // Which rating is more important?
-        $options = array();
+        $options = [];
         $options[MOODLEOVERFLOW_PREFERENCE_STARTER] = get_string('starterrating', 'moodleoverflow');
         $options[MOODLEOVERFLOW_PREFERENCE_TEACHER] = get_string('teacherrating', 'moodleoverflow');
         $mform->addElement('select', 'ratingpreference', get_string('ratingpreference', 'moodleoverflow'), $options);
