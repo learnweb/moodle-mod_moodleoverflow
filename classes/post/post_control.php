@@ -279,12 +279,12 @@ class post_control {
 
         // Append 'RE: ' to the discussions subject.
         $strre = get_string('re', 'moodleoverflow');
-        if ($CFG->branch > 309) {
+        if (floor(phpversion()) >= 8) {
             if (!(str_starts_with($this->prepost->subject, $strre))) {
                 $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
             }
         } else {
-            // TODO: remove this else branch when support for version 3.9 ends and delete the branch check.
+            // TODO: remove this else branch when support for php version 7.4 ends.
             if (!(substr($this->prepost->subject, 0, strlen($strre)) == $strre)) {
                 $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
             }
