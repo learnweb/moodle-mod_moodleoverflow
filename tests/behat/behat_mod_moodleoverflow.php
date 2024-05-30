@@ -42,6 +42,42 @@ use Behat\Mink\Exception\ExpectationException;
 class behat_mod_moodleoverflow extends behat_base {
 
     /**
+     * Adds a new moodleoverflow to the specified course and section.
+     *
+     * @Given I add a moodleoverflow to course :coursefullname section :sectionnum and I fill the form with:
+     * @param $courseshortname
+     * @param $sectionnumber
+     * @param $data
+     * @return void
+     */
+    public function i_add_a_moodleoverflow_to_course_section_and_fill_form($courseshortname, $sectionnumber, TableNode $data) {
+        global $CFG;
+
+        if ($CFG->branch >= 404) {
+            $this->execute(
+                "behat_course::i_add_to_course_section_and_i_fill_the_form_with",
+                [$this->escape('moodleoverflow'), $this->escape($courseshortname), $this->escape($sectionnumber), $data]
+            );
+        } else {
+            // This is the code from the deprecated behat function "i_add_to_section_and_i_fill_the_form_with".
+            // Add activity to section.
+            $this->execute(
+                "behat_course::i_add_to_section",
+                [$this->escape('moodleoverflow'), $this->escape($sectionnumber)]
+            );
+
+            // Wait to be redirected.
+            $this->execute('behat_general::wait_until_the_page_is_ready');
+
+            // Set form fields.
+            $this->execute("behat_forms::i_set_the_following_fields_to_these_values", $data);
+
+            // Save course settings.
+            $this->execute("behat_forms::press_button", get_string('savechangesandreturntocourse'));
+        }
+    }
+
+    /**
      * Adds a topic to the moodleoverflow specified by it's name. Useful for the Announcements and blog-style moodleoverflow.
      *
      * @Given /^I add a new topic to "(?P<moodleoverflow_name_string>(?:[^"]|\\")*)" moodleoverflow with:$/
@@ -103,7 +139,7 @@ class behat_mod_moodleoverflow extends behat_base {
 
         // Navigate to moodleoverflow.
         $this->execute('behat_navigation::i_am_on_page_instance', [$this->escape($moodleoverflowname),
-            'moodleoverflow activity']);
+            'moodleoverflow activity', ]);
         $this->execute('behat_forms::press_button', $buttonstr);
 
         // Fill form and post.

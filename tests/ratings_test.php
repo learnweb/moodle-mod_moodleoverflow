@@ -23,6 +23,7 @@
  */
 namespace mod_moodleoverflow;
 use mod_moodleoverflow\ratings;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,46 +39,46 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class ratings_test extends \advanced_testcase {
-    /** @var \stdClass test course */
+    /** @var stdClass test course */
     private $course;
 
-    /** @var \stdClass coursemodule */
+    /** @var stdClass coursemodule */
     private $coursemodule;
 
-    /** @var \stdClass test moodleoverflow */
+    /** @var stdClass test moodleoverflow */
     private $moodleoverflow;
 
-    /** @var \stdClass test teacher */
+    /** @var stdClass test teacher */
     private $teacher;
 
-    /** @var \stdClass test user */
+    /** @var stdClass test user */
     private $user1;
 
-    /** @var \stdClass another test user */
+    /** @var stdClass another test user */
     private $user2;
 
-    /** @var \stdClass a discussion */
+    /** @var stdClass a discussion */
     private $discussion;
 
-    /** @var \stdClass a post from the teacher*/
+    /** @var stdClass a post from the teacher*/
     private $post;
 
-    /** @var \stdClass answer from user 1 */
+    /** @var stdClass answer from user 1 */
     private $answer1;
 
-    /** @var \stdClass answer from user 1 */
+    /** @var stdClass answer from user 1 */
     private $answer2;
 
-    /** @var \stdClass answer from user 1 */
+    /** @var stdClass answer from user 1 */
     private $answer3;
 
-    /** @var \stdClass answer from user 2 */
+    /** @var stdClass answer from user 2 */
     private $answer4;
 
-    /** @var \stdClass answer from user 2 */
+    /** @var stdClass answer from user 2 */
     private $answer5;
 
-    /** @var \stdClass answer from user 2 */
+    /** @var stdClass answer from user 2 */
     private $answer6;
 
     /** @var \mod_moodleoverflow_generator $generator */
@@ -107,7 +108,7 @@ class ratings_test extends \advanced_testcase {
      * Test case: Every group of rating exists (helful and solved posts, only helpful/solved and none)
      * @covers \ratings::moodleoverflow_sort_answer_by_ratings()
      */
-    public function test_answersorting_everygroup() {
+    public function test_answersorting_everygroup(): void {
         // Create helpful, solved, up and downvotes ratings.
         $this->create_everygroup();
 
@@ -132,7 +133,7 @@ class ratings_test extends \advanced_testcase {
      * Test case: One group of rating does not exist
      * @covers \ratings::moodleoverflow_sort_answer_by_ratings()
      */
-    public function test_answersorting_threegroups() {
+    public function test_answersorting_threegroups(): void {
         // Create helpful, solved, up and downvotes ratings.
         $this->create_everygroup();
 
@@ -178,7 +179,7 @@ class ratings_test extends \advanced_testcase {
      * Test case: two groups of rating do not exist
      * @covers \ratings::moodleoverflow_sort_answer_by_ratings()
      */
-    public function test_answersorting_twogroups() {
+    public function test_answersorting_twogroups(): void {
         $this->set_ratingpreferences(0);
 
         // Test case 1: helpful and solved post, only solved posts.
@@ -228,7 +229,7 @@ class ratings_test extends \advanced_testcase {
      * Extended Test Case: If the votesdifference is the same, the post should be sorted by their time of creation/modification.
      * @covers \ratings::moodleoverflow_sort_answer_by_ratings()
      */
-    public function test_answersorting_onegroup() {
+    public function test_answersorting_onegroup(): void {
         $this->set_ratingpreferences(0);
 
         // Test case 1: only solved and helpful posts.

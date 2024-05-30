@@ -39,6 +39,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  */
 class mod_moodleoverflow_external extends external_api {
 
+    // TODO: Adapt the functions to the new way of working with posts.
     /**
      * Returns description of method parameters
      * @return external_function_parameters
@@ -54,7 +55,7 @@ class mod_moodleoverflow_external extends external_api {
 
     /**
      * Returns the result of the vote (new rating and reputations).
-     * @return external_multiple_structure
+     * @return external_single_structure
      */
     public static function record_vote_returns() {
         return new external_single_structure(

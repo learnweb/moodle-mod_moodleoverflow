@@ -124,7 +124,7 @@ $string['configallowcoursereputation'] = 'Allow to sum the reputation of all ins
 $string['maxmailingtime'] = 'Maximal mailing time';
 $string['configmaxmailingtime'] = 'Posts older than this number of hours will not be mailed to the users. This will help to avoid problems where the cron has not been running for a long time.';
 
-// Strings for the post.php.
+// Strings for the post.php environment.
 $string['invalidmoodleoverflowid'] = 'Forum ID was incorrect';
 $string['invalidparentpostid'] = 'Parent post ID was incorrect';
 $string['notpartofdiscussion'] = 'This post is not part of a discussion!';
@@ -144,11 +144,19 @@ $string['cannotupdatepost'] = 'You can not update this post';
 $string['couldnotupdate'] = 'Could not update your post due to an unknown error';
 $string['editedpostupdated'] = '{$a}\'s post was updated';
 $string['postupdated'] = 'Your post was updated';
-$string['editedby'] = 'Edited by {$a->name} - original submission {$a->date}';
+$string['editedby'] = 'Edited by {$a->name} on {$a->date}';
 $string['cannotdeletepost'] = 'You can\'t delete this post!';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
 $string['errorwhiledelete'] = 'An error occurred while deleting record.';
 $string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
+$string['noexistingpost'] = 'Post does not exists, needs to be created first';
+$string['noexistingdiscussion'] = 'Discussion does not exists, needs to be created first';
+$string['notallpostsavailable'] = 'This Discussion does not have all of its posts, this could lead to errors!';
+$string['missingformattachments'] = 'This functions requires data that was not submitted.';
+$string['unexpectedinteractionerror'] = 'An unexpected error occured, please try again';
+
+// String for the classes/post/post_control.php.
+$string['wronginteraction'] = 'Wrong interaction detected, please choose the right function';
 
 // Strings for the classes/mod_form.php.
 $string['subject'] = 'Subject';
@@ -175,6 +183,7 @@ $string['invalidratingid'] = 'The submitted rating is neither an upvote nor a do
 $string['notstartuser'] = 'Only the user who started the discussion can mark an answer as helpful.';
 $string['notteacher'] = 'Only course owners can do this.';
 $string['ratingtoold'] = 'Ratings can only be changed within 30 minutes after the first vote. ';
+$string['postnotpartofdiscussion'] = 'Post does not exist in this discussion, please check the parameter';
 
 // Strings for the discussion.php.
 $string['invaliddiscussionid'] = 'Discussion ID was incorrect';

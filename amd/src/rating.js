@@ -149,7 +149,7 @@ export function init(userid, allowmultiplemarks) {
 
 /**
  * Function to change the String of the post data-action button.
- * Only used if mulitplemarks are allowed.
+ * Only used if multiplemarks are allowed.
  * @param {string} htmlclass the class where the String is being updated
  * @param {string} action    helpful or solved mark
  */

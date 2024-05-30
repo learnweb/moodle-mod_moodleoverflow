@@ -29,6 +29,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
+use core\context\course;
+
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/locallib.php');
 
@@ -343,7 +346,7 @@ function moodleoverflow_print_recent_activity($course, $viewfullnames, $timestar
 /**
  * Returns all other caps used in the module.
  *
- * For example, this could be array('moodle/site:accessallgroups') if the
+ * For example, this could be ['moodle/site:accessallgroups'] if the
  * module uses that capability.
  *
  * @return array
@@ -788,7 +791,7 @@ function moodleoverflow_send_mails() {
                                                 ['userid' => $dataobject->userid,
                                                       'courseid' => $dataobject->courseid,
                                                       'forumid' => $dataobject->forumid,
-                                                      'forumdiscussionid' => $dataobject->forumdiscussionid],
+                                                      'forumdiscussionid' => $dataobject->forumdiscussionid, ],
                                                       'numberofposts, id');
                     if (is_object($record)) {
                         $dataset = $record;

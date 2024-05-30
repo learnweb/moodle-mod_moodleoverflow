@@ -264,8 +264,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
         $table->add_key('courseid', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
         $table->add_key('forumid', XMLDB_KEY_FOREIGN, ['forumid'], 'moodleoverflow', ['id']);
-        $table->add_key('forumdiscussionid', XMLDB_KEY_FOREIGN,
-                         ['forumdiscussionid'], 'moodleoverflow_discussions', ['id']);
+        $table->add_key('forumdiscussionid', XMLDB_KEY_FOREIGN, ['forumdiscussionid'], 'moodleoverflow_discussions', ['id']);
 
         // Conditionally launch create table for moodleoverflow_mail_info.
         if (!$dbman->table_exists($table)) {
