@@ -449,10 +449,25 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     $forumarray = [[]];
     $currentforum = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'moodleoverflow');
     $currentdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'name');
-    $forums = $DB->get_records('moodleoverflow', ['course' => $course->id]);
+
+    // If the currentforum is anonymous, only show forums that have a higher anonymous setting.
+    $anonymoussetting = $DB->get_field('moodleoverflow', 'anonymous', ['id' => $currentforum->moodleoverflow]);
+    if ($anonymoussetting == anonymous::QUESTION_ANONYMOUS || $anonymoussetting == anonymous::EVERYTHING_ANONYMOUS) {
+        $params = ['course' => $course->id, 'anonymous' => anonymous::EVERYTHING_ANONYMOUS,
+                   'currentforumid' => $currentforum->moodleoverflow, ];
+        $sql = "SELECT *
+               FROM {moodleoverflow}
+               WHERE course = :course
+                 AND anonymous = :anonymous
+                 AND id != :currentforumid";
+        $forums = $DB->get_records_sql($sql, $params);
+    } else {
+        $forums = $DB->get_records('moodleoverflow', ['course' => $course->id]);
+    }
+
     $amountforums = count($forums);
 
-    if ($amountforums > 1) {
+    if ($amountforums >= 1) {
         // Write the moodleoverflow-names in an array.
         $i = 0;
         foreach ($forums as $forum) {
