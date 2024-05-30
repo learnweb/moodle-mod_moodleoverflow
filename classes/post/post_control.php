@@ -279,7 +279,7 @@ class post_control {
 
         // Append 'RE: ' to the discussions subject.
         $strre = get_string('re', 'moodleoverflow');
-        if (floor(phpversion()) >= 8) {
+        if (check_php_version('8.0.0')) {
             if (!(str_starts_with($this->prepost->subject, $strre))) {
                 $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
             }
