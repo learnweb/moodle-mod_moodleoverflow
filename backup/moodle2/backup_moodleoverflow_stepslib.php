@@ -47,8 +47,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $moodleoverflow = new backup_nested_element('moodleoverflow', ['id'], [
             'name', 'intro', 'introformat', 'maxbytes', 'maxattachments',
             'forcesubscribe', 'trackingtype', 'timecreated', 'timemodified',
-            'ratingpreference', 'coursewidereputation', 'allownegativereputation',
-        ]);
+            'ratingpreference', 'coursewidereputation', 'allownegativereputation', ]);
 
         // Define each element separated.
         $discussions = new backup_nested_element('discussions');
@@ -75,15 +74,19 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
 
         $subscriptions = new backup_nested_element('subscriptions');
 
-        $subscription = new backup_nested_element('subscription', ['id'], ['userid']);
+        $subscription = new backup_nested_element('subscription', ['id'], [
+            'userid', ]);
 
         $readposts = new backup_nested_element('readposts');
 
-        $read = new backup_nested_element('read', ['id'], ['userid', 'discussionid', 'postid', 'firstread', 'lastread']);
+        $read = new backup_nested_element('read', ['id'], [
+            'userid', 'discussionid', 'postid', 'firstread',
+            'lastread', ]);
 
         $tracking = new backup_nested_element('tracking');
 
-        $track = new backup_nested_element('track', ['id'], ['userid']);
+        $track = new backup_nested_element('track', ['id'], [
+            'userid', ]);
 
         // Build the tree.
         $moodleoverflow->add_child($discussions);

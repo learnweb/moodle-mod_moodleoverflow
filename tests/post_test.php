@@ -79,7 +79,7 @@ class post_test extends \advanced_testcase {
     /**
      * Test, if a post is being created correctly
      */
-    public function test_create_post() {
+    public function test_create_post(): void {
         global $DB;
         // Build a new post object.
         $time = time();
@@ -96,7 +96,7 @@ class post_test extends \advanced_testcase {
     /**
      * Test, if the message of a post can be edited successfully.
      */
-    public function test_edit_post() {
+    public function test_edit_post(): void {
         global $DB;
 
         // The post and the attachment should exist.
@@ -123,7 +123,7 @@ class post_test extends \advanced_testcase {
      * Test, if a post and its attachment are deleted successfully.
      * @covers ::moodleoverflow_delete_post
      */
-    public function test_delete_post() {
+    public function test_moodleoverflow_delete_post(): void {
         global $DB;
 
         // The post and the attachment should exist.

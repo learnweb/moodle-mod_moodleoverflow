@@ -94,8 +94,8 @@ class mod_moodleoverflow_observer {
              LEFT JOIN {moodleoverflow_subscriptions} ms ON (ms.moodleoverflow = m.id AND ms.userid = :userid)
                  WHERE m.course = :courseid AND m.forcesubscribe = :initial AND mo.name = 'moodleoverflow' AND ms.id IS NULL";
         $params = ['courseid' => $context->instanceid,
-                   'userid' => $userid,
-                   'initial' => MOODLEOVERFLOW_INITIALSUBSCRIBE, ];
+                                 'userid' => $userid,
+                                 'initial' => MOODLEOVERFLOW_INITIALSUBSCRIBE, ];
         $moodleoverflows = $DB->get_records_sql($sql, $params);
 
         // Loop through all moodleoverflows.

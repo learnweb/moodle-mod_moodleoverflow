@@ -85,7 +85,6 @@ class review_test extends \advanced_testcase {
         unset_config('noemailever');
         $this->mailsink = $this->redirectEmails();
 
-        $this->preventResetByRollback();
         $this->messagesink = $this->redirectMessages();
     }
 
@@ -108,13 +107,12 @@ class review_test extends \advanced_testcase {
      *
      * @runInSeparateProcess
      */
-    public function test_forum_review_everything() {
+    public function test_forum_review_everything(): void {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
 
-        $options = ['course' => $this->course->id,
-                    'needsreview' => review::EVERYTHING,
-                    'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
+        $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
 
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
@@ -174,13 +172,12 @@ class review_test extends \advanced_testcase {
      *
      * @runInSeparateProcess
      */
-    public function test_forum_review_only_questions() {
+    public function test_forum_review_only_questions(): void {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
 
-        $options = ['course' => $this->course->id,
-                    'needsreview' => review::QUESTIONS,
-                    'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
+        $options = ['course' => $this->course->id, 'needsreview' => review::QUESTIONS,
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
@@ -216,10 +213,9 @@ class review_test extends \advanced_testcase {
     /**
      * Test reviews functionality when reviewing is allowed in admin settings.
      */
-    public function test_forum_review_disallowed() {
-        $options = ['course' => $this->course->id,
-                    'needsreview' => review::EVERYTHING,
-                    'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
+    public function test_forum_review_disallowed(): void {
+        $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
 
         set_config('allowreview', 0, 'moodleoverflow');
 
@@ -260,10 +256,15 @@ class review_test extends \advanced_testcase {
      * @param object|array $actual
      */
     private function assert_matches_properties($expected, $actual) {
+        global $CFG;
         $expected = (array)$expected;
         $actual = (object)$actual;
         foreach ($expected as $key => $value) {
-            $this->assertObjectHasAttribute($key, $actual, "Failed asserting that attribute '$key' exists.");
+            if ($CFG->branch >= 404) {
+                $this->assertObjectHasProperty($key, $actual, "Failed asserting that attribute '$key' exists.");
+            } else {
+                $this->assertObjectHasAttribute($key, $actual, "Failed asserting that attribute '$key' exists.");
+            }
             $this->assertEquals($value, $actual->$key, "Failed asserting that \$obj->$key '" . $actual->$key . "' equals '$value'");
         }
     }
@@ -295,19 +296,19 @@ class review_test extends \advanced_testcase {
     private function check_mail_records($teacherpost, $studentpost, $review1, $review2, $mailed) {
         global $DB;
 
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review1,
-                                          'timereviewed' => null, ],
-                                         $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING, 'reviewed' => $review2,
-                                          'timereviewed' => null, ],
-                                         $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
+                                          'reviewed' => $review1, 'timereviewed' => null, ],
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
+                                          'reviewed' => $review2, 'timereviewed' => null, ],
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
 
         $this->run_send_mails();
         $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
 
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => $review1,
-                                          'timereviewed' => null, ],
-                                         $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
+        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS,
+                                          'reviewed' => $review1, 'timereviewed' => null, ],
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
         $this->assert_matches_properties(['mailed' => $mailed, 'reviewed' => $review2, 'timereviewed' => null],
             $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
     }

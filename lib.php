@@ -30,6 +30,7 @@
  */
 
 // TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
+use core\context\course;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/locallib.php');

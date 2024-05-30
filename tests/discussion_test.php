@@ -75,7 +75,7 @@ class discussion_test extends \advanced_testcase {
     /**
      * Test, if a discussion is being created correctly
      */
-    public function test_create_discussion() {
+    public function test_create_discussion(): void {
         global $DB;
 
         // Build a prepost object with important information.
@@ -111,7 +111,7 @@ class discussion_test extends \advanced_testcase {
      * Test, if a post and its attachment are deleted successfully.
      * @covers ::moodleoverflow_delete_post
      */
-    public function test_delete_discussion() {
+    public function test_delete_discussion(): void {
         global $DB;
         // Build the prepost object with necessary information.
         $prepost = new \stdClass();

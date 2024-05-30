@@ -103,7 +103,7 @@ class userstats_test extends \advanced_testcase {
      * Test, if a upvote is being counted.
      * @covers \userstats_table
      */
-    public function test_upvote() {
+    public function test_upvote(): void {
         // Teacher upvotes the discussion and the answer of user2.
         $this->create_upvote($this->teacher, $this->discussion1[1], $this->answer1);
 
@@ -117,7 +117,7 @@ class userstats_test extends \advanced_testcase {
      * Test, if a downvote is being counted.
      * @covers \userstats_table
      */
-    public function test_downvote() {
+    public function test_downvote(): void {
         // Teacher downvotes the discussion and the answer of user1.
         $this->create_downvote($this->teacher, $this->discussion2[1], $this->answer2);
 
@@ -131,7 +131,7 @@ class userstats_test extends \advanced_testcase {
      * Test, if the activity is calculated correctly.
      * @covers \userstats_table
      */
-    public function test_activity() {
+    public function test_activity(): void {
         // User1 will rates 3 times.
         $this->create_helpful($this->user1, $this->discussion1[1], $this->answer1);
         $this->create_upvote($this->user1, $this->discussion1[1], $this->answer1);
@@ -148,7 +148,7 @@ class userstats_test extends \advanced_testcase {
      * Test, if the reputation is calculated correctly.
      * @covers \userstats_table
      */
-    public function test_reputation() {
+    public function test_reputation(): void {
         // User1 creates some ratings for user2, Teacher creates some ratings for user2.
         $this->create_helpful($this->user1, $this->discussion1[1], $this->answer1);
         $this->create_upvote($this->user1, $this->discussion1[1], $this->answer1);
@@ -168,7 +168,7 @@ class userstats_test extends \advanced_testcase {
      * Test, if userstats are calculated correctly if the moodleoverflow is partially anonymous.
      * @covers \userstats_table
      */
-    public function test_partial_anonymous() {
+    public function test_partial_anonymous(): void {
         global $DB;
         // Test case: Only topic startes are anonymous.
         $this->make_anonymous(1);
@@ -224,8 +224,8 @@ class userstats_test extends \advanced_testcase {
      * Test, if userstats are calculated correctly if the moodleoverflow is totally anonymous.
      * @covers \userstats_table
      */
-    public function test_total_anonymous() {
-        // Test case: All posts are anonymous.
+    public function test_total_anonymous(): void {
+        // Test case: Only topic startes are anonymous.
         $this->make_anonymous(2);
 
         // Get the current userstats to compare later.

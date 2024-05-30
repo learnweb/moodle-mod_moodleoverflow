@@ -268,16 +268,16 @@ class userstats_table extends \flexible_table {
                                                       get_string('helpamountofactivity', 'moodleoverflow'));
         $this->helpactivity->class = 'helpactivityclass btn btn-link';
         $this->helpactivity->iconattributes = ['role' => 'button',
-                                               'data-container' => 'body',
-                                               'data-toggle' => 'popover',
-                                               'data-placement' => 'right',
-                                               'data-action' => 'showhelpicon',
-                                               'data-html' => 'true',
-                                               'data-trigger' => 'focus',
-                                               'tabindex' => '0',
-                                               'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
-                                                                  get_string('helpamountofactivity', 'moodleoverflow') .
-                                                                  '</p> </div>', ];
+                                                    'data-container' => 'body',
+                                                    'data-toggle' => 'popover',
+                                                    'data-placement' => 'right',
+                                                    'data-action' => 'showhelpicon',
+                                                    'data-html' => 'true',
+                                                    'data-trigger' => 'focus',
+                                                    'tabindex' => '0',
+                                                    'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
+                                                                      get_string('helpamountofactivity', 'moodleoverflow') .
+                                                                      '</p> </div>', ];
 
         $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
                                                          $this->helpactivity->class,
@@ -356,10 +356,10 @@ class userstats_table extends \flexible_table {
      */
     private function badge_render($number) {
         if ($number > 0) {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
+            return \html_writer::tag('h5', \html_writer::start_span('badge bg-success') .
                 $number . \html_writer::end_span());
         } else {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
+            return \html_writer::tag('h5', \html_writer::start_span('badge bg-warning') .
                 $number . \html_writer::end_span());
         }
     }
