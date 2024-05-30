@@ -85,7 +85,6 @@ class review_test extends \advanced_testcase {
         unset_config('noemailever');
         $this->mailsink = $this->redirectEmails();
 
-        $this->preventResetByRollback();
         $this->messagesink = $this->redirectMessages();
     }
 
@@ -257,10 +256,15 @@ class review_test extends \advanced_testcase {
      * @param object|array $actual
      */
     private function assert_matches_properties($expected, $actual) {
+        global $CFG;
         $expected = (array)$expected;
         $actual = (object)$actual;
         foreach ($expected as $key => $value) {
-            $this->assertObjectHasAttribute($key, $actual, "Failed asserting that attribute '$key' exists.");
+            if ($CFG->branch >= 404) {
+                $this->assertObjectHasProperty($key, $actual, "Failed asserting that attribute '$key' exists.");
+            } else {
+                $this->assertObjectHasAttribute($key, $actual, "Failed asserting that attribute '$key' exists.");
+            }
             $this->assertEquals($value, $actual->$key, "Failed asserting that \$obj->$key '" . $actual->$key . "' equals '$value'");
         }
     }

@@ -885,7 +885,8 @@ function moodleoverflow_send_mails() {
 
                 // Preapare to actually send the post now. Build up the content.
                 $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
-                $shortname = format_string($course->shortname, true, ['context' => context_course::instance($course->id)]);
+                $coursecontext = context_course::instance($course->id);
+                $shortname = format_string($course->shortname, true, ['context' => $coursecontext]);
 
                 // Define a header to make mails easier to track.
                 $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);

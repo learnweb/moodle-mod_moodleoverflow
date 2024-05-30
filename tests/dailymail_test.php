@@ -98,7 +98,7 @@ class dailymail_test extends \advanced_testcase {
     public function helper_create_user_and_discussion($maildigest) {
         // Create a user enrolled in the course as student.
         $this->user = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'email' => 'tamaromail@example.com',
-                                                              'maildigest' => $maildigest]);
+                                                              'maildigest' => $maildigest, ]);
         $this->getDataGenerator()->enrol_user($this->user->id, $this->course->id, 'student');
 
         // Create a new discussion and post within the moodleoverflow.
@@ -165,7 +165,7 @@ class dailymail_test extends \advanced_testcase {
         $location = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $student = $this->getDataGenerator()->create_user(['firstname' => 'Ethan', 'email' => 'ethanmail@example.com',
-                                                           'maildigest' => '1']);
+                                                           'maildigest' => '1', ]);
         $this->getDataGenerator()->enrol_user($student->id, $course->id, 'teacher');
         $discussion = $this->generator->post_to_forum($moodleoverflow, $student);
 
