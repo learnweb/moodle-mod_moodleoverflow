@@ -153,13 +153,13 @@ class mod_moodleoverflow_post_form extends moodleform {
     public static function editor_options(context_module $context, $postid) {
         global $COURSE, $PAGE, $CFG;
         $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes);
-        return array(
+        return [
             'maxfiles' => EDITOR_UNLIMITED_FILES,
             'maxbytes' => $maxbytes,
             'trusttext' => true,
             'return_types' => FILE_INTERNAL | FILE_EXTERNAL,
-            'subdirs' => file_area_contains_subdirs($context, 'mod_forum', 'post', $postid)
-        );
+            'subdirs' => file_area_contains_subdirs($context, 'mod_forum', 'post', $postid),
+        ];
     }
 }
 
