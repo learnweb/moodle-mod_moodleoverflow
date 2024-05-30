@@ -24,7 +24,6 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
@@ -1427,12 +1426,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
     $mustachedata->questioner = $post->userid == $discussion->userid ? 'questioner' : '';
 
-    // Set options for the post.
-    $options = new stdClass();
-    $options->para = false;
-    $options->trusted = false;
-    $options->context = $modulecontext;
-
     $reviewdelay = get_config('moodleoverflow', 'reviewpossibleaftertime');
     $mustachedata->reviewdelay = format_time($reviewdelay);
     $mustachedata->needsreview = !$post->reviewed;
@@ -1441,7 +1434,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
-    $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
+    $mustachedata->postcontent = format_text($post->message, $post->messageformat, ['context' => $modulecontext]);
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
