@@ -60,7 +60,7 @@ if ($marksetting->allowmultiplemarks == 1) {
     $multiplemarks = true;
 }
 // Setting of limitedanswer. Limitedanswertime saves the timestamp, until the limitedanswer is on (0 if off).
-$limitedanswersetting = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id), 'limitedanswer');
+$limitedanswersetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'limitedanswer');
 $limitedanswertime = $limitedanswersetting->limitedanswer;
 
 // Get the related coursemodule and its context.

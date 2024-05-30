@@ -234,7 +234,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         if (!empty($this->current->id)) {
             // Check if limitedanswermode was already set up and place a warning if so.
-            if ($limitedanswertime = $DB->get_record('moodleoverflow', array('id' => $this->current->id), 'limitedanswer')) {
+            if ($limitedanswertime = $DB->get_record('moodleoverflow', ['id' => $this->current->id], 'limitedanswer')) {
                 if (!empty($limitedanswertime)) {
                     $limitedanswertime = $limitedanswertime->limitedanswer;
                 } else {
@@ -246,7 +246,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             if ($limitedanswertime <= time() && $limitedanswertime > 0) {
                 $warningbutton = html_writer::div(get_string('limitedanswerwarning_setup', 'moodleoverflow'),
                                                 'alert alert-warning',
-                                                array('role' => 'alert'));
+                                                ['role' => 'alert']);
                 $mform->addElement('html', $warningbutton);
             }
 
@@ -262,14 +262,14 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             if ($answerpostscount > 0) {
                 $warningbutton = html_writer::div(get_string('limitedanswerwarning_answers', 'moodleoverflow'),
                                                 'alert alert-warning',
-                                                array('role' => 'alert'));
+                                                ['role' => 'alert']);
                 $mform->addElement('html', $warningbutton);
             }
         }
 
         // Limited answer setting.
         $mform->addElement('date_time_selector', 'limitedanswer', get_string('limitedanswer', 'moodleoverflow'),
-                array('optional' => true));
+                ['optional' => true]);
         $mform->addHelpButton('limitedanswer', 'limitedanswer', 'moodleoverflow');
 
         // Add standard elements, common to all modules.

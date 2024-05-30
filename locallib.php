@@ -1320,7 +1320,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                     // Build the help icon.
                     $limitedanswerattributes = ['class' => 'onlyifreviewed text-muted'];
                     $htmlclass = 'onlyifreviewed text-muted helpicon';
-                    $content = get_string('limitedanswer_helpicon_student', 'moodleoverflow', array('limitedanswerdate' => $date));
+                    $content = get_string('limitedanswer_helpicon_student', 'moodleoverflow', ['limitedanswerdate' => $date]);
                     $helpobject = new \mod_moodleoverflow\output\helpicon($htmlclass, $content);
                     $helpicon = $helpobject->get_helpicon();
 
@@ -1328,9 +1328,9 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                     $limitedanswerobject = html_writer::tag('span', $str->replyfirst . '    ' . $helpicon);
 
                     // Save the span in the commands with an extra value.
-                    $commands[] = array('text' => $limitedanswerobject,
+                    $commands[] = ['text' => $limitedanswerobject,
                                         'attributes' => $limitedanswerattributes,
-                                        'limitedanswer' => 'student');
+                                        'limitedanswer' => 'student', ];
 
                 } else {
                     // The User is a teacher.
@@ -1338,25 +1338,25 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                     // Build the help icon.
                     $limitedanswerattributes = ['class' => 'onlyifreviewed'];
                     $htmlclass = 'onlyifreviewed helpicon';
-                    $content = get_string('limitedanswer_helpicon_teacher', 'moodleoverflow', array('limitedanswerdate' => $date));
+                    $content = get_string('limitedanswer_helpicon_teacher', 'moodleoverflow', ['limitedanswerdate' => $date]);
                     $helpobject = new \mod_moodleoverflow\output\helpicon($htmlclass, $content);
                     $helpicon = $helpobject->get_helpicon();
 
                     // Build the answer button with a link.
-                    $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-                    $answerbutton = html_writer::link($replyurl, $str->replyfirst, array('class' => 'onlyifreviewed answerbutton'));
+                    $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
+                    $answerbutton = html_writer::link($replyurl, $str->replyfirst, ['class' => 'onlyifreviewed answerbutton']);
 
                     // Build a html span that has the answer button and the help icon.
                     $limitedanswerobject = html_writer::tag('span', $answerbutton . '    ' . $helpicon);
 
                     // Save the span in the commands with an extra value.
-                    $commands[] = array('text' => $limitedanswerobject,
+                    $commands[] = ['text' => $limitedanswerobject,
                                         'attributes' => $limitedanswerattributes,
-                                        'limitedanswer' => 'teacher');
+                                        'limitedanswer' => 'teacher', ];
                 }
             } else {
-                $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', array('reply' => $post->id));
-                $commands[] = array('url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes);
+                $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
+                $commands[] = ['url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes];
             }
 
             // If the post is a comment, answer to the parent post.
