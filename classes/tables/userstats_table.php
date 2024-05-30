@@ -75,7 +75,7 @@ class userstats_table extends \flexible_table {
                                'forumactivity',
                                'courseactivity',
                                'forumreputation',
-                               'coursereputation']);
+                               'coursereputation', ]);
         $this->define_baseurl($url);
         $this->define_headers([get_string('fullnameuser'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
@@ -83,7 +83,7 @@ class userstats_table extends \flexible_table {
                                (get_string('userstatsforumactivity', 'moodleoverflow') . $this->helpactivity->object),
                                (get_string('userstatscourseactivity', 'moodleoverflow') . $this->helpactivity->object),
                                get_string('userstatsforumreputation', 'moodleoverflow'),
-                               get_string('userstatscoursereputation', 'moodleoverflow')]);
+                               get_string('userstatscoursereputation', 'moodleoverflow'), ]);
         $this->get_table_data();
         $this->sortable(true, 'coursereputation', SORT_DESC);
         $this->no_sorting('username');
@@ -277,7 +277,7 @@ class userstats_table extends \flexible_table {
                                                     'tabindex' => '0',
                                                     'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
                                                                       get_string('helpamountofactivity', 'moodleoverflow') .
-                                                                      '</p> </div>'];
+                                                                      '</p> </div>', ];
 
         $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
                                                          $this->helpactivity->class,
@@ -356,10 +356,10 @@ class userstats_table extends \flexible_table {
      */
     private function badge_render($number) {
         if ($number > 0) {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-success') .
+            return \html_writer::tag('h5', \html_writer::start_span('badge bg-success') .
                 $number . \html_writer::end_span());
         } else {
-            return \html_writer::tag('h5', \html_writer::start_span('badge badge-warning') .
+            return \html_writer::tag('h5', \html_writer::start_span('badge bg-warning') .
                 $number . \html_writer::end_span());
         }
     }
