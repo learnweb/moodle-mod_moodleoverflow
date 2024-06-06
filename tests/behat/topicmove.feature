@@ -39,30 +39,30 @@ Feature: Teachers can move a discussion in one moodleoverflow forum to another m
 
   Scenario: Move topic from question anonymous forum
     Given I am on "Course 1" course homepage
-    And I add a new discussion to "question anonymous" moodleoverflow with:
-      | Subject | Question Message |
-      | Message | This is the question anonymous message |
-    And I follow "question anonymous"
-    And I click on "Move this discussion to another moodleoverflow" "link"
-    And I should not see "Move discussion to public moodleoverflow one"
-    And I should not see "Move discussion to public moodleoverflow two"
-    And I should not see "Move discussion to question anonymous"
-    And I should see "everything anonymous"
-    When I click on "Move discussion to everything anonymous" "link"
-    And I am on "Course 1" course homepage
-    And I follow "everything anonymous"
-    Then I should see "Question Message"
+      And I add a new discussion to "question anonymous" moodleoverflow with:
+        | Subject | Question Message |
+        | Message | This is the question anonymous message |
+      And I follow "question anonymous"
+      And I click on "Move this discussion to another moodleoverflow" "link"
+      And I should not see "Move discussion to public moodleoverflow one"
+      And I should not see "Move discussion to public moodleoverflow two"
+      And I should see "question anonymous"
+      And I should see "everything anonymous"
+      When I click on "Move discussion to everything anonymous" "link"
+      And I am on "Course 1" course homepage
+      And I follow "everything anonymous"
+      Then I should see "Question Message"
 
   Scenario: Move topic from question anonymous forum
     Given I am on "Course 1" course homepage
-    And I add a new discussion to "everything anonymous" moodleoverflow with:
-      | Subject | Everything Message |
-      | Message | This is the everything anonymous message |
-    And I follow "everything anonymous"
-    And I click on "Move this discussion to another moodleoverflow" "link"
-    And I should not see "Move discussion to public moodleoverflow one"
-    And I should not see "Move discussion to public moodleoverflow two"
-    And I should not see "Move discussion to question anonymous"
-    And I should not see "Move discussion to everything anonymous"
+      And I add a new discussion to "everything anonymous" moodleoverflow with:
+        | Subject | Everything Message |
+        | Message | This is the everything anonymous message |
+      And I follow "everything anonymous"
+      And I click on "Move this discussion to another moodleoverflow" "link"
+      And I should not see "Move discussion to public moodleoverflow one"
+      And I should not see "Move discussion to public moodleoverflow two"
+      And I should not see "Move discussion to question anonymous"
+      And I should not see "Move discussion to everything anonymous"
 
 

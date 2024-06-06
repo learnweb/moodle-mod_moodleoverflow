@@ -453,12 +453,12 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     // If the currentforum is anonymous, only show forums that have a higher anonymous setting.
     $anonymoussetting = $DB->get_field('moodleoverflow', 'anonymous', ['id' => $currentforum->moodleoverflow]);
     if ($anonymoussetting == anonymous::QUESTION_ANONYMOUS || $anonymoussetting == anonymous::EVERYTHING_ANONYMOUS) {
-        $params = ['course' => $course->id, 'anonymous' => anonymous::EVERYTHING_ANONYMOUS,
+        $params = ['course' => $course->id, 'anonymous' => $anonymoussetting,
                    'currentforumid' => $currentforum->moodleoverflow, ];
         $sql = "SELECT *
                FROM {moodleoverflow}
                WHERE course = :course
-                 AND anonymous = :anonymous
+                 AND anonymous >= :anonymous
                  AND id != :currentforumid";
         $forums = $DB->get_records_sql($sql, $params);
     } else {
