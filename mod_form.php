@@ -253,8 +253,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             // Check if there are already answered posts in this moodleoverflow and place a warning if so.
             $sql = 'SELECT COUNT(*) AS answerposts
             FROM {moodleoverflow_discussions} discuss JOIN {moodleoverflow_posts} posts
-            WHERE discuss.id = posts.discussion
-                AND posts.parent != 0
+            ON discuss.id = posts.discussion
+                WHERE posts.parent != 0
                 AND discuss.moodleoverflow = ' . $this->current->id . ';';
             $answerpostscount = $DB->get_records_sql($sql);
             $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
