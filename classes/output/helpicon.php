@@ -45,7 +45,7 @@ class helpicon {
         $iconurl = $CFG->wwwroot . '/pix/a/help.png';
         $icon = \html_writer::img($iconurl, $content);
         $class = $htmlclass;
-        $iconattributes = array('role' => 'button',
+        $iconattributes = ['role' => 'button',
                                     'data-container' => 'body',
                                     'data-toggle' => 'popover',
                                     'data-placement' => 'right',
@@ -53,7 +53,7 @@ class helpicon {
                                     'data-html' => 'true',
                                     'data-trigger' => 'focus',
                                     'tabindex' => '0',
-                                    'data-content' => '<div class=&quot;no-overflow&quot;><p>' . $content . '</p> </div>');
+                                    'data-content' => '<div class=&quot;no-overflow&quot;><p>' . $content . '</p> </div>', ];
         $this->helpobject = \html_writer::span($icon, $class, $iconattributes);
     }
 

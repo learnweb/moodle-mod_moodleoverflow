@@ -50,7 +50,7 @@ if ($ADMIN->fulltree) {
 
 
     // Default read tracking settings.
-    $options = array();
+    $options = [];
     $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
     $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
     $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
@@ -70,7 +70,7 @@ if ($ADMIN->fulltree) {
         get_string('configoldpostdays', 'moodleoverflow'), 14, PARAM_INT));
 
     // Default time (hour) to execute 'clean_read_records' cron.
-    $options = array();
+    $options = [];
     for ($i = 0; $i < 24; $i++) {
         $options[$i] = sprintf("%02d", $i);
     }
@@ -136,5 +136,10 @@ if ($ADMIN->fulltree) {
     foreach ($votesettings as $setting) {
         $setting->set_updatedcallback('moodleoverflow_update_all_grades');
     }
+
+    // Allow teachers to see cummulative userstats.
+    $settings->add(new admin_setting_configcheckbox('moodleoverflow/showuserstats',
+        get_string('showuserstats', 'moodleoverflow'), get_string('configshowuserstats', 'moodleoverflow'), 0));
+
 
 }

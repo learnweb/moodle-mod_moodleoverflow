@@ -94,8 +94,8 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         $table->add_field('grade', XMLDB_TYPE_FLOAT, '10', null, XMLDB_NOTNULL, null, '0');
 
         // Adding keys to table moodleoverflow_grades.
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
-        $table->add_key('moodleoverflowid', XMLDB_KEY_FOREIGN, array('moodleoverflowid'), 'moodleoverflow', array('id'));
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('moodleoverflowid', XMLDB_KEY_FOREIGN, ['moodleoverflowid'], 'moodleoverflow', ['id']);
 
         // Conditionally launch create table for moodleoverflow_grades.
         if (!$dbman->table_exists($table)) {
@@ -232,14 +232,16 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
     if ($oldversion < 2022110700) {
 
-        foreach (get_archetype_roles('manager') as $role) {
-            unassign_capability('mod/moodleoverflow:reviewpost', $role->id);
-        }
+        if (get_capability_info('mod/moodleoverflow:reviewpost')) {
+            foreach (get_archetype_roles('manager') as $role) {
+                unassign_capability('mod/moodleoverflow:reviewpost', $role->id);
+            }
 
-        foreach (get_archetype_roles('teacher') as $role) {
-            assign_capability(
+            foreach (get_archetype_roles('teacher') as $role) {
+                assign_capability(
                     'mod/moodleoverflow:reviewpost', CAP_ALLOW, $role->id, context_system::instance()
-            );
+                );
+            }
         }
 
         // Moodleoverflow savepoint reached.
@@ -258,12 +260,12 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         $table->add_field('forumdiscussionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('numberofposts', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
 
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
-        $table->add_key('userid', XMLDB_KEY_FOREIGN, array('userid'), 'user', array('id'));
-        $table->add_key('courseid', XMLDB_KEY_FOREIGN, array('courseid'), 'course', array('id'));
-        $table->add_key('forumid', XMLDB_KEY_FOREIGN, array('forumid'), 'moodleoverflow', array('id'));
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+        $table->add_key('courseid', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
+        $table->add_key('forumid', XMLDB_KEY_FOREIGN, ['forumid'], 'moodleoverflow', ['id']);
         $table->add_key('forumdiscussionid', XMLDB_KEY_FOREIGN,
-                         array('forumdiscussionid'), 'moodleoverflow_discussions', array('id'));
+                         ['forumdiscussionid'], 'moodleoverflow_discussions', ['id']);
 
         // Conditionally launch create table for moodleoverflow_mail_info.
         if (!$dbman->table_exists($table)) {

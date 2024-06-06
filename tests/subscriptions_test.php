@@ -36,6 +36,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \subscriptions
  */
 class subscriptions_test extends advanced_testcase {
 
@@ -67,7 +68,7 @@ class subscriptions_test extends advanced_testcase {
      * @return array The users created
      */
     protected function helper_create_users($course, $count) {
-        $users = array();
+        $users = [];
 
         for ($i = 0; $i < $count; $i++) {
             $user = $this->getDataGenerator()->create_user();
@@ -100,16 +101,16 @@ class subscriptions_test extends advanced_testcase {
         $discussion = $generator->create_discussion($record, $moodleoverflow);
 
         // Retrieve the post which was created.
-        $post = $DB->get_record('moodleoverflow_posts', array('discussion' => $discussion->id));
+        $post = $DB->get_record('moodleoverflow_posts', ['discussion' => $discussion->id]);
 
         // Return the discussion and the post.
-        return array($discussion->id, $post);
+        return [$discussion->id, $post];
     }
 
     /**
      * Test to set subscription modes.
      */
-    public function test_subscription_modes() {
+    public function test_subscription_modes(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -117,7 +118,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id);
+        $options = ['course' => $course->id];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $modulecontext = \context_module::instance($moodleoverflow->cmid);
 
@@ -129,7 +130,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Test the forced subscription.
         \mod_moodleoverflow\subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_FORCESUBSCRIBE);
-        $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id));
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
         $this->assertEquals(MOODLEOVERFLOW_FORCESUBSCRIBE,
             \mod_moodleoverflow\subscriptions::get_subscription_mode($moodleoverflow));
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow));
@@ -138,21 +139,21 @@ class subscriptions_test extends advanced_testcase {
 
         // Test the disallowed subscription.
         \mod_moodleoverflow\subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_DISALLOWSUBSCRIBE);
-        $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id));
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
         $this->assertTrue(\mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow));
 
         // Test the initial subscription.
         \mod_moodleoverflow\subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_INITIALSUBSCRIBE);
-        $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id));
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow));
 
         // Test the choose subscription.
         \mod_moodleoverflow\subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_CHOOSESUBSCRIBE);
-        $moodleoverflow = $DB->get_record('moodleoverflow', array('id' => $moodleoverflow->id));
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow));
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow));
@@ -161,13 +162,13 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test fetching unsubscribable moodleoverflows.
      */
-    public function test_unsubscribable_moodleoverflows() {
+    public function test_unsubscribable_moodleoverflows(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id);
+        $options = ['course' => $course->id];
         $mof = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -185,13 +186,13 @@ class subscriptions_test extends advanced_testcase {
         $this->assertEquals(0, count($result));
 
         // Create the moodleoverflows.
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE];
         $disallow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $choose = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // At present the user is only subscribed to the initial moodleoverflow.
@@ -210,7 +211,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that toggeling the moodleoverflow-level subscription for a different user does not affect their discussion-level.
      */
-    public function test_moodleoverflow_toggle_as_other() {
+    public function test_moodleoverflow_toggle_as_other(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -218,7 +219,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id);
+        $options = ['course' => $course->id];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -243,139 +244,139 @@ class subscriptions_test extends advanced_testcase {
             $modulecontext, $discussion->id));
 
         // Check thast we have no records in either on the subscription tables.
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
 
         // Subscribing to the moodleoverflow should create a record in the subscription table,
         // but the moodleoverflow discussion subscriptions table.
         \mod_moodleoverflow\subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
 
         // Unsubscribing should remove the record from the moodleoverflow subscription table.
         // Do not modify the moodleoverflow discussion subscriptions table.
         \mod_moodleoverflow\subscriptions::unsubscribe_user($author->id, $moodleoverflow, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
 
         // Enroling the user in the discussion should add one record to the
         // moodleoverflow discussion table without modifying the form subscription.
         \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($author->id, $discussion, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
         // Unsubscribing should remove the record from the moodleoverflow subscriptions
         // table and not modify the moodleoverflow discussion subscription table.
         \mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($author->id, $discussion, $modulecontext);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
 
         // Resubscribe to the discussion so that we can check the effect of moodleoverflow-level subscriptions.
         \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($author->id, $discussion, $modulecontext);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
 
         // Subscribing to the moodleoverflow should have no effect on the moodleoverflow discussion
         // subscription table if the user did not request the change himself.
         \mod_moodleoverflow\subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
         // Unsubbing from the moodleoverflow should have no effect on the moodleoverflow
         // discussion subscription table if the user did not request the change themself.
         \mod_moodleoverflow\subscriptions::unsubscribe_user($author->id, $moodleoverflow, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
         // Subscribing to the moodleoverflow should remove the per-discussion
         // subscription preference if the user requested the change themself.
         \mod_moodleoverflow\subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext, true);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
 
         // Now unsubscribe from the current discussion whilst being subscribed to the moodleoverflow as a whole.
         \mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($author->id, $discussion, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
         // Unsubscribing from the moodleoverflow should remove the per-discussion
         // subscription preference if the user requested the change himself.
         \mod_moodleoverflow\subscriptions::unsubscribe_user($author->id, $moodleoverflow, $modulecontext, true);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-        $count = $DB->count_records('moodleoverflow_discuss_subs', array(
+        $count = $DB->count_records('moodleoverflow_discuss_subs', [
             'userid' => $author->id,
             'discussion' => $discussion->id,
-        ));
+        ]);
         $this->assertEquals(0, $count);
 
         // Subscribe to the discussion.
         \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($author->id, $discussion, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
-        $count = $DB->count_records('moodleoverflow_discuss_subs', array(
+        $count = $DB->count_records('moodleoverflow_discuss_subs', [
             'userid' => $author->id,
             'discussion' => $discussion->id,
-        ));
+        ]);
         $this->assertEquals(1, $count);
 
         // Subscribe to the moodleoverflow without removing the discussion preferences.
         \mod_moodleoverflow\subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
         // Unsubscribe from the discussion should result in a change.
         \mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($author->id, $discussion, $modulecontext);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
     }
@@ -383,13 +384,13 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that a user unsubscribed from a moodleoverflow is not subscribed to it's discussions by default.
      */
-    public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed() {
+    public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed(): void {
         // Reset the database after the test.
         $this->resetAfterTest(true);
 
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create users enrolled in the course as students.
@@ -410,13 +411,13 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the act of subscribing to a moodleoverflow subscribes the user to it's discussions by default.
      */
-    public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed() {
+    public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -449,13 +450,13 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that a user unsubscribed from a moodleoverflow can be subscribed to a discussion.
      */
-    public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed_discussion_subscribed() {
+    public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed_discussion_subscribed(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
         // Create a course and a new moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -493,13 +494,13 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that a user subscribed to a moodleoverflow can be unsubscribed from a discussion.
      */
-    public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed_discussion_unsubscribed() {
+    public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed_discussion_unsubscribed(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -535,7 +536,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test the effect of toggling the discussion subscription status when subscribed to the moodleoverflow.
      */
-    public function test_moodleoverflow_discussion_toggle_moodleoverflow_subscribed() {
+    public function test_moodleoverflow_discussion_toggle_moodleoverflow_subscribed(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -543,7 +544,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
@@ -573,10 +574,10 @@ class subscriptions_test extends advanced_testcase {
             $discussion, $modulecontext));
 
         // And there should be no discussion subscriptions (and one moodleoverflow subscription).
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
 
@@ -591,10 +592,10 @@ class subscriptions_test extends advanced_testcase {
             $discussion, $modulecontext));
 
         // And there should be a discussion subscriptions (and one moodleoverflow subscription).
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
 
@@ -603,12 +604,12 @@ class subscriptions_test extends advanced_testcase {
             $discussion->id));
 
         // There should be a record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
         // And one in the moodleoverflow subscription tracking table.
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
 
@@ -623,12 +624,12 @@ class subscriptions_test extends advanced_testcase {
             $discussion->id));
 
         // And one in the moodleoverflow subscription tracking table.
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
 
         // There should be no record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
 
@@ -643,12 +644,12 @@ class subscriptions_test extends advanced_testcase {
             $discussion->id));
 
         // And one in the moodleoverflow subscription tracking table.
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
 
         // There should be a record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
@@ -664,12 +665,12 @@ class subscriptions_test extends advanced_testcase {
             $discussion->id));
 
         // There should be no record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
 
         // And one in the forum subscription tracking table.
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
 
@@ -684,12 +685,12 @@ class subscriptions_test extends advanced_testcase {
         $this->assertTrue(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // There should be a record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
         // And one in the moodleoverflow subscription tracking table.
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(1, $count);
 
@@ -698,10 +699,10 @@ class subscriptions_test extends advanced_testcase {
             true));
 
         // This removes both the moodleoverflow, and the moodleoverflow records.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
-        $options = array('userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id);
+        $options = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
         $count = $DB->count_records('moodleoverflow_subscriptions', $options);
         $this->assertEquals(0, $count);
 
@@ -714,7 +715,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test the effect of toggling the discussion subscription status when unsubscribed from the moodleoverflow.
      */
-    public function test_moodleoverflow_discussion_toggle_moodleoverflow_unsubscribed() {
+    public function test_moodleoverflow_discussion_toggle_moodleoverflow_unsubscribed(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -722,7 +723,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -761,7 +762,7 @@ class subscriptions_test extends advanced_testcase {
             $discussion->id));
 
         // There should be a record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
@@ -776,7 +777,7 @@ class subscriptions_test extends advanced_testcase {
             $discussion->id));
 
         // There should be no record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
 
@@ -791,7 +792,7 @@ class subscriptions_test extends advanced_testcase {
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // There should be a record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(1, $count);
 
@@ -806,7 +807,7 @@ class subscriptions_test extends advanced_testcase {
         $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // There should be no record in the discussion subscription tracking table.
-        $options = array('userid' => $author->id, 'discussion' => $discussion->id);
+        $options = ['userid' => $author->id, 'discussion' => $discussion->id];
         $count = $DB->count_records('moodleoverflow_discuss_subs', $options);
         $this->assertEquals(0, $count);
     }
@@ -815,7 +816,7 @@ class subscriptions_test extends advanced_testcase {
      * Test that the correct users are returned when fetching subscribed users
      * from a moodleoverflow where users can choose to subscribe and unsubscribe.
      */
-    public function test_fetch_subscribed_users_subscriptions() {
+    public function test_fetch_subscribed_users_subscriptions(): void {
         global $CFG;
 
         // Reset the database after testing.
@@ -823,7 +824,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course, with a moodleoverflow. where users are initially subscribed.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -858,13 +859,13 @@ class subscriptions_test extends advanced_testcase {
      * Test that the correct users are returned hwen fetching subscribed users from a moodleoverflow where users are forcibly
      * subscribed.
      */
-    public function test_fetch_subscribed_users_forced() {
+    public function test_fetch_subscribed_users_forced(): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 
         // Create a course, with a moodleoverflow. where users are initially subscribed.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -883,7 +884,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that unusual combinations of discussion subscriptions do not affect the subscribed user list.
      */
-    public function test_fetch_subscribed_users_discussion_subscriptions() {
+    public function test_fetch_subscribed_users_discussion_subscriptions(): void {
         global $DB;
 
         // Reset after testing.
@@ -891,7 +892,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course, with a moodleoverflow. where users are initially subscribed.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -969,7 +970,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test whether a user is force-subscribed to a moodleoverflow.
      */
-    public function test_force_subscribed_to_moodleoverflow() {
+    public function test_force_subscribed_to_moodleoverflow(): void {
         global $DB;
 
         // Reset database after testing.
@@ -978,7 +979,7 @@ class subscriptions_test extends advanced_testcase {
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
 
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Remove the allowforcesubscribe capability from the user.
@@ -1002,7 +1003,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the subscription cache can be pre-filled.
      */
-    public function test_subscription_cache_prefill() {
+    public function test_subscription_cache_prefill(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1010,7 +1011,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create some users.
@@ -1036,7 +1037,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the subscription cache can filled user-at-a-time.
      */
-    public function test_subscription_cache_fill() {
+    public function test_subscription_cache_fill(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1045,7 +1046,7 @@ class subscriptions_test extends advanced_testcase {
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
 
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create some users.
@@ -1068,7 +1069,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the discussion subscription cache can filled course-at-a-time.
      */
-    public function test_discussion_subscription_cache_fill_for_course() {
+    public function test_discussion_subscription_cache_fill_for_course(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1078,11 +1079,11 @@ class subscriptions_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
 
         // Create the moodleoverflows.
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE];
         $disallowmoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $choosemoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $initialmoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create some users and keep a reference to the first user.
@@ -1121,7 +1122,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the discussion subscription cache can be forcibly updated for a user.
      */
-    public function test_discussion_subscription_cache_prefill() {
+    public function test_discussion_subscription_cache_prefill(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1129,7 +1130,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -1140,7 +1141,7 @@ class subscriptions_test extends advanced_testcase {
         $users = $this->helper_create_users($course, 20);
 
         // Post some discussions to the moodleoverflow.
-        $discussions = array();
+        $discussions = [];
         $author = $users[0];
         for ($i = 0; $i < 20; $i++) {
             $discussion = new \stdClass();
@@ -1188,7 +1189,7 @@ class subscriptions_test extends advanced_testcase {
     /**
      * Test that the discussion subscription cache can filled user-at-a-time.
      */
-    public function test_discussion_subscription_cache_fill() {
+    public function test_discussion_subscription_cache_fill(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1196,14 +1197,14 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create some users.
         $users = $this->helper_create_users($course, 20);
 
         // Post some discussions to the moodleoverflow.
-        $discussions = array();
+        $discussions = [];
         $author = $users[0];
         for ($i = 0; $i < 20; $i++) {
             $discussion = new \stdClass();
@@ -1261,7 +1262,7 @@ class subscriptions_test extends advanced_testcase {
      * Test that after toggling the moodleoverflow subscription as another user,
      * the discussion subscription functionality works as expected.
      */
-    public function test_moodleoverflow_subscribe_toggle_as_other_repeat_subscriptions() {
+    public function test_moodleoverflow_subscribe_toggle_as_other_repeat_subscriptions(): void {
         global $DB;
 
         // Reset the database after testing.
@@ -1269,7 +1270,7 @@ class subscriptions_test extends advanced_testcase {
 
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE);
+        $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Get the module context.
@@ -1293,26 +1294,26 @@ class subscriptions_test extends advanced_testcase {
             $discussion->id));
 
         // Confirm that we have no records in either of the subscription tables.
-        $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', array(
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', [
             'userid' => $user->id,
             'moodleoverflow' => $moodleoverflow->id,
-        )));
-        $this->assertEquals(0, $DB->count_records('moodleoverflow_discuss_subs', array(
+        ]));
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_discuss_subs', [
             'userid' => $user->id,
             'discussion' => $discussion->id,
-        )));
+        ]));
 
         // Subscribing to the moodleoverflow should create a record in the subscriptions table,
         // but not the moodleoverflow discussion subscriptions table.
         \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $modulecontext);
-        $this->assertEquals(1, $DB->count_records('moodleoverflow_subscriptions', array(
+        $this->assertEquals(1, $DB->count_records('moodleoverflow_subscriptions', [
             'userid' => $user->id,
             'moodleoverflow' => $moodleoverflow->id,
-        )));
-        $this->assertEquals(0, $DB->count_records('moodleoverflow_discuss_subs', array(
+        ]));
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_discuss_subs', [
             'userid' => $user->id,
             'discussion' => $discussion->id,
-        )));
+        ]));
 
         // Now unsubscribe from the discussion. This should return true.
         $uid = $user->id;
@@ -1333,25 +1334,25 @@ class subscriptions_test extends advanced_testcase {
         // And unsubscribing from the moodleoverflow but not as a request from the user should maintain their preference.
         \mod_moodleoverflow\subscriptions::unsubscribe_user($user->id, $moodleoverflow, $modulecontext);
 
-        $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', array(
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', [
             'userid' => $user->id,
             'moodleoverflow' => $moodleoverflow->id,
-        )));
-        $this->assertEquals(1, $DB->count_records('moodleoverflow_discuss_subs', array(
+        ]));
+        $this->assertEquals(1, $DB->count_records('moodleoverflow_discuss_subs', [
             'userid' => $user->id,
             'discussion' => $discussion->id,
-        )));
+        ]));
 
         // Subscribing to the discussion should return truthfully because a change was made.
         $this->assertTrue(\mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($user->id, $discussion, $modulecontext));
-        $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', array(
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_subscriptions', [
             'userid' => $user->id,
             'moodleoverflow' => $moodleoverflow->id,
-        )));
-        $this->assertEquals(1, $DB->count_records('moodleoverflow_discuss_subs', array(
+        ]));
+        $this->assertEquals(1, $DB->count_records('moodleoverflow_discuss_subs', [
             'userid' => $user->id,
             'discussion' => $discussion->id,
-        )));
+        ]));
     }
 
     /**
@@ -1381,7 +1382,7 @@ class subscriptions_test extends advanced_testcase {
      *
      * @return array
      */
-    public function is_subscribable_provider() {
+    public function is_subscribable_provider(): array {
         $data = [];
         foreach ($this->is_subscribable_moodleoverflows() as $moodleoverflow) {
             $data[] = [$moodleoverflow];
@@ -1396,8 +1397,9 @@ class subscriptions_test extends advanced_testcase {
      * @param array $options
      *
      * @dataProvider is_subscribable_provider
+     * @return void
      */
-    public function test_is_subscribable_logged_out($options) {
+    public function test_is_subscribable_logged_out($options): void {
         $this->resetAfterTest(true);
 
         // Create a course, with a moodleoverflow.
@@ -1415,13 +1417,14 @@ class subscriptions_test extends advanced_testcase {
      * @param array $options
      *
      * @dataProvider is_subscribable_provider
+     * @return void
      */
-    public function test_is_subscribable_is_guest($options) {
+    public function test_is_subscribable_is_guest($options): void {
         global $DB;
         $this->resetAfterTest(true);
 
         // Create a guest user.
-        $guest = $DB->get_record('user', array('username' => 'guest'));
+        $guest = $DB->get_record('user', ['username' => 'guest']);
         $this->setUser($guest);
 
         // Create a course, with a moodleoverflow.
@@ -1437,7 +1440,7 @@ class subscriptions_test extends advanced_testcase {
      * Returns subscription obtions.
      * @return array
      */
-    public function is_subscribable_loggedin_provider() {
+    public function is_subscribable_loggedin_provider(): array {
         return [
             [
                 ['forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE],
@@ -1466,7 +1469,7 @@ class subscriptions_test extends advanced_testcase {
      *
      * @dataProvider is_subscribable_loggedin_provider
      */
-    public function test_is_subscribable_loggedin($options, $expect) {
+    public function test_is_subscribable_loggedin($options, $expect): void {
         // Reset the database after testing.
         $this->resetAfterTest(true);
 

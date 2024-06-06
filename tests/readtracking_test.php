@@ -36,25 +36,26 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \readtracking
  */
 class readtracking_test extends advanced_testcase {
 
     /**
      * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.
      */
-    public function test_moodleoverflow_can_track_moodleoverflows() {
+    public function test_moodleoverflow_can_track_moodleoverflows(): void {
 
         // Reset after testing.
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF); // Off.
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF]; // Off.
         $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED); // On.
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED]; // On.
         $moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL); // Optional.
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL]; // Optional.
         $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Allow force.
@@ -91,19 +92,19 @@ class readtracking_test extends advanced_testcase {
     /**
      * Test the logic in the test_forum_tp_is_tracked() function.
      */
-    public function test_moodleoverflow_is_tracked() {
+    public function test_moodleoverflow_is_tracked(): void {
 
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL);
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL];
         $mooptional = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED);
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED];
         $moforce = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        $options = array('course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF);
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF];
         $mooff = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Allow force.
