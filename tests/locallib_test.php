@@ -50,7 +50,7 @@ class locallib_test extends advanced_testcase {
      * Test subscription using automatic subscription on create.
      * @covers \mod_moodleoverflow\subscriptions Subscription of users as default.
      */
-    public function test_moodleoverflow_auto_subscribe_on_create() {
+    public function test_moodleoverflow_auto_subscribe_on_create(): void {
         global $DB;
 
         $this->resetAfterTest();
@@ -83,7 +83,7 @@ class locallib_test extends advanced_testcase {
      * Test subscription using forced subscription on create.
      * @covers \mod_moodleoverflow\subscriptions sorced Subscription of users.
      */
-    public function test_moodleoverflow_forced_subscribe_on_create() {
+    public function test_moodleoverflow_forced_subscribe_on_create(): void {
         global $DB;
 
         $this->resetAfterTest();
@@ -115,7 +115,7 @@ class locallib_test extends advanced_testcase {
      * Test subscription using optional subscription on create.
      * @covers \mod_moodleoverflow\subscriptions optional subscription.
      */
-    public function test_moodleoverflow_optional_subscribe_on_create() {
+    public function test_moodleoverflow_optional_subscribe_on_create(): void {
         global $DB;
 
         $this->resetAfterTest();
@@ -146,7 +146,7 @@ class locallib_test extends advanced_testcase {
      * Test subscription using disallow subscription on create.
      * @covers \mod_moodleoverflow\subscriptions prohibit Subscription of users.
      */
-    public function test_moodleoverflow_disallow_subscribe_on_create() {
+    public function test_moodleoverflow_disallow_subscribe_on_create(): void {
         global $DB;
 
         $this->resetAfterTest();

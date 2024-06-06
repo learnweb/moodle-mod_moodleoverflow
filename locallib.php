@@ -24,7 +24,6 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
@@ -157,7 +156,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $userstatsbuttontext = get_string('seeuserstats', 'moodleoverflow');
         $userstatsbuttonurl = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
                                                                            'courseid' => $moodleoverflow->course,
-                                                                           'mid' => $moodleoverflow->id]);
+                                                                           'mid' => $moodleoverflow->id, ]);
         $userstatsbutton = new single_button($userstatsbuttonurl, $userstatsbuttontext, 'get');
         $userstatsbutton->class = 'singlebutton align-middle m-2';
         echo $OUTPUT->render($userstatsbutton);
@@ -325,7 +324,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         } else {
             // Get his picture, his name and the link to his profile.
             $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course,
-                                                                                    'link' => false]);
+                                                                                    'link' => false, ]);
             $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
             $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;
@@ -450,10 +449,25 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     $forumarray = [[]];
     $currentforum = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'moodleoverflow');
     $currentdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'name');
-    $forums = $DB->get_records('moodleoverflow', ['course' => $course->id]);
+
+    // If the currentforum is anonymous, only show forums that have a higher anonymous setting.
+    $anonymoussetting = $DB->get_field('moodleoverflow', 'anonymous', ['id' => $currentforum->moodleoverflow]);
+    if ($anonymoussetting == anonymous::QUESTION_ANONYMOUS || $anonymoussetting == anonymous::EVERYTHING_ANONYMOUS) {
+        $params = ['course' => $course->id, 'anonymous' => $anonymoussetting,
+                   'currentforumid' => $currentforum->moodleoverflow, ];
+        $sql = "SELECT *
+               FROM {moodleoverflow}
+               WHERE course = :course
+                 AND anonymous >= :anonymous
+                 AND id != :currentforumid";
+        $forums = $DB->get_records_sql($sql, $params);
+    } else {
+        $forums = $DB->get_records('moodleoverflow', ['course' => $course->id]);
+    }
+
     $amountforums = count($forums);
 
-    if ($amountforums > 1) {
+    if ($amountforums >= 1) {
         // Write the moodleoverflow-names in an array.
         $i = 0;
         foreach ($forums as $forum) {
@@ -1427,12 +1441,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     }
     $mustachedata->questioner = $post->userid == $discussion->userid ? 'questioner' : '';
 
-    // Set options for the post.
-    $options = new stdClass();
-    $options->para = false;
-    $options->trusted = false;
-    $options->context = $modulecontext;
-
     $reviewdelay = get_config('moodleoverflow', 'reviewpossibleaftertime');
     $mustachedata->reviewdelay = format_time($reviewdelay);
     $mustachedata->needsreview = !$post->reviewed;
@@ -1441,7 +1449,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
-    $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options, $course->id);
+    $mustachedata->postcontent = format_text($post->message, $post->messageformat, ['context' => $modulecontext]);
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
@@ -1851,10 +1859,10 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
             $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
                 $post->id, "filename", true);
             foreach ($attachments as $attachment) {
-                // Get file
+                // Get file.
                 $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $post->id,
                     $attachment->get_filepath(), $attachment->get_filename());
-                // Delete it if it exists
+                // Delete it if it exists.
                 if ($file) {
                     $file->delete();
                 }
@@ -2056,7 +2064,7 @@ function moodleoverflow_update_user_grade_on_db($moodleoverflow, $postuserrating
     if ($DB->record_exists('moodleoverflow_grades', ['userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id])) {
 
         $DB->set_field('moodleoverflow_grades', 'grade', $grade, ['userid' => $userid,
-            'moodleoverflowid' => $moodleoverflow->id]);
+            'moodleoverflowid' => $moodleoverflow->id, ]);
 
     } else {
 

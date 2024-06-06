@@ -353,8 +353,8 @@ $string['action_upvote'] = 'Click to upvote';
 $string['action_remove_downvote'] = 'Click to remove downvote';
 $string['downvotenotchangeable'] = 'Cannot downvote';
 $string['action_downvote'] = 'Click to downvote';
-$string['movetopicicon'] = 'The icon to move a topic';
-$string['movetopictoforum'] = 'The icon to move a selected topic to another forum';
+$string['movetopicicon'] = 'Move this discussion to another moodleoverflow';
+$string['movetopictoforum'] = 'Move discussion to {$a->forumname}';
 
 // Privacy.
 $string['privacy:metadata:core_files'] = 'Moodleoverflow stores files which have been uploaded by the user to form part of a forum post.';

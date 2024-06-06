@@ -37,8 +37,13 @@
             {{#forums}}        
                 <tr class="discussion">
                     <td class="topic starter">
-                        {{name}} 
-                        <a href='{{ movetoforum }}'>{{#pix}} i/arrow-right, core, {{#str}}movetopictoforum, moodleoverflow{{/str}} {{/pix}}</a>
+                        {{name}}
+                        <a href='{{ movetoforum }}'>
+                            {{#pix}} i/arrow-right, core,
+                                {{#str}} movetopictoforum, mod_moodleoverflow, {"forumname": {{#quote}} {{name}} {{/quote}} }
+                                {{/str}}
+                            {{/pix}}
+                        </a>
                     </td>
                 </tr>
             {{/forums}}

@@ -98,7 +98,7 @@ class dailymail_test extends \advanced_testcase {
     public function helper_create_user_and_discussion($maildigest) {
         // Create a user enrolled in the course as student.
         $this->user = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'email' => 'tamaromail@example.com',
-                                                              'maildigest' => $maildigest]);
+                                                              'maildigest' => $maildigest, ]);
         $this->getDataGenerator()->enrol_user($this->user->id, $this->course->id, 'student');
 
         // Create a new discussion and post within the moodleoverflow.
@@ -165,7 +165,7 @@ class dailymail_test extends \advanced_testcase {
         $location = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $student = $this->getDataGenerator()->create_user(['firstname' => 'Ethan', 'email' => 'ethanmail@example.com',
-                                                           'maildigest' => '1']);
+                                                           'maildigest' => '1', ]);
         $this->getDataGenerator()->enrol_user($student->id, $course->id, 'teacher');
         $discussion = $this->generator->post_to_forum($moodleoverflow, $student);
 
@@ -203,7 +203,7 @@ class dailymail_test extends \advanced_testcase {
      * Test if the content of the mail matches the supposed content.
      * @covers \send_daily_mail::execute
      */
-    public function test_content_of_mail_delivery() {
+    public function test_content_of_mail_delivery(): void {
 
         // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
@@ -238,7 +238,7 @@ class dailymail_test extends \advanced_testcase {
      * Test if the task does not send a mail when maildigest = 0
      * @covers \send_daily_mail::execute
      */
-    public function test_mail_not_send() {
+    public function test_mail_not_send(): void {
         // Creat user with daily_mail = off.
         $this->helper_create_user_and_discussion('0');
 
@@ -254,7 +254,7 @@ class dailymail_test extends \advanced_testcase {
      * Test if database is updated after sending a mail
      * @covers \send_daily_mail::execute
      */
-    public function test_records_removed() {
+    public function test_records_removed(): void {
         global $DB;
         // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
