@@ -32,7 +32,9 @@ use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
+require_once($CFG->libdir . '/portfoliolib.php');
 
 /**
  * Get all discussions in a moodleoverflow instance.
@@ -1434,7 +1436,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
-    $mustachedata->postcontent = format_text($post->message, $post->messageformat, ['context' => $modulecontext]);
+    $options = (array) portfolio_format_text_options() + ['context' => $modulecontext];
+    $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options);
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
