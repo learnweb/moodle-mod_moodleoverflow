@@ -39,7 +39,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class dailymail_test extends \advanced_testcase {
+final class dailymail_test extends \advanced_testcase {
 
     /** @var \stdClass collection of messages */
     private $sink;

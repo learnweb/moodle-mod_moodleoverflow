@@ -247,12 +247,12 @@ class behat_mod_moodleoverflow extends behat_base {
     public function i_set_the_moodleoverflow_limitedanswertime_to_now($activity): void {
         global $DB;
 
-        if (!$activityRecord = $DB->get_record('moodleoverflow', ['name' => $activity])) {
+        if (!$activityrecord = $DB->get_record('moodleoverflow', ['name' => $activity])) {
             throw new Exception("Activity '$activity' not found");
         }
 
         // Update the specified field
-        $activityRecord->limitedanswer = time();
-        $DB->update_record('moodleoverflow', $activityRecord);
+        $activityrecord->limitedanswer = time();
+        $DB->update_record('moodleoverflow', $activityrecord);
     }
 }

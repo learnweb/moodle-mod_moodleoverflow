@@ -29,11 +29,11 @@ defined('MOODLE_INTERNAL') || die();
 
 // Default strings.
 $string['modulename'] = 'Moodleoverflow';
-$string['modulenameplural'] = 'Moodleoverflows';
 $string['modulename_help'] = 'The Moodleoverflow module enables participants to use a question-answer forum structure. The forum display is non-chronological as the ordering depends on collaborative voting instead of on time.';
+$string['modulenameplural'] = 'Moodleoverflows';
+$string['moodleoverflow'] = 'Moodleoverflow';
 $string['moodleoverflowfieldset'] = 'Custom example fieldset';
 $string['moodleoverflowname'] = 'Moodleoverflow name';
-$string['moodleoverflow'] = 'Moodleoverflow';
 $string['pluginadministration'] = 'Moodleoverflow administration';
 $string['pluginname'] = 'Moodleoverflow';
 
