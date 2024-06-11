@@ -1306,7 +1306,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
             // Check if limitedanswertime is on.
             if ($limitedanswertime > time()) {
                 // Change limitedanswertime to a readable date.
-                $date = gmdate('d.m.Y', $limitedanswertime);
+                $date = gmdate('d.m.Y H:i', $limitedanswertime);
 
                 // Check if user is a student or teacher.
                 $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);

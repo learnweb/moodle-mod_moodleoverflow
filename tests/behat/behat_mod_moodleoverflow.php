@@ -235,4 +235,24 @@ class behat_mod_moodleoverflow extends behat_base {
             $this->getSession()
         );
     }
+
+    /**
+     * Sets the limited answer attribute of a moodleoverflow to the current time.
+     *
+     * @Given I set the :activity moodleoverflow limitedanswertime to now
+     * @param $activity
+     * @param $value
+     * @return void
+     */
+    public function i_set_the_moodleoverflow_limitedanswertime_to_now($activity): void {
+        global $DB;
+
+        if (!$activityRecord = $DB->get_record('moodleoverflow', ['name' => $activity])) {
+            throw new Exception("Activity '$activity' not found");
+        }
+
+        // Update the specified field
+        $activityRecord->limitedanswer = time();
+        $DB->update_record('moodleoverflow', $activityRecord);
+    }
 }
