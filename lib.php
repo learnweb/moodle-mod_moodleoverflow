@@ -94,7 +94,6 @@ define('RATING_REMOVE_HELPFUL', 40);
  * @return mixed true if the feature is supported, null if unknown
  */
 function moodleoverflow_supports($feature) {
-    global $CFG;
 
     if (defined('FEATURE_MOD_PURPOSE')) {
         if ($feature == FEATURE_MOD_PURPOSE) {
@@ -230,11 +229,11 @@ function moodleoverflow_refresh_events($courseid = 0) {
     global $DB;
 
     if ($courseid == 0) {
-        if (!$moodleoverflows = $DB->get_records('moodleoverflow')) {
+        if (!$DB->get_records('moodleoverflow')) {
             return true;
         }
     } else {
-        if (!$moodleoverflows = $DB->get_records('moodleoverflow', ['course' => $courseid])) {
+        if (!$DB->get_records('moodleoverflow', ['course' => $courseid])) {
             return true;
         }
     }

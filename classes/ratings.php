@@ -678,8 +678,6 @@ class ratings {
      * @return bool
      */
     private static function moodleoverflow_can_be_changed($postid, $rating, $userid) {
-        global $CFG;
-
         // Check if the old read record exists.
         $old = self::moodleoverflow_check_old_rating($postid, $userid, $rating);
         if (!$old) {

@@ -372,6 +372,7 @@ class userstats_table extends \flexible_table {
     public function other_cols($colname, $attempt) {
         return null;
     }
+
     /**
      * Return a student object.
      * @param \stdClass $user

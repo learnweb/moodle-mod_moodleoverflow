@@ -65,7 +65,7 @@ class mail_manager {
      * @return bool
      */
     public static function moodleoverflow_send_mails(): bool {
-        global $DB, $CFG, $PAGE;
+        global $DB, $PAGE;
 
         // Get the course object of the top level site.
         $site = get_site();
@@ -129,7 +129,7 @@ class mail_manager {
                 cron_setup_user($userto);
 
                 // Reset the caches.
-                foreach ($coursemodules as $moodleoverflowid => $unused) {
+                foreach ($coursemodules as $moodleoverflowid) {
                     $coursemodules[$moodleoverflowid]->cache = new stdClass();
                     $coursemodules[$moodleoverflowid]->cache->caps = [];
                     unset($coursemodules[$moodleoverflowid]->uservisible);
@@ -427,7 +427,6 @@ class mail_manager {
         }
 
         // Check whether the user is subscribed to the discussion.
-        $iscm = $coursemodules[$moodleoverflow->id];
         $uid = $userto->id;
         $did = $post->discussion;
         $issubscribed = subscriptions::is_subscribed($uid, $moodleoverflow, $modulecontext, $did);

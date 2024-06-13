@@ -687,8 +687,7 @@ if ($fromform = $mformpost->get_data()) {
             $discussion = new \stdClass();
             $discussion->id = $fromform->discussion;
             $discussion->moodleoverflow = $moodleoverflow->id;
-            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform,
-                $moodleoverflow, $discussion, $modulecontext);
+            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($moodleoverflow, $discussion, $modulecontext);
 
             // Print a success-message.
             $message .= '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
@@ -763,8 +762,7 @@ if ($fromform = $mformpost->get_data()) {
             $event->trigger();
             // Subscribe to this thread.
             $discussion->moodleoverflow = $moodleoverflow->id;
-            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform,
-                $moodleoverflow, $discussion, $modulecontext);
+            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($moodleoverflow, $discussion, $modulecontext);
         }
 
         // Redirect back to te discussion.
