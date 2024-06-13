@@ -39,6 +39,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  * @group mod_moodleoverflow
+ * @covers \mod_moodleoverflow\review
+ * @covers \mod_moodleoverflow\task\send_mails
  */
 final class review_test extends \advanced_testcase {
 

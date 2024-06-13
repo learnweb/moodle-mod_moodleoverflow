@@ -38,6 +38,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \mod_moodleoverflow\task\send_daily_mail
  */
 final class dailymail_test extends \advanced_testcase {
 
@@ -59,7 +61,7 @@ final class dailymail_test extends \advanced_testcase {
     /** @var \stdClass discussion instance */
     private $discussion;
 
-    /** @var  moodleoverflow generator */
+    /** @var \component_generator_base moodleoverflow generator */
     private $generator;
 
     /**
@@ -138,7 +140,6 @@ final class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task send_daily_mail sends a mail to the user.
-     * @covers \send_daily_mail::execute
      */
     public function test_mail_delivery(): void {
         // Create user with maildigest = on.
