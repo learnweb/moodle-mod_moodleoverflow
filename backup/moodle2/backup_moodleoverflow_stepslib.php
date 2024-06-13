@@ -45,9 +45,8 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
 
         // Define the root element describing the moodleoverflow instance.
         $moodleoverflow = new backup_nested_element('moodleoverflow', ['id'], [
-            'name', 'intro', 'introformat', 'maxbytes', 'maxattachments',
-            'forcesubscribe', 'trackingtype', 'timecreated', 'timemodified',
-            'ratingpreference', 'coursewidereputation', 'allownegativereputation', ]);
+            'name', 'intro', 'introformat', 'maxbytes', 'maxattachments', 'forcesubscribe', 'trackingtype', 'timecreated',
+            'timemodified', 'ratingpreference', 'coursewidereputation', 'allownegativereputation', 'limitedanswer', ]);
 
         // Define each element separated.
         $discussions = new backup_nested_element('discussions');
