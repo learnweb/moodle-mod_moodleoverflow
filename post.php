@@ -22,8 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// TODO refactor this. For more readability, and to avoid security issues.
-
 // Include config and locallib.
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\review;

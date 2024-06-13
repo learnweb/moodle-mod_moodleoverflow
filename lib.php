@@ -130,7 +130,7 @@ function moodleoverflow_supports($feature) {
  *
  * @return int The id of the newly inserted moodleoverflow record
  */
-function moodleoverflow_add_instance(stdClass $moodleoverflow, mod_moodleoverflow_mod_form $mform = null) {
+function moodleoverflow_add_instance(stdClass $moodleoverflow, ?mod_moodleoverflow_mod_form $mform = null) {
     global $DB;
 
     // Set the current time.
@@ -171,12 +171,12 @@ function moodleoverflow_instance_created($context, $moodleoverflow) {
  * (defined by the form in mod_form.php) this function
  * will update an existing instance with new data.
  *
- * @param stdClass                    $moodleoverflow An object from the form in mod_form.php
- * @param mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
+ * @param stdClass                         $moodleoverflow An object from the form in mod_form.php
+ * @param mod_moodleoverflow_mod_form|null $mform          The form instance itself (if needed)
  *
  * @return boolean Success/Fail
  */
-function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleoverflow_mod_form $mform = null) {
+function moodleoverflow_update_instance(stdClass $moodleoverflow, ?mod_moodleoverflow_mod_form $mform = null) {
     global $DB;
 
     $moodleoverflow->timemodified = time();
@@ -476,10 +476,10 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  * This function is called when the context for the page is a moodleoverflow module. This is not called by AJAX
  * so it is safe to rely on the $PAGE.
  *
- * @param settings_navigation $settingsnav        complete settings navigation tree
- * @param navigation_node     $moodleoverflownode moodleoverflow administration node
+ * @param settings_navigation      $settingsnav        complete settings navigation tree
+ * @param navigation_node|null     $moodleoverflownode moodleoverflow administration node
  */
-function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $moodleoverflownode = null) {
+function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, ?navigation_node $moodleoverflownode = null) {
     global $CFG, $DB, $PAGE, $USER;
 
     // Retrieve the current moodle record.

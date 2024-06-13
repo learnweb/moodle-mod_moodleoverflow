@@ -46,8 +46,6 @@ require_once(dirname(__FILE__) . '/lib.php');
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     global $DB, $CFG, $USER;
 
-    // TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
-
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
     if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modcontext)) {

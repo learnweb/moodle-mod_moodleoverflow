@@ -21,6 +21,7 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 require_once(__DIR__ . "/../../config.php");
 require_login();
 $id = required_param('id', PARAM_INT);

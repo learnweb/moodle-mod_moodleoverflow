@@ -38,7 +38,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \subscriptions
  */
-class subscriptions_test extends advanced_testcase {
+final class subscriptions_test extends advanced_testcase {
 
     /**
      * Test setUp.
@@ -1360,7 +1360,7 @@ class subscriptions_test extends advanced_testcase {
      *
      * @return array
      */
-    public function is_subscribable_moodleoverflows() {
+    public static function is_subscribable_moodleoverflows() {
         return [
             [
                 'forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE,
@@ -1382,9 +1382,9 @@ class subscriptions_test extends advanced_testcase {
      *
      * @return array
      */
-    public function is_subscribable_provider(): array {
+    public static function is_subscribable_provider(): array {
         $data = [];
-        foreach ($this->is_subscribable_moodleoverflows() as $moodleoverflow) {
+        foreach (self::is_subscribable_moodleoverflows() as $moodleoverflow) {
             $data[] = [$moodleoverflow];
         }
 
@@ -1440,7 +1440,7 @@ class subscriptions_test extends advanced_testcase {
      * Returns subscription obtions.
      * @return array
      */
-    public function is_subscribable_loggedin_provider(): array {
+    public static function is_subscribable_loggedin_provider(): array {
         return [
             [
                 ['forcesubscribe' => MOODLEOVERFLOW_DISALLOWSUBSCRIBE],
