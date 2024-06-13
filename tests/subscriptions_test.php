@@ -1468,6 +1468,7 @@ final class subscriptions_test extends advanced_testcase {
      * @param bool  $expect
      *
      * @dataProvider is_subscribable_loggedin_provider
+     * @return void
      */
     public function test_is_subscribable_loggedin($options, $expect): void {
         // Reset the database after testing.
