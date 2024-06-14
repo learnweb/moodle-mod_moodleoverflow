@@ -86,7 +86,6 @@ class mail_manager {
         $moodleoverflows = [];
         $courses = [];
         $coursemodules = [];
-        $subscribedusers = [];
 
         // Posts older than x days will not be mailed.
         // This will avoid problems with the cron not ran for a long time.

@@ -772,7 +772,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
     }
 
     // Retrieve the coursemodule.
-    if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+    if (!get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
         throw new moodle_exception('invalidcoursemodule');
     }
 
@@ -1566,7 +1566,7 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
  * @return array
  */
 function get_attachments($post, $cm) {
-    global $CFG, $OUTPUT;
+    global $OUTPUT;
     $attachments = [];
 
     if (empty($post->attachment)) {

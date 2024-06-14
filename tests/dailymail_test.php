@@ -224,10 +224,6 @@ final class dailymail_test extends \advanced_testcase {
         $linktodiscussion = '<a href=3D"https://www.example.com/moodle/mod/moodleoverflow/=discussion.php?d=3D'
                             . $this->discussion[0]->id;
 
-        // Assemble text.
-        $text = 'Course: ' . $linktocourse . ' -> ' . $linktoforum . ', Topic: '
-                . $linktodiscussion . ' has ' . $messagecount . ' unread posts.';
-
         $this->assertStringContainsString($linktocourse, $message);
         $this->assertStringContainsString($linktoforum, $message);
         $this->assertStringContainsString($linktodiscussion, $message);
