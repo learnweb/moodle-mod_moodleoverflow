@@ -307,6 +307,20 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         // Moodleoverflow savepoint reached.
         upgrade_mod_savepoint(true, 2024031105, 'moodleoverflow');
     }
+    if ($oldversion < 2024061700) {
+        // Rename the first setting, to have a start and endtime for the limited answer mode.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('limitedanswer', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'allowmultiplemarks');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->rename_field($table, $field, 'la_starttime');
+        }
+        // Create the field for the end time.
+        $field = new xmldb_field('la_endtime', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'la_starttime');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2024061700, 'moodleoverflow');
+    }
 
     return true;
 }

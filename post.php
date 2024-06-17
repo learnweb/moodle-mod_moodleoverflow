@@ -222,8 +222,9 @@ if (!empty($moodleoverflow)) {
     $coursecontext = context_course::instance($course->id);
 
     // Check if Limitedanswertime is on. If so, replies are not possible.
-    $limitedanswersetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'limitedanswer');
-    $limitedanswertime = $limitedanswersetting->limitedanswer;
+    $limitedanswersetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'la_starttime, la_endtime');
+    $lastarttime = $limitedanswersetting->la_starttime;
+    $laendtime = $limitedanswersetting->la_endtime;
 
     $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
     $iseditteacher = $DB->record_exists('role_assignments', ['userid' => $USER->id, 'roleid' => $roleid]);
@@ -231,7 +232,7 @@ if (!empty($moodleoverflow)) {
     $roleidteacher = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
     $isteacher = $DB->record_exists('role_assignments', ['userid' => $USER->id, 'roleid' => $roleidteacher]);
 
-    if ($limitedanswertime > time() && !($iseditteacher || $isteacher)) {
+    if (($lastarttime > time() || $laendtime != 0 && $laendtime < time()) && !($iseditteacher || $isteacher)) {
         // Redirect to the moodleoverflow.
         $link = new \moodle_url('/mod/moodleoverflow/view.php', ['id' => $cm->id]);
         redirect($link);

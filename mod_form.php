@@ -233,21 +233,15 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('header', 'limitedanswerheading', get_string('limitedanswerheading', 'moodleoverflow'));
 
         if (!empty($this->current->id)) {
-            // Check if limitedanswermode was already set up and place a warning if so.
-            if ($limitedanswertime = $DB->get_record('moodleoverflow', ['id' => $this->current->id], 'limitedanswer')) {
-                if (!empty($limitedanswertime)) {
-                    $limitedanswertime = $limitedanswertime->limitedanswer;
-                } else {
-                    $limitedanswertime = 0;
-                }
-            } else {
-                $limitedanswertime = 0;
-            }
-            if ($limitedanswertime <= time() && $limitedanswertime > 0) {
-                $warningbutton = html_writer::div(get_string('limitedanswerwarning_setup', 'moodleoverflow'),
-                                                'alert alert-warning',
-                                                ['role' => 'alert']);
-                $mform->addElement('html', $warningbutton);
+
+            $limiteddate = $DB->get_record('moodleoverflow', ['id' => $this->current->id], 'la_starttime, la_endtime');
+
+            // Check if limitedanswermode was already set up and place a warning in case the starttime has already expired ...
+            // ... or the endtime has already expired.
+            $warningstring = '';
+            if ($limiteddate->la_starttime !== false && $limiteddate->la_starttime <= time() ||
+                $limiteddate->la_endtime !== false && $limiteddate->la_endtime <= time()) {
+                $warningstring .= get_string('limitedanswerwarning_setup', 'moodleoverflow');
             }
 
             // Check if there are already answered posts in this moodleoverflow and place a warning if so.
@@ -260,17 +254,23 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
 
             if ($answerpostscount > 0) {
-                $warningbutton = html_writer::div(get_string('limitedanswerwarning_answers', 'moodleoverflow'),
-                                                'alert alert-warning',
-                                                ['role' => 'alert']);
-                $mform->addElement('html', $warningbutton);
+                $warningstring != '' ? $warningstring .= '<br>' : '';
+                $warningstring .= get_string('limitedanswerwarning_answers', 'moodleoverflow');
+            }
+            if (!empty($warningstring)) {
+                $warningstring .= '<br>' . get_string('limitedanswerwarning_conclusion', 'moodleoverflow');
+                $htmlwarning = html_writer::div($warningstring, 'alert alert-warning', ['role' => 'alert']);
+                $mform->addElement('html', $htmlwarning);
             }
         }
 
-        // Limited answer setting.
-        $mform->addElement('date_time_selector', 'limitedanswer', get_string('limitedanswer', 'moodleoverflow'),
+        // Limited answer settings.
+        $mform->addElement('date_time_selector', 'la_starttime', get_string('la_starttime', 'moodleoverflow'),
                 ['optional' => true]);
-        $mform->addHelpButton('limitedanswer', 'limitedanswer', 'moodleoverflow');
+        $mform->addHelpButton('la_starttime', 'la_starttime', 'moodleoverflow');
+        $mform->addElement('date_time_selector', 'la_endtime', get_string('la_endtime', 'moodleoverflow'),
+            ['optional' => true]);
+        $mform->addHelpButton('la_endtime', 'la_endtime', 'moodleoverflow');
 
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();

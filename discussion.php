@@ -60,8 +60,7 @@ if ($marksetting->allowmultiplemarks == 1) {
     $multiplemarks = true;
 }
 // Setting of limitedanswer. Limitedanswertime saves the timestamp, until the limitedanswer is on (0 if off).
-$limitedanswersetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'limitedanswer');
-$limitedanswertime = $limitedanswersetting->limitedanswer;
+$limitedanswersetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'la_starttime, la_endtime');
 
 // Get the related coursemodule and its context.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
@@ -163,7 +162,7 @@ echo "<br>";
 
 echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
 
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks, $limitedanswertime);
+moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks, $limitedanswersetting);
 echo '</div></div>';
 
 echo $OUTPUT->footer();
