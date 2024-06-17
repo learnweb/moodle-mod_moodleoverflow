@@ -16,9 +16,9 @@
       | student1 | C1 | student |
 
   Scenario: With limited answer mode on, a teacher can answer a post that a student can not. When the teacher changes the
-            limitedanswer date to now, the student can now answer the post.
+            limitedanswer starttime to now, the student can now answer the post.
     Given the following "activities" exist:
-      | activity       | name                      | intro                            | course  |  idnumber | limitedanswer  |
+      | activity       | name                      | intro                            | course  |  idnumber | la_starttime   |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        | ##now +1 day## |
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
@@ -33,7 +33,7 @@
     And I follow "Forum post 1"
     And I click on "Answer" "text"
     Then I should not see "Your reply"
-    When I set the "Test Moodleoverflow" moodleoverflow limitedanswertime to now
+    When I set the "Test Moodleoverflow" moodleoverflow limitedanswerstarttime to now
     And I am on "Course 1" course homepage
     And I follow "Test Moodleoverflow"
     And I follow "Forum post 1"
