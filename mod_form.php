@@ -238,11 +238,6 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
             // Check if limitedanswermode was already set up and place a warning in case the starttime has already expired ...
             // ... or the endtime has already expired.
-            $warningstring = '';
-            if ($limiteddate->la_starttime !== false && $limiteddate->la_starttime <= time() ||
-                $limiteddate->la_endtime !== false && $limiteddate->la_endtime <= time()) {
-                $warningstring .= get_string('limitedanswerwarning_setup', 'moodleoverflow');
-            }
 
             // Check if there are already answered posts in this moodleoverflow and place a warning if so.
             $sql = 'SELECT COUNT(*) AS answerposts
@@ -254,10 +249,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
 
             if ($answerpostscount > 0) {
-                $warningstring != '' ? $warningstring .= '<br>' : '';
-                $warningstring .= get_string('limitedanswerwarning_answers', 'moodleoverflow');
-            }
-            if (!empty($warningstring)) {
+                $warningstring = get_string('limitedanswerwarning_answers', 'moodleoverflow');
                 $warningstring .= '<br>' . get_string('limitedanswerwarning_conclusion', 'moodleoverflow');
                 $htmlwarning = html_writer::div($warningstring, 'alert alert-warning', ['role' => 'alert']);
                 $mform->addElement('html', $htmlwarning);
