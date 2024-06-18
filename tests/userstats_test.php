@@ -39,7 +39,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  *
  * @covers \userstats_table
  */
-class userstats_test extends \advanced_testcase {
+final class userstats_test extends \advanced_testcase {
 
     /** @var \stdClass test course */
     private $course;

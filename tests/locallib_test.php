@@ -36,7 +36,7 @@ require_once(__DIR__ . '/../locallib.php');
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class locallib_test extends advanced_testcase {
+final class locallib_test extends advanced_testcase {
 
     public function setUp(): void {
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();

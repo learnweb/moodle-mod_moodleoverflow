@@ -40,7 +40,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  *
  * @group mod_moodleoverflow
  */
-class review_test extends \advanced_testcase {
+final class review_test extends \advanced_testcase {
 
     /** @var \mod_moodleoverflow_generator $generator */
     private $generator;

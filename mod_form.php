@@ -45,7 +45,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      * Defines forms elements.
      */
     public function definition() {
-        global $CFG, $COURSE, $PAGE;
+        global $CFG, $COURSE, $PAGE, $DB;
 
         // Define the modform.
         $mform = $this->_form;
@@ -228,6 +228,41 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('advcheckbox', 'allowmultiplemarks', get_string('allowmultiplemarks', 'moodleoverflow'));
         $mform->addHelpButton('allowmultiplemarks', 'allowmultiplemarks', 'moodleoverflow');
         $mform->setDefault('allowmultiplemarks', 0);
+
+        // Limited answer options.
+        $mform->addElement('header', 'limitedanswerheading', get_string('limitedanswerheading', 'moodleoverflow'));
+
+        if (!empty($this->current->id)) {
+
+            $limiteddate = $DB->get_record('moodleoverflow', ['id' => $this->current->id], 'la_starttime, la_endtime');
+
+            // Check if limitedanswermode was already set up and place a warning in case the starttime has already expired ...
+            // ... or the endtime has already expired.
+
+            // Check if there are already answered posts in this moodleoverflow and place a warning if so.
+            $sql = 'SELECT COUNT(*) AS answerposts
+            FROM {moodleoverflow_discussions} discuss JOIN {moodleoverflow_posts} posts
+            ON discuss.id = posts.discussion
+                WHERE posts.parent != 0
+                AND discuss.moodleoverflow = ' . $this->current->id . ';';
+            $answerpostscount = $DB->get_records_sql($sql);
+            $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
+
+            if ($answerpostscount > 0) {
+                $warningstring = get_string('limitedanswerwarning_answers', 'moodleoverflow');
+                $warningstring .= '<br>' . get_string('limitedanswerwarning_conclusion', 'moodleoverflow');
+                $htmlwarning = html_writer::div($warningstring, 'alert alert-warning', ['role' => 'alert']);
+                $mform->addElement('html', $htmlwarning);
+            }
+        }
+
+        // Limited answer settings.
+        $mform->addElement('date_time_selector', 'la_starttime', get_string('la_starttime', 'moodleoverflow'),
+                ['optional' => true]);
+        $mform->addHelpButton('la_starttime', 'la_starttime', 'moodleoverflow');
+        $mform->addElement('date_time_selector', 'la_endtime', get_string('la_endtime', 'moodleoverflow'),
+            ['optional' => true]);
+        $mform->addHelpButton('la_endtime', 'la_endtime', 'moodleoverflow');
 
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();

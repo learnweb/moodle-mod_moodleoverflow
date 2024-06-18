@@ -50,7 +50,7 @@ class provider implements
      *
      * @return collection the updated collection of metadata items.
      */
-    public static function get_metadata(collection $collection) : collection {
+    public static function get_metadata(collection $collection): collection {
         $collection->add_database_table('moodleoverflow_discussions',
             [
                 'name' => 'privacy:metadata:moodleoverflow_discussions:name',
@@ -135,7 +135,7 @@ class provider implements
      *
      * @return contextlist $contextlist The list of contexts used in this plugin.
      */
-    public static function get_contexts_for_userid(int $userid) : contextlist {
+    public static function get_contexts_for_userid(int $userid): contextlist {
         // Fetch all Moodleoverflow discussions, moodleoverflow posts, ratings, tracking settings and subscriptions.
         $sql = "SELECT c.id
                 FROM {context} c
