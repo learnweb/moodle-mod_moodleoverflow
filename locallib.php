@@ -930,10 +930,10 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
  * @param stdClass $discussion          The discussion object
  * @param stdClass $post                The post object
  * @param bool     $multiplemarks       The setting of multiplemarks (default: multiplemarks are not allowed)
- * @param stdClass $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
+ * @param stdClass|null $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
  */
 function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post,
-                                         $multiplemarks = false, $limitedanswersetting = 0) {
+                                         $multiplemarks = false, ?stdClass $limitedanswersetting = null) {
     global $USER;
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() && ($USER->id == $post->userid));
@@ -1113,23 +1113,23 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
 /**
  * Prints a moodleoverflow post.
- * @param object   $post
- * @param object   $discussion
- * @param object   $moodleoverflow
- * @param object   $cm
- * @param object   $course
- * @param object   $ownpost
- * @param bool     $link
- * @param string   $footer
- * @param string   $highlight
- * @param bool     $postisread
- * @param bool     $dummyifcantsee
- * @param bool     $istracked
- * @param bool     $iscomment
- * @param array    $usermapping
- * @param int      $level
- * @param bool     $multiplemarks       The setting of multiplemarks (default: multiplemarks are not allowed)
- * @param stdClass   $limitedanswersetting   Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
+ * @param object $post
+ * @param object $discussion
+ * @param object $moodleoverflow
+ * @param object $cm
+ * @param object $course
+ * @param bool $ownpost
+ * @param bool $link
+ * @param string $footer
+ * @param string $highlight
+ * @param null $postisread
+ * @param bool $dummyifcantsee
+ * @param bool $istracked
+ * @param bool $iscomment
+ * @param array $usermapping
+ * @param int $level
+ * @param bool $multiplemarks The setting of multiplemarks (default: multiplemarks are not allowed)
+ * @param stdClass|null $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
  * @return void|null
  * @throws coding_exception
  * @throws dml_exception
@@ -1140,7 +1140,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                                    $footer = '', $highlight = '', $postisread = null,
                                    $dummyifcantsee = true, $istracked = false,
                                    $iscomment = false, $usermapping = [], $level = 0,
-                                   $multiplemarks = false, $limitedanswersetting = 0) {
+                                   $multiplemarks = false, ?stdClass $limitedanswersetting = null) {
     global $USER, $CFG, $OUTPUT, $PAGE, $DB;
 
     // Require the filelib.
@@ -1319,24 +1319,23 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
         // Answer to the parent post.
         if (empty($post->parent)) {
             // Check if limitedanswertime is on.
-            if ($limitedanswersetting->la_starttime != 0 || $limitedanswersetting->la_endtime != 0) {
-                $limitedanswersetting->la_starttime ? $infolimited = " " .
-                    get_string('limitedanswer_info_starttime', 'moodleoverflow',
-                        ['limitedanswerdate' => gmdate('d.m.Y H:i', $limitedanswersetting->la_starttime)]) : $infolimited = '';
-                $limitedanswersetting->la_endtime ? $infolimited .= " " .
-                    get_string('limitedanswer_info_endtime', 'moodleoverflow',
-                        ['limitedanswerdate' => gmdate('d.m.Y H:i', $limitedanswersetting->la_endtime)]) : $infolimited .= '';
+            $settingexist = $limitedanswersetting->la_starttime != 0 || $limitedanswersetting->la_endtime != 0;
+            if ($settingexist) {
+                $infolimited = $limitedanswersetting->la_starttime ? " " . get_string('limitedanswer_info_starttime',
+                        'moodleoverflow', ['limitedanswerdate' => date('d.m.Y H:i', $limitedanswersetting->la_starttime)]) : '';
+                $infolimited .= $limitedanswersetting->la_endtime ? " " . get_string('limitedanswer_info_endtime', 'moodleoverflow',
+                        ['limitedanswerdate' => date('d.m.Y H:i', $limitedanswersetting->la_endtime)]) : '';
                 echo html_writer::div($infolimited, 'alert alert-warning', ['role' => 'alert']);
             }
             if (is_currently_time_limited($limitedanswersetting)) {
-                // Tamaro: Capabilities are often more elegant than roles. Moreover, the code was very repetitive...
-                // perfect for a function.
                 if (!has_capability('mod/moodleoverflow:addinstance', $modulecontext)) {
                     // In case the user can not change the limited answer time he/she can not answer.
-                    render_limited_answer('text-muted', $commands, $str, $infolimited, 'student');
+                    render_limited_answer('text-muted', $commands, $infolimited, 'student', $str->replyfirst);
                 } else {
                     // The user is a teacher.
-                    render_limited_answer('', $commands, $str, $infolimited, 'teacher');
+                    $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
+                    $answerbutton = html_writer::link($replyurl, $str->replyfirst, ['class' => 'onlyifreviewed answerbutton']);
+                    render_limited_answer('', $commands, $infolimited, 'teacher', $answerbutton);
                 }
             } else {
                 $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
@@ -1523,27 +1522,25 @@ function is_currently_time_limited($limitedanswersetting) {
 
 /**
  * Renders the answer action in a post.
- * @param String $textmuted
- * @param array $commands
- * @param stdClass $str
- * @param String $infolimited
- * @param String $role
+ * @param String $htmlattributes additional attributes passed to the html class and the command (either 'text-muted' or empty).
+ * @param array $commands array of actions available to the user in a post.
+ * @param String $infolimited information about the limited answer setting.
+ * @param String $role either 'student' or 'teacher'.
+ * @param String $helpstring content for the tag specifing the helpicon for the answer button.
  * @return void
  * @throws coding_exception
  */
-function render_limited_answer($textmuted, &$commands, $str, $infolimited, $role) {
-    // Tamaro: Passing by reference.
-    $limitedanswerattributes = ['class' => 'onlyifreviewed ' . $textmuted];
-    $htmlclass = 'onlyifreviewed helpicon ' . $textmuted;
+function render_limited_answer($htmlattributes, &$commands, $infolimited, $role, $helpstring) {
+    $limitedanswerattributes = ['class' => 'onlyifreviewed ' . $htmlattributes];
+    $htmlclass = 'onlyifreviewed helpicon ' . $htmlattributes;
     $content = get_string('limitedanswer_info_start', 'moodleoverflow');
     $content .= $infolimited;
-    $textmuted == '' ? $content .= " " . get_string('limitedanswer_helpicon_teacher', 'moodleoverflow') : $content .= '';
+    $htmlattributes == '' ? $content .= " " . get_string('limitedanswer_helpicon_teacher', 'moodleoverflow') : $content .= '';
 
     $helpobject = new helpicon($htmlclass, $content);
     $helpicon = $helpobject->get_helpicon();
-
     // Build a html span that has the answer button and the help icon.
-    $limitedanswerobject = html_writer::tag('span', $str->replyfirst . '    ' . $helpicon);
+    $limitedanswerobject = html_writer::tag('span', $helpstring . '    ' . $helpicon);
 
     // Save the span in the commands with an extra value.
     $commands[] = ['text' => $limitedanswerobject,
@@ -1563,7 +1560,7 @@ function render_limited_answer($textmuted, &$commands, $str, $infolimited, $role
  * @param bool   $iscomment             Whether the current post is a comment
  * @param array  $usermapping
  * @param bool   $multiplemarks         The setting of multiplemarks (default: multiplemarks are not allowed)
- * @param stdClass $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
+ * @param stdClass|null $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
  * @return string
  * @throws coding_exception
  * @throws dml_exception
@@ -1571,7 +1568,7 @@ function render_limited_answer($textmuted, &$commands, $str, $infolimited, $role
  */
 function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent,
                                            $istracked, $posts, $iscomment = null, $usermapping = [],
-                                           $multiplemarks = false, $limitedanswersetting = 0) {
+                                           $multiplemarks = false, ?stdClass $limitedanswersetting = null) {
     global $USER;
 
     // Prepare the output.

@@ -310,12 +310,12 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
     if ($oldversion < 2024061700) {
         // Rename the first setting, to have a start and endtime for the limited answer mode.
         $table = new xmldb_table('moodleoverflow');
-        $field = new xmldb_field('limitedanswer', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'allowmultiplemarks');
+        $field = new xmldb_field('limitedanswer', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, 'allowmultiplemarks');
         if ($dbman->field_exists($table, $field)) {
             $dbman->rename_field($table, $field, 'la_starttime');
         }
         // Create the field for the end time.
-        $field = new xmldb_field('la_endtime', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'la_starttime');
+        $field = new xmldb_field('la_endtime', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, 'la_starttime');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }

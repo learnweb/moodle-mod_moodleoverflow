@@ -232,7 +232,8 @@ if (!empty($moodleoverflow)) {
     $roleidteacher = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
     $isteacher = $DB->record_exists('role_assignments', ['userid' => $USER->id, 'roleid' => $roleidteacher]);
 
-    if (($lastarttime > time() || $laendtime != 0 && $laendtime < time()) && !($iseditteacher || $isteacher)) {
+    if (($lastarttime > time() || $laendtime != 0 && $laendtime < time()) &&
+        (!has_capability('mod/moodleoverflow:addinstance', $modulecontext))) {
         // Redirect to the moodleoverflow.
         $link = new \moodle_url('/mod/moodleoverflow/view.php', ['id' => $cm->id]);
         redirect($link);
