@@ -28,6 +28,7 @@ global $CFG;
 
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\userlist;
+use core_privacy\local\request\writer;
 use mod_moodleoverflow\privacy\provider;
 use mod_moodleoverflow\privacy\data_export_helper;
 
@@ -91,7 +92,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
      *
      * @param   object                             $expected The expected data in the post.
      * @param   object                             $actual   The actual data in the post.
-     * @param   \core_privacy\local\request\writer $writer   The writer used
+     * @param   writer $writer   The writer used
      */
     protected function assert_post_data($expected, $actual, $writer) {
         // The message should have been passed through the rewriter.
@@ -137,7 +138,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         // Attempting to export data for this context should return nothing either.
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         // The provider should always export data for any context explicitly asked of it, but there should be no
         // metadata, files, or discussions.
         $this->assertEmpty($writer->get_data([get_string('discussions', 'mod_moodleoverflow')]));
@@ -159,7 +160,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $context = \context_module::instance($cm->id);
 
         // Subscribe the user to the forum.
-        \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $forum, $context);
+        subscriptions::subscribe_user($user->id, $forum, $context);
 
         // Retrieve all contexts - only this context should be returned.
         $contextlist = $this->get_contexts_for_userid($user->id, 'mod_moodleoverflow');
@@ -167,7 +168,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals($context, $contextlist->current());
         // Export all of the data for the context.
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         $subcontext = data_export_helper::get_subcontext();
         // There should be one item of metadata.
@@ -195,14 +196,14 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
         // Subscribe the user to the discussion.
-        \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($user->id, $discussion, $context);
+        subscriptions::subscribe_user_to_discussion($user->id, $discussion, $context);
         // Retrieve all contexts - only this context should be returned.
         $contextlist = $this->get_contexts_for_userid($user->id, 'mod_moodleoverflow');
         $this->assertCount(1, $contextlist);
         $this->assertEquals($context, $contextlist->current());
         // Export all of the data for the context.
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         // There should be nothing in the forum. The user is not subscribed there.
         $forumsubcontext = data_export_helper::get_subcontext();
@@ -233,7 +234,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         list($user, $otheruser) = $this->create_users($course, 2);
         // Post twice - only the second discussion should be included.
         list($discussion, $post) = $this->generator->post_to_forum($forum, $user);
-        list($otherdiscussion, $otherpost) = $this->generator->post_to_forum($forum, $otheruser);
+        list($otherdiscussion) = $this->generator->post_to_forum($forum, $otheruser);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
         // Retrieve all contexts - only this context should be returned.
@@ -243,7 +244,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         // Export all of the data for the context.
         $this->setUser($user);
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         // The other discussion should not have been returned as we did not post in it.
         $this->assertEmpty($writer->get_data(data_export_helper::get_subcontext($otherdiscussion)));
@@ -263,7 +264,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         list($user, $otheruser) = $this->create_users($course, 2);
         // Post twice - only the second discussion should be included.
         list($discussion, $post) = $this->generator->post_to_forum($forum, $otheruser);
-        list($otherdiscussion, $otherpost) = $this->generator->post_to_forum($forum, $otheruser);
+        list($otherdiscussion) = $this->generator->post_to_forum($forum, $otheruser);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
         // Post a reply to the other person's post.
@@ -276,7 +277,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals($context, $contextlist->current());
         // Export all of the data for the context.
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         // Refresh the discussions.
         $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->id]);
@@ -288,8 +289,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertNotEmpty($data);
         $this->assert_discussion_data($discussion, $data, $user->id);
         // The reply will be included.
-        $this->assert_post_data($reply,
-            $writer->get_data(data_export_helper::get_subcontext($discussion, $reply)), $writer);
+        $this->assert_post_data($reply, $writer->get_data(data_export_helper::get_subcontext($discussion, $reply)), $writer);
     }
 
     /**
@@ -323,7 +323,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals($context, $contextlist->current());
         // Export all of the data for the context.
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         // The discussion should not have been returned as we did not post in it.
         $this->assertEmpty($writer->get_data(data_export_helper::get_subcontext($discussion)));
@@ -345,7 +345,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
             'course' => $course->id,
             'scale' => 100,
         ]);
-        list($user, $otheruser, $anotheruser) = $this->create_users($course, 3);
+        list($user, $otheruser) = $this->create_users($course, 3);
         list($discussion, $post) = $this->generator->post_to_forum($forum, $user);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
@@ -366,7 +366,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals($context, $contextlist->current());
         // Export all of the data for the context.
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         $this->assertTrue($writer->has_any_data());
         $ratingdata = $writer->get_related_data(data_export_helper::get_subcontext($discussion, $post), 'rating');
 
@@ -383,11 +383,10 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $cmoff = get_coursemodule_from_instance('moodleoverflow', $forumoff->id);
         $contextoff = \context_module::instance($cmoff->id);
         $forumon = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
-        $cmon = get_coursemodule_from_instance('moodleoverflow', $forumon->id);
         list($user) = $this->create_users($course, 1);
         // Set user tracking data.
-        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($forumoff->id, $user->id);
-        \mod_moodleoverflow\readtracking::moodleoverflow_start_tracking($forumon->id, $user->id);
+        readtracking::moodleoverflow_stop_tracking($forumoff->id, $user->id);
+        readtracking::moodleoverflow_start_tracking($forumon->id, $user->id);
         // Run as the user under test.
         $this->setUser($user);
         // Retrieve all contexts - only the forum tracking reads should be included.
@@ -396,8 +395,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals($contextoff, $contextlist->current());
         // Check export data for each context.
         $this->export_context_data_for_user($user->id, $contextoff, 'mod_moodleoverflow');
-        $this->assertEquals(0,
-            \core_privacy\local\request\writer::with_context($contextoff)->get_metadata([], 'trackreadpreference'));
+        $this->assertEquals(0, writer::with_context($contextoff)->get_metadata([], 'trackreadpreference'));
     }
 
     /**
@@ -415,9 +413,6 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $forum3 = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
         $cm3 = get_coursemodule_from_instance('moodleoverflow', $forum3->id);
         $context3 = \context_module::instance($cm3->id);
-        $forum4 = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
-        $cm4 = get_coursemodule_from_instance('moodleoverflow', $forum4->id);
-        $context4 = \context_module::instance($cm4->id);
         list($author, $user) = $this->create_users($course, 2);
         list($f1d1, $f1p1) = $this->generator->post_to_forum($forum1, $author);
         $f1p1reply = $this->generator->post_to_discussion($forum1, $f1d1, $author);
@@ -431,101 +426,67 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $f3p1reply = $this->generator->post_to_discussion($forum3, $f3d1, $author);
         $f3d1 = $DB->get_record('moodleoverflow_discussions', ['id' => $f3d1->id]);
         list($f3d2, $f3p2) = $this->generator->post_to_forum($forum3, $author);
-        list($f4d1, $f4p1) = $this->generator->post_to_forum($forum4, $author);
-        $f4p1reply = $this->generator->post_to_discussion($forum4, $f4d1, $author);
-        $f4d1 = $DB->get_record('moodleoverflow_discussions', ['id' => $f4d1->id]);
-        list($f4d2, $f4p2) = $this->generator->post_to_forum($forum4, $author);
+
         // Insert read info.
         // User has read post1, but not the reply or second post in forum1.
-        \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user->id, $f1p1->id);
+        readtracking::moodleoverflow_add_read_record($user->id, $f1p1->id);
         // User has read post1 and its reply, but not the second post in forum2.
-        \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user->id, $f2p1->id);
-        \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user->id, $f2p1reply->id);
+        readtracking::moodleoverflow_add_read_record($user->id, $f2p1->id);
+        readtracking::moodleoverflow_add_read_record($user->id, $f2p1reply->id);
         // User has read post2 in forum3.
-        \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user->id, $f3p2->id);
+        readtracking::moodleoverflow_add_read_record($user->id, $f3p2->id);
         // Nothing has been read in forum4.
         // Run as the user under test.
         $this->setUser($user);
         // Retrieve all contexts - should be three - forum4 has no data.
         $contextlist = $this->get_contexts_for_userid($user->id, 'mod_moodleoverflow');
         $this->assertCount(3, $contextlist);
-        $contextids = [
-            $context1->id,
-            $context2->id,
-            $context3->id,
-        ];
+        $contextids = [$context1->id, $context2->id, $context3->id];
         sort($contextids);
         $contextlistids = $contextlist->get_contextids();
         sort($contextlistids);
         $this->assertEquals($contextids, $contextlistids);
         // Forum 1.
         $this->export_context_data_for_user($user->id, $context1, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context1);
+        $writer = writer::with_context($context1);
         // User has read f1p1.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f1d1, $f1p1),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f1d1, $f1p1), 'postread');
         $this->assertNotEmpty($readdata);
         $this->assertTrue(isset($readdata->firstread));
         $this->assertTrue(isset($readdata->lastread));
         // User has not f1p1reply.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f1d1, $f1p1reply),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f1d1, $f1p1reply), 'postread');
         $this->assertEmpty($readdata);
         // User has not f1p2.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f1d2, $f1p2),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f1d2, $f1p2), 'postread');
         $this->assertEmpty($readdata);
         // Forum 2.
         $this->export_context_data_for_user($user->id, $context2, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context2);
+        $writer = writer::with_context($context2);
         // User has read f2p1.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f2d1, $f2p1),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f2d1, $f2p1), 'postread');
         $this->assertNotEmpty($readdata);
         $this->assertTrue(isset($readdata->firstread));
         $this->assertTrue(isset($readdata->lastread));
         // User has read f2p1reply.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f2d1, $f2p1reply),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f2d1, $f2p1reply), 'postread');
         $this->assertNotEmpty($readdata);
         $this->assertTrue(isset($readdata->firstread));
         $this->assertTrue(isset($readdata->lastread));
         // User has not read f2p2.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f2d2, $f2p2),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f2d2, $f2p2), 'postread');
         $this->assertEmpty($readdata);
         // Forum 3.
         $this->export_context_data_for_user($user->id, $context3, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context3);
+        $writer = writer::with_context($context3);
         // User has not read f3p1.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f3d1, $f3p1),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f3d1, $f3p1), 'postread');
         $this->assertEmpty($readdata);
         // User has not read f3p1reply.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f3d1, $f3p1reply),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f3d1, $f3p1reply), 'postread');
         $this->assertEmpty($readdata);
         // User has read f3p2.
-        $readdata = $writer->get_metadata(
-            data_export_helper::get_subcontext($f3d2, $f3p2),
-            'postread'
-        );
+        $readdata = $writer->get_metadata(data_export_helper::get_subcontext($f3d2, $f3p2), 'postread');
         $this->assertNotEmpty($readdata);
         $this->assertTrue(isset($readdata->firstread));
         $this->assertTrue(isset($readdata->lastread));
@@ -538,45 +499,34 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         global $DB;
         $fs = get_file_storage();
         $course = $this->getDataGenerator()->create_course();
-        list($author, $otheruser) = $this->create_users($course, 2);
-        $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
-            'course' => $course->id,
-            'scale' => 100,
-        ]);
+        list($author) = $this->create_users($course, 2);
+        $forum = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id, 'scale' => 100]);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
         // Create a new discussion + post in the forum.
         list($discussion, $post) = $this->generator->post_to_forum($forum, $author);
         $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->id]);
         // Add a number of replies.
+        $this->generator->reply_to_post($post, $author);
         $reply = $this->generator->reply_to_post($post, $author);
-        $reply = $this->generator->reply_to_post($post, $author);
-        $reply = $this->generator->reply_to_post($reply, $author);
-        $posts[$reply->id] = $reply;
+        $this->generator->reply_to_post($reply, $author);
         // Add a fake inline image to the original post.
-        $createdfile = $fs->create_file_from_string([
-            'contextid' => $context->id,
-            'component' => 'mod_moodleoverflow',
-            'filearea' => 'attachment',
-            'itemid' => $post->id,
-            'filepath' => '/',
-            'filename' => 'example.jpg',
-        ],
-            'image contents (not really)');
+        $createdfile = $fs->create_file_from_string(['contextid' => $context->id, 'component' => 'mod_moodleoverflow',
+                               'filearea' => 'attachment', 'itemid' => $post->id, 'filepath' => '/', 'filename' => 'example.jpg', ],
+                     'image contents (not really)');
 
         // Create a second discussion + post in the forum without tags.
         list($otherdiscussion, $otherpost) = $this->generator->post_to_forum($forum, $author);
-        $otherdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $otherdiscussion->id]);
         // Add a number of replies.
-        $reply = $this->generator->reply_to_post($otherpost, $author);
-        $reply = $this->generator->reply_to_post($otherpost, $author);
+        $this->generator->reply_to_post($otherpost, $author);
+        $this->generator->reply_to_post($otherpost, $author);
         // Run as the user under test.
         $this->setUser($author);
         // Retrieve all contexts - should be one.
         $contextlist = $this->get_contexts_for_userid($author->id, 'mod_moodleoverflow');
         $this->assertCount(1, $contextlist);
         $this->export_context_data_for_user($author->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         // The inline file should be on the first forum post.
         $subcontext = data_export_helper::get_subcontext($discussion, $post);
         $foundfiles = $writer->get_files($subcontext);
@@ -597,10 +547,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $forums = [];
         $contexts = [];
         for ($i = 0; $i < 2; $i++) {
-            $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
-                'course' => $course->id,
-                'scale' => 100,
-            ]);
+            $forum = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id, 'scale' => 100]);
             $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
             $context = \context_module::instance($cm->id);
             $forums[$forum->id] = $forum;
@@ -640,13 +587,11 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         foreach ($posts as $post) {
             $discussion = $discussions[$post->discussion];
             $forum = $forums[$discussion->moodleoverflow];
-            $context = $contexts[$forum->id];
             // Mark the post as being read by user.
-            \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user->id, $post->id);
+            readtracking::moodleoverflow_add_read_record($user->id, $post->id);
             // Rate the other users content.
             if ($post->userid != $user->id) {
                 $ratedposts[$post->id] = $post;
-
                 $rating = [];
                 $rating['moodleoverflowid'] = $forum->id;
                 $rating['discussionid'] = $discussion->id;
@@ -736,10 +681,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $forums = [];
         $contexts = [];
         for ($i = 0; $i < 2; $i++) {
-            $forum = $this->getDataGenerator()->create_module('moodleoverflow', [
-                'course' => $course->id,
-                'scale' => 100,
-            ]);
+            $forum = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id, 'scale' => 100]);
             $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
             $context = \context_module::instance($cm->id);
             $forums[$forum->id] = $forum;
@@ -759,7 +701,6 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
                 $postsbyforum[$user->id][$context->id] = [];
                 // Add a number of replies.
                 $posts[$post->id] = $post;
-                $thisforumposts[$post->id] = $post;
                 $postsbyforum[$user->id][$context->id][$post->id] = $post;
                 $reply = $this->generator->reply_to_post($post, $user);
                 $posts[$reply->id] = $reply;
@@ -786,20 +727,16 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         foreach ($posts as $post) {
             $discussion = $discussions[$post->discussion];
             $forum = $forums[$discussion->moodleoverflow];
-            $context = $contexts[$forum->id];
             // Mark the post as being read by user1.
-            \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user1->id, $post->id);
+            readtracking::moodleoverflow_add_read_record($user1->id, $post->id);
         }
         // Rate and tag all posts.
-        $ratedposts = [];
         foreach ($users as $user) {
             foreach ($posts as $post) {
                 $discussion = $discussions[$post->discussion];
                 $forum = $forums[$discussion->moodleoverflow];
-                $context = $contexts[$forum->id];
                 // Rate the other users content.
                 if ($post->userid != $user->id) {
-                    $ratedposts[$post->id] = $post;
 
                     $rating = [];
                     $rating['moodleoverflowid'] = $forum->id;
@@ -967,13 +904,12 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         $discussions = [];
         $posts = [];
-        $postsbymoodleoverflow = [];
+        $postsbyforum = [];
         // Foreach of the 5 users and foreach of the two Moodleoverflows a post and discussion is created.
         // Additionally, 3 replies to each discussion are created.
-        // Last but not least the original post gets a fake image and attachement.
-        $counter = 0;
+        // Last but not least the original post gets a fake image and attachment.
         foreach ($users as $user) {
-            $postsbymoodleoverflow[$user->id] = [];
+            $postsbyforum[$user->id] = [];
             foreach ($moodleoverflows as $moodleoverflow) {
                 $context = $contexts[$moodleoverflow->id];
 
@@ -982,24 +918,23 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
                 $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->id]);
 
                 $discussions[$discussion->id] = $discussion;
-                $postsbymoodleoverflow[$user->id][$context->id] = [];
+                $postsbyforum[$user->id][$context->id] = [];
 
                 // Add a number of replies.
                 $posts[$post->id] = $post;
-                $thismoodleoverflowposts[$post->id] = $post;
-                $postsbymoodleoverflow[$user->id][$context->id][$post->id] = $post;
+                $postsbyforum[$user->id][$context->id][$post->id] = $post;
 
                 $reply = $this->generator->reply_to_post($post, $user);
                 $posts[$reply->id] = $reply;
-                $postsbymoodleoverflow[$user->id][$context->id][$reply->id] = $reply;
+                $postsbyforum[$user->id][$context->id][$reply->id] = $reply;
 
                 $reply = $this->generator->reply_to_post($post, $user);
                 $posts[$reply->id] = $reply;
-                $postsbymoodleoverflow[$user->id][$context->id][$reply->id] = $reply;
+                $postsbyforum[$user->id][$context->id][$reply->id] = $reply;
 
                 $reply = $this->generator->reply_to_post($reply, $user);
                 $posts[$reply->id] = $reply;
-                $postsbymoodleoverflow[$user->id][$context->id][$reply->id] = $reply;
+                $postsbyforum[$user->id][$context->id][$reply->id] = $reply;
 
                 // Add a fake inline image to the original post.
                 $fs->create_file_from_string([
@@ -1026,7 +961,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $user1 = reset($users);
         foreach ($posts as $post) {
             // Mark the post as being read by user1.
-            \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user1->id, $post->id);
+            readtracking::moodleoverflow_add_read_record($user1->id, $post->id);
         }
 
         // Rate all posts (Every user every post).
@@ -1109,7 +1044,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         // Get all the post ids where files should be deleted.
         $deletedpostids = [];
         $otherpostids = [];
-        foreach ($postsbymoodleoverflow as $user => $contexts) {
+        foreach ($postsbyforum as $user => $contexts) {
             foreach ($contexts as $thiscontextid => $theseposts) {
                 $thesepostids = array_map(function($post) {
                     return $post->id;
@@ -1139,7 +1074,6 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
      * Ensure that the discussion author is listed as a user in the context.
      */
     public function test_get_users_in_context_post_author(): void {
-        global $DB;
         $component = 'mod_moodleoverflow';
 
         $course = $this->getDataGenerator()->create_course();
@@ -1208,7 +1142,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $context = \context_module::instance($cm->id);
 
-        list($author, $user, $other) = $this->create_users($course, 3);
+        list($author, $user) = $this->create_users($course, 3);
 
         list($fd1, $fp1) = $this->generator->post_to_forum($moodleoverflow, $author);
         $time = time();
@@ -1223,8 +1157,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         ];
         // Inserts a rating into the table.
         $DB->insert_record('moodleoverflow_ratings', $rating);
-        $userlist = new \core_privacy\local\request\userlist($context, $component);
-        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+        $userlist = new userlist($context, $component);
+        provider::get_users_in_context($userlist);
 
         // Two users - author and rater.
         $this->assertCount(2, $userlist);
@@ -1241,7 +1175,6 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
      * Ensure that all users with a moodleoverflow subscription preference included as a user in the context.
      */
     public function test_get_users_in_context_with_subscription(): void {
-        global $DB;
         $component = 'mod_moodleoverflow';
 
         $course = $this->getDataGenerator()->create_course();
@@ -1250,17 +1183,13 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $context = \context_module::instance($cm->id);
 
-        $othermoodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
-        $othercm = get_coursemodule_from_instance('moodleoverflow', $othermoodleoverflow->id);
-        $othercontext = \context_module::instance($othercm->id);
-
-        list($user, $otheruser) = $this->create_users($course, 2);
+        list($user) = $this->create_users($course, 2);
 
         // Subscribe the user to the moodleoverflow.
-        \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $context);
+        subscriptions::subscribe_user($user->id, $moodleoverflow, $context);
 
-        $userlist = new \core_privacy\local\request\userlist($context, $component);
-        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+        $userlist = new userlist($context, $component);
+        provider::get_users_in_context($userlist);
 
         // One user - the one with a digest preference.
         $this->assertCount(1, $userlist);
@@ -1291,15 +1220,15 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         list($author, $user, $otheruser) = $this->create_users($course, 3);
 
         // Post in both of the moodleoverflows.
-        list($fd1, $fp1) = $this->generator->post_to_forum($moodleoverflow, $author);
-        list($ofd1, $ofp1) = $this->generator->post_to_forum($othermoodleoverflow, $author);
+        list($fd1) = $this->generator->post_to_forum($moodleoverflow, $author);
+        list($ofd1) = $this->generator->post_to_forum($othermoodleoverflow, $author);
 
         // Subscribe the user to the discussions.
-        \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($user->id, $fd1, $context);
-        \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($otheruser->id, $ofd1, $context);
+        subscriptions::subscribe_user_to_discussion($user->id, $fd1, $context);
+        subscriptions::subscribe_user_to_discussion($otheruser->id, $ofd1, $context);
 
-        $userlist = new \core_privacy\local\request\userlist($context, $component);
-        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+        $userlist = new userlist($context, $component);
+        provider::get_users_in_context($userlist);
 
         // Two users - the author, and the one who subscribed.
         $this->assertCount(2, $userlist);
@@ -1336,11 +1265,11 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         list($ofd1, $ofp1) = $this->generator->post_to_forum($othermoodleoverflow, $author);
 
         // Add read information for those users.
-        \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($user->id, $fp1->id);
-        \mod_moodleoverflow\readtracking::moodleoverflow_add_read_record($otheruser->id, $ofp1->id);
+        readtracking::moodleoverflow_add_read_record($user->id, $fp1->id);
+        readtracking::moodleoverflow_add_read_record($otheruser->id, $ofp1->id);
 
-        $userlist = new \core_privacy\local\request\userlist($context, $component);
-        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+        $userlist = new userlist($context, $component);
+        provider::get_users_in_context($userlist);
 
         // Two user - the author, and the one who has read the post.
         $this->assertCount(2, $userlist);
@@ -1354,8 +1283,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals($expected, $actual);
 
         // Testing again for the other context.
-        $userlist = new \core_privacy\local\request\userlist($othercontext, $component);
-        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+        $userlist = new userlist($othercontext, $component);
+        provider::get_users_in_context($userlist);
 
         // Two user - the author, and the one who has read the post.
         $this->assertCount(2, $userlist);
@@ -1373,7 +1302,6 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
      * Ensure that all users with tracking preferences are included as a user in the context.
      */
     public function test_get_users_in_context_with_tracking_preferences(): void {
-        global $DB;
         $component = 'mod_moodleoverflow';
 
         $course = $this->getDataGenerator()->create_course();
@@ -1389,11 +1317,11 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         list($author, $user, $otheruser) = $this->create_users($course, 3);
 
         // Stop tracking the read posts.
-        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($moodleoverflow->id, $user->id);
-        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($othermoodleoverflow->id, $otheruser->id);
+        readtracking::moodleoverflow_stop_tracking($moodleoverflow->id, $user->id);
+        readtracking::moodleoverflow_stop_tracking($othermoodleoverflow->id, $otheruser->id);
 
-        $userlist = new \core_privacy\local\request\userlist($context, $component);
-        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+        $userlist = new userlist($context, $component);
+        provider::get_users_in_context($userlist);
 
         // One user - the one who is tracking that moodleoverflow.
         $this->assertCount(1, $userlist);
@@ -1407,8 +1335,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals($expected, $actual);
 
         // Testing the other context.
-        $userlist = new \core_privacy\local\request\userlist($othercontext, $component);
-        \mod_moodleoverflow\privacy\provider::get_users_in_context($userlist);
+        $userlist = new userlist($othercontext, $component);
+        provider::get_users_in_context($userlist);
 
         // One user - the one who is tracking that moodleoverflow.
         $this->assertCount(1, $userlist);
@@ -1442,7 +1370,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         list($user, $user2) = $this->create_and_enrol_users($course, 2);
         list( , $post) = $this->generator->post_to_forum($forum, $user);
-        \mod_moodleoverflow\ratings::moodleoverflow_add_rating($forum, $post->id, RATING_UPVOTE, $cm, $user2->id);
+        ratings::moodleoverflow_add_rating($forum, $post->id, RATING_UPVOTE, $cm, $user2->id);
         moodleoverflow_update_all_grades_for_cm($forum->id);
         $grades = grade_get_grades($course->id, 'mod', 'moodleoverflow', $forum->id,
                 [$user->id, $user2->id]);
@@ -1451,7 +1379,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         // Test export.
         $this->export_context_data_for_user($user->id, $context, 'mod_moodleoverflow');
-        $writer = \core_privacy\local\request\writer::with_context($context);
+        $writer = writer::with_context($context);
         $metadata = $writer->get_all_metadata([]);
         self::assertArrayHasKey('grade', $metadata);
         self::assertEquals(2.5, $metadata['grade']->value);
@@ -1462,16 +1390,14 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         self::assertContains("$context->id", $contextlist->get_contextids());
         provider::delete_data_for_user($contextlist);
         moodleoverflow_update_all_grades_for_cm($forum->id);
-        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null,
-                'userid, grade');
+        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade');
         self::assertEquals(2.5, $grades[$user->id]->grade);
         self::assertArrayNotHasKey($user2->id, $grades);
 
         // Test delete context.
         provider::delete_data_for_all_users_in_context($context);
         moodleoverflow_update_all_grades_for_cm($forum->id);
-        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null,
-                'userid, grade');
+        $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade');
         self::assertEmpty($grades);
     }
 }

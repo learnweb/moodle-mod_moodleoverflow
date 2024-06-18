@@ -1112,8 +1112,8 @@ final class subscriptions_test extends advanced_testcase {
         $discussion->moodleoverflow = $moodleoverflow->id;
 
         // Declare the options for the subscription tables.
-        $discussoptions = ['userid' => $author->id, 'discussion' => $discussion->id];
-        $subscriptionoptions = ['userid' => $author->id, 'moodleoverflow' => $moodleoverflow->id];
+        $discussoptions = ['userid' => $user->id, 'discussion' => $discussion->id];
+        $subscriptionoptions = ['userid' => $user->id, 'moodleoverflow' => $moodleoverflow->id];
 
         // Confirm that the user is currently not subscribed to the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($user->id, $moodleoverflow, $modulecontext));
