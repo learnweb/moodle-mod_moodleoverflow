@@ -244,111 +244,43 @@ class ratings {
         if ($posts[array_key_first($posts)]->ratingpreference == 1) {
             $solutionspreferred = true;
         }
+        // Build array groups for different types of answers (solved and helpful, only solved/helpful, unmarked).
+        $solvedhelpfulposts = [];
+        $solvedposts = [];
+        $helpfulposts = [];
+        $unmarkedposts = [];
 
-        // Sort the answer posts by ratings.
-        // Build groups of different types of answers (Solved and helpful, only solved/helpful, other).
+        // Sort the answer posts by ratings..
         // markedsolved == 1 means the post is marked as solved.
         // markedhelpful == 1 means the post is marked as helpful.
-        // If a group is complete, sort the group.
-        $index = 1;
-        $startsolvedandhelpful = 1;
-        $startsolved = 1;
-        $starthelpful = 1;
-        $startother = 1;
-        // Solved and helpful posts are first.
+        // Step 1: Iterate trough the answerposts and assign each post to a group.
         foreach ($answerposts as $post) {
-            if ($post->markedsolution > 0 && $post->markedhelpful > 0) {
-                $sortedposts[$index] = $post;
-                $index++;
-            }
-        }
-        // Update the indices and sort the group by votes.
-        if ($index > $startsolvedandhelpful) {
-            $startsolved = $index;
-            $starthelpful = $index;
-            $startother = $index;
-            moodleoverflow_quick_array_sort($sortedposts, $startsolvedandhelpful, $index - 1, 'votesdifference', 'desc');
-            self::moodleoverflow_check_equal_votes($sortedposts, $startsolvedandhelpful, $index - 1);
-        }
-
-        // Check if solutions are preferred.
-        if ($solutionspreferred) {
-
-            // Build the group of only solved posts.
-            foreach ($answerposts as $post) {
-                if ($post->markedsolution > 0 && $post->markedhelpful == 0) {
-                    $sortedposts[$index] = $post;
-                    $index++;
+            if ($post->markedsolution > 0) {
+                if ($post->markedhelpful > 0) {
+                    $solvedhelpfulposts[] = $post;
+                } else {
+                    $solvedposts[] = $post;
+                }
+            } else {
+                if ($post->markedhelpful > 0) {
+                    $helpfulposts[] = $post;
+                } else {
+                    $unmarkedposts[] = $post;
                 }
             }
-            // Update the indices and sort the group by votes.
-            if ($index > $startsolved) {
-                $starthelpful = $index;
-                $startother = $index;
-                moodleoverflow_quick_array_sort($sortedposts, $startsolved, $index - 1, 'votesdifference', 'desc');
-                self::moodleoverflow_check_equal_votes($sortedposts, $startsolved, $index - 1);
-            }
-
-            // Build the group of only helpful posts.
-            foreach ($answerposts as $post) {
-                if ($post->markedsolution == 0 && $post->markedhelpful > 0) {
-                    $sortedposts[$index] = $post;
-                    $index++;
-                }
-            }
-            // Update the indices and sort the group by votes.
-            if ($index > $starthelpful) {
-                $startother = $index;
-                moodleoverflow_quick_array_sort($sortedposts, $starthelpful, $index - 1, 'votesdifference', 'desc');
-                self::moodleoverflow_check_equal_votes($sortedposts, $starthelpful, $index - 1);
-            }
-        } else {
-
-            // Build the group of only helpful posts.
-            foreach ($answerposts as $post) {
-                if ($post->markedsolution == 0 && $post->markedhelpful > 0) {
-                    $sortedposts[$index] = $post;
-                    $index++;
-                }
-            }
-            // Update the indices and sort the group by votes.
-            if ($index > $starthelpful) {
-                $startsolved = $index;
-                $startother = $index;
-                moodleoverflow_quick_array_sort($sortedposts, $starthelpful, $index - 1, 'votesdifference', 'desc');
-                self::moodleoverflow_check_equal_votes($sortedposts, $starthelpful, $index - 1);
-            }
-
-            // Build the group of only solved posts.
-            foreach ($answerposts as $post) {
-                if ($post->markedsolution > 0 && $post->markedhelpful == 0) {
-                    $sortedposts[$index] = $post;
-                    $index++;
-                }
-            }
-            // Update the indices and sort the group by votes.
-            if ($index > $startsolved) {
-                $startother = $index;
-                moodleoverflow_quick_array_sort($sortedposts, $startsolved, $index - 1, 'votesdifference', 'desc');
-                self::moodleoverflow_check_equal_votes($sortedposts, $startsolved, $index - 1);
-            }
         }
 
-        // Now build the group of posts without ratings like helpful/solved.
-        foreach ($answerposts as $post) {
-            if ($post->markedsolution == 0 && $post->markedhelpful == 0) {
-                $sortedposts[$index] = $post;
-                $index++;
-            }
-        }
-        // Update the indices and sort the group by votes.
-        if ($index > $startother) {
-            moodleoverflow_quick_array_sort($sortedposts, $startother, $index - 1, 'votesdifference', 'desc');
-            self::moodleoverflow_check_equal_votes($sortedposts, $startother, $index - 1);
-        }
+        // Step 2: Sort each group after their votes and eventually time modified.
+        self::moodleoverflow_sort_postgroup($solvedhelpfulposts, 0, count($solvedhelpfulposts) - 1);
+        self::moodleoverflow_sort_postgroup($solvedposts, 0, count($solvedposts) - 1);
+        self::moodleoverflow_sort_postgroup($helpfulposts, 0, count($helpfulposts) - 1);
+        self::moodleoverflow_sort_postgroup($unmarkedposts, 0, count($unmarkedposts) - 1);
+
+        // Step 3: Put each group together in the right order depending on the rating preferences.
+        $temp = $solutionspreferred ? array_merge($solvedposts, $helpfulposts) : array_merge($helpfulposts, $solvedposts);
+        $sortedposts = array_merge($sortedposts, $solvedhelpfulposts, $temp, $unmarkedposts);
 
         // Rearrange the indices and return the sorted posts.
-
         $neworder = [];
         foreach ($sortedposts as $post) {
             $neworder[$post->id] = $post;
@@ -816,14 +748,19 @@ class ratings {
     }
 
     /**
-     * Helper function for moodleoverflow_sort_answer_by_rating. For posts that have the same mark and votesdifference,
-     * the posts are sorted by time modified
+     * Helper function for moodleoverflow_sort_answer_by_rating. Sorts a group of posts (solved and helpful, only solved/helpful
+     * and other) after their votesdifference and if needed after their modified time.
+     *
      * @param array $posts  The array that will be sorted
      * @param int   $low    Startindex from where equal votes will be checked
      * @param int   $high   Endindex until where equal votes will be checked
      * @return void
      */
-    private static function moodleoverflow_check_equal_votes(&$posts, $low, $high) {
+    private static function moodleoverflow_sort_postgroup(&$posts, $low, $high) {
+        // First sort the array after their votesdifference.
+        moodleoverflow_quick_array_sort($posts, 0, $high, 'votesdifference', 'desc');
+
+        // Check if posts have the same votesdifference and sort them after their modified time if needed.
         while ($low < $high) {
             if ($posts[$low]->votesdifference == $posts[$low + 1]->votesdifference) {
                 $tempstartindex = $low;
