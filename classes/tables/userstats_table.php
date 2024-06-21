@@ -398,10 +398,10 @@ class userstats_table extends \flexible_table {
         $length = count($this->userstatsdata);
         if ($sortorder['sortorder'] == 4) {
             // 4 means sort in ascending order.
-            moodleoverflow_quick_array_sort(0, $length - 1, $this->userstatsdata, $key, 'asc');
+            moodleoverflow_quick_array_sort($this->userstatsdata, 0, $length - 1, $key, 'asc');
         } else if ($sortorder['sortorder'] == 3) {
             // 3 means sort in descending order.
-            moodleoverflow_quick_array_sort(0, $length - 1, $this->userstatsdata, $key, 'desc');
+            moodleoverflow_quick_array_sort($this->userstatsdata, 0, $length - 1, $key, 'desc');
         }
     }
 }

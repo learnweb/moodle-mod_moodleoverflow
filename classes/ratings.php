@@ -267,7 +267,7 @@ class ratings {
             $startsolved = $index;
             $starthelpful = $index;
             $startother = $index;
-            self::moodleoverflow_quicksort_posts($sortedposts, $startsolvedandhelpful, $index - 1, 'votesdifference');
+            moodleoverflow_quick_array_sort($sortedposts, $startsolvedandhelpful, $index - 1, 'votesdifference', 'desc');
             self::moodleoverflow_check_equal_votes($sortedposts, $startsolvedandhelpful, $index - 1);
         }
 
@@ -285,7 +285,7 @@ class ratings {
             if ($index > $startsolved) {
                 $starthelpful = $index;
                 $startother = $index;
-                self::moodleoverflow_quicksort_posts($sortedposts, $startsolved, $index - 1, 'votesdifference');
+                moodleoverflow_quick_array_sort($sortedposts, $startsolved, $index - 1, 'votesdifference', 'desc');
                 self::moodleoverflow_check_equal_votes($sortedposts, $startsolved, $index - 1);
             }
 
@@ -299,7 +299,7 @@ class ratings {
             // Update the indices and sort the group by votes.
             if ($index > $starthelpful) {
                 $startother = $index;
-                self::moodleoverflow_quicksort_posts($sortedposts, $starthelpful, $index - 1, 'votesdifference');
+                moodleoverflow_quick_array_sort($sortedposts, $starthelpful, $index - 1, 'votesdifference', 'desc');
                 self::moodleoverflow_check_equal_votes($sortedposts, $starthelpful, $index - 1);
             }
         } else {
@@ -315,7 +315,7 @@ class ratings {
             if ($index > $starthelpful) {
                 $startsolved = $index;
                 $startother = $index;
-                self::moodleoverflow_quicksort_posts($sortedposts, $starthelpful, $index - 1, 'votesdifference');
+                moodleoverflow_quick_array_sort($sortedposts, $starthelpful, $index - 1, 'votesdifference', 'desc');
                 self::moodleoverflow_check_equal_votes($sortedposts, $starthelpful, $index - 1);
             }
 
@@ -329,7 +329,7 @@ class ratings {
             // Update the indices and sort the group by votes.
             if ($index > $startsolved) {
                 $startother = $index;
-                self::moodleoverflow_quicksort_posts($sortedposts, $startsolved, $index - 1, 'votesdifference');
+                moodleoverflow_quick_array_sort($sortedposts, $startsolved, $index - 1, 'votesdifference', 'desc');
                 self::moodleoverflow_check_equal_votes($sortedposts, $startsolved, $index - 1);
             }
         }
@@ -343,7 +343,7 @@ class ratings {
         }
         // Update the indices and sort the group by votes.
         if ($index > $startother) {
-            self::moodleoverflow_quicksort_posts($sortedposts, $startother, $index - 1, 'votesdifference');
+            moodleoverflow_quick_array_sort($sortedposts, $startother, $index - 1, 'votesdifference', 'desc');
             self::moodleoverflow_check_equal_votes($sortedposts, $startother, $index - 1);
         }
 
@@ -816,57 +816,6 @@ class ratings {
     }
 
     /**
-     * Sorts answerposts of a discussion with quicksort algorithm
-     * @param array  $posts     the posts that are being sorted
-     * @param int    $low       the index from where the sorting begins
-     * @param int    $high      the index until the array is being sorted
-     * @param string $sortby    the attribute by which the posts are being sorted, can be 'votesdifference' or 'modified'
-     */
-    private static function moodleoverflow_quicksort_posts(array &$posts, $low, $high, $sortby): void {
-        if ($low >= $high) {
-            return;
-        }
-        $left = $low;
-        $right = $high;
-        $pivot = 0;
-        if ($sortby == 'votesdifference') {
-            $pivot = $posts[intval(($low + $high) / 2)]->votesdifference;
-        } else if ($sortby == 'modified') {
-            $pivot = $posts[intval(($low + $high) / 2)]->modified;
-        }
-        do {
-            if ($sortby == 'votesdifference') {
-                while ($posts[$left]->votesdifference > $pivot) {
-                    $left++;
-                }
-                while ($posts[$right]->votesdifference < $pivot) {
-                    $right--;
-                }
-            } else if ($sortby == 'modified') {
-                while ($posts[$left]->modified < $pivot) {
-                    $left++;
-                }
-                while ($posts[$right]->modified > $pivot) {
-                    $right--;
-                }
-            }
-            if ($left <= $right) {
-                $temp = $posts[$right];
-                $posts[$right] = $posts[$left];
-                $posts[$left] = $temp;
-                $right--;
-                $left++;
-            }
-        } while ($left <= $right);
-        if ($low < $right) {
-            self::moodleoverflow_quicksort_posts($posts, $low, $right, $sortby);
-        }
-        if ($high > $left ) {
-            self::moodleoverflow_quicksort_posts($posts, $left, $high, $sortby);
-        }
-    }
-
-    /**
      * Helper function for moodleoverflow_sort_answer_by_rating. For posts that have the same mark and votesdifference,
      * the posts are sorted by time modified
      * @param array $posts  The array that will be sorted
@@ -883,7 +832,7 @@ class ratings {
                       ($posts[$tempendindex]->votesdifference == $posts[$tempendindex + 1]->votesdifference)) {
                     $tempendindex++;
                 }
-                self::moodleoverflow_quicksort_posts($posts, $tempstartindex, $tempendindex, 'modified');
+                moodleoverflow_quick_array_sort($posts, $tempstartindex, $tempendindex, 'modified', 'asc');
                 $low = $tempendindex + 1;
             } else {
                 $low++;

@@ -2136,14 +2136,15 @@ function moodleoverflow_update_all_grades() {
  * Function to sort an array with a quicksort algorithm. This function is a recursive function that needs to
  * be called from outside.
  *
+ * @param array $array The array to be sorted. It is passed by reference.
  * @param int $low The lowest index of the array. The first call should set it to 0.
  * @param int $high The highest index of the array. The first call should set it to the length of the array - 1.
- * @param array $array The array to be sorted. It is passed by reference.
+ *
  * @param string $key The key/attribute after what the algorithm sorts. The key should be an comparable integer.
  * @param string $order The order of the sorting. It can be 'asc' or 'desc'.
  * @return void
  */
-function moodleoverflow_quick_array_sort($low, $high, &$array, $key, $order) {
+function moodleoverflow_quick_array_sort(&$array, $low, $high, $key, $order) {
     if ($low >= $high) {
         return;
     }
@@ -2175,9 +2176,9 @@ function moodleoverflow_quick_array_sort($low, $high, &$array, $key, $order) {
         }
     } while ($left <= $right);
     if ($low < $right) {
-        moodleoverflow_quick_array_sort($low, $right, $array, $key, $order);
+        moodleoverflow_quick_array_sort($array, $low, $right, $key, $order);
     }
     if ($high > $left) {
-        moodleoverflow_quick_array_sort($left, $high, $array, $key, $order);
+        moodleoverflow_quick_array_sort($array, $left, $high, $key, $order);
     }
 }
