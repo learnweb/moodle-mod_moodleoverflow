@@ -2121,7 +2121,6 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
 
 /**
  * Updates all grades.
- *
  */
 function moodleoverflow_update_all_grades() {
     global $DB;
@@ -2181,4 +2180,40 @@ function moodleoverflow_quick_array_sort(&$array, $low, $high, $key, $order) {
     if ($high > $left) {
         moodleoverflow_quick_array_sort($array, $left, $high, $key, $order);
     }
+}
+
+/**
+ * Function to get a record from the database and throw an exception, if the record is not available.
+ * @param string $table                 The table to get the record from
+ * @param array $options                Conditions for the record
+ * @param string $exceptionstring       Name of the moodleoverflow exception that should be thrown in case there is no record.
+ * @param string $fields                Optional fields that are retrieved from the found record.
+ * @param bool $coreexception           Optional param if exception from the core exceptions.
+ * @return mixed $record                The found record
+ */
+function moodleoverflow_get_record_or_exception($table, $options, $exceptionstring, $fields = '*', $coreexception = false) {
+    global $DB;
+    if (!$record = $DB->get_record($table, $options, $fields)) {
+        if ($coreexception) {
+            throw new moodle_exception('invalidcourseid');
+        } else {
+            throw new moodle_exception($exceptionstring, 'moodleoverflow');
+        }
+    }
+    return $record;
+}
+
+/**
+ * Function to retrieve a config and throw an exception, if the config is not found.
+ * @param string $plugin            Plugin that has the configuration
+ * @param string $configname        Name of configuration
+ * @param string $errorcode         Error code/name of the exception
+ * @param string $exceptionmodule   Module that has the exception.
+ * @return mixed $config
+ */
+function moodleoverflow_get_config_or_exception($plugin, $configname, $errorcode, $exceptionmodule) {
+    if (!$config = get_config($plugin, $configname)) {
+        throw new moodle_exception($errorcode, $exceptionmodule);
+    }
+    return $config;
 }
