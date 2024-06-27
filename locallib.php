@@ -2188,14 +2188,14 @@ function moodleoverflow_quick_array_sort(&$array, $low, $high, $key, $order) {
  * @param array $options                Conditions for the record
  * @param string $exceptionstring       Name of the moodleoverflow exception that should be thrown in case there is no record.
  * @param string $fields                Optional fields that are retrieved from the found record.
- * @param bool $coreexception           Optional param if exception from the core exceptions.
+ * @param bool $coreexception           Optional param if exception is from the core exceptions.
  * @return mixed $record                The found record
  */
 function moodleoverflow_get_record_or_exception($table, $options, $exceptionstring, $fields = '*', $coreexception = false) {
     global $DB;
     if (!$record = $DB->get_record($table, $options, $fields)) {
         if ($coreexception) {
-            throw new moodle_exception('invalidcourseid');
+            throw new moodle_exception($exceptionstring);
         } else {
             throw new moodle_exception($exceptionstring, 'moodleoverflow');
         }
@@ -2216,4 +2216,42 @@ function moodleoverflow_get_config_or_exception($plugin, $configname, $errorcode
         throw new moodle_exception($errorcode, $exceptionmodule);
     }
     return $config;
+}
+
+/**
+ * Function that throws an exception if a given check is true.
+ * @param bool $check               The result of a boolean check.
+ * @param string $errorcode         Error code/name of the exception
+ * @param string $coreexception     Optional param if exception is from the core exceptions and not moodleoverflow.
+ * @return void
+ */
+function moodleoverflow_throw_exception_with_check($check, $errorcode, $coreexception = false) {
+    if ($check) {
+        if ($coreexception) {
+            throw new moodle_exception($errorcode);
+        } else {
+            throw new moodle_exception($errorcode, 'moodleoverflow');
+        }
+    }
+}
+
+/**
+ * Function that catches unenrolled users and redirects them to the enrolment page.
+ * @param context $coursecontext     The context of the course.
+ * @param int $courseid             Id of the course that the user needs to enrol.
+ * @param string $returnurl         The url to return to after the user has been enrolled.
+ * @return void
+ */
+function moodleoverflow_catch_unenrolled_user($coursecontext, $courseid, $returnurl) {
+    global $SESSION;
+    if (!isguestuser() && !is_enrolled($coursecontext)) {
+        if (enrol_selfenrol_available($courseid)) {
+            $SESSION->wantsurl = qualified_me();
+            $SESSION->enrolcancel = get_local_referer(false);
+            redirect(new \moodle_url('/enrol/index.php', [
+                'id' => $courseid,
+                'returnurl' => $returnurl,
+            ]), get_string('youneedtoenrol'));
+        }
+    }
 }

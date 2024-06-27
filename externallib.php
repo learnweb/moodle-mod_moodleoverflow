@@ -114,7 +114,7 @@ class mod_moodleoverflow_external extends external_api {
 
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,
-            $params['postid'], $params['ratingid'], $cm)) {
+            $params['postid'], $params['ratingid'], $cm, $USER->id)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
