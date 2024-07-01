@@ -25,6 +25,9 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
@@ -50,9 +53,7 @@ if (!is_null($sesskey)) {
 }
 if (!is_null($discussionid)) {
     $url->param('d', $discussionid);
-    if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid, 'moodleoverflow' => $id])) {
-        throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
-    }
+    $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $discussionid, 'moodleoverflow' => $id], 'invaliddiscussionid');
 }
 
 // Set the pages URL.

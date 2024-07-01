@@ -281,9 +281,7 @@ class ratings {
         global $DB;
 
         // Retrieve the full post.
-        if (!$post = $DB->get_record('moodleoverflow_posts', ['id' => $postid])) {
-            throw new moodle_exception('postnotexist', 'moodleoverflow');
-        }
+        $post = moodleoverflow_get_record_or_exception('moodleoverflow_posts', ['id' => $postid], 'postnotexist');
 
         // Get the rating for this single post.
         return self::moodleoverflow_get_ratings_by_discussion($post->discussion, $postid);

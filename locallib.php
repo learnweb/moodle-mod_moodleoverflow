@@ -2183,7 +2183,8 @@ function moodleoverflow_quick_array_sort(&$array, $low, $high, $key, $order) {
 }
 
 /**
- * Function to get a record from the database and throw an exception, if the record is not available.
+ * Function to get a record from the database and throw an exception, if the record is not available. The error string is
+ * retrieved from moodleoverflow but can be retrieved from the core too.
  * @param string $table                 The table to get the record from
  * @param array $options                Conditions for the record
  * @param string $exceptionstring       Name of the moodleoverflow exception that should be thrown in case there is no record.

@@ -34,14 +34,10 @@ $returnpage = optional_param('returnpage', 'index.php', PARAM_FILE); // The page
 require_sesskey();
 
 // Retrieve the moodleoverflow instance to track or untrack.
-if (!$moodleoverflow = $DB->get_record("moodleoverflow", ["id" => $id])) {
-    throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
-}
+$moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $id], 'invalidmoodleoverflowid');
 
 // Retrieve the course of the instance.
-if (!$course = $DB->get_record("course", ["id" => $moodleoverflow->course])) {
-    throw new moodle_exception('invalidcoursemodule');
-}
+$course = moodleoverflow_get_record_or_exception('course', ['id' => $moodleoverflow->course], 'invalidcourseid', '*', true);
 
 // Retrieve the course module of that course.
 if (!$cm = get_coursemodule_from_instance("moodleoverflow", $moodleoverflow->id, $course->id)) {
@@ -95,9 +91,7 @@ if ($istracked) {
         redirect($returnpageurl, get_string('nownottracking', 'moodleoverflow', $info), 1);
 
     } else {
-        // The insertion failed.
-
-        // Print an error message.
+        // The insertion failed. Print an error message.
         throw new moodle_exception('cannottrack', 'moodleoverflow', get_local_referer(false));
     }
 
@@ -116,9 +110,7 @@ if ($istracked) {
         redirect($returnto, get_string('nowtracking', 'moodleoverflow', $info), 1);
 
     } else {
-        // The deletion failed.
-
-        // Print an error message.
+        // The deletion failed. Print an error message.
         throw new moodle_exception('cannottrack', 'moodleoverflow', get_local_referer(false));
     }
 }
