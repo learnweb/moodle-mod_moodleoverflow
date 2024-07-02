@@ -47,7 +47,7 @@ class ratings {
      * @return bool|int
      */
     public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid) {
-        global $DB, $SESSION;
+        global $DB;
 
         // Is the submitted rating valid?
         $possibleratings = [RATING_NEUTRAL, RATING_DOWNVOTE, RATING_UPVOTE, RATING_SOLVED,
@@ -78,16 +78,8 @@ class ratings {
         if (!self::moodleoverflow_user_can_rate($post, $modulecontext, $userid)) {
 
             // Catch unenrolled users.
-            if (!isguestuser() && !is_enrolled($coursecontext)) {
-                $SESSION->wantsurl = qualified_me();
-                $SESSION->enrolcancel = get_local_referer(false);
-                redirect(new \moodle_url('/enrol/index.php', [
-                    'id' => $course->id,
-                    'returnurl' => '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id,
-                ]), get_string('youneedtoenrol'));
-            }
-            //$returnurl = '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id;
-            //moodleoverflow_catch_unenrolled_user($coursecontext, $course->id, $returnurl);
+            $returnurl = '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id;
+            moodleoverflow_catch_unenrolled_user($coursecontext, $course->id, $returnurl);
 
             // Notify the user, that he can not post a new discussion.
             throw new moodle_exception('noratemoodleoverflow', 'moodleoverflow');
@@ -112,22 +104,13 @@ class ratings {
 
         // Mark a post as solution or as helpful.
         if ($rating == RATING_SOLVED || $rating == RATING_HELPFUL) {
-
-            // Check if the current user is the startuser.
-            if ($rating == RATING_HELPFUL && $userid != $discussion->userid) {
-                throw new moodle_exception('notstartuser', 'moodleoverflow');
-            }
             // Make sure that a helpful mark is made by the user who started the discussion.
-            //$isnotstartuser = $rating == RATING_HELPFUL && $userid != $discussion->userid;
-            //moodleoverflow_throw_exception_with_check($isnotstartuser, 'nostartuser');
+            $isnotstartuser = $rating == RATING_HELPFUL && $userid != $discussion->userid;
+            moodleoverflow_throw_exception_with_check($isnotstartuser, 'nostartuser');
 
-            // Check if the current user is a teacher.
-            if ($rating == RATING_SOLVED && !has_capability('mod/moodleoverflow:marksolved', $modulecontext)) {
-                throw new moodle_exception('notteacher', 'moodleoverflow');
-            }
             // Make sure that a solution mark is made by a teacher (or someone with the right capability).
-            //$isnotteacher = $rating == RATING_SOLVED && !has_capability('mod/moodleoverflow:marksolved', $modulecontext);
-            //moodleoverflow_throw_exception_with_check($isnotteacher, 'notteacher');
+            $isnotteacher = $rating == RATING_SOLVED && !has_capability('mod/moodleoverflow:marksolved', $modulecontext);
+            moodleoverflow_throw_exception_with_check($isnotteacher, 'notteacher');
 
             // Check if multiple marks are not enabled.
             if (!$multiplemarks) {
@@ -400,53 +383,37 @@ class ratings {
 
         // Initiate a variable.
         $reputation = 0;
+        // Get all posts of this user in this module.
+        // Do not count votes for own posts.
+        $sql = "SELECT r.id, r.postid as post, r.rating
+              FROM {moodleoverflow_posts} p
+              JOIN {moodleoverflow_ratings} r ON p.id = r.postid
+              JOIN {moodleoverflow} m ON r.moodleoverflowid = m.id
+             WHERE p.userid = ? AND NOT r.userid = ? AND r.moodleoverflowid = ? AND m.anonymous <> ?";
 
-        if ($moodleoverflow->anonymous != anonymous::EVERYTHING_ANONYMOUS) {
+        if ($moodleoverflow->anonymous == anonymous::QUESTION_ANONYMOUS) {
+            $sql .= " AND p.parent <> 0 ";
+        }
 
-            // Get all posts of this user in this module.
-            // Do not count votes for own posts.
-            $sql = "SELECT r.id, r.postid as post, r.rating
-                  FROM {moodleoverflow_posts} p
-                  JOIN {moodleoverflow_ratings} r ON p.id = r.postid
-                 WHERE p.userid = ? AND NOT r.userid = ? AND r.moodleoverflowid = ? ";
+        $sql .= "ORDER BY r.postid ASC";
 
-            if ($moodleoverflow->anonymous == anonymous::QUESTION_ANONYMOUS) {
-                $sql .= " AND p.parent <> 0 ";
-            }
-
-            $sql .= "ORDER BY r.postid ASC";
-
-            $params = [$userid, $userid, $moodleoverflowid];
-            $records = $DB->get_records_sql($sql, $params);
-
-            // Check if there are results.
-            $records = (isset($records)) ? $records : [];
-
-            // Iterate through all ratings.
-            foreach ($records as $record) {
-
-                // The rating is a downvote.
-                if ($record->rating == RATING_DOWNVOTE) {
+        $params = [$userid, $userid, $moodleoverflowid, anonymous::EVERYTHING_ANONYMOUS];
+        $records = $DB->get_records_sql($sql, $params);
+        // Iterate through all ratings.
+        foreach ($records as $record) {
+            switch ($record->rating) {
+                case RATING_DOWNVOTE:
                     $reputation += get_config('moodleoverflow', 'votescaledownvote');
-                    continue;
-                }
-
-                // The rating is an upvote.
-                if ($record->rating == RATING_UPVOTE) {
+                    break;
+                case RATING_UPVOTE:
                     $reputation += get_config('moodleoverflow', 'votescaleupvote');
-                    continue;
-                }
-
-                // The post has been marked as helpful by the question owner.
-                if ($record->rating == RATING_HELPFUL) {
+                    break;
+                case RATING_HELPFUL:
                     $reputation += get_config('moodleoverflow', 'votescalehelpful');
-                    continue;
-                }
-
-                // The post has been marked as solved by a teacher.
-                if ($record->rating == RATING_SOLVED) {
+                    break;
+                case RATING_SOLVED:
                     $reputation += get_config('moodleoverflow', 'votescalesolved');
-                }
+                    break;
             }
         }
 
@@ -524,11 +491,11 @@ class ratings {
         // Initiate the array.
         $rating = [];
 
-        // Get the normal rating.
         $sql = "SELECT *
-                FROM {moodleoverflow_ratings}
-                WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
-        $rating['normal'] = $DB->get_record_sql($sql, [ $userid, $postid ]);
+                FROM {moodleoverflow_ratings}";
+        // Get the normal rating.
+        $condition = "WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
+        $rating['normal'] = $DB->get_record_sql($sql . $condition, [ $userid, $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_DOWNVOTE || $oldrating == RATING_UPVOTE) {
@@ -536,10 +503,8 @@ class ratings {
         }
 
         // Get the solved rating.
-        $sql = "SELECT *
-                FROM {moodleoverflow_ratings}
-                WHERE postid = ? AND rating = 3";
-        $rating['solved'] = $DB->get_record_sql($sql, [ $postid ]);
+        $condition = "WHERE postid = ? AND rating = 3";
+        $rating['solved'] = $DB->get_record_sql($sql . $condition, [ $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_SOLVED) {
@@ -547,10 +512,8 @@ class ratings {
         }
 
         // Get the helpful rating.
-        $sql = "SELECT *
-                FROM {moodleoverflow_ratings}
-                WHERE postid = ? AND rating = 4";
-        $rating['helpful'] = $DB->get_record_sql($sql, [ $postid ]);
+        $condition = "WHERE postid = ? AND rating = 4";
+        $rating['helpful'] = $DB->get_record_sql($sql . $condition, [ $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_HELPFUL) {

@@ -131,11 +131,8 @@ class readtracking {
         // Iterate through all of this discussions.
         foreach ($discussions as $discussionid) {
             // Mark the discussion as read.
-            if (!self::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $userid)) {
-                throw new moodle_exception('markreadfailed', 'moodleoverflow');
-            }
-            // $markedcheck = self::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $userid);
-            // moodleoverflow_throw_exception_with_check($markedcheck !== true, 'markreadfailed');
+            $markedcheck = self::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $userid);
+            moodleoverflow_throw_exception_with_check($markedcheck !== true, 'markreadfailed');
         }
 
         return true;
@@ -168,11 +165,8 @@ class readtracking {
             }
 
             // Mark the post as read.
-            if (!self::moodleoverflow_mark_post_read($userid, $post)) {
-                throw new moodle_exception('markreadfailed', 'moodleoverflow');
-            }
-            //$postreadcheck = self::moodleoverflow_mark_post_read($userid, $post);
-            //moodleoverflow_throw_exception_with_check(!$postreadcheck, 'markreadfailed');
+            $postreadcheck = self::moodleoverflow_mark_post_read($userid, $post);
+            moodleoverflow_throw_exception_with_check(!$postreadcheck, 'markreadfailed');
         }
 
         // The discussion has been marked as read.
