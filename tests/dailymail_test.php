@@ -38,8 +38,10 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \mod_moodleoverflow\task\send_daily_mail
  */
-class dailymail_test extends \advanced_testcase {
+final class dailymail_test extends \advanced_testcase {
 
     /** @var \stdClass collection of messages */
     private $sink;
@@ -59,7 +61,7 @@ class dailymail_test extends \advanced_testcase {
     /** @var \stdClass discussion instance */
     private $discussion;
 
-    /** @var  moodleoverflow generator */
+    /** @var \component_generator_base moodleoverflow generator */
     private $generator;
 
     /**
@@ -138,7 +140,6 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task send_daily_mail sends a mail to the user.
-     * @covers \send_daily_mail::execute
      */
     public function test_mail_delivery(): void {
         // Create user with maildigest = on.
@@ -222,10 +223,6 @@ class dailymail_test extends \advanced_testcase {
         $linktoforum = '<a href=3D"https://www.=example.com/moodle/mod/moodleoverflow/view.php?id=3D'. $this->coursemodule->id;
         $linktodiscussion = '<a href=3D"https://www.example.com/moodle/mod/moodleoverflow/=discussion.php?d=3D'
                             . $this->discussion[0]->id;
-
-        // Assemble text.
-        $text = 'Course: ' . $linktocourse . ' -> ' . $linktoforum . ', Topic: '
-                . $linktodiscussion . ' has ' . $messagecount . ' unread posts.';
 
         $this->assertStringContainsString($linktocourse, $message);
         $this->assertStringContainsString($linktoforum, $message);

@@ -90,13 +90,8 @@ class readtracking {
             $user = $USER;
         }
 
-        // Guests cannot track a moodleoverflow.
-        if (isguestuser($USER) || empty($USER->id)) {
-            return false;
-        }
-
-        // Check if the moodleoverflow can be generally tracked.
-        if (!self::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
+        // Guests cannot track a moodleoverflow. The moodleoverflow should be generally trackable.
+        if (isguestuser($USER) || empty($USER->id) || !self::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
             return false;
         }
 
@@ -134,14 +129,10 @@ class readtracking {
         $discussions = moodleoverflow_get_discussions_unread($cm);
 
         // Iterate through all of this discussions.
-        foreach ($discussions as $discussionid => $amount) {
-
+        foreach ($discussions as $discussionid) {
             // Mark the discussion as read.
-            if (!self::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $userid)) {
-                throw new moodle_exception('markreadfailed', 'moodleoverflow');
-
-                return false;
-            }
+            $markedcheck = self::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $userid);
+            moodleoverflow_throw_exception_with_check($markedcheck !== true, 'markreadfailed');
         }
 
         return true;
@@ -174,11 +165,8 @@ class readtracking {
             }
 
             // Mark the post as read.
-            if (!self::moodleoverflow_mark_post_read($userid, $post)) {
-                throw new moodle_exception('markreadfailed', 'moodleoverflow');
-
-                return false;
-            }
+            $postreadcheck = self::moodleoverflow_mark_post_read($userid, $post);
+            moodleoverflow_throw_exception_with_check(!$postreadcheck, 'markreadfailed');
         }
 
         // The discussion has been marked as read.

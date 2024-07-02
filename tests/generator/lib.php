@@ -64,7 +64,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      *
      * @return stdClass
      */
-    public function create_instance($record = null, array $options = null) {
+    public function create_instance($record = null, ?array $options = null) {
 
         // Transform the record.
         $record = (object) (array) $record;
