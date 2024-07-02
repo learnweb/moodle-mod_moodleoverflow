@@ -88,19 +88,15 @@ class mod_moodleoverflow_external extends external_api {
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $params['postid']], '*', MUST_EXIST);
 
         // Check if the discussion is valid.
-        if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion])) {
-            throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
-        }
+        $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $post->discussion],
+                                                             'invaliddiscussionid');
 
         // Check if the related moodleoverflow instance is valid.
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow])) {
-            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
-        }
+        $moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $discussion->moodleoverflow],
+                                                                 'invalidmoodleoverflowid');
 
         // Check if the related moodleoverflow instance is valid.
-        if (!$course = $DB->get_record('course', ['id' => $discussion->course])) {
-            throw new moodle_exception('invalidcourseid');
-        }
+        $course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->course], 'invalidcourseid', '*', true);
 
         // Get the related coursemodule and its context.
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
@@ -114,7 +110,7 @@ class mod_moodleoverflow_external extends external_api {
 
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,
-            $params['postid'], $params['ratingid'], $cm)) {
+            $params['postid'], $params['ratingid'], $cm, $USER->id)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
