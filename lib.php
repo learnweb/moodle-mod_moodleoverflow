@@ -137,7 +137,6 @@ function moodleoverflow_add_instance(stdClass $moodleoverflow, mod_moodleoverflo
     $moodleoverflow->timecreated = time();
 
     // You may have to add extra stuff in here.
-
     $moodleoverflow->id = $DB->insert_record('moodleoverflow', $moodleoverflow);
 
     return $moodleoverflow->id;
