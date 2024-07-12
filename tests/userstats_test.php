@@ -39,7 +39,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  *
  * @covers \userstats_table
  */
-class userstats_test extends \advanced_testcase {
+final class userstats_test extends \advanced_testcase {
 
     /** @var \stdClass test course */
     private $course;
@@ -230,7 +230,6 @@ class userstats_test extends \advanced_testcase {
 
         // Get the current userstats to compare later.
         $olduserstats = $this->create_statstable();
-        $oldupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
         $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'forumactivity');
 
         $oldupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');

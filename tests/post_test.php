@@ -33,7 +33,7 @@ require_once(__DIR__ . '/../locallib.php');
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class post_test extends \advanced_testcase {
+final class post_test extends \advanced_testcase {
 
     /** @var \stdClass test course */
     private $course;

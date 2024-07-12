@@ -74,9 +74,6 @@ class capabilities {
     /** capability review post to be published*/
     const REVIEW_POST = 'mod/moodleoverflow:reviewpost';
 
-    /** @var array cache capabilities*/
-    private static $cache = [];
-
     /**
      * Saves the cache from has_capability.
      *
