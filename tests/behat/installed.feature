@@ -8,5 +8,5 @@ Feature: Installation succeeds
     Given I log in as "admin"
     And I navigate to "Plugins > Plugins overview" in site administration
     Then the following should exist in the "plugins-control-panel" table:
+      |Plugin name|
       |moodleoverflow|
-      |mod_moodleoverflow|
