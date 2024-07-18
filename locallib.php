@@ -35,7 +35,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
 require_once($CFG->libdir . '/portfoliolib.php');
-
+require_once($CFG->dirroot.'/lib/portfolio/formats.php');
 /**
  * Get all discussions in a moodleoverflow instance.
  *
@@ -1160,7 +1160,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $post->course = $course->id;
     $post->moodleoverflow = $moodleoverflow->id;
     $mcid = $modulecontext->id;
-    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow', 'post', $post->id);
 
     // Check if the user has the capability to see posts.
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
@@ -1450,8 +1449,12 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->canreview = capabilities::has(capabilities::REVIEW_POST, $modulecontext);
     $mustachedata->withinreviewperiod = $reviewable;
 
-    // Prepare the post.
-    $options = (array) portfolio_format_text_options() + ['context' => $modulecontext];
+    // Prepare the post by formatting it's content.
+    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow',
+                                        'post', $post->id, ['includetoken' => true]);
+    $options = new stdClass();
+    $options->para = true;
+    $options->context = $modulecontext;
     $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options);
 
     // Load the attachments.
