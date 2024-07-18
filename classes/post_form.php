@@ -158,7 +158,7 @@ class mod_moodleoverflow_post_form extends moodleform {
             'maxbytes' => $maxbytes,
             'trusttext' => true,
             'return_types' => FILE_INTERNAL | FILE_EXTERNAL,
-            'subdirs' => file_area_contains_subdirs($context, 'mod_forum', 'post', $postid),
+            'subdirs' => file_area_contains_subdirs($context, 'mod_moodleoverflow', 'post', $postid),
         ];
     }
 }
