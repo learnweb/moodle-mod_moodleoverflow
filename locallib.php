@@ -34,8 +34,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
-require_once($CFG->libdir . '/portfoliolib.php');
-require_once($CFG->dirroot.'/lib/portfolio/formats.php');
+
 /**
  * Get all discussions in a moodleoverflow instance.
  *
