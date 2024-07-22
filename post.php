@@ -586,7 +586,7 @@ if ($mformpost->is_cancelled()) {
 }
 
 // Is it submitted?
-if ($fromform = $mformpost->get_data()) {
+if ($mformpost->is_submitted() && $fromform = $mformpost->get_data()) {
 
     // Redirect url in case of occuring errors.
     if (empty($SESSION->fromurl)) {
@@ -596,6 +596,7 @@ if ($fromform = $mformpost->get_data()) {
     }
 
     // Format the submitted data.
+    $fromform->draftitemid = $fromform->message['itemid'];
     $fromform->messageformat = $fromform->message['format'];
     $fromform->message = $fromform->message['text'];
     $fromform->messagetrust = trusttext_trusted($modulecontext);

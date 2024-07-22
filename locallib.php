@@ -835,6 +835,10 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
 
     // Submit the post to the database and get its id.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
+    $context = context_module::instance($cm->id);
+    $text = file_save_draft_area_files($discussion->draftitemid, $context->id, 'mod_moodleoverflow', 'post', $post->id,
+        mod_moodleoverflow_post_form::editor_options($context, null), $post->message);
+    $DB->set_field('moodleoverflow_posts', 'message', $text, ['id' => $post->id]);
 
     // Create the discussion object.
     $discussionobject = new stdClass();
@@ -1678,7 +1682,10 @@ function moodleoverflow_add_new_post($post) {
 
     // Add the post to the database.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
-    $DB->set_field('moodleoverflow_posts', 'message', $post->message, ['id' => $post->id]);
+    $context = context_module::instance($cm->id);
+    $text = file_save_draft_area_files($post->draftitemid, $context->id, 'mod_moodleoverflow', 'post', $post->id,
+                                        mod_moodleoverflow_post_form::editor_options($context, null), $post->message);
+    $DB->set_field('moodleoverflow_posts', 'message', $text, ['id' => $post->id]);
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
     if ($post->reviewed) {
@@ -1714,6 +1721,7 @@ function moodleoverflow_update_post($newpost) {
     $post = $DB->get_record('moodleoverflow_posts', ['id' => $newpost->id]);
     $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
     $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
+    $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
 
     // Allowed modifiable fields.
     $modifiablefields = [
@@ -1742,6 +1750,10 @@ function moodleoverflow_update_post($newpost) {
 
     // Update the post and the corresponding discussion.
     $DB->update_record('moodleoverflow_posts', $post);
+    $context = context_module::instance($cm->id);
+    $text = file_save_draft_area_files($newpost->draftitemid, $context->id, 'mod_moodleoverflow', 'post', $post->id,
+        mod_moodleoverflow_post_form::editor_options($context, null), $post->message);
+    $DB->set_field('moodleoverflow_posts', 'message', $text, ['id' => $post->id]);
     $DB->update_record('moodleoverflow_discussions', $discussion);
 
     $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
