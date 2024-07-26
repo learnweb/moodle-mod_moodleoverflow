@@ -448,17 +448,6 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
 
     $file = $fs->get_file($context->id, 'mod_moodleoverflow', $filearea, $itemid, $filepath, $filename);
 
-    // Make sure groups allow this user to see this file.
-    if ($discussion->groupid > 0) {
-        $groupmode = groups_get_activity_groupmode($cm, $course);
-        if ($groupmode == SEPARATEGROUPS) {
-
-            if (!groups_is_member($discussion->groupid) && !has_capability('moodle/site:accessallgroups', $context)) {
-                return false;
-            }
-        }
-    }
-
     // Make sure we're allowed to see it...
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
         return false;
