@@ -292,5 +292,13 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2023040400, 'moodleoverflow');
     }
 
+    if ($oldversion < 2024072600) {
+        require_once($CFG->dirroot . '/mod/moodleoverflow/db/upgradelib.php');
+
+        mod_moodleoverflow_move_draftfiles_to_permanent_filearea();
+
+        upgrade_mod_savepoint(true, 2024072600, 'moodleoverflow');
+    }
+
     return true;
 }
