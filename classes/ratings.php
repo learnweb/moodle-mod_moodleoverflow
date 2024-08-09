@@ -264,7 +264,7 @@ class ratings {
         // Get the rating.
         $sql = "SELECT firstrated, rating
                   FROM {moodleoverflow_ratings}
-                 WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
+                  WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
 
         return ($DB->get_record_sql($sql, [ $userid, $postid ]));
     }
@@ -421,7 +421,7 @@ class ratings {
         // Votes for own posts are not counting.
         $sql = "SELECT COUNT(id) as amount
                 FROM {moodleoverflow_ratings}
-                WHERE userid = ? AND moodleoverflowid = ? AND (rating = 1 OR rating = 2)";
+                 WHERE userid = ? AND moodleoverflowid = ? AND (rating = 1 OR rating = 2)";
         $params = [$userid, $moodleoverflowid];
         $votes = $DB->get_record_sql($sql, $params);
 
@@ -494,8 +494,8 @@ class ratings {
         $sql = "SELECT *
                 FROM {moodleoverflow_ratings}";
         // Get the normal rating.
-        $condition = "WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
-        $rating['normal'] = $DB->get_record_sql($sql . $condition, [ $userid, $postid ]);
+        $condition = " WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
+        $rating['normal'] = $DB->get_record_sql($sql . $condition, [$userid, $postid]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_DOWNVOTE || $oldrating == RATING_UPVOTE) {
@@ -503,7 +503,7 @@ class ratings {
         }
 
         // Get the solved rating.
-        $condition = "WHERE postid = ? AND rating = 3";
+        $condition = " WHERE postid = ? AND rating = 3";
         $rating['solved'] = $DB->get_record_sql($sql . $condition, [ $postid ]);
 
         // Return the rating if it is requested.
@@ -512,7 +512,7 @@ class ratings {
         }
 
         // Get the helpful rating.
-        $condition = "WHERE postid = ? AND rating = 4";
+        $condition = " WHERE postid = ? AND rating = 4";
         $rating['helpful'] = $DB->get_record_sql($sql . $condition, [ $postid ]);
 
         // Return the rating if it is requested.
