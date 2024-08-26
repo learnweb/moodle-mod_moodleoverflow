@@ -37,7 +37,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @copyright 2023 Tamaro Walter
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class ratings_test extends \advanced_testcase {
+final class ratings_test extends \advanced_testcase {
     /** @var \stdClass test course */
     private $course;
 

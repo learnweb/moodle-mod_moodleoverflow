@@ -159,6 +159,7 @@ class behat_mod_moodleoverflow extends behat_base {
             $discussiontitle . '"]]');
     }
 
+    // phpcs:disable moodle.Files.LineLength.TooLong
     /**
      * Checks that an element and selector type exists in another element and selector type on the current page.
      *
@@ -171,6 +172,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param string $discussiontitle The discussion title
      */
     public function should_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // phpcs:enable
         // Get the container node.
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
@@ -182,6 +184,7 @@ class behat_mod_moodleoverflow extends behat_base {
         $this->find($selectortype, $element, $exception, $containernode);
     }
 
+    // phpcs:disable moodle.Files.LineLength.TooLong
     /**
      * Click on the element of the specified type which is located inside the second element.
      *
@@ -191,6 +194,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param string $discussiontitle The discussion title
      */
     public function i_click_on_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // phpcs:enable
         // Get the container node.
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
@@ -204,6 +208,7 @@ class behat_mod_moodleoverflow extends behat_base {
         $node->click();
     }
 
+    // phpcs:disable moodle.Files.LineLength.TooLong
     /**
      * Checks that an element and selector type does not exist in another element and selector type on the current page.
      *
@@ -216,6 +221,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param string $discussiontitle The discussion title
      */
     public function should_not_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // phpcs:enable
         // Get the container node.
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
