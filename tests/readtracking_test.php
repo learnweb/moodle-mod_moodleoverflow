@@ -38,7 +38,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \readtracking
  */
-class readtracking_test extends advanced_testcase {
+final class readtracking_test extends advanced_testcase {
 
     /**
      * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.

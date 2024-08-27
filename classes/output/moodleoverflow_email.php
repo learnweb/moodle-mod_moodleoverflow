@@ -73,13 +73,13 @@ class moodleoverflow_email implements \renderable, \templatable {
     /**
      * Whether the user can reply to this post.
      *
-     * @var boolean $canreply
+     * @var bool $canreply
      */
     protected $canreply = false;
 
     /**
      * Whether to override forum display when displaying usernames.
-     * @var boolean $viewfullnames
+     * @var bool $viewfullnames
      */
     protected $viewfullnames = false;
 

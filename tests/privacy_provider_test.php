@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
  *
@@ -41,7 +42,7 @@ use mod_moodleoverflow\privacy\data_export_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \provider
  */
-class privacy_provider_test extends \core_privacy\tests\provider_testcase {
+final class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * @var \mod_moodleoverflow_generator Plugin generator
      */
@@ -587,7 +588,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Ensure that all user data is deleted from a context.
      */
-    public function test_all_users_deleted_from_context() {
+    public function test_all_users_deleted_from_context(): void {
         global $DB;
         $fs = get_file_storage();
         $course = $this->getDataGenerator()->create_course();
@@ -724,7 +725,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Ensure that all user data is deleted for a specific context.
      */
-    public function test_delete_data_for_user() {
+    public function test_delete_data_for_user(): void {
         global $DB;
         $fs = get_file_storage();
         $course = $this->getDataGenerator()->create_course();
@@ -937,7 +938,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Ensure that user data for specific users is deleted from a specified context.
      */
-    public function test_delete_data_for_users() {
+    public function test_delete_data_for_users(): void {
         global $DB;
 
         $fs = get_file_storage();

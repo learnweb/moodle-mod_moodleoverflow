@@ -38,8 +38,9 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \mod_moodleoverflow\task\send_daily_mail::execute
  */
-class dailymail_test extends \advanced_testcase {
+final class dailymail_test extends \advanced_testcase {
 
     /** @var \stdClass collection of messages */
     private $sink;
@@ -138,7 +139,6 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task send_daily_mail sends a mail to the user.
-     * @covers \send_daily_mail::execute
      */
     public function test_mail_delivery(): void {
         // Create user with maildigest = on.
@@ -154,7 +154,6 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task send_daily_mail does not sends email from posts that are not in the course of the user.
-     * @return void
      */
     public function test_delivery_not_enrolled(): void {
         // Create user with maildigest = on.
@@ -201,7 +200,6 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the content of the mail matches the supposed content.
-     * @covers \send_daily_mail::execute
      */
     public function test_content_of_mail_delivery(): void {
 
@@ -236,7 +234,6 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task does not send a mail when maildigest = 0
-     * @covers \send_daily_mail::execute
      */
     public function test_mail_not_send(): void {
         // Creat user with daily_mail = off.
@@ -252,7 +249,6 @@ class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if database is updated after sending a mail
-     * @covers \send_daily_mail::execute
      */
     public function test_records_removed(): void {
         global $DB;
