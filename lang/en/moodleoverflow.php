@@ -413,23 +413,3 @@ $string['your_post_was_rejected'] = 'Your post was rejected.';
 $string['your_post_was_rejected_with_reason'] = 'Your post was rejected with the following reason:';
 $string['yournewtopic'] = 'Your new discussion topic';
 $string['yourreply'] = 'Your reply';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

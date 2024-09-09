@@ -481,12 +481,13 @@ if ($edit) {
 }
 
 // Get attachments.
+$postid = empty($post->id) ? null : $post->id;
 $draftitemid = file_get_submitted_draft_itemid('attachments');
 file_prepare_draft_area($draftitemid,
     $modulecontext->id,
     'mod_moodleoverflow',
     'attachment',
-    empty($post->id) ? null : $post->id,
+    $postid,
     mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
 
 if ($draftitemid && $edit && anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)
@@ -498,6 +499,10 @@ if ($draftitemid && $edit && anonymous::is_post_anonymous($discussion, $moodleov
         $file->set_author($anonymousstr);
     }
 }
+
+$draftideditor = file_get_submitted_draft_itemid('message');
+$currenttext = file_prepare_draft_area($draftideditor, $modulecontext->id, 'mod_moodleoverflow', 'post', $postid,
+        mod_moodleoverflow_post_form::editor_options($modulecontext, $postid), $post->message);
 
 // Prepare the form.
 $formarray = [
@@ -543,10 +548,6 @@ if (!empty($parent)) {
     $heading = get_string('yournewtopic', 'moodleoverflow');
 }
 
-// Get the original post.
-$postid = empty($post->id) ? null : $post->id;
-$postmessage = empty($post->message) ? null : $post->message;
-
 // Set data for the form.
 // TODO Refactor.
 $param1 = (isset($discussion->id) ? [$discussion->id] : []);
@@ -559,9 +560,9 @@ $mformpost->set_data([
         'general' => $heading,
         'subject' => $subject,
         'message' => [
-            'text' => $postmessage,
+            'text' => $currenttext,
             'format' => editors_get_preferred_format(),
-            'itemid' => $postid,
+            'itemid' => $draftideditor,
         ],
         'userid' => $post->userid,
         'parent' => $post->parent,
@@ -595,6 +596,7 @@ if ($fromform = $mformpost->get_data()) {
 
     // Format the submitted data.
     $fromform->messageformat = $fromform->message['format'];
+    $fromform->draftideditor = $fromform->message['itemid'];
     $fromform->message = $fromform->message['text'];
     $fromform->messagetrust = trusttext_trusted($modulecontext);
 

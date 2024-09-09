@@ -32,6 +32,7 @@ use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
 
 /**
@@ -811,6 +812,7 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
         throw new moodle_exception('invalidcoursemodule');
     }
+    $context = context_module::instance($cm->id);
 
     // Create the post-object.
     $post = new stdClass();
@@ -832,6 +834,10 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
 
     // Submit the post to the database and get its id.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
+    // Save draft files to permanent file area.
+    $post->message = file_save_draft_area_files($discussion->draftideditor, $context->id, 'mod_moodleoverflow', 'post',
+            $post->id, mod_forum_post_form::editor_options($context, null), $post->message);
+    $DB->set_field('moodleoverflow_posts', 'message', $post->message, ['id' => $post->id]);
 
     // Create the discussion object.
     $discussionobject = new stdClass();
@@ -1156,7 +1162,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $post->course = $course->id;
     $post->moodleoverflow = $moodleoverflow->id;
     $mcid = $modulecontext->id;
-    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow', 'post', $post->id);
 
     // Check if the user has the capability to see posts.
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
@@ -1447,7 +1452,16 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
-    $mustachedata->postcontent = format_text($post->message, $post->messageformat, ['context' => $modulecontext]);
+    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow',
+                                        'post', $post->id);
+    $options = new stdClass();
+    $options->para = false;
+    $options->newlines = true;
+    $options->filter = true;
+    $options->noclean = false;
+    $options->overflowdiv = false;
+    $options->context = $modulecontext;
+    $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options);
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
@@ -1653,6 +1667,7 @@ function moodleoverflow_add_new_post($post) {
     $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
     $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
     $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+    $context = context_module::instance($cm->id);
 
     // Add some variables to the post.
     $post->created = $post->modified = time();
@@ -1671,6 +1686,9 @@ function moodleoverflow_add_new_post($post) {
 
     // Add the post to the database.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
+    // Save draft files to permanent file area.
+    $post->message = file_save_draft_area_files($post->draftideditor, $context->id, 'mod_moodleoverflow', 'post',
+            $post->id, mod_forum_post_form::editor_options($context, null), $post->message);
     $DB->set_field('moodleoverflow_posts', 'message', $post->message, ['id' => $post->id]);
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
@@ -1707,6 +1725,8 @@ function moodleoverflow_update_post($newpost) {
     $post = $DB->get_record('moodleoverflow_posts', ['id' => $newpost->id]);
     $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
     $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
+    $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+    $context = context_module::instance($cm->id);
 
     // Allowed modifiable fields.
     $modifiablefields = [
@@ -1732,6 +1752,10 @@ function moodleoverflow_update_post($newpost) {
     if (!$post->parent) {
         $discussion->name = $newpost->subject;
     }
+
+    // Save draft files to permanent file area.
+    $post->message = file_save_draft_area_files($newpost->draftideditor, $context->id, 'mod_moodleoverflow', 'post',
+            $post->id, mod_forum_post_form::editor_options($context, $post->id), $post->message);
 
     // Update the post and the corresponding discussion.
     $DB->update_record('moodleoverflow_posts', $post);
