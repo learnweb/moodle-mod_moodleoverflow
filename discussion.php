@@ -24,6 +24,7 @@
 
 // Include config and locallib.
 require_once('../../config.php');
+global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
@@ -39,19 +40,14 @@ $PAGE->set_url('/mod/moodleoverflow/discussion.php', ['d' => $d]);
 $PAGE->add_body_class('limitedwidth');
 
 // Check if the discussion is valid.
-if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $d])) {
-    throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
-}
+$discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $d], 'invaliddiscussionid');
 
 // Check if the related moodleoverflow instance is valid.
-if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow])) {
-    throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
-}
+$moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $discussion->moodleoverflow],
+                                                         'invalidmoodleoverflowid');
 
 // Check if the related moodleoverflow instance is valid.
-if (!$course = $DB->get_record('course', ['id' => $discussion->course])) {
-    throw new moodle_exception('invalidcourseid');
-}
+$course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->course], 'invalidcourseid', '*', true);
 
 // Save the allowmultiplemarks setting.
 $marksetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'allowmultiplemarks');
@@ -83,7 +79,7 @@ if ($ratingid) {
 
     if (in_array($ratingid, [RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL])) {
         // Rate the post.
-        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm)) {
+        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm, $USER->id)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
