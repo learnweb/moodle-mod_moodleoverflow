@@ -72,6 +72,7 @@ final class review_test extends \advanced_testcase {
      * @return void
      */
     protected function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest();
 
         set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
@@ -102,6 +103,7 @@ final class review_test extends \advanced_testcase {
         $this->messagesink->clear();
         $this->messagesink->close();
         unset($this->messagesink);
+        parent::tearDown();
     }
 
     /**
