@@ -324,7 +324,7 @@ class mail_manager {
      * @param string $table
      * @param int $id
      * @param array $cache
-     * @param string $errorMessage
+     * @param string $errormessage
      * @param array $posts
      * @param int $postid
      * @param bool $fillsubscache    If the subscription cache is being filled (only when checking discussion cache)
