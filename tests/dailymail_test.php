@@ -38,6 +38,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \mod_moodleoverflow\task\send_daily_mail::execute
  */
 final class dailymail_test extends \advanced_testcase {
 
@@ -59,13 +60,14 @@ final class dailymail_test extends \advanced_testcase {
     /** @var \stdClass discussion instance */
     private $discussion;
 
-    /** @var  moodleoverflow generator */
+    /** @var \component_generator_base moodleoverflow generator */
     private $generator;
 
     /**
      * Test setUp.
      */
     public function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest();
         set_config('maxeditingtime', -10, 'moodleoverflow');
 
@@ -87,6 +89,7 @@ final class dailymail_test extends \advanced_testcase {
         // Clear all caches.
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
         \mod_moodleoverflow\subscriptions::reset_discussion_cache();
+        parent::tearDown();
     }
 
     // Helper functions.
@@ -138,7 +141,6 @@ final class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task send_daily_mail sends a mail to the user.
-     * @covers \send_daily_mail::execute
      */
     public function test_mail_delivery(): void {
         // Create user with maildigest = on.
@@ -154,7 +156,6 @@ final class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task send_daily_mail does not sends email from posts that are not in the course of the user.
-     * @return void
      */
     public function test_delivery_not_enrolled(): void {
         // Create user with maildigest = on.
@@ -201,7 +202,6 @@ final class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the content of the mail matches the supposed content.
-     * @covers \send_daily_mail::execute
      */
     public function test_content_of_mail_delivery(): void {
 
@@ -223,10 +223,6 @@ final class dailymail_test extends \advanced_testcase {
         $linktodiscussion = '<a href=3D"https://www.example.com/moodle/mod/moodleoverflow/=discussion.php?d=3D'
                             . $this->discussion[0]->id;
 
-        // Assemble text.
-        $text = 'Course: ' . $linktocourse . ' -> ' . $linktoforum . ', Topic: '
-                . $linktodiscussion . ' has ' . $messagecount . ' unread posts.';
-
         $this->assertStringContainsString($linktocourse, $message);
         $this->assertStringContainsString($linktoforum, $message);
         $this->assertStringContainsString($linktodiscussion, $message);
@@ -236,7 +232,6 @@ final class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if the task does not send a mail when maildigest = 0
-     * @covers \send_daily_mail::execute
      */
     public function test_mail_not_send(): void {
         // Creat user with daily_mail = off.
@@ -252,7 +247,6 @@ final class dailymail_test extends \advanced_testcase {
 
     /**
      * Test if database is updated after sending a mail
-     * @covers \send_daily_mail::execute
      */
     public function test_records_removed(): void {
         global $DB;

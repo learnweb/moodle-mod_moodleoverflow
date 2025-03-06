@@ -22,8 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// TODO refactor this. For more readability, and to avoid security issues.
-
 // Include config and locallib.
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\review;
@@ -501,12 +499,13 @@ if ($edit) {
 }
 
 // Get attachments.
+$postid = empty($post->id) ? null : $post->id;
 $draftitemid = file_get_submitted_draft_itemid('attachments');
 file_prepare_draft_area($draftitemid,
     $modulecontext->id,
     'mod_moodleoverflow',
     'attachment',
-    empty($post->id) ? null : $post->id,
+    $postid,
     mod_moodleoverflow_post_form::attachment_options($moodleoverflow));
 
 if ($draftitemid && $edit && anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)
@@ -518,6 +517,10 @@ if ($draftitemid && $edit && anonymous::is_post_anonymous($discussion, $moodleov
         $file->set_author($anonymousstr);
     }
 }
+
+$draftideditor = file_get_submitted_draft_itemid('message');
+$currenttext = file_prepare_draft_area($draftideditor, $modulecontext->id, 'mod_moodleoverflow', 'post', $postid,
+        mod_moodleoverflow_post_form::editor_options($modulecontext, $postid), $post->message);
 
 // Prepare the form.
 $formarray = [
@@ -563,10 +566,6 @@ if (!empty($parent)) {
     $heading = get_string('yournewtopic', 'moodleoverflow');
 }
 
-// Get the original post.
-$postid = empty($post->id) ? null : $post->id;
-$postmessage = empty($post->message) ? null : $post->message;
-
 // Set data for the form.
 // TODO Refactor.
 $param1 = (isset($discussion->id) ? [$discussion->id] : []);
@@ -579,9 +578,9 @@ $mformpost->set_data([
         'general' => $heading,
         'subject' => $subject,
         'message' => [
-            'text' => $postmessage,
+            'text' => $currenttext,
             'format' => editors_get_preferred_format(),
-            'itemid' => $postid,
+            'itemid' => $draftideditor,
         ],
         'userid' => $post->userid,
         'parent' => $post->parent,
@@ -615,6 +614,7 @@ if ($fromform = $mformpost->get_data()) {
 
     // Format the submitted data.
     $fromform->messageformat = $fromform->message['format'];
+    $fromform->draftideditor = $fromform->message['itemid'];
     $fromform->message = $fromform->message['text'];
     $fromform->messagetrust = trusttext_trusted($modulecontext);
 
@@ -707,8 +707,7 @@ if ($fromform = $mformpost->get_data()) {
             $discussion = new \stdClass();
             $discussion->id = $fromform->discussion;
             $discussion->moodleoverflow = $moodleoverflow->id;
-            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform,
-                $moodleoverflow, $discussion, $modulecontext);
+            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($moodleoverflow, $discussion, $modulecontext);
 
             // Print a success-message.
             $message .= '<p>' . get_string("postaddedsuccess", "moodleoverflow") . '</p>';
@@ -783,8 +782,7 @@ if ($fromform = $mformpost->get_data()) {
             $event->trigger();
             // Subscribe to this thread.
             $discussion->moodleoverflow = $moodleoverflow->id;
-            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($fromform,
-                $moodleoverflow, $discussion, $modulecontext);
+            \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($moodleoverflow, $discussion, $modulecontext);
         }
 
         // Redirect back to te discussion.

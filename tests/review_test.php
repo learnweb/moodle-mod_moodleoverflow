@@ -39,6 +39,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  * @group mod_moodleoverflow
+ * @covers \mod_moodleoverflow_external::review_approve_post
+ * @covers \mod_moodleoverflow_external::review_reject_post
  */
 final class review_test extends \advanced_testcase {
 
@@ -70,6 +72,7 @@ final class review_test extends \advanced_testcase {
      * @return void
      */
     protected function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest();
 
         set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
@@ -100,6 +103,7 @@ final class review_test extends \advanced_testcase {
         $this->messagesink->clear();
         $this->messagesink->close();
         unset($this->messagesink);
+        parent::tearDown();
     }
 
     /**

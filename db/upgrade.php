@@ -292,34 +292,29 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2023040400, 'moodleoverflow');
     }
 
-    if ($oldversion < 2024031105) {
+    if ($oldversion < 2024061700) {
         // Define table moodleoverflow to be edited.
         $table = new xmldb_table('moodleoverflow');
 
-        // Define field limitedanswer to be added to moodleoverflow.
-        $field = new xmldb_field('limitedanswer', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'allowmultiplemarks');
-
-        // Conditionally launch add field limitedanswer.
+        // Create the field fot the start time for the limited answer mode.
+        $field = new xmldb_field('la_starttime', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, 'allowmultiplemarks');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
-        // Moodleoverflow savepoint reached.
-        upgrade_mod_savepoint(true, 2024031105, 'moodleoverflow');
-    }
-    if ($oldversion < 2024061700) {
-        // Rename the first setting, to have a start and endtime for the limited answer mode.
-        $table = new xmldb_table('moodleoverflow');
-        $field = new xmldb_field('limitedanswer', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, 'allowmultiplemarks');
-        if ($dbman->field_exists($table, $field)) {
-            $dbman->rename_field($table, $field, 'la_starttime');
-        }
-        // Create the field for the end time.
+        // Create the field for the end time for the limited answer mode.
         $field = new xmldb_field('la_endtime', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, 'la_starttime');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
         upgrade_mod_savepoint(true, 2024061700, 'moodleoverflow');
+    }
+
+    if ($oldversion < 2024072600) {
+        require_once($CFG->dirroot . '/mod/moodleoverflow/db/upgradelib.php');
+
+        mod_moodleoverflow_move_draftfiles_to_permanent_filearea();
+
+        upgrade_mod_savepoint(true, 2024072600, 'moodleoverflow');
     }
 
     return true;

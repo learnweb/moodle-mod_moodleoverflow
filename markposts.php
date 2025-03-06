@@ -21,6 +21,9 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 
 // We do not need the locallib here.
 require_once('../../config.php');
@@ -46,14 +49,10 @@ if ($returndiscussion !== 0) {
 $PAGE->set_url($url);
 
 // Retrieve the connected moodleoverflow instance.
-if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid])) {
-    throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
-}
+$moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $moodleoverflowid], 'invalidmoodleoverflowid');
 
 // Retrieve the connected course.
-if (!$course = $DB->get_record('course', ['id' => $moodleoverflow->course])) {
-    throw new moodle_exception('invalidcourseid');
-}
+$course = moodleoverflow_get_record_or_exception('course', ['id' => $moodleoverflow->course], 'invalidcourseid', '*', true);
 
 // Get the coursemodule.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
@@ -100,10 +99,7 @@ if (!empty($discussionid)) {
 
     // Check if the discussion exists.
     $options = ['id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id];
-    $discussion = $DB->get_record('moodleoverflow_discussions', $options);
-    if (!$discussion) {
-        throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
-    }
+    $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', $options, 'invaliddiscussionid');
 
     // Mark all the discussions read.
     if (!\mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read($discussionid,
@@ -114,7 +110,6 @@ if (!empty($discussionid)) {
         $status = \core\output\notification::NOTIFY_ERROR;
 
     } else {
-
         // The discussion is successfully marked as read.
         $message = get_string('markmoodleoverflowreadsuccessful', 'moodleoverflow');
         $status = \core\output\notification::NOTIFY_SUCCESS;

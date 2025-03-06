@@ -21,11 +21,15 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 
 // Require needed files.
 use core\context\course;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
+global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 require_once(dirname(__FILE__) . '/locallib.php');
 require_once($CFG->dirroot . '/course/lib.php');
 
@@ -46,9 +50,7 @@ if ($subscribe !== null) {
 $PAGE->set_url($url);
 
 // Check if the id is related to a valid course.
-if (!$course = $DB->get_record('course', ['id' => $id])) {
-    throw new moodle_exception('invalidcourseid');
-}
+$course = moodleoverflow_get_record_or_exception('course', ['id' => $id], 'invalidcourseid', '*', true);
 
 // From now on, the user must be enrolled to a course.
 require_course_login($course);

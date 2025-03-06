@@ -34,6 +34,7 @@ use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
 
 /**
@@ -47,8 +48,6 @@ require_once(dirname(__FILE__) . '/lib.php');
  */
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     global $DB, $CFG, $USER;
-
-    // TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
 
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
@@ -776,7 +775,7 @@ function moodleoverflow_user_can_see_discussion($moodleoverflow, $discussion, $c
     }
 
     // Retrieve the coursemodule.
-    if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
+    if (!get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
         throw new moodle_exception('invalidcoursemodule');
     }
 
@@ -815,6 +814,7 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
     if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
         throw new moodle_exception('invalidcoursemodule');
     }
+    $context = context_module::instance($cm->id);
 
     // Create the post-object.
     $post = new stdClass();
@@ -836,6 +836,10 @@ function moodleoverflow_add_discussion($discussion, $modulecontext, $userid = nu
 
     // Submit the post to the database and get its id.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
+    // Save draft files to permanent file area.
+    $post->message = file_save_draft_area_files($discussion->draftideditor, $context->id, 'mod_moodleoverflow', 'post',
+            $post->id, mod_forum_post_form::editor_options($context, null), $post->message);
+    $DB->set_field('moodleoverflow_posts', 'message', $post->message, ['id' => $post->id]);
 
     // Create the discussion object.
     $discussionobject = new stdClass();
@@ -1164,7 +1168,6 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $post->course = $course->id;
     $post->moodleoverflow = $moodleoverflow->id;
     $mcid = $modulecontext->id;
-    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow', 'post', $post->id);
 
     // Check if the user has the capability to see posts.
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
@@ -1473,7 +1476,16 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->withinreviewperiod = $reviewable;
 
     // Prepare the post.
-    $mustachedata->postcontent = format_text($post->message, $post->messageformat, ['context' => $modulecontext]);
+    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow',
+                                        'post', $post->id);
+    $options = new stdClass();
+    $options->para = false;
+    $options->newlines = true;
+    $options->filter = true;
+    $options->noclean = false;
+    $options->overflowdiv = false;
+    $options->context = $modulecontext;
+    $mustachedata->postcontent = format_text($post->message, $post->messageformat, $options);
 
     // Load the attachments.
     $mustachedata->attachments = get_attachments($post, $cm);
@@ -1635,7 +1647,7 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
  * @return array
  */
 function get_attachments($post, $cm) {
-    global $CFG, $OUTPUT;
+    global $OUTPUT;
     $attachments = [];
 
     if (empty($post->attachment)) {
@@ -1722,6 +1734,7 @@ function moodleoverflow_add_new_post($post) {
     $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
     $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
     $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+    $context = context_module::instance($cm->id);
 
     // Add some variables to the post.
     $post->created = $post->modified = time();
@@ -1740,6 +1753,9 @@ function moodleoverflow_add_new_post($post) {
 
     // Add the post to the database.
     $post->id = $DB->insert_record('moodleoverflow_posts', $post);
+    // Save draft files to permanent file area.
+    $post->message = file_save_draft_area_files($post->draftideditor, $context->id, 'mod_moodleoverflow', 'post',
+            $post->id, mod_forum_post_form::editor_options($context, null), $post->message);
     $DB->set_field('moodleoverflow_posts', 'message', $post->message, ['id' => $post->id]);
     moodleoverflow_add_attachment($post, $moodleoverflow, $cm);
 
@@ -1776,6 +1792,8 @@ function moodleoverflow_update_post($newpost) {
     $post = $DB->get_record('moodleoverflow_posts', ['id' => $newpost->id]);
     $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
     $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
+    $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+    $context = context_module::instance($cm->id);
 
     // Allowed modifiable fields.
     $modifiablefields = [
@@ -1801,6 +1819,10 @@ function moodleoverflow_update_post($newpost) {
     if (!$post->parent) {
         $discussion->name = $newpost->subject;
     }
+
+    // Save draft files to permanent file area.
+    $post->message = file_save_draft_area_files($newpost->draftideditor, $context->id, 'mod_moodleoverflow', 'post',
+            $post->id, mod_forum_post_form::editor_options($context, $post->id), $post->message);
 
     // Update the post and the corresponding discussion.
     $DB->update_record('moodleoverflow_posts', $post);
@@ -2190,12 +2212,138 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
 
 /**
  * Updates all grades.
- *
  */
 function moodleoverflow_update_all_grades() {
     global $DB;
     $cmids = $DB->get_records_select('moodleoverflow', null, null, 'id');
     foreach ($cmids as $cmid) {
         moodleoverflow_update_all_grades_for_cm($cmid->id);
+    }
+}
+
+
+/**
+ * Function to sort an array with a quicksort algorithm. This function is a recursive function that needs to
+ * be called from outside.
+ *
+ * @param array $array The array to be sorted. It is passed by reference.
+ * @param int $low The lowest index of the array. The first call should set it to 0.
+ * @param int $high The highest index of the array. The first call should set it to the length of the array - 1.
+ *
+ * @param string $key The key/attribute after what the algorithm sorts. The key should be an comparable integer.
+ * @param string $order The order of the sorting. It can be 'asc' or 'desc'.
+ * @return void
+ */
+function moodleoverflow_quick_array_sort(&$array, $low, $high, $key, $order) {
+    if ($low >= $high) {
+        return;
+    }
+    $left = $low;
+    $right = $high;
+    $pivot = $array[intval(($low + $high) / 2)]->$key;
+
+    $compare = function($a, $b) use ($order) {
+        if ($order == 'asc') {
+            return $a < $b;
+        } else {
+            return $a > $b;
+        }
+    };
+
+    do {
+        while ($compare($array[$left]->$key, $pivot)) {
+            $left++;
+        }
+        while ($compare($pivot, $array[$right]->$key)) {
+            $right--;
+        }
+        if ($left <= $right) {
+            $temp = $array[$right];
+            $array[$right] = $array[$left];
+            $array[$left] = $temp;
+            $right--;
+            $left++;
+        }
+    } while ($left <= $right);
+    if ($low < $right) {
+        moodleoverflow_quick_array_sort($array, $low, $right, $key, $order);
+    }
+    if ($high > $left) {
+        moodleoverflow_quick_array_sort($array, $left, $high, $key, $order);
+    }
+}
+
+/**
+ * Function to get a record from the database and throw an exception, if the record is not available. The error string is
+ * retrieved from moodleoverflow but can be retrieved from the core too.
+ * @param string $table                 The table to get the record from
+ * @param array $options                Conditions for the record
+ * @param string $exceptionstring       Name of the moodleoverflow exception that should be thrown in case there is no record.
+ * @param string $fields                Optional fields that are retrieved from the found record.
+ * @param bool $coreexception           Optional param if exception is from the core exceptions.
+ * @return mixed $record                The found record
+ */
+function moodleoverflow_get_record_or_exception($table, $options, $exceptionstring, $fields = '*', $coreexception = false) {
+    global $DB;
+    if (!$record = $DB->get_record($table, $options, $fields)) {
+        if ($coreexception) {
+            throw new moodle_exception($exceptionstring);
+        } else {
+            throw new moodle_exception($exceptionstring, 'moodleoverflow');
+        }
+    }
+    return $record;
+}
+
+/**
+ * Function to retrieve a config and throw an exception, if the config is not found.
+ * @param string $plugin            Plugin that has the configuration
+ * @param string $configname        Name of configuration
+ * @param string $errorcode         Error code/name of the exception
+ * @param string $exceptionmodule   Module that has the exception.
+ * @return mixed $config
+ */
+function moodleoverflow_get_config_or_exception($plugin, $configname, $errorcode, $exceptionmodule) {
+    if (!$config = get_config($plugin, $configname)) {
+        throw new moodle_exception($errorcode, $exceptionmodule);
+    }
+    return $config;
+}
+
+/**
+ * Function that throws an exception if a given check is true.
+ * @param bool $check               The result of a boolean check.
+ * @param string $errorcode         Error code/name of the exception
+ * @param string $coreexception     Optional param if exception is from the core exceptions and not moodleoverflow.
+ * @return void
+ */
+function moodleoverflow_throw_exception_with_check($check, $errorcode, $coreexception = false) {
+    if ($check) {
+        if ($coreexception) {
+            throw new moodle_exception($errorcode);
+        } else {
+            throw new moodle_exception($errorcode, 'moodleoverflow');
+        }
+    }
+}
+
+/**
+ * Function that catches unenrolled users and redirects them to the enrolment page.
+ * @param context $coursecontext     The context of the course.
+ * @param int $courseid             Id of the course that the user needs to enrol.
+ * @param string $returnurl         The url to return to after the user has been enrolled.
+ * @return void
+ */
+function moodleoverflow_catch_unenrolled_user($coursecontext, $courseid, $returnurl) {
+    global $SESSION;
+    if (!isguestuser() && !is_enrolled($coursecontext)) {
+        if (enrol_selfenrol_available($courseid)) {
+            $SESSION->wantsurl = qualified_me();
+            $SESSION->enrolcancel = get_local_referer(false);
+            redirect(new \moodle_url('/enrol/index.php', [
+                'id' => $courseid,
+                'returnurl' => $returnurl,
+            ]), get_string('youneedtoenrol'));
+        }
     }
 }
