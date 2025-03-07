@@ -462,25 +462,32 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  * Extends the settings navigation with the moodleoverflow settings.
  *
  * This function is called when the context for the page is a moodleoverflow module. This is not called by AJAX
- * so it is safe to rely on the $PAGE.
+ * so it is safe to rely on the page variable.
  *
- * @param settings_navigation      $settingsnav        complete settings navigation tree
- * @param navigation_node|null     $moodleoverflownode moodleoverflow administration node
+ * @param settings_navigation $settingsnav complete settings navigation tree
+ * @param navigation_node|null $moodleoverflownode moodleoverflow administration node
+ * @throws \core\exception\moodle_exception
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws moodle_exception
  */
 function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, ?navigation_node $moodleoverflownode = null) {
-    global $CFG, $DB, $PAGE, $USER;
+    global $DB, $USER;
 
     // Retrieve the current moodle record.
-    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $PAGE->cm->instance]);
+    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $settingsnav->get_page()->cm->instance]);
 
     // Check if the user can subscribe to the instance.
-    $enrolled = is_enrolled($PAGE->cm->context, $USER, '', false);
-    $activeenrolled = is_enrolled($PAGE->cm->context, $USER, '', true);
-    $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $PAGE->cm->context);
+    if (!$context = context_module::instance($settingsnav->get_page()->cm->id)) {
+        throw new \moodle_exception('badcontext');
+    }
+    $enrolled = is_enrolled($context, $USER, '', false);
+    $activeenrolled = is_enrolled($context, $USER, '', true);
+    $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $context);
     $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
     $subscdisabled = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
     $cansubscribe = $activeenrolled && (!$subscdisabled || $canmanage) &&
-        !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $PAGE->cm->context));
+        !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $context));
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
 
     // Display a link to the index.
@@ -502,7 +509,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     if ($cansubscribe) {
 
         // Choose the linktext depending on the current state of subscription.
-        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $PAGE->cm->context);
+        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $context);
         if ($issubscribed) {
             $linktext = get_string('unsubscribe', 'moodleoverflow');
         } else {

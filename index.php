@@ -21,17 +21,14 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
-
-// Require needed files.
-use core\context\course;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 require_once(dirname(__FILE__) . '/locallib.php');
 require_once($CFG->dirroot . '/course/lib.php');
+
+// Require needed files.
+use core\context\course;
 
 // Fetch submitted parameters.
 $id = required_param('id', PARAM_INT);
