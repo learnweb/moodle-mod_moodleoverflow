@@ -44,6 +44,7 @@ final class subscriptions_test extends advanced_testcase {
      * Test setUp.
      */
     public function setUp(): void {
+        parent::setUp();
         // Clear all caches.
         subscriptions::reset_moodleoverflow_cache();
         subscriptions::reset_discussion_cache();
@@ -56,6 +57,7 @@ final class subscriptions_test extends advanced_testcase {
         // Clear all caches.
         subscriptions::reset_moodleoverflow_cache();
         subscriptions::reset_discussion_cache();
+        parent::tearDown();
     }
 
     /**
