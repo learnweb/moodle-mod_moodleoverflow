@@ -84,7 +84,6 @@ final class userstats_test extends \advanced_testcase {
      * Test setUp.
      */
     public function setUp(): void {
-        parent::setUp();
         $this->resetAfterTest();
         $this->helper_course_set_up();
     }
@@ -96,7 +95,6 @@ final class userstats_test extends \advanced_testcase {
         // Clear all caches.
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
         \mod_moodleoverflow\subscriptions::reset_discussion_cache();
-        parent::tearDown();
     }
 
     // Begin of test functions.

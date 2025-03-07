@@ -27,8 +27,6 @@
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
-use mod_moodleoverflow\output\helpicon;
-use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 
@@ -257,7 +255,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         }
 
         // Check if the question owner marked the question as helpful.
-        $markedhelpful = ratings::moodleoverflow_discussion_is_solved($discussion->discussion, false);
+        $markedhelpful = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, false);
         $preparedarray[$i]['starterlink'] = null;
         if ($markedhelpful) {
             $link = '/mod/moodleoverflow/discussion.php?d=';
@@ -268,7 +266,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         }
 
         // Check if a teacher marked a post as solved.
-        $markedsolution = ratings::moodleoverflow_discussion_is_solved($discussion->discussion, true);
+        $markedsolution = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->discussion, true);
         $preparedarray[$i]['teacherlink'] = null;
         if ($markedsolution) {
             $link = '/mod/moodleoverflow/discussion.php?d=';
@@ -287,7 +285,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         }
 
         // Get the amount of votes for the discussion.
-        $votes = ratings::moodleoverflow_get_ratings_by_discussion($discussion->discussion, $discussion->id);
+        $votes = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->discussion, $discussion->id);
         $votes = $votes->upvotes - $votes->downvotes;
         $preparedarray[$i]['votetext'] = ($votes == 1) ? 'vote' : 'votes';
 
@@ -399,13 +397,13 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $preparedarray[$i]['votes'] = $votes;
 
         // Did the user rated this post?
-        $rating = ratings::moodleoverflow_user_rated($discussion->firstpost);
+        $rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($discussion->firstpost);
 
         $firstpost = moodleoverflow_get_post_full($discussion->firstpost);
 
         $preparedarray[$i]['userupvoted'] = ($rating->rating ?? null) == RATING_UPVOTE;
         $preparedarray[$i]['userdownvoted'] = ($rating->rating ?? null) == RATING_DOWNVOTE;
-        $preparedarray[$i]['canchange'] = ratings::moodleoverflow_user_can_rate($firstpost, $context) &&
+        $preparedarray[$i]['canchange'] = \mod_moodleoverflow\ratings::moodleoverflow_user_can_rate($firstpost, $context) &&
                 $startuser->id != $USER->id;
         $preparedarray[$i]['postid'] = $discussion->firstpost;
 
@@ -928,16 +926,14 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
 /**
  * Prints a moodleoverflow discussion.
  *
- * @param stdClass $course              The course object
+ * @param stdClass $course         The course object
  * @param object   $cm
- * @param stdClass $moodleoverflow      The moodleoverflow object
- * @param stdClass $discussion          The discussion object
- * @param stdClass $post                The post object
- * @param bool     $multiplemarks       The setting of multiplemarks (default: multiplemarks are not allowed)
- * @param stdClass|null $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
+ * @param stdClass $moodleoverflow The moodleoverflow object
+ * @param stdClass $discussion     The discussion object
+ * @param stdClass $post           The post object
+ * @param bool     $multiplemarks  The setting of multiplemarks (default: multiplemarks are not allowed)
  */
-function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post,
-                                         $multiplemarks = false, ?stdClass $limitedanswersetting = null) {
+function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks = false) {
     global $USER;
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() && ($USER->id == $post->userid));
@@ -989,7 +985,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Print the starting post.
     echo moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
-        $ownpost, false, '', '', $postread, true, $istracked, 0, $usermapping, 0, $multiplemarks, $limitedanswersetting);
+        $ownpost, false, '', '', $postread, true, $istracked, 0, $usermapping, 0, $multiplemarks);
 
     // Print answer divider.
     if ($answercount == 1) {
@@ -1003,7 +999,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
 
     // Print the other posts.
     echo moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow, $discussion, $post, $istracked, $posts,
-        null, $usermapping, $multiplemarks, $limitedanswersetting);
+        null, $usermapping, $multiplemarks);
 
     echo '</div>';
 }
@@ -1064,7 +1060,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
     }
 
     // Load all ratings.
-    $discussionratings = ratings::moodleoverflow_get_ratings_by_discussion($discussionid);
+    $discussionratings = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussionid);
 
     // Assign ratings to the posts.
     foreach ($posts as $postid => $post) {
@@ -1078,7 +1074,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
     }
 
     // Order the answers by their ratings.
-    $posts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
+    $posts = \mod_moodleoverflow\ratings::moodleoverflow_sort_answers_by_ratings($posts);
 
     // Find all children of this post.
     foreach ($posts as $postid => $post) {
@@ -1122,18 +1118,17 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
  * @param object $moodleoverflow
  * @param object $cm
  * @param object $course
- * @param bool $ownpost
+ * @param object $ownpost
  * @param bool $link
  * @param string $footer
  * @param string $highlight
- * @param null $postisread
+ * @param bool $postisread
  * @param bool $dummyifcantsee
  * @param bool $istracked
  * @param bool $iscomment
  * @param array $usermapping
  * @param int $level
- * @param bool $multiplemarks The setting of multiplemarks (default: multiplemarks are not allowed)
- * @param stdClass|null $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
+ * @param bool $multiplemarks setting of multiplemarks
  * @return void|null
  * @throws coding_exception
  * @throws dml_exception
@@ -1143,9 +1138,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
                                    $ownpost = false, $link = false,
                                    $footer = '', $highlight = '', $postisread = null,
                                    $dummyifcantsee = true, $istracked = false,
-                                   $iscomment = false, $usermapping = [], $level = 0,
-                                   $multiplemarks = false, ?stdClass $limitedanswersetting = null) {
-    global $USER, $CFG, $OUTPUT, $PAGE, $DB;
+                                   $iscomment = false, $usermapping = [], $level = 0, $multiplemarks = false) {
+    global $USER, $CFG, $OUTPUT, $PAGE;
 
     // Require the filelib.
     require_once($CFG->libdir . '/filelib.php');
@@ -1246,8 +1240,8 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $helpfulposts = false;
     $solvedposts = false;
     if ($multiplemarks) {
-        $helpfulposts = ratings::moodleoverflow_discussion_is_solved($discussion->id, false);
-        $solvedposts = ratings::moodleoverflow_discussion_is_solved($discussion->id, true);
+        $helpfulposts = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->id, false);
+        $solvedposts = \mod_moodleoverflow\ratings::moodleoverflow_discussion_is_solved($discussion->id, true);
     }
 
     // If the user has started the discussion, he can mark the answer as helpful.
@@ -1316,34 +1310,16 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
 
     // Give the option to reply to a post.
     if (moodleoverflow_user_can_post($modulecontext, $post, false)) {
+
         $attributes = [
                 'class' => 'onlyifreviewed',
         ];
+
         // Answer to the parent post.
         if (empty($post->parent)) {
-            // Check if limitedanswertime is on.
-            $settingexist = $limitedanswersetting->la_starttime != 0 || $limitedanswersetting->la_endtime != 0;
-            if ($settingexist) {
-                $infolimited = $limitedanswersetting->la_starttime ? " " . get_string('limitedanswer_info_starttime',
-                        'moodleoverflow', ['limitedanswerdate' => date('d.m.Y H:i', $limitedanswersetting->la_starttime)]) : '';
-                $infolimited .= $limitedanswersetting->la_endtime ? " " . get_string('limitedanswer_info_endtime', 'moodleoverflow',
-                        ['limitedanswerdate' => date('d.m.Y H:i', $limitedanswersetting->la_endtime)]) : '';
-                echo html_writer::div($infolimited, 'alert alert-warning', ['role' => 'alert']);
-            }
-            if (is_currently_time_limited($limitedanswersetting)) {
-                if (!has_capability('mod/moodleoverflow:addinstance', $modulecontext)) {
-                    // In case the user can not change the limited answer time he/she can not answer.
-                    render_limited_answer('text-muted', $commands, $infolimited, 'student', $str->replyfirst);
-                } else {
-                    // The user is a teacher.
-                    $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
-                    $answerbutton = html_writer::link($replyurl, $str->replyfirst, ['class' => 'onlyifreviewed answerbutton']);
-                    render_limited_answer('', $commands, $infolimited, 'teacher', $answerbutton);
-                }
-            } else {
-                $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
-                $commands[] = ['url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes];
-            }
+            $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
+            $commands[] = ['url' => $replyurl, 'text' => $str->replyfirst, 'attributes' => $attributes];
+
             // If the post is a comment, answer to the parent post.
         } else if (!$iscomment) {
             $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
@@ -1373,7 +1349,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $mustachedata->markedsolution = $post->markedsolution;
 
     // Did the user rated this post?
-    $rating = ratings::moodleoverflow_user_rated($post->id);
+    $rating = \mod_moodleoverflow\ratings::moodleoverflow_user_rated($post->id);
 
     // Initiate the variables.
     $mustachedata->userupvoted = false;
@@ -1447,7 +1423,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
         $postuserrating = null;
     } else {
-        $postuserrating = ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);
+        $postuserrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postinguser->id);
     }
 
     // The name of the user and the date modified.
@@ -1494,11 +1470,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $commandhtml = [];
     foreach ($commands as $command) {
         if (is_array($command)) {
-            if (array_key_exists('limitedanswer', $command)) {
-                $commandhtml[] = html_writer::tag('span', $command['text'], $command['attributes'] ?? null);
-            } else {
-                $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
-            }
+            $commandhtml[] = html_writer::link($command['url'], $command['text'], $command['attributes'] ?? null);
         } else {
             $commandhtml[] = $command;
         }
@@ -1522,65 +1494,27 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     return $renderer->render_post($mustachedata);
 }
 
-/**
- * Check if the limited answer setting is currently disabling answers.
- * @param stdClass $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
- * @return bool
- */
-function is_currently_time_limited($limitedanswersetting) {
-    return ($limitedanswersetting->la_starttime != 0 && $limitedanswersetting->la_starttime > time())
-    || ($limitedanswersetting->la_endtime != 0 && $limitedanswersetting->la_endtime < time());
-}
 
-/**
- * Renders the answer action in a post.
- * @param String $htmlattributes additional attributes passed to the html class and the command (either 'text-muted' or empty).
- * @param array $commands array of actions available to the user in a post.
- * @param String $infolimited information about the limited answer setting.
- * @param String $role either 'student' or 'teacher'.
- * @param String $helpstring content for the tag specifing the helpicon for the answer button.
- * @return void
- * @throws coding_exception
- */
-function render_limited_answer($htmlattributes, &$commands, $infolimited, $role, $helpstring) {
-    $limitedanswerattributes = ['class' => 'onlyifreviewed ' . $htmlattributes];
-    $htmlclass = 'onlyifreviewed helpicon ' . $htmlattributes;
-    $content = get_string('limitedanswer_info_start', 'moodleoverflow');
-    $content .= $infolimited;
-    $htmlattributes == '' ? $content .= " " . get_string('limitedanswer_helpicon_teacher', 'moodleoverflow') : $content .= '';
-
-    $helpobject = new helpicon($htmlclass, $content);
-    $helpicon = $helpobject->get_helpicon();
-    // Build a html span that has the answer button and the help icon.
-    $limitedanswerobject = html_writer::tag('span', $helpstring . '    ' . $helpicon);
-
-    // Save the span in the commands with an extra value.
-    $commands[] = ['text' => $limitedanswerobject,
-        'attributes' => $limitedanswerattributes,
-        'limitedanswer' => $role, ];
-}
 /**
  * Prints all posts of the discussion in a nested form.
  *
- * @param object $course                The course object
+ * @param object $course         The course object
  * @param object $cm
- * @param object $moodleoverflow        The moodleoverflow object
- * @param object $discussion            The discussion object
- * @param object $parent                The object of the parent post
- * @param bool   $istracked             Whether the user tracks the discussion
- * @param array  $posts                 Array of posts within the discussion
- * @param bool   $iscomment             Whether the current post is a comment
- * @param array  $usermapping
- * @param bool   $multiplemarks         The setting of multiplemarks (default: multiplemarks are not allowed)
- * @param stdClass|null $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
+ * @param object $moodleoverflow The moodleoverflow object
+ * @param object $discussion     The discussion object
+ * @param object $parent         The object of the parent post
+ * @param bool   $istracked      Whether the user tracks the discussion
+ * @param array  $posts          Array of posts within the discussion
+ * @param bool   $iscomment      Whether the current post is a comment
+ * @param array $usermapping
+ * @param bool  $multiplemarks
  * @return string
  * @throws coding_exception
  * @throws dml_exception
  * @throws moodle_exception
  */
 function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $discussion, $parent,
-                                           $istracked, $posts, $iscomment = null, $usermapping = [],
-                                           $multiplemarks = false, ?stdClass $limitedanswersetting = null) {
+                                           $istracked, $posts, $iscomment = null, $usermapping = [], $multiplemarks = false) {
     global $USER;
 
     // Prepare the output.
@@ -1621,13 +1555,12 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
             $postread = !empty($post->postread);
 
             // Print the answer.
-            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course, $ownpost, false, '', '',
-                                                 $postread, true, $istracked, $parentid, $usermapping, $level,
-                                                 $multiplemarks, $limitedanswersetting);
+            $output .= moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $course,
+                $ownpost, false, '', '', $postread, true, $istracked, $parentid, $usermapping, $level, $multiplemarks);
 
             // Print its children.
             $output .= moodleoverflow_print_posts_nested($course, $cm, $moodleoverflow,
-                $discussion, $post, $istracked, $posts, $parentid, $usermapping, $multiplemarks, $limitedanswersetting);
+                $discussion, $post, $istracked, $posts, $parentid, $usermapping, $multiplemarks);
 
             // End the div.
             $output .= "</div>\n";
@@ -2202,7 +2135,7 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
             }
 
             // Get user reputation.
-            $userrating = ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid, true);
+            $userrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid, true);
 
             // Calculate the posting user's updated grade.
             moodleoverflow_update_user_grade_on_db($moodleoverflow, $userrating, $userid);

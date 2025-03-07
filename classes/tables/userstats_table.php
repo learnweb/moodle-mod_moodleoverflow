@@ -30,7 +30,6 @@ global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 require_once($CFG->libdir . '/tablelib.php');
-use mod_moodleoverflow\output\helpicon;
 
 /**
  * Table listing all user statistics of a course
@@ -153,9 +152,6 @@ class userstats_table extends \flexible_table {
      */
     public function set_helpactivity() {
         global $CFG;
-        $htmlclass = 'helpactivityclass btn btn-link';
-        $content = get_string('helpamountofactivity', 'moodleoverflow');
-        $helpobject = new helpicon($htmlclass, $content);
         $this->helpactivity = new \stdClass();
         $this->helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.png';
         $this->helpactivity->icon = \html_writer::img($this->helpactivity->iconurl,

@@ -67,7 +67,6 @@ final class dailymail_test extends \advanced_testcase {
      * Test setUp.
      */
     public function setUp(): void {
-        parent::setUp();
         $this->resetAfterTest();
         set_config('maxeditingtime', -10, 'moodleoverflow');
 
@@ -89,7 +88,6 @@ final class dailymail_test extends \advanced_testcase {
         // Clear all caches.
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
         \mod_moodleoverflow\subscriptions::reset_discussion_cache();
-        parent::tearDown();
     }
 
     // Helper functions.
