@@ -107,18 +107,20 @@ class review {
             $addwhere = ' AND p.id != :notpostid ';
             $params['notpostid'] = $afterpostid;
         }
-        $record = $DB->get_record_sql(
+        $records = $DB->get_records_sql(
             'SELECT p.id as postid, p.discussion as discussionid FROM {moodleoverflow_posts} p ' .
             'JOIN {moodleoverflow_discussions} d ON d.id = p.discussion ' .
             "WHERE p.reviewed = 0 AND d.moodleoverflow = :moodleoverflowid AND p.created < :reviewtime $addwhere " .
-            "ORDER BY $orderby p.discussion, p.id " .
-            'LIMIT 1',
-            $params
+            "ORDER BY $orderby p.discussion, p.id ",
+            $params,
+            0,
+            1
         );
-        if ($record) {
+        $key = array_key_first($records);
+        if ($key) {
             return (new \moodle_url('/mod/moodleoverflow/discussion.php', [
-                'd' => $record->discussionid,
-            ], 'p' . $record->postid))->out(false);
+                'd' => $records[$key]->discussionid,
+            ], 'p' . $records[$key]->postid))->out(false);
         } else {
             return null;
         }
