@@ -464,10 +464,13 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  * This function is called when the context for the page is a moodleoverflow module. This is not called by AJAX
  * so it is safe to rely on the page variable.
  *
- * @param settings_navigation      $settingsnav        complete settings navigation tree
- * @param navigation_node|null     $moodleoverflownode moodleoverflow administration node
+ * @param settings_navigation $settingsnav complete settings navigation tree
+ * @param navigation_node|null $moodleoverflownode moodleoverflow administration node
+ * @throws \core\exception\moodle_exception
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws moodle_exception
  */
-
 function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $moodleoverflownode = null) {
     global $DB, $USER;
 
