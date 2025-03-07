@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow
+@mod @mod_moodleoverflow @javascript
 Feature: Installation succeeds
   In order to use this plugin
   As a user

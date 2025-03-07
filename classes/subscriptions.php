@@ -216,7 +216,7 @@ class subscriptions {
                 $subscriptions = $DB->get_recordset('moodleoverflow_subscriptions', $params, '', 'id, userid');
 
                 // Loop through the records.
-                foreach ($subscriptions as $id => $data) {
+                foreach ($subscriptions as $data) {
 
                     // Create a new record if necessary.
                     if (!isset(self::$moodleoverflowcache[$data->userid])) {
@@ -985,14 +985,13 @@ class subscriptions {
     /**
      * Given a new post, subscribes the user to the thread the post was posted in.
      *
-     * @param object $fromform       The submitted form
      * @param \stdClass       $moodleoverflow The moodleoverflow record
      * @param \stdClass       $discussion     The discussion record
      * @param \context_module $modulecontext  The context of the module
      *
      * @return bool
      */
-    public static function moodleoverflow_post_subscription($fromform, $moodleoverflow, $discussion, $modulecontext) {
+    public static function moodleoverflow_post_subscription($moodleoverflow, $discussion, $modulecontext) {
         global $USER;
 
         // Check for some basic information.

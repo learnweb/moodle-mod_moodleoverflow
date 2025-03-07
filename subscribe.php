@@ -29,6 +29,8 @@
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
 
+global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
+
 // Define required and optional params.
 $id = required_param('id', PARAM_INT);             // The moodleoverflow to set subscription on.
 $mode = optional_param('mode', null, PARAM_INT);     // The moodleoverflow's subscription mode.
@@ -50,9 +52,8 @@ if (!is_null($sesskey)) {
 }
 if (!is_null($discussionid)) {
     $url->param('d', $discussionid);
-    if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid, 'moodleoverflow' => $id])) {
-        throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
-    }
+    $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions',
+                                                          ['id' => $discussionid, 'moodleoverflow' => $id], 'invaliddiscussionid');
 }
 
 // Set the pages URL.
