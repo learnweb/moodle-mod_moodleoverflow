@@ -39,13 +39,11 @@ require_once(__DIR__ . '/../locallib.php');
 final class locallib_test extends advanced_testcase {
 
     public function setUp(): void {
-        parent::setUp();
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
     }
 
     public function tearDown(): void {
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
-        parent::tearDown();
     }
 
     /**

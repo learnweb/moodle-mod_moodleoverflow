@@ -39,6 +39,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class ratings_test extends \advanced_testcase {
+
     /** @var stdClass a post from the teacher*/
     private $post;
 
@@ -64,7 +65,6 @@ final class ratings_test extends \advanced_testcase {
      * Test setUp.
      */
     public function setUp(): void {
-        parent::setUp();
         $this->resetAfterTest();
         $this->helper_course_set_up();
     }
@@ -76,7 +76,6 @@ final class ratings_test extends \advanced_testcase {
         // Clear all caches.
         subscriptions::reset_moodleoverflow_cache();
         subscriptions::reset_discussion_cache();
-        parent::tearDown();
     }
 
     // Begin of test functions.
