@@ -471,7 +471,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  * @throws dml_exception
  * @throws moodle_exception
  */
-function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $moodleoverflownode = null) {
+function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, ?navigation_node $moodleoverflownode = null) {
     global $DB, $USER;
 
     // Retrieve the current moodle record.
