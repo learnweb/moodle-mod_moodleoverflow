@@ -107,12 +107,20 @@ class review {
             $addwhere = ' AND p.id != :notpostid ';
             $params['notpostid'] = $afterpostid;
         }
+        /* Handle different SQL dialects in favor of Microsoft SQL Server */
+        if (is_a($DB, 'sqlsrv_native_moodle_database')) {
+            $top = 'TOP 1';
+            $limit = '';
+        } else {
+            $top = '';
+            $limit = 'LIMIT 1';
+        }
         $record = $DB->get_record_sql(
-            'SELECT p.id as postid, p.discussion as discussionid FROM {moodleoverflow_posts} p ' .
+            "SELECT $top p.id as postid, p.discussion as discussionid FROM {moodleoverflow_posts} p " .
             'JOIN {moodleoverflow_discussions} d ON d.id = p.discussion ' .
             "WHERE p.reviewed = 0 AND d.moodleoverflow = :moodleoverflowid AND p.created < :reviewtime $addwhere " .
             "ORDER BY $orderby p.discussion, p.id " .
-            'LIMIT 1',
+            $limit,
             $params
         );
         if ($record) {
