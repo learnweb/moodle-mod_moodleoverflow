@@ -54,6 +54,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
      * Test setUp.
      */
     public function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest(true);
         $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
     }

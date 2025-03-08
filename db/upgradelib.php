@@ -30,7 +30,7 @@
 /**
  * Convert the draft file area URLs in some content to @@PLUGINFILE@@ tokens
  * ready to be saved in the database. Normally, this is done automatically by
- * {@link file_save_draft_area_files()}.
+ * {@see file_save_draft_area_files()}.
  *
  * @category files
  * @param string $text the content to process.

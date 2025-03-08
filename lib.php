@@ -125,7 +125,7 @@ function moodleoverflow_supports($feature) {
  * of the new instance.
  *
  * @param stdClass                    $moodleoverflow Submitted data from the form in mod_form.php
- * @param mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
+ * @param ?mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
  *
  * @return int The id of the newly inserted moodleoverflow record
  */

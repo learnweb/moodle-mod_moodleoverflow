@@ -65,6 +65,7 @@ final class ratings_test extends \advanced_testcase {
      * Test setUp.
      */
     public function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest();
         $this->helper_course_set_up();
     }
@@ -76,6 +77,7 @@ final class ratings_test extends \advanced_testcase {
         // Clear all caches.
         subscriptions::reset_moodleoverflow_cache();
         subscriptions::reset_discussion_cache();
+        parent::tearDown();
     }
 
     // Begin of test functions.
@@ -524,11 +526,10 @@ final class ratings_test extends \advanced_testcase {
 
     /**
      * Sets a post to a group of mark.
-     * @param String $group Group can be: solved+helpful, solved, helpful, not marked
-     * @param $answer
-     * @return void
+     * @param string $group Group can be: solved+helpful, solved, helpful, not marked
+     * @param object $answer
      */
-    private function set_group(String $group, $answer) {
+    private function set_group(string $group, object $answer) {
         switch($group) {
             case 'sh':
                 $answer->markedhelpful = 1;

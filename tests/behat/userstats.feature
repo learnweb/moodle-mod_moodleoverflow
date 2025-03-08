@@ -23,21 +23,20 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
       | Message | This is a question  |
 
   Scenario: Userstats are not enabled per default. The teacher should not see the user statistics
-      And I follow "Test Moodleoverflow"
-      Then I should not see "View user statistics"
+    And I follow "Test Moodleoverflow"
+    Then I should not see "View user statistics"
 
   Scenario: Userstats are enabled. The teacher should see the user statistics. The teacher should already have an acitivty point
             for writing a post.
     Given the following config values are set as admin:
-        | showuserstats | 1 | moodleoverflow |
-      And I follow "Test Moodleoverflow"
-      Then I should see "View user statistics"
-      When I press "View user statistics"
-      Then the following should exist in the "statisticstable" table:
-        | User full name | Received upvotes | Received downvotes | Activity (this forum) | Activity (coursewide) |
-        | Teacher 1      | 0                | 0                  | 1                     | 1                     |
-        | Student 1      | 0                | 0                  | 0                     | 0                     |
-
+      | showuserstats | 1 | moodleoverflow |
+    And I follow "Test Moodleoverflow"
+    Then I should see "View user statistics"
+    When I press "View user statistics"
+    Then the following should exist in the "statisticstable" table:
+      | User full name | Received upvotes | Received downvotes | Activity (this forum) | Activity (coursewide) |
+      | Teacher 1      | 0                | 0                  | 1                     | 1                     |
+      | Student 1      | 0                | 0                  | 0                     | 0                     |
 
   Scenario: Test if reputation appears in the user statistics
     Given the following config values are set as admin:
