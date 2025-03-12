@@ -152,33 +152,11 @@ class userstats_table extends \flexible_table {
      * Setup the help icon for amount of activity
      */
     public function set_helpactivity() {
-        global $CFG;
         $htmlclass = 'helpactivityclass btn btn-link';
         $content = get_string('helpamountofactivity', 'moodleoverflow');
         $helpobject = new helpicon($htmlclass, $content);
         $this->helpactivity = new \stdClass();
         $this->helpactivity->object = $helpobject->get_helpicon();
-        /*
-        $this->helpactivity = new \stdClass();
-        $this->helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.svg';
-        $this->helpactivity->icon = \html_writer::img($this->helpactivity->iconurl,
-                                                      get_string('helpamountofactivity', 'moodleoverflow'));
-        $this->helpactivity->class = 'helpactivityclass btn btn-link';
-        $this->helpactivity->iconattributes = ['role' => 'button',
-                                               'data-container' => 'body',
-                                               'data-toggle' => 'popover',
-                                               'data-placement' => 'right',
-                                               'data-action' => 'showhelpicon',
-                                               'data-html' => 'true',
-                                               'data-trigger' => 'focus',
-                                               'tabindex' => '0',
-                                               'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
-                                                    get_string('helpamountofactivity', 'moodleoverflow') .
-                                                    '</p> </div>', ];
-
-        $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
-                                                         $this->helpactivity->class,
-                                                         $this->helpactivity->iconattributes);*/
     }
 
     // Functions that show the data.

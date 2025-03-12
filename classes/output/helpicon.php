@@ -46,7 +46,7 @@ class helpicon {
         $iconstyle = ['style' =>
                       'max-width: 20px; max-height: 20px; margin: 0; padding: 0; box-sizing: content-box; margin-right: .5rem;'];
         $icon = \html_writer::img($iconurl, $content, $iconstyle);
-        //                           'style' => 'display: inline-block; max-width: 100%; max-height: 100%;',
+
         $class = $htmlclass;
         $iconattributes = ['role' => 'button',
                            'style' => 'display: inline;',

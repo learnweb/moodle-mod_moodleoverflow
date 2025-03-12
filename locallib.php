@@ -1527,7 +1527,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
  * @param stdClass $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
  * @return bool
  */
-function is_currently_time_limited($limitedanswersetting) : bool {
+function is_currently_time_limited($limitedanswersetting): bool {
     return ($limitedanswersetting->la_starttime != 0 && $limitedanswersetting->la_starttime > time())
     || ($limitedanswersetting->la_endtime != 0 && $limitedanswersetting->la_endtime < time());
 }
