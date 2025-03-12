@@ -157,7 +157,10 @@ class userstats_table extends \flexible_table {
         $content = get_string('helpamountofactivity', 'moodleoverflow');
         $helpobject = new helpicon($htmlclass, $content);
         $this->helpactivity = new \stdClass();
-        $this->helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.png';
+        $this->helpactivity->object = $helpobject->get_helpicon();
+        /*
+        $this->helpactivity = new \stdClass();
+        $this->helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.svg';
         $this->helpactivity->icon = \html_writer::img($this->helpactivity->iconurl,
                                                       get_string('helpamountofactivity', 'moodleoverflow'));
         $this->helpactivity->class = 'helpactivityclass btn btn-link';
@@ -175,7 +178,7 @@ class userstats_table extends \flexible_table {
 
         $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
                                                          $this->helpactivity->class,
-                                                         $this->helpactivity->iconattributes);
+                                                         $this->helpactivity->iconattributes);*/
     }
 
     // Functions that show the data.

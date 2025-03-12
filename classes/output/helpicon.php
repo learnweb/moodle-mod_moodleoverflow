@@ -42,18 +42,22 @@ class helpicon {
      */
     public function __construct($htmlclass, $content) {
         global $CFG;
-        $iconurl = $CFG->wwwroot . '/pix/a/help.png';
-        $icon = \html_writer::img($iconurl, $content);
+        $iconurl = $CFG->wwwroot . '/pix/a/help.svg';
+        $iconstyle = ['style' =>
+                      'max-width: 20px; max-height: 20px; margin: 0; padding: 0; box-sizing: content-box; margin-right: .5rem;'];
+        $icon = \html_writer::img($iconurl, $content, $iconstyle);
+        //                           'style' => 'display: inline-block; max-width: 100%; max-height: 100%;',
         $class = $htmlclass;
         $iconattributes = ['role' => 'button',
-                                    'data-container' => 'body',
-                                    'data-toggle' => 'popover',
-                                    'data-placement' => 'right',
-                                    'data-action' => 'showhelpicon',
-                                    'data-html' => 'true',
-                                    'data-trigger' => 'focus',
-                                    'tabindex' => '0',
-                                    'data-content' => '<div class=&quot;no-overflow&quot;><p>' . $content . '</p> </div>', ];
+                           'style' => 'display: inline;',
+                           'data-container' => 'body',
+                           'data-toggle' => 'popover',
+                           'data-placement' => 'right',
+                           'data-action' => 'showhelpicon',
+                           'data-html' => 'true',
+                           'data-trigger' => 'focus',
+                           'tabindex' => '0',
+                           'data-content' => '<div class=&quot;no-overflow&quot;><p>' . $content . '</p> </div>', ];
         $this->helpobject = \html_writer::span($icon, $class, $iconattributes);
     }
 
