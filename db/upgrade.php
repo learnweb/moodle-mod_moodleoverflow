@@ -314,7 +314,7 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 2024061700, 'moodleoverflow');
+        upgrade_mod_savepoint(true, 2025031200, 'moodleoverflow');
     }
 
     return true;

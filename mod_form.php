@@ -232,10 +232,10 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         // Limited answer options.
         $mform->addElement('header', 'limitedanswerheading', get_string('limitedanswerheading', 'moodleoverflow'));
 
+        $answersfound = false;
         if (!empty($this->current->id)) {
 
             $limiteddate = $DB->get_record('moodleoverflow', ['id' => $this->current->id], 'la_starttime, la_endtime');
-
             // Check if limitedanswermode was already set up and place a warning in case the starttime has already expired ...
             // ... or the endtime has already expired.
 
@@ -247,8 +247,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
                 AND discuss.moodleoverflow = ' . $this->current->id . ';';
             $answerpostscount = $DB->get_records_sql($sql);
             $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
-
-            if ($answerpostscount > 0) {
+            $answersfound = $answerpostscount > 0;
+            if ($answersfound) {
                 $warningstring = get_string('limitedanswerwarning_answers', 'moodleoverflow');
                 $warningstring .= '<br>' . get_string('limitedanswerwarning_conclusion', 'moodleoverflow');
                 $htmlwarning = html_writer::div($warningstring, 'alert alert-warning', ['role' => 'alert']);
@@ -256,13 +256,22 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             }
         }
 
-        // Limited answer settings.
+        // Limited answer setting elements..
+        $mform->addElement('hidden', 'la_answersfound', $answersfound);
+        $mform->setType('la_answersfound', PARAM_BOOL);
         $mform->addElement('date_time_selector', 'la_starttime', get_string('la_starttime', 'moodleoverflow'),
                 ['optional' => true]);
+        //$mform->setType('la_starttime', PARAM_INT);
         $mform->addHelpButton('la_starttime', 'la_starttime', 'moodleoverflow');
+        $mform->disabledIf('la_starttime', 'la_answersfound', 'eq', true);
+
         $mform->addElement('date_time_selector', 'la_endtime', get_string('la_endtime', 'moodleoverflow'),
             ['optional' => true]);
+        //$mform->setType('la_endtime', PARAM_INT);
         $mform->addHelpButton('la_endtime', 'la_endtime', 'moodleoverflow');
+
+        $mform->addElement('hidden', 'la_error');
+        $mform->setType('la_error', PARAM_TEXT);
 
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();
@@ -283,5 +292,33 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         if (isset($data->anonymous) && $data->anonymous != anonymous::NOT_ANONYMOUS) {
             $data->coursewidereputation = false;
         }
+    }
+
+    public function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+        // Validate that the limited answer settings.
+        $currenttime = time();
+        $isstarttime = !empty($data['la_starttime']);
+        $isendtime = !empty($data['la_endtime']);
+
+        if ($isstarttime && $data['la_starttime'] < $currenttime) {
+            $errors['la_starttime'] = get_string('la_starttime_ruleerror', 'moodleoverflow');
+        }
+        if ($isendtime) {
+            if ($data['la_endtime'] < $currenttime) {
+                $errors['la_endtime'] =  get_string('la_endtime_ruleerror', 'moodleoverflow');
+            }
+
+            if ($isstarttime && $data['la_endtime'] <= $data['la_starttime']) {
+                if (isset($errors['la_endtime'])) {
+                    $errors['la_endtime'] .= '<br>' . get_string('la_sequence_error', 'moodleoverflow');
+                } else {
+                    $errors['la_endtime'] = get_string('la_sequence_error', 'moodleoverflow');
+                }
+            }
+        }
+
+        return $errors;
     }
 }
