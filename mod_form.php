@@ -261,13 +261,13 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->setType('la_answersfound', PARAM_BOOL);
         $mform->addElement('date_time_selector', 'la_starttime', get_string('la_starttime', 'moodleoverflow'),
                 ['optional' => true]);
-        //$mform->setType('la_starttime', PARAM_INT);
+
         $mform->addHelpButton('la_starttime', 'la_starttime', 'moodleoverflow');
         $mform->disabledIf('la_starttime', 'la_answersfound', 'eq', true);
 
         $mform->addElement('date_time_selector', 'la_endtime', get_string('la_endtime', 'moodleoverflow'),
             ['optional' => true]);
-        //$mform->setType('la_endtime', PARAM_INT);
+
         $mform->addHelpButton('la_endtime', 'la_endtime', 'moodleoverflow');
 
         $mform->addElement('hidden', 'la_error');
@@ -294,6 +294,13 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
     }
 
+    /**
+     * Validates set data in mod_form
+     * @param $data
+     * @param $files
+     * @return array
+     * @throws coding_exception
+     */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
@@ -307,7 +314,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
         if ($isendtime) {
             if ($data['la_endtime'] < $currenttime) {
-                $errors['la_endtime'] =  get_string('la_endtime_ruleerror', 'moodleoverflow');
+                $errors['la_endtime'] = get_string('la_endtime_ruleerror', 'moodleoverflow');
             }
 
             if ($isstarttime && $data['la_endtime'] <= $data['la_starttime']) {

@@ -45,3 +45,15 @@
     And I press "Post to forum"
     Then I should see "This is the answer message"
      And I should see "This is the question message"
+
+  Scenario: Setting up the limited answer mode, the times need to be in order and in the future.
+    Given the following "activities" exist:
+      | activity       | name                      | intro                            | course  |  idnumber |
+      | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        |
+    And I log in as "teacher1"
+    And I am on "Course 1" course homepage
+    And I follow "Test Moodleoverflow"
+    And I follow "Settings"
+    And I follow "Limited Answer Mode"
+    And
+    And I pause
