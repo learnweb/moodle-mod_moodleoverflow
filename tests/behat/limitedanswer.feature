@@ -53,7 +53,7 @@
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I follow "Test Moodleoverflow"
-    And I follow "Settings"
+    And I navigate to "Settings" in current page administration
     And I follow "Limited Answer Mode"
     And I click on "la_starttime[enabled]" "checkbox"
     And I set the following fields to these values:
@@ -82,7 +82,7 @@
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I follow "Test Moodleoverflow"
-    And I follow "Settings"
+    And I navigate to "Settings" in current page administration
     And I follow "Limited Answer Mode"
     And I click on "la_starttime[enabled]" "checkbox"
     And I set the following fields to these values:
