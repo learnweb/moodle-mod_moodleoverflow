@@ -1,6 +1,5 @@
 @mod @mod_moodleoverflow @javascript
-  Feature: Moodleoverflows can start in a limited answer mode, where answers from
-    students are not enabled until a set date.
+Feature: Moodleoverflows can start in a limited answer mode, where answers from students are not enabled until a set date.
 
   Background:
     Given the following "users" exist:
@@ -44,7 +43,7 @@
       | Message | This is the answer message |
     And I press "Post to forum"
     Then I should see "This is the answer message"
-     And I should see "This is the question message"
+    And I should see "This is the question message"
 
   Scenario: Setting up the limited answer mode, the times need to be in the right order
     Given the following "activities" exist:
