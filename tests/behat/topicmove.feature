@@ -62,5 +62,3 @@ Feature: Teachers can move a discussion in one moodleoverflow forum to another m
     And I should not see "Move discussion to public moodleoverflow two"
     And I should not see "Move discussion to question anonymous"
     And I should not see "Move discussion to everything anonymous"
-
-

@@ -395,7 +395,7 @@ class ratings {
             $sql .= " AND p.parent <> 0 ";
         }
 
-        $sql .= "ORDER BY r.postid ASC";
+        $sql .= " ORDER BY r.postid ASC";
 
         $params = [$userid, $userid, $moodleoverflowid, anonymous::EVERYTHING_ANONYMOUS];
         $records = $DB->get_records_sql($sql, $params);

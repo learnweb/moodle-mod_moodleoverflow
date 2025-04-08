@@ -525,11 +525,10 @@ final class ratings_test extends \advanced_testcase {
 
     /**
      * Sets a post to a group of mark.
-     * @param String $group Group can be: solved+helpful, solved, helpful, not marked
-     * @param $answer
-     * @return void
+     * @param string $group Group can be: solved+helpful, solved, helpful, not marked
+     * @param object $answer
      */
-    private function set_group(String $group, $answer) {
+    private function set_group(string $group, object $answer) {
         switch($group) {
             case 'sh':
                 $answer->markedhelpful = 1;

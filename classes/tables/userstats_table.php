@@ -301,11 +301,10 @@ class userstats_table extends \flexible_table {
 
     /**
      * Process the received votes for a student.
-     * @param $student
-     * @param $row
-     * @return void
+     * @param object $student
+     * @param object $row
      */
-    private function process_received_votes(&$student, $row) {
+    private function process_received_votes(object $student, object $row) {
         // Only count received votes if the post is not anonymous (no anonymous setting or only questioner anonymous discussion).
         if ((($row->anonymoussetting == 0) || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
             if ($row->rating == RATING_UPVOTE) {
@@ -318,11 +317,10 @@ class userstats_table extends \flexible_table {
 
     /**
      * Process the submitted ratings from a student.
-     * @param $student
-     * @param $row
-     * @return void
+     * @param object $student
+     * @param object $row
      */
-    private function process_submitted_ratings(&$student, $row) {
+    private function process_submitted_ratings($student, $row) {
         // For solution marks: only count a solution if the discussion is not completely anonymous.
         // For helpful marks: only count helpful marks if the discussion is not any kind of anonymous.
         // Up and downvotes are always counted.
@@ -341,11 +339,10 @@ class userstats_table extends \flexible_table {
 
     /**
      * Process the written posts from a student for the activity.
-     * @param $student
-     * @param $row
-     * @return void
+     * @param object $student
+     * @param object $row
      */
-    private function process_written_posts(&$student, $row) {
+    private function process_written_posts($student, $row) {
         // Only count a written post if: the post is not in an anonymous discussion:
         // or the post is in a partial anonymous discussion and the user is not the starter of the discussion.
         if (!array_key_exists($row->postid, $student->submittedposts) &&
@@ -359,12 +356,10 @@ class userstats_table extends \flexible_table {
 
     /**
      * Increments the forum activity of a student.
-     * @param $row
-     * @param $moodleoverflowid
-     * @param $forumactivity
-     * @return void
+     * @param object $student
+     * @param object $row
      */
-    private function increment_forumactivity(&$student, $row) {
+    private function increment_forumactivity($student, $row) {
         if ($row->moodleoverflowid == $this->moodleoverflowid) {
             $student->forumactivity++;
         }

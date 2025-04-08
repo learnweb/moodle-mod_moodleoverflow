@@ -45,12 +45,15 @@ class behat_mod_moodleoverflow extends behat_base {
      * Adds a new moodleoverflow to the specified course and section.
      *
      * @Given I add a moodleoverflow to course :coursefullname section :sectionnum and I fill the form with:
-     * @param $courseshortname
-     * @param $sectionnumber
-     * @param $data
-     * @return void
+     * @param string $courseshortname
+     * @param string $sectionnumber
+     * @param TableNode $data
      */
-    public function i_add_a_moodleoverflow_to_course_section_and_fill_form($courseshortname, $sectionnumber, TableNode $data) {
+    public function i_add_a_moodleoverflow_to_course_section_and_fill_form(
+        string $courseshortname,
+        string $sectionnumber,
+        TableNode $data
+    ) {
         global $CFG;
 
         if ($CFG->branch >= 404) {
