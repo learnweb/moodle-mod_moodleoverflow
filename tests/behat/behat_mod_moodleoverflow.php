@@ -249,8 +249,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * Sets the limited answer starttime attribute of a moodleoverflow to the current time.
      *
      * @Given I set the :activity moodleoverflow limitedanswerstarttime to now
-     * @param $activity
-     * @param $value
+     * @param string $activity
      * @return void
      */
     public function i_set_the_moodleoverflow_limitedanswerstarttime_to_now($activity): void {

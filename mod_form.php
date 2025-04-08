@@ -234,11 +234,6 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         $answersfound = false;
         if (!empty($this->current->id)) {
-
-            $limiteddate = $DB->get_record('moodleoverflow', ['id' => $this->current->id], 'la_starttime, la_endtime');
-            // Check if limitedanswermode was already set up and place a warning in case the starttime has already expired ...
-            // ... or the endtime has already expired.
-
             // Check if there are already answered posts in this moodleoverflow and place a warning if so.
             $sql = 'SELECT COUNT(*) AS answerposts
             FROM {moodleoverflow_discussions} discuss JOIN {moodleoverflow_posts} posts
@@ -296,12 +291,12 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
     /**
      * Validates set data in mod_form
-     * @param $data
-     * @param $files
+     * @param array $data
+     * @param array $files
      * @return array
      * @throws coding_exception
      */
-    public function validation($data, $files) {
+    public function validation($data, $files): array {
         $errors = parent::validation($data, $files);
 
         // Validate that the limited answer settings.
