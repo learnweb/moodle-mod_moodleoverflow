@@ -219,6 +219,24 @@ if (!empty($moodleoverflow)) {
     $modulecontext = context_module::instance($cm->id);
     $coursecontext = context_course::instance($course->id);
 
+    // Check if Limitedanswertime is on. If so, replies are not possible.
+    $limitedanswersetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'la_starttime, la_endtime');
+    $lastarttime = $limitedanswersetting->la_starttime;
+    $laendtime = $limitedanswersetting->la_endtime;
+
+    $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
+    $iseditteacher = $DB->record_exists('role_assignments', ['userid' => $USER->id, 'roleid' => $roleid]);
+
+    $roleidteacher = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
+    $isteacher = $DB->record_exists('role_assignments', ['userid' => $USER->id, 'roleid' => $roleidteacher]);
+
+    if (($lastarttime > time() || $laendtime != 0 && $laendtime < time()) &&
+        (!has_capability('mod/moodleoverflow:addinstance', $modulecontext))) {
+        // Redirect to the moodleoverflow.
+        $link = new \moodle_url('/mod/moodleoverflow/view.php', ['id' => $cm->id]);
+        redirect($link);
+    }
+
     // Check whether the user is allowed to post.
     if (!moodleoverflow_user_can_post($modulecontext, $parent)) {
 

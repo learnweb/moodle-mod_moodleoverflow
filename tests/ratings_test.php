@@ -39,7 +39,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class ratings_test extends \advanced_testcase {
-
     /** @var stdClass a post from the teacher*/
     private $post;
 

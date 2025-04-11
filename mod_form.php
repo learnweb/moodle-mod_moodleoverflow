@@ -45,7 +45,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      * Defines forms elements.
      */
     public function definition() {
-        global $CFG, $COURSE, $PAGE;
+        global $CFG, $COURSE, $PAGE, $DB;
 
         // Define the modform.
         $mform = $this->_form;
@@ -229,6 +229,45 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addHelpButton('allowmultiplemarks', 'allowmultiplemarks', 'moodleoverflow');
         $mform->setDefault('allowmultiplemarks', 0);
 
+        // Limited answer options.
+        $mform->addElement('header', 'limitedanswerheading', get_string('limitedanswerheading', 'moodleoverflow'));
+
+        $answersfound = false;
+        if (!empty($this->current->id)) {
+            // Check if there are already answered posts in this moodleoverflow and place a warning if so.
+            $sql = 'SELECT COUNT(*) AS answerposts
+            FROM {moodleoverflow_discussions} discuss JOIN {moodleoverflow_posts} posts
+            ON discuss.id = posts.discussion
+                WHERE posts.parent != 0
+                AND discuss.moodleoverflow = ' . $this->current->id . ';';
+            $answerpostscount = $DB->get_records_sql($sql);
+            $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
+            $answersfound = $answerpostscount > 0;
+            if ($answersfound) {
+                $warningstring = get_string('limitedanswerwarning_answers', 'moodleoverflow');
+                $warningstring .= '<br>' . get_string('limitedanswerwarning_conclusion', 'moodleoverflow');
+                $htmlwarning = html_writer::div($warningstring, 'alert alert-warning', ['role' => 'alert']);
+                $mform->addElement('html', $htmlwarning);
+            }
+        }
+
+        // Limited answer setting elements..
+        $mform->addElement('hidden', 'la_answersfound', $answersfound);
+        $mform->setType('la_answersfound', PARAM_BOOL);
+        $mform->addElement('date_time_selector', 'la_starttime', get_string('la_starttime', 'moodleoverflow'),
+                ['optional' => true]);
+
+        $mform->addHelpButton('la_starttime', 'la_starttime', 'moodleoverflow');
+        $mform->disabledIf('la_starttime', 'la_answersfound', 'eq', true);
+
+        $mform->addElement('date_time_selector', 'la_endtime', get_string('la_endtime', 'moodleoverflow'),
+            ['optional' => true]);
+
+        $mform->addHelpButton('la_endtime', 'la_endtime', 'moodleoverflow');
+
+        $mform->addElement('hidden', 'la_error');
+        $mform->setType('la_error', PARAM_TEXT);
+
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();
 
@@ -248,5 +287,40 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         if (isset($data->anonymous) && $data->anonymous != anonymous::NOT_ANONYMOUS) {
             $data->coursewidereputation = false;
         }
+    }
+
+    /**
+     * Validates set data in mod_form
+     * @param array $data
+     * @param array $files
+     * @return array
+     * @throws coding_exception
+     */
+    public function validation($data, $files): array {
+        $errors = parent::validation($data, $files);
+
+        // Validate that the limited answer settings.
+        $currenttime = time();
+        $isstarttime = !empty($data['la_starttime']);
+        $isendtime = !empty($data['la_endtime']);
+
+        if ($isstarttime && $data['la_starttime'] < $currenttime) {
+            $errors['la_starttime'] = get_string('la_starttime_ruleerror', 'moodleoverflow');
+        }
+        if ($isendtime) {
+            if ($data['la_endtime'] < $currenttime) {
+                $errors['la_endtime'] = get_string('la_endtime_ruleerror', 'moodleoverflow');
+            }
+
+            if ($isstarttime && $data['la_endtime'] <= $data['la_starttime']) {
+                if (isset($errors['la_endtime'])) {
+                    $errors['la_endtime'] .= '<br>' . get_string('la_sequence_error', 'moodleoverflow');
+                } else {
+                    $errors['la_endtime'] = get_string('la_sequence_error', 'moodleoverflow');
+                }
+            }
+        }
+
+        return $errors;
     }
 }

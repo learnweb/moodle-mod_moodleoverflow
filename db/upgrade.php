@@ -300,5 +300,22 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2024072600, 'moodleoverflow');
     }
 
+    if ($oldversion < 2025031200) {
+        // Define table moodleoverflow to be edited.
+        $table = new xmldb_table('moodleoverflow');
+
+        // Create the field fot the start time for the limited answer mode.
+        $field = new xmldb_field('la_starttime', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, 'allowmultiplemarks');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Create the field for the end time for the limited answer mode.
+        $field = new xmldb_field('la_endtime', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, 'la_starttime');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2025031200, 'moodleoverflow');
+    }
+
     return true;
 }
