@@ -21,6 +21,7 @@
  * See https://docs.moodle.org/dev/version.php for more info.
  *
  * @package   mod_moodleoverflow
+ * @copyright 2025 Thomas Niedermaier, University Münster
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,8 +29,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_moodleoverflow';
-$plugin->version = 2025031200;
-$plugin->release = 'v4.4-r3';
-$plugin->requires  = 2022112800;     // Requires 4.1+ Moodle version.
+$plugin->version   = 2025050100;
+$plugin->requires  = 2024100700;
+$plugin->release = 'v4.5-r1';
+$plugin->supported = [401, 405];
 $plugin->maturity = MATURITY_STABLE;
-$plugin->dependencies = [];
