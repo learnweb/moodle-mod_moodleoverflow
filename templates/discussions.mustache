@@ -42,33 +42,33 @@
                     {{> mod_moodleoverflow/postvoting }}
                 </div>
                 <div class="status moodleoverflow-icon-no-margin">
-                    {{# questionunderreview }}
+                    {{#questionunderreview}}
                         {{#pix}}i/duration, moodle, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
-                    {{/ questionunderreview }}
-                    {{^ questionunderreview }}
+                    {{/questionunderreview}}
+                    {{^questionunderreview}}
                         {{#markedsolution}}
                             <a href="{{teacherlink}}">{{! avoid whitespace
-                                !}}{{# pix}} i/status-solved, moodleoverflow, {{#str}}containsteacherrating, moodleoverflow{{/str}} {{/ pix}}{{!
+                                !}}{{#pix}} i/status-solved, moodleoverflow, {{#str}}containsteacherrating, moodleoverflow{{/str}} {{/pix}}{{!
                             !}}</a>
                         {{/markedsolution}}
                         {{#markedhelpful}}
                             <a href="{{starterlink}}">{{! avoid whitespace
-                                !}}{{# pix}} i/status-helpful, moodleoverflow, {{#str}}containsstarterrating, moodleoverflow{{/str}} {{/ pix}}{{!
+                                !}}{{#pix}} i/status-helpful, moodleoverflow, {{#str}}containsstarterrating, moodleoverflow{{/str}} {{/pix}}{{!
                             !}}</a>
-                        {{/ markedhelpful }}
-                    {{/ questionunderreview }}
+                        {{/markedhelpful}}
+                    {{/questionunderreview}}
                 </div>
                 <div class="d-flex flex-colum flex-wrap justify-content-around">
-                    {{# canreview }}
-                        {{# needreview }}
+                    {{#canreview}}
+                        {{#needreview}}
                             <div class="reviews my-1">
                                     <a href="{{{reviewlink}}}" class="text-danger bold"
                                        title="{{#str}}amount_waiting_for_review, mod_moodleoverflow, {{needreview}}{{/str}}">
                                         {{#pix}}i/commenting, mod_moodleoverflow{{/pix}}{{ needreview }}
                                     </a>
                             </div>
-                        {{/ needreview }}
-                    {{/ canreview }}
+                        {{/needreview}}
+                    {{/canreview}}
                     <div class="replies my-1" title="{{#str}}answers, mod_moodleoverflow, {{replyamount}}{{/str}}">
                         <span><span class="reply-correction">{{#pix}}i/reply, mod_moodleoverflow {{/pix}}</span>{{ replyamount }}</span>
                     </div>
@@ -112,11 +112,11 @@
                         <div class="user-info d-flex questioner px-2 py-1 align-items-center">
                     {{/userlink}}
 
-                    {{# picture }}
+                    {{#picture}}
                             <div class="user-avatar">
                                 {{{ picture }}}
                             </div>
-                        {{/ picture }}
+                        {{/picture}}
                         <div class="user-details">
                             {{{ username }}}
                         </div>
@@ -130,11 +130,11 @@
                         <span class="text-muted">{{#str}}lastpost, mod_moodleoverflow{{/str}}:</span>
                         <div>
                             <a href="{{{lastpostlink}}}" class="user-info d-flex px-2 py-1 align-items-center">
-                                {{# lastpostuserpicture }}
+                                {{#lastpostuserpicture}}
                                     <div class="user-avatar">
                                         {{{ lastpostuserpicture }}}
                                     </div>
-                                {{/ lastpostuserpicture }}
+                                {{/lastpostuserpicture}}
                                 <div class="user-details line-height-3">
                                     {{{ lastpostusername }}}<br>
                                     {{{ lastpostdate }}}

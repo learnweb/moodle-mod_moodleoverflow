@@ -80,24 +80,24 @@
 <div class="navbar">
     <a target="_blank" href="{{{ courselink }}}">{{{ coursename }}}</a>
     &raquo;
-    <a target="_blank" href="{{{ moodleoverflowindexlink }}}">{{# str }} moodleoverflows, moodleoverflow {{/ str }}</a>
+    <a target="_blank" href="{{{ moodleoverflowindexlink }}}">{{#str}} moodleoverflows, moodleoverflow {{/str}}</a>
     &raquo;
     <a target="_blank" href="{{{ moodleoverflowviewlink }}}">{{{ moodleoverflowname }}}</a>
-    {{# showdiscussionname }}
+    {{#showdiscussionname}}
         &raquo;
         <a target="_blank" href="{{{ discussionlink }}}">{{{ discussionname }}}</a>
-    {{/ showdiscussionname }}
+    {{/showdiscussionname}}
 </div>
 
 {{> mod_moodleoverflow/email_html_body }}
 
 <hr />
 <div class="mdl-align unsubscribelink">
-    {{# unsubscribemoodleoverflowlink }}
-        <a href="{{{ unsubscribemoodleoverflowlink }}}">{{# str }} unsubscribe, moodleoverflow {{/ str }}</a>&nbsp;
-    {{/ unsubscribemoodleoverflowlink }}
-    {{# unsubscribediscussionlink }}
-        <a href="{{{ unsubscribediscussionlink }}}">{{# str }} unsubscribediscussion, moodleoverflow {{/ str }}</a>&nbsp;
+    {{#unsubscribemoodleoverflowlink}}
+        <a href="{{{ unsubscribemoodleoverflowlink }}}">{{#str}} unsubscribe, moodleoverflow {{/str}}</a>&nbsp;
+    {{/unsubscribemoodleoverflowlink}}
+    {{#unsubscribediscussionlink}}
+        <a href="{{{ unsubscribediscussionlink }}}">{{#str}} unsubscribediscussion, moodleoverflow {{/str}}</a>&nbsp;
     {{/ unsubscribediscussionlink }}
-    <a href="{{{ moodleoverflowindexlink }}}">{{# str }} mailindexlink, moodleoverflow {{/ str }}</a>
+    <a href="{{{ moodleoverflowindexlink }}}">{{#str}} mailindexlink, moodleoverflow {{/str}}</a>
 </div>

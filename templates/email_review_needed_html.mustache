@@ -81,47 +81,47 @@
     <a target="_blank" href="{{{ courselink }}}">{{{ coursename }}}</a>
     &raquo;
     <a target="_blank" href="{{{ moodleoverflowviewlink }}}">{{{ moodleoverflowname }}}</a>
-    {{# showdiscussionname }}
+    {{#showdiscussionname}}
         &raquo;
         <a target="_blank" href="{{{ discussionlink }}}">{{{ discussionname }}}</a>
-    {{/ showdiscussionname }}
+    {{/showdiscussionname}}
 </div>
 
 <a href="{{{permalink}}}"><h3>{{#str}}review_needed, mod_moodleoverflow{{/str}}</h3></a>
 
-<table border="0" cellpadding="3" cellspacing="0" class="moodleoverflowpost">
+<table class="moodleoverflowpost b-0 p-1">
     <tr class="header">
-        <td width="35" valign="top" class="picture left">
+        <td class="picture left w-25 align-top">
             {{{ authorpicture }}}
         </td>
-        <td class="topic {{# firstpost }}starter{{/ firstpost }}">
+        <td class="topic {{#firstpost}}starter{{/firstpost}}">
             <div class="subject">
                 {{{ subject }}}
             </div>
             <div class="author">
-                {{# str }} bynameondatenorating, moodleoverflow, {
+                {{#str}} bynameondatenorating, moodleoverflow, {
                     "name":
                     {{# authorlink }}{{# quote }} <a target='_blank' href='{{{ authorlink }}}'>{{ authorfullname }}</a>{{/ quote }}{{/authorlink}}
                     {{^ authorlink }}{{# quote }} {{ authorfullname }} {{/ quote }}{{/ authorlink }} ,
                     "date": {{# quote }}{{ postdate }}{{/ quote }}
-                    } {{/ str }}
+                    } {{/str}}
             </div>
         </td>
     </tr>
     <tr>
-        <td class="left side" valign="top">
-            {{# grouppicture }}
+        <td class="left side align-top">
+            {{#grouppicture}}
                 {{{ grouppicture }}}
-            {{/ grouppicture }}
-            {{^ grouppicture }}
+            {{/grouppicture}}
+            {{^grouppicture}}
                 &nbsp;
-            {{/ grouppicture }}
+            {{/grouppicture}}
         </td>
         <td class="content">
             {{{ message }}}
             <div class="link">
                 <a target="_blank" href="{{{ permalink }}}">
-                    {{# str }} review, mod_moodleoverflow {{/ str }}
+                    {{#str}} review, mod_moodleoverflow {{/str}}
                 </a>
             </div>
         </td>

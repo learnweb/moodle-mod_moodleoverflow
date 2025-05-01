@@ -26,9 +26,9 @@
 }}
 
 {{! Print an anchor if the post is the first unread post of the discussion. }}
-{{# isfirstunread}}
+{{#isfirstunread}}
     <a id="unread"></a>
-{{/ isfirstunread}}
+{{/isfirstunread}}
 
 {{! Start the post. Mark it read or unread. }}
 <div id="p{{postid}}" class="moodleoverflowpost {{#iscomment}}bg-light moodleoverflowcomment{{/iscomment}}
@@ -119,13 +119,13 @@
             </div>
         </div>
     </div>
-    {{# canreview }}
-        {{# needsreview }}
+    {{#canreview}}
+        {{#needsreview}}
             <div class="reviewrow p-2 text-center bg-gray">
-                {{# withinreviewperiod }}
+                {{#withinreviewperiod}}
                     {{> mod_moodleoverflow/review_buttons }}
                 {{/withinreviewperiod}}
-                {{^ withinreviewperiod }}
+                {{^withinreviewperiod}}
                     {{#str}}pending_review_but_cannot_now, mod_moodleoverflow, {{reviewdelay}} {{/str}}
                 {{/withinreviewperiod}}
             </div>
