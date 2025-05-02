@@ -101,12 +101,12 @@
 <hr/>
 <br>
 
-<table class="border-0 p-1 moodleoverflowpost">
+<table class="moodleoverflowpost" style="border:none;">
     <tr class="header">
-        <td class="picture left align-top w-25">
+        <td class="picture left" style="vertical-align:top; width:35px; padding:3px;">
             {{{ authorpicture }}}
         </td>
-        <td class="topic {{#firstpost}}starter{{/firstpost}}">
+        <td class="topic {{#firstpost}}starter{{/firstpost}}"  style="padding:3px;">
             <div class="subject">
                 {{{subject}}}
             </div>
@@ -121,7 +121,7 @@
         </td>
     </tr>
     <tr>
-        <td class="left side align-top">
+        <td class="left side" style="vertical-align:top; padding:3px;">
             {{#grouppicture}}
                 {{{grouppicture}}}
             {{/grouppicture}}
@@ -129,7 +129,7 @@
                 &nbsp;
             {{/grouppicture}}
         </td>
-        <td class="content">
+        <td class="content" style="padding:3px;">
             {{{message}}}
         </td>
     </tr>

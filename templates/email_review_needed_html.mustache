@@ -89,12 +89,12 @@
 
 <a href="{{{permalink}}}"><h3>{{#str}}review_needed, mod_moodleoverflow{{/str}}</h3></a>
 
-<table class="moodleoverflowpost b-0 p-1">
+<table class="moodleoverflowpost" style="border:none;">
     <tr class="header">
-        <td class="picture left w-25 align-top">
+        <td class="picture left" style="vertical-align:top; width:35px; padding:3px;">
             {{{ authorpicture }}}
         </td>
-        <td class="topic {{#firstpost}}starter{{/firstpost}}">
+        <td class="topic {{#firstpost}}starter{{/firstpost}}" style="padding:3px;">
             <div class="subject">
                 {{{ subject }}}
             </div>
@@ -109,7 +109,7 @@
         </td>
     </tr>
     <tr>
-        <td class="left side align-top">
+        <td class="left side" style="vertical-align:top; padding:3px;">
             {{#grouppicture}}
                 {{{ grouppicture }}}
             {{/grouppicture}}
@@ -117,7 +117,7 @@
                 &nbsp;
             {{/grouppicture}}
         </td>
-        <td class="content">
+        <td class="content" style="padding:3px;">
             {{{ message }}}
             <div class="link">
                 <a target="_blank" href="{{{ permalink }}}">
