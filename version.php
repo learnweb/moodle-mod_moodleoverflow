@@ -17,7 +17,6 @@
 /**
  * Defines the version and other meta-info about the plugin
  *
- * Setting the $plugin->version to 0 prevents the plugin from being installed.
  * See https://docs.moodle.org/dev/version.php for more info.
  *
  * @package   mod_moodleoverflow
@@ -29,7 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_moodleoverflow';
-$plugin->version   = 2025050100;
+$plugin->version   = 2025050600;
 $plugin->requires  = 2022112800;
 $plugin->release = 'v4.5-r1';
 $plugin->supported = [401, 405];
