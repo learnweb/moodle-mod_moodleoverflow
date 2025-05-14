@@ -26,6 +26,7 @@ namespace mod_moodleoverflow\task;
 
 use core\session\exception;
 use mod_moodleoverflow\output\moodleoverflow_email;
+use mod_moodleoverflow\manager;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
@@ -53,8 +54,9 @@ class send_mails extends \core\task\scheduled_task {
      */
     public function execute() {
 
+        // User mail manager to send mails.
         // Send mail notifications.
-        moodleoverflow_send_mails();
+        manager\mail_manager::moodleoverflow_send_mails();
 
         $this->send_review_notifications();
 
