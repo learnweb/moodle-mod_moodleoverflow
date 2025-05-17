@@ -781,11 +781,11 @@ function moodleoverflow_send_mails() {
                     $dataobject->forumid = $moodleoverflow->id;
                     $dataobject->forumdiscussionid = $discussion->id;
                     $record = $DB->get_record('moodleoverflow_mail_info',
-                                                ['userid' => $dataobject->userid,
-                                                      'courseid' => $dataobject->courseid,
-                                                      'forumid' => $dataobject->forumid,
-                                                      'forumdiscussionid' => $dataobject->forumdiscussionid, ],
-                                                      'numberofposts, id');
+                        ['userid' => $dataobject->userid,
+                            'courseid' => $dataobject->courseid,
+                            'forumid' => $dataobject->forumid,
+                            'forumdiscussionid' => $dataobject->forumdiscussionid, ],
+                        'numberofposts, id');
                     if (is_object($record)) {
                         $dataset = $record;
                         $dataobject->numberofposts = $dataset->numberofposts + 1;

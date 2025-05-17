@@ -23,8 +23,8 @@
  */
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\task\send_mails;
-use mod_moodleoverflow\task\send_daily_mail;
+use mod_moodleoverflow\task\send_review_mails;
+use mod_moodleoverflow\task\send_daily_mails;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,7 +38,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_moodleoverflow\task\send_daily_mail::execute
+ * @covers \mod_moodleoverflow\task\send_daily_mails::execute
  */
 final class dailymail_test extends \advanced_testcase {
 
@@ -113,8 +113,8 @@ final class dailymail_test extends \advanced_testcase {
      * Run the send daily mail task.
      * @return false|string
      */
-    private function helper_run_send_daily_mail() {
-        $mailtask = new send_daily_mail();
+    private function helper_run_send_daily_mails() {
+        $mailtask = new send_daily_mails();
         ob_start();
         $mailtask->execute();
         $output = ob_get_contents();
@@ -126,8 +126,8 @@ final class dailymail_test extends \advanced_testcase {
      * Run the send mails task.
      * @return false|string
      */
-    private function helper_run_send_mails() {
-        $mailtask = new send_mails();
+    private function helper_run_send_review_mailss() {
+        $mailtask = new send_review_mails();
         ob_start();
         $mailtask->execute();
         $output = ob_get_contents();
@@ -140,22 +140,22 @@ final class dailymail_test extends \advanced_testcase {
     // Begin of test functions.
 
     /**
-     * Test if the task send_daily_mail sends a mail to the user.
+     * Test if the task send_daily_mails sends a mail to the user.
      */
     public function test_mail_delivery(): void {
         // Create user with maildigest = on.
         $this->helper_create_user_and_discussion('1');
 
         // Send a mail and test if the mail was sent.
-        $this->helper_run_send_mails();
-        $this->helper_run_send_daily_mail();
+        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_daily_mails();
         $messages = $this->sink->count();
 
         $this->assertEquals(1, $messages);
     }
 
     /**
-     * Test if the task send_daily_mail does not sends email from posts that are not in the course of the user.
+     * Test if the task send_daily_mails does not sends email from posts that are not in the course of the user.
      */
     public function test_delivery_not_enrolled(): void {
         // Create user with maildigest = on.
@@ -171,8 +171,8 @@ final class dailymail_test extends \advanced_testcase {
         $discussion = $this->generator->post_to_forum($moodleoverflow, $student);
 
         // Send the mails.
-        $this->helper_run_send_mails();
-        $this->helper_run_send_daily_mail();
+        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_daily_mails();
         $messages = $this->sink->count();
         $content = $this->sink->get_messages();
 
@@ -209,8 +209,8 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_create_user_and_discussion('1');
 
         // Send the mails and count the messages.
-        $this->helper_run_send_mails();
-        $this->helper_run_send_daily_mail();
+        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_daily_mails();
         $content = $this->sink->get_messages();
         $message = $content[0]->body;
         $message = str_replace(["\n\r", "\n", "\r"], '', $message);
@@ -238,8 +238,8 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_create_user_and_discussion('0');
 
         // Now send the mails and test if no mail was sent.
-        $this->helper_run_send_mails();
-        $this->helper_run_send_daily_mail();
+        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_daily_mails();
         $messages = $this->sink->count();
 
         $this->assertEquals(0, $messages);
@@ -254,8 +254,8 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_create_user_and_discussion('1');
 
         // Now send the mails.
-        $this->helper_run_send_mails();
-        $this->helper_run_send_daily_mail();
+        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_daily_mails();
 
         // Now check the database if the records of the users are deleted.
         $records = $DB->get_records('moodleoverflow_mail_info', ['userid' => $this->user->id]);

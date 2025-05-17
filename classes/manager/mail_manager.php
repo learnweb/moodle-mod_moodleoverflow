@@ -127,9 +127,9 @@ class mail_manager {
 
                 // Reset the caches.
                 foreach ($coursemodules as $moodleoverflowid) {
-                    $coursemodules[$moodleoverflowid]->cache = new stdClass();
-                    $coursemodules[$moodleoverflowid]->cache->caps = [];
-                    unset($coursemodules[$moodleoverflowid]->uservisible);
+                    $moodleoverflowid->cache = new stdClass();
+                    $moodleoverflowid->cache->caps = [];
+                    unset($moodleoverflowid->uservisible);
                 }
 
                 // Loop through all posts of this users.

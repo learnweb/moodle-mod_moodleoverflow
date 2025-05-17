@@ -26,9 +26,9 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
 
-    // Deliver mail notification about new posts.
+    // Deliver mail notification about posts that need to be reviewed..
     [
-        'classname' => 'mod_moodleoverflow\task\send_mails',
+        'classname' => 'mod_moodleoverflow\task\send_review_mails',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',
@@ -48,9 +48,9 @@ $tasks = [
         'dayofweek' => '*',
     ],
 
-    // Clean old read records.
+    // Send daily mail of unread posts.
     [
-        'classname' => 'mod_moodleoverflow\task\send_daily_mail',
+        'classname' => 'mod_moodleoverflow\task\send_daily_mails',
         'blocking' => 0,
         'minute' => '0',
         'hour' => '17',
