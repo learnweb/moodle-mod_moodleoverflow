@@ -24,7 +24,7 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\task\send_mails;
+use mod_moodleoverflow\task\send_review_mails;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -129,8 +129,8 @@ final class review_test extends \advanced_testcase {
 
         $this->assertNull(\mod_moodleoverflow_external::review_approve_post($posts['studentpost']->id));
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_review_mails();
+        $this->run_send_review_mails(); // Execute twice to ensure no duplicate mails.
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->id]);
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
@@ -144,8 +144,8 @@ final class review_test extends \advanced_testcase {
         $studentanswer1 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
         $studentanswer2 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_review_mails();
+        $this->run_send_review_mails(); // Execute twice to ensure no duplicate mails.
 
         $this->assertEquals(2, $this->mailsink->count());
         $this->assertEquals(0, $this->messagesink->count());
@@ -155,8 +155,8 @@ final class review_test extends \advanced_testcase {
         $this->assertNotNull(\mod_moodleoverflow_external::review_approve_post($studentanswer1->id));
         $this->assertNull(\mod_moodleoverflow_external::review_reject_post($studentanswer2->id, 'This post was not good!'));
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_review_mails();
+        $this->run_send_review_mails(); // Execute twice to ensure no duplicate mails.
 
         $this->assertEquals(1, $this->mailsink->count());
         $this->assertEquals(2, $this->messagesink->count());
@@ -193,8 +193,8 @@ final class review_test extends \advanced_testcase {
 
         $this->assertNull(\mod_moodleoverflow_external::review_approve_post($posts['studentpost']->id));
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_review_mails();
+        $this->run_send_review_mails(); // Execute twice to ensure no duplicate mails.
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->id]);
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
@@ -245,8 +245,8 @@ final class review_test extends \advanced_testcase {
      * Run the send mails task.
      * @return false|string
      */
-    private function run_send_mails() {
-        $mailtask = new send_mails();
+    private function run_send_review_mails() {
+        $mailtask = new send_review_mails();
         ob_start();
         $mailtask->execute();
         $output = ob_get_contents();
@@ -307,8 +307,8 @@ final class review_test extends \advanced_testcase {
                                           'reviewed' => $review2, 'timereviewed' => null, ],
             $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_review_mails();
+        $this->run_send_review_mails(); // Execute twice to ensure no duplicate mails.
 
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS,
                                           'reviewed' => $review1, 'timereviewed' => null, ],
