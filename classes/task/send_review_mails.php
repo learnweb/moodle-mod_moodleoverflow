@@ -59,7 +59,6 @@ class send_review_mails extends \core\task\scheduled_task {
         // Send mail notifications.
 
         mail_manager::moodleoverflow_send_mails();
-        //moodleoverflow_send_mails();
 
         $this->send_review_notifications();
 
