@@ -79,7 +79,6 @@ class mail_manager {
 
         // Initiate the arrays that are saving the users that are subscribed to posts that needs sending.
         $users = [];
-        $userscount = 0; // Count($users) is slow. This avoids using this.
 
         // Status arrays.
         $mailcount = [];
@@ -100,106 +99,81 @@ class mail_manager {
 
         // Retrieve all unmailed posts.
         $posts = self::moodleoverflow_get_unmailed_posts($starttime, $endtime);
-        if ($posts) {
+        if (!$posts) {
+            mtrace('No posts to be mailed.');
+            return true;
+        }
 
-            // Mark those posts as mailed.
-            if (!self::moodleoverflow_mark_old_posts_as_mailed($endtime)) {
-                mtrace('Errors occurred while trying to mark some posts as being mailed.');
-                return false;
+        // Mark those posts as mailed.
+        if (!self::moodleoverflow_mark_old_posts_as_mailed($endtime)) {
+            mtrace('Errors occurred while trying to mark some posts as being mailed.');
+            return false;
+        }
+
+        // Loop through all posts to be mailed.
+        foreach ($posts as $postid => $post) {
+
+            // Check the cache if the discussion exists.
+            $discussionid = $post->discussion;
+            $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
+            if (!self::cache_record('moodleoverflow_discussions', $discussionid, $discussions,
+                'Could not find discussion ', $posts, $postid, true)) {
+                continue;
             }
 
-            // Loop through all posts to be mailed.
-            foreach ($posts as $postid => $post) {
-
-                // Check the cache if the discussion exists.
-                $discussionid = $post->discussion;
-                if (!isset($discussions[$discussionid])) {
-
-                    // Retrieve the discussion from the database.
-                    $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
-
-                    // If there is a record, update the cache. Else ignore the post.
-                    if ($discussion) {
-                        $discussions[$discussionid] = $discussion;
-                        \mod_moodleoverflow\subscriptions::fill_subscription_cache($discussion->moodleoverflow);
-                        \mod_moodleoverflow\subscriptions::fill_discussion_subscription_cache($discussion->moodleoverflow);
-                    } else {
-                        mtrace('Could not find discussion ' . $discussionid);
-                        unset($posts[$postid]);
-                        continue;
-                    }
-                }
-
-                // Retrieve the connected moodleoverflow instance from the database.
-                $moodleoverflowid = $discussions[$discussionid]->moodleoverflow;
-                if (!isset($moodleoverflows[$moodleoverflowid])) {
-
-                    // Retrieve the record from the database and update the cache.
-                    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid]);
-                    if ($moodleoverflow) {
-                        $moodleoverflows[$moodleoverflowid] = $moodleoverflow;
-                    } else {
-                        mtrace('Could not find moodleoverflow ' . $moodleoverflowid);
-                        unset($posts[$postid]);
-                        continue;
-                    }
-                }
-
-                // Retrieve the connected courses from the database.
-                $courseid = $moodleoverflows[$moodleoverflowid]->course;
-                if (!isset($courses[$courseid])) {
-
-                    // Retrieve the record from the database and update the cache.
-                    $course = $DB->get_record('course', ['id' => $courseid]);
-                    if ($course) {
-                        $courses[$courseid] = $course;
-                    } else {
-                        mtrace('Could not find course ' . $courseid);
-                        unset($posts[$postid]);
-                        continue;
-                    }
-                }
-
-                // Retrieve the connected course modules from the database.
-                if (!isset($coursemodules[$moodleoverflowid])) {
-                    // Retrieve the coursemodule and update the cache.
-                    $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid, $courseid);
-                    if ($cm) {
-                        $coursemodules[$moodleoverflowid] = $cm;
-                    } else {
-                        mtrace('Could not find course module for moodleoverflow ' . $moodleoverflowid);
-                        unset($posts[$postid]);
-                        continue;
-                    }
-                }
-
-                // Cache subscribed users of each moodleoverflow.
-                if (!isset($subscribedusers[$moodleoverflowid])) {
-                    // Retrieve the context module.
-                    $modulecontext = context_module::instance($coursemodules[$moodleoverflowid]->id);
-
-                    // Retrieve all subscribed users.
-                    $mid = $moodleoverflows[$moodleoverflowid];
-                    $subusers = \mod_moodleoverflow\subscriptions::get_subscribed_users($mid, $modulecontext, 'u.*', true);
-                    if ($subusers) {
-                        // Loop through all subscribed users.
-                        foreach ($subusers as $postuser) {
-                            // Save the user into the cache.
-                            $subscribedusers[$moodleoverflowid][$postuser->id] = $postuser->id;
-                            self::moodleoverflow_minimise_user_record($postuser);
-                            $users[$postuser->id] = $postuser;
-                        }
-
-                        // Release the memory.
-                        unset($subusers);
-                        unset($postuser);
-                    }
-                }
-
-                // Initiate the count of the mails send and errors.
-                $mailcount[$postid] = 0;
-                $errorcount[$postid] = 0;
+            // Retrieve the connected moodleoverflow instance from the database.
+            $moodleoverflowid = $discussions[$discussionid]->moodleoverflow;
+            if (!self::cache_record('moodleoverflow', $moodleoverflowid, $moodleoverflows,
+                'Could not find moodleoverflow ', $posts, $postid, false)) {
+                continue;
             }
+
+            // Retrieve the connected courses from the database.
+            $courseid = $moodleoverflows[$moodleoverflowid]->course;
+            if (!self::cache_record('course', $courseid, $courses,
+                'Could not find course ', $posts, $postid, false)) {
+                continue;
+            }
+
+            // Retrieve the connected course modules from the database.
+            if (!isset($coursemodules[$moodleoverflowid])) {
+                // Retrieve the coursemodule and update the cache.
+                $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid, $courseid);
+                if ($cm) {
+                    $coursemodules[$moodleoverflowid] = $cm;
+                } else {
+                    mtrace('Could not find course module for moodleoverflow ' . $moodleoverflowid);
+                    unset($posts[$postid]);
+                    continue;
+                }
+            }
+
+            // Cache subscribed users of each moodleoverflow.
+            if (!isset($subscribedusers[$moodleoverflowid])) {
+                // Retrieve the context module.
+                $modulecontext = context_module::instance($coursemodules[$moodleoverflowid]->id);
+
+                // Retrieve all subscribed users.
+                $mid = $moodleoverflows[$moodleoverflowid];
+                $subusers = \mod_moodleoverflow\subscriptions::get_subscribed_users($mid, $modulecontext, 'u.*', true);
+                if ($subusers) {
+                    // Loop through all subscribed users.
+                    foreach ($subusers as $postuser) {
+                        // Save the user into the cache.
+                        $subscribedusers[$moodleoverflowid][$postuser->id] = $postuser->id;
+                        self::moodleoverflow_minimise_user_record($postuser);
+                        $users[$postuser->id] = $postuser;
+                    }
+
+                    // Release the memory.
+                    unset($subusers);
+                    unset($postuser);
+                }
+            }
+
+            // Initiate the count of the mails send and errors.
+            $mailcount[$postid] = 0;
+            $errorcount[$postid] = 0;
         }
 
         // Send mails to the users with information about the posts.
