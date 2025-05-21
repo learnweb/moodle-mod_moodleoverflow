@@ -26,8 +26,8 @@ namespace mod_moodleoverflow\task;
 
 use core\session\exception;
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\output\moodleoverflow_email;
-use mod_moodleoverflow\manager;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
@@ -57,11 +57,10 @@ class send_review_mails extends \core\task\scheduled_task {
         global $DB;
         // User mail manager to send mails.
         // Send mail notifications.
-        //manager\mail_manager::
-        moodleoverflow_send_mails();
 
-        //$userto = $DB->get_record('user', ['id' => 2]);
-        //email_to_user($userto, \core_user::get_noreply_user(), "testmailsubject", "goobye fella");
+        mail_manager::moodleoverflow_send_mails();
+        //moodleoverflow_send_mails();
+
         $this->send_review_notifications();
 
         // The cron is finished.
