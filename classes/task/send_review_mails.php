@@ -25,6 +25,7 @@
 namespace mod_moodleoverflow\task;
 
 use core\session\exception;
+use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\manager;
 
@@ -127,6 +128,7 @@ class send_review_mails extends \core\task\scheduled_task {
 
             $post = $postinfo;
             $userfrom = \core_user::get_user($postinfo->userid, '*', MUST_EXIST);
+            $userfrom->anonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $postinfo->userid);
 
             foreach ($usersto as $userto) {
                 try {

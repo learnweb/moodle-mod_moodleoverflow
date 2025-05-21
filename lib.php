@@ -820,10 +820,12 @@ function moodleoverflow_send_mails() {
 
                 if (\mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
                     $userfrom = \core_user::get_noreply_user();
+                    $userfrom->anonymous = true;
                 } else {
                     // Check whether the sending user is cached already.
                     if (array_key_exists($post->userid, $users)) {
                         $userfrom = $users[$post->userid];
+                        $userfrom->anonymous = false;
                     } else {
                         // We dont know the the user yet.
 
@@ -831,6 +833,7 @@ function moodleoverflow_send_mails() {
                         $userfrom = $DB->get_record('user', ['id' => $post->userid]);
                         if ($userfrom) {
                             moodleoverflow_minimise_user_record($userfrom);
+                            $userfrom->anonymous = false;
                         } else {
                             $uid = $post->userid;
                             $pid = $post->id;
@@ -1093,7 +1096,7 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
  *
  * @param stdClass $user
  */
-function moodleoverflow_minimise_user_record(stdClass $user) {
+function moodleoverflow_minimise_user_record(stdClass &$user) {
 
     // Remove all information for the mail generation that are not needed.
     unset($user->institution);

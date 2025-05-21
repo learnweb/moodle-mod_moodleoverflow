@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\review;
 
@@ -121,7 +122,7 @@ class mod_moodleoverflow_external extends external_api {
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
 
-        $cannotseeowner = \mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) &&
+        $cannotseeowner = anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) &&
             $USER->id != $postownerid;
 
         $params['postrating'] = $rating->upvotes - $rating->downvotes;
@@ -254,6 +255,7 @@ class mod_moodleoverflow_external extends external_api {
         $renderertext = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
 
         $userto = core_user::get_user($post->userid);
+        $userto->anonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid);
 
         $maildata = new moodleoverflow_email(
                 $course,
