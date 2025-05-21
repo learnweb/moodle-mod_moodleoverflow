@@ -26,19 +26,20 @@ namespace mod_moodleoverflow\task;
 
 use core\session\exception;
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\output\moodleoverflow_email;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
 
 /**
- * Class for sending mails to users who have subscribed a moodleoverflow.
+ * Class for sending mails to users that need to review a moodleoverflow post.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class send_mails extends \core\task\scheduled_task {
+class send_review_mails extends \core\task\scheduled_task {
 
     /**
      * Get a descriptive name for this task (shown to admins).
@@ -46,16 +47,18 @@ class send_mails extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('tasksendmails', 'mod_moodleoverflow');
+        return get_string('tasksendreviewmails', 'mod_moodleoverflow');
     }
 
     /**
      * Runs moodleoverflow cron.
      */
     public function execute() {
-
+        global $DB;
+        // User mail manager to send mails.
         // Send mail notifications.
-        moodleoverflow_send_mails();
+
+        mail_manager::moodleoverflow_send_mails();
 
         $this->send_review_notifications();
 
