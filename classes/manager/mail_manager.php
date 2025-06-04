@@ -98,8 +98,7 @@ class mail_manager {
         $starttime = $endtime - (get_config('moodleoverflow', 'maxmailingtime') * 60 * 60);
 
         // Retrieve all unmailed posts.
-        $posts = self::moodleoverflow_get_unmailed_posts($starttime, $endtime);
-        if (!$posts) {
+        if (!$posts = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
             mtrace('No posts to be mailed.');
             return true;
         }
@@ -193,18 +192,7 @@ class mail_manager {
 
                 // Cache the capabilities of the user.
                 // Check for moodle version. Version 401 supported until 8 December 2025.
-                if ($CFG->branch >= 402) {
-                    \core\cron::setup_user($userto);
-                } else {
-                    cron_setup_user($userto);
-                }
-
-                // Reset the caches.
-                foreach ($coursemodules as $moodleoverflowid => $unused) {
-                    $coursemodules[$moodleoverflowid]->cache = new stdClass();
-                    $coursemodules[$moodleoverflowid]->cache->caps = [];
-                    unset($coursemodules[$moodleoverflowid]->uservisible);
-                }
+                $CFG->branch >= 402 ? \core\cron::setup_user($userto) : cron_setup_user($userto);
 
                 // Loop through all posts of this users.
                 foreach ($posts as $post) {
@@ -263,6 +251,7 @@ class mail_manager {
                         continue;
                     }
 
+                    // Get and initiate the post author variable.
                     if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
                         $userfrom = \core_user::get_noreply_user();
                         $userfrom->anonymous = true;
@@ -290,11 +279,7 @@ class mail_manager {
 
                     // Setup roles and languages.
                     // Check for moodle version. Version 401 supported until 8 December 2025.
-                    if ($CFG->branch >= 402) {
-                        \core\cron::setup_user($userto, $course);
-                    } else {
-                        cron_setup_user($userto, $course);
-                    }
+                    $CFG->branch >= 402 ? \core\cron::setup_user($userto, $course) : cron_setup_user($userto, $course);
 
                     // Cache the users capability to view full names.
                     if (!isset($userto->viewfullnames[$moodleoverflow->id])) {
@@ -482,6 +467,52 @@ class mail_manager {
      * @return array
      */
     public static function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
+        global $DB;
+
+        // Set params for the sql query.
+        $params = [];
+        $params['ptimestart'] = $starttime;
+        $params['ptimeend'] = $endtime;
+
+        $pendingmail = self::MOODLEOVERFLOW_MAILED_PENDING;
+        $reviewsent = self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
+
+        // Retrieve the records.
+        $sql = "SELECT posts.*, discuss.course, discuss.moodleoverflow, subscribedusers.*
+                FROM {moodleoverflow_posts} posts
+                JOIN {moodleoverflow_discussions} discuss ON discuss.id = posts.discussion
+                JOIN (
+                    SELECT *
+                    FROM (
+                        SELECT userid, moodleoverflow, -1 as discussion
+                        FROM {moodleoverflow_subscriptions} s
+                        UNION
+                        SELECT userid, moodleoverflow, discussion
+                        FROM {mdl_moodleoverflow_discuss_subs} ds
+                        WHERE ds.preference <> :unsubscribed
+                    ) as subscription
+                    JOIN {user} u ON u.id = subscriptions.userid
+                    ORDER BY u.email ASC
+                ) subscribedusers ON ((discuss.moodleoverflow = subscribedusers.moodleoverflow) AND
+                                      ((posts.discussion = subscribedusers.discussion) OR
+                                      (subscribedusers.discussion = -1))
+                                     )
+                WHERE posts.mailed IN ($pendingmail, $reviewsent) AND posts.reviewed = 1
+                AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND posts.created < :ptimeend
+                ORDER BY posts.modified ASC";
+
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Gets all posts and subscribed users to posts from the database
+     *
+     * @param int $starttime posts created after this time
+     * @param int $endtime posts created before this time
+     *
+     * @return array
+     */
+    public static function moodleoverflow_get_mail_data($starttime, $endtime): array {
         global $DB;
 
         // Set params for the sql query.

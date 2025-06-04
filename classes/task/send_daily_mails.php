@@ -44,7 +44,8 @@ class send_daily_mails extends \core\task\scheduled_task {
         global $DB;
 
         // Call your own api.
-        $users = $DB->get_records_sql('SELECT DISTINCT userid FROM {moodleoverflow_mail_info}');
+        //$users = $DB->get_records_sql('SELECT DISTINCT userid FROM {moodleoverflow_mail_info}');
+        $users = [];
         if (empty($users)) {
             mtrace('No daily mail to send.');
             return;

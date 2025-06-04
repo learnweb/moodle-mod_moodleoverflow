@@ -54,12 +54,7 @@ class send_review_mails extends \core\task\scheduled_task {
      * Runs moodleoverflow cron.
      */
     public function execute() {
-        global $DB;
-        // User mail manager to send mails.
-        // Send mail notifications.
-
-        mail_manager::moodleoverflow_send_mails();
-
+        // Send review mails.
         $this->send_review_notifications();
 
         // The cron is finished.
