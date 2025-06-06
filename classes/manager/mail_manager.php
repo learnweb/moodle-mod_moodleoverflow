@@ -28,6 +28,7 @@ use context_course;
 use context_module;
 use core\context\course;
 use core\cron;
+use core\message\message;
 use core_php_time_limit;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
@@ -186,7 +187,7 @@ class mail_manager {
                 mtrace('Processing user ' . $userto->id);
                 // Initiate the user caches to save memory.
                 $userto = clone($userto);
-                $userto->ciewfullnames = [];
+                $userto->viewfullnames = [];
                 $userto->canpost = [];
                 $userto->markposts = [];
 
@@ -338,7 +339,7 @@ class mail_manager {
                     }
 
                     // Format the data.
-                    $data = new \mod_moodleoverflow\output\moodleoverflow_email(
+                    $data = new moodleoverflow_email(
                         $course,
                         $cm,
                         $moodleoverflow,
@@ -390,7 +391,7 @@ class mail_manager {
                     mtrace('Sending ', '');
 
                     // Create the message event.
-                    $eventdata = new \core\message\message();
+                    $eventdata = new message();
                     $eventdata->courseid = $course->id;
                     $eventdata->component = 'mod_moodleoverflow';
                     $eventdata->name = 'posts';
@@ -469,18 +470,48 @@ class mail_manager {
     public static function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
         global $DB;
 
+        // Define fields that will be get from the database.
+        $postfields = "p.id AS postid, p.message AS postmessage, p.messageformat as postmessageformat, p.modified as postmodified,
+                       p.parent AS postparent, p.userid AS postuserid, p.reviewed AS postreviewed";
+        $discussionfields = "d.id AS discussionid, d.name AS discussionname, d.userid AS discussionuserid";
+        $moodleoverflowfields = "mo.id AS moodleoverflowid, mo.name AS moodleoverflowname, mo.anonymous AS moodleoverflowanonymous,
+                                 mo.forcesubscribe AS moodleoverflowforcesubscribe";
+        $coursefields = "c.id AS courseid, c.idnumber AS courseidnumber, c.fullname AS coursefullname,
+                         c.shortname AS courseshortname";
+        $cmfields = "cm.id AS cmid, cm.groupingid AS cmgroupingid";
+        $authorfields = "author.id AS authorid, author.firstname AS authorfirstname, author.lastname AS authorlastname,
+                         author.firstnamephonetic AS authorfirstnamephonetic, author.lastnamephonetic AS authorlastnamephonetic,
+                         author.middlename AS authormiddlename, author.alternatename AS authoralternatename,
+                         author.picture AS authorpicture, author.imagealt AS authorimagealt, author.email AS authoremail";
+        $usertofields = "userto.id AS usertoid, userto.description AS usertodescription, userto.password AS usertopassword,
+                         userto.lang AS usertolang, userto.auth AS usertoauth, userto.suspended AS usertosuspended,
+                         userto.deleted AS usertodeleted, userto.emailstop AS usertoemailstop";
+
+        $fields = "ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num, " . $postfields . ", " . $discussionfields . ", " . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields .
+                  ", " . $authorfields . ", " . $usertofields;
+
         // Set params for the sql query.
         $params = [];
+        $params['fields'] = $fields;
+        $params['unsubscribed'] = subscriptions::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED;
+        $params['pendingmail'] = self::MOODLEOVERFLOW_MAILED_PENDING;
+        $params['reviewsent'] = self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
         $params['ptimestart'] = $starttime;
         $params['ptimeend'] = $endtime;
 
-        $pendingmail = self::MOODLEOVERFLOW_MAILED_PENDING;
-        $reviewsent = self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
-
         // Retrieve the records.
-        $sql = "SELECT posts.*, discuss.course, discuss.moodleoverflow, subscribedusers.*
-                FROM {moodleoverflow_posts} posts
-                JOIN {moodleoverflow_discussions} discuss ON discuss.id = posts.discussion
+        $sql = "SELECT :fields
+                FROM {moodleoverflow_posts} p
+                JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                JOIN {moodleoverflow} mo ON mo.id = d.moodleoverflow
+                JOIN {course} c ON c.id = mo.course
+                JOIN (
+                    SELECT cm.id, cm.groupingid, cm.instance
+                    FROM {course_modules} cm
+                    JOIN {modules} md ON md.id = cm.module
+                    WHERE md.name = 'moodleoverflow'
+                ) cm ON cm.instance = mo.id
+                JOIN {user} author ON author.id = p.userid
                 JOIN (
                     SELECT *
                     FROM (
@@ -488,18 +519,19 @@ class mail_manager {
                         FROM {moodleoverflow_subscriptions} s
                         UNION
                         SELECT userid, moodleoverflow, discussion
-                        FROM {mdl_moodleoverflow_discuss_subs} ds
+                        FROM {moodleoverflow_discuss_subs} ds
                         WHERE ds.preference <> :unsubscribed
-                    ) as subscription
-                    JOIN {user} u ON u.id = subscriptions.userid
+                    ) as subscriptions
+                    LEFT JOIN {user} u ON u.id = subscriptions.userid
                     ORDER BY u.email ASC
-                ) subscribedusers ON ((discuss.moodleoverflow = subscribedusers.moodleoverflow) AND
-                                      ((posts.discussion = subscribedusers.discussion) OR
-                                      (subscribedusers.discussion = -1))
+                ) userto ON ((d.moodleoverflow = userto.moodleoverflow) AND
+                                      ((p.discussion = userto.discussion) OR
+                                      (userto.discussion = -1))
                                      )
-                WHERE posts.mailed IN ($pendingmail, $reviewsent) AND posts.reviewed = 1
-                AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND posts.created < :ptimeend
-                ORDER BY posts.modified ASC";
+                WHERE p.mailed IN (:pendingmail, :reviewsent) AND p.reviewed = 1
+                AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
+                AND author.id <> userto.id
+                ORDER BY p.modified ASC";
 
         return $DB->get_records_sql($sql, $params);
     }
