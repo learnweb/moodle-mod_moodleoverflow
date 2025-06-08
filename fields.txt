@@ -1,0 +1,57 @@
+Welche Werte brauche ich aus moodleoverflow_email: Folgende Objekte mit folgenden Variablen (alle informationen werden danach aus den objekten geladen)
+
+$course:
+- id
+- idnumber
+- fullname
+- shortname
+
+$cm:
+- id
+- groupingid
+
+$moodleoverflow:
+- forcesubscribe
+- id
+- name
+- anonymous (to set anonymous bool state later)
+
+$discussion:
+- id
+- name
+- userid (for anonymous)
+
+$post:
+- id
+- message
+- messageformat
+- modified
+- parent
+- userid
+- reviewed
+
+$author (userfrom):
+- id
+- anonymous (boolean)
+- firstname
+- lastname
+- firstnamephonetic
+- lastnamephonetic
+- middlename
+- alternatename
+- picture
+- imagealt
+- email
+
+$userto:
++ crone setup_user
+- id
+- maildigest
+- viewfullnames[]
+- canpost[]
+- markposts[]
+- description
+- password
+- lang
+
+$canreply: bool
