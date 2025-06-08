@@ -63,12 +63,62 @@ class mail_manager {
      */
     const MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS = 3;
 
+    public static function moodleoverflow_send_mails(): bool {
+        global $DB, $CFG, $PAGE;
+
+        // Get the course object of the top level site.
+        $site = get_site();
+
+        // Get the main renderers.
+        $htmlout = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
+        $textout = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
+
+        // Posts older than x days will not be mailed.
+        // This will avoid problems with the cron not being run for a long time.
+        $timenow = time();
+        $endtime = $timenow - get_config('moodleoverflow', 'maxeditingtime');
+        $starttime = $endtime - (get_config('moodleoverflow', 'maxmailingtime') * 60 * 60);
+
+        // Retrieve posts that need to be send to users.
+        mtrace("Fetching records");
+        if (!$records = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
+            mtrace('No posts to be mailed.');
+            return true;
+        }
+
+        // Mark those posts as mailed.
+        // TODO: Set 0 to $endtime as soon this function is ready for work.
+        if (!self::moodleoverflow_mark_old_posts_as_mailed(0)) {
+            mtrace('Errors occurred while trying to mark some posts as being mailed.');
+            return false;
+        }
+
+        // Start processing the records.
+
+        // Build cache arrays. All caches are structured with id => object.
+        $posts = [];
+        $authors = [];
+        $recipients = [];
+
+        // Build error cache that saves posts (with postid) that were not mailed correctly.
+        $errorcount = [];
+
+        mtrace("Records found, start processing");
+        // Loop through each records.
+        foreach ($records as $record) {
+            // TODO: Fill processing.
+            continue;
+        }
+
+
+        return true;
+    }
     /**
      * Sends mail notifications about new posts.
      *
      * @return bool
      */
-    public static function moodleoverflow_send_mails(): bool {
+    public static function moodleoverflow_send_mails_deprecated(): bool {
         global $DB, $CFG, $PAGE;
 
         // Get the course object of the top level site.
@@ -460,7 +510,13 @@ class mail_manager {
     }
 
     /**
-     * Returns a list of all posts that have not been mailed yet.
+     * Return a list of records that will be mailed. One record has all the information that is needed. This includes:
+     * - The post, discussion, moodleoverflow data of a post that is unmailed
+     * - The data of the post author
+     * - The data of the user, that is subscribed to the moodleoverflow discussion, that has the unmailed post
+     *
+     * The same post and user can be found redundantly, because one posts is  mailed to many user and one user gets notified about
+     * many posts. Because all data is in one table, every record represents one mail.
      *
      * @param int $starttime posts created after this time
      * @param int $endtime   posts created before this time
@@ -487,12 +543,11 @@ class mail_manager {
                          userto.lang AS usertolang, userto.auth AS usertoauth, userto.suspended AS usertosuspended,
                          userto.deleted AS usertodeleted, userto.emailstop AS usertoemailstop";
 
-        $fields = "ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num, " . $postfields . ", " . $discussionfields . ", " . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields .
-                  ", " . $authorfields . ", " . $usertofields;
+        $fields = "(ROW_NUMBER() OVER (ORDER BY p.modified)) AS row_num, " . $postfields . ", " . $discussionfields . ", "
+                    . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields . ", " . $authorfields . ", " . $usertofields;
 
         // Set params for the sql query.
         $params = [];
-        $params['fields'] = $fields;
         $params['unsubscribed'] = subscriptions::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED;
         $params['pendingmail'] = self::MOODLEOVERFLOW_MAILED_PENDING;
         $params['reviewsent'] = self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
@@ -500,7 +555,7 @@ class mail_manager {
         $params['ptimeend'] = $endtime;
 
         // Retrieve the records.
-        $sql = "SELECT :fields
+        $sql = "SELECT $fields 
                 FROM {moodleoverflow_posts} p
                 JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
                 JOIN {moodleoverflow} mo ON mo.id = d.moodleoverflow
@@ -530,8 +585,7 @@ class mail_manager {
                                      )
                 WHERE p.mailed IN (:pendingmail, :reviewsent) AND p.reviewed = 1
                 AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
-                AND author.id <> userto.id
-                ORDER BY p.modified ASC";
+                AND author.id <> userto.id";
 
         return $DB->get_records_sql($sql, $params);
     }
@@ -589,8 +643,8 @@ class mail_manager {
 
         // Define the sql query.
         $sql = "UPDATE {moodleoverflow_posts}
-            SET mailed = :mailedsuccess
-            WHERE (created < :endtime) AND mailed IN (:mailedpending, :mailedreviewsent) AND reviewed = 1";
+                SET mailed = :mailedsuccess
+                WHERE (created < :endtime) AND mailed IN (:mailedpending, :mailedreviewsent) AND reviewed = 1";
 
         return $DB->execute($sql, $params);
 

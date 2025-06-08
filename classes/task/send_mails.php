@@ -53,7 +53,7 @@ class send_mails extends \core\task\scheduled_task {
      * @return bool
      */
     public function execute() {
-        //mail_manager::moodleoverflow_send_mails();
+        mail_manager::moodleoverflow_send_mails();
         return true;
     }
 }
