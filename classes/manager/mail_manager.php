@@ -375,13 +375,13 @@ class mail_manager {
      * is already cached. If not, it creates an object with the relevant data from the provided record and stores it in the cache.
      *
      * @param object $record            The record containing data to be cached.
-     * @param array  &$coursemodules    Cache for course module data, indexed by course module ID.
-     * @param array  &$courses          Cache for course data, indexed by course ID.
-     * @param array  &$moodleoverflows  Cache for moodleoverflow data, indexed by moodleoverflow ID.
-     * @param array  &$discussions      Cache for discussion data, indexed by discussion ID.
-     * @param array  &$posts            Cache for post data, indexed by post ID.
-     * @param array  &$authors          Cache for author data, indexed by author ID.
-     * @param array  &$recipients       Cache for recipient data, indexed by recipient ID.
+     * @param array  $coursemodules    Cache for course module data, indexed by course module ID.
+     * @param array  $courses          Cache for course data, indexed by course ID.
+     * @param array  $moodleoverflows  Cache for moodleoverflow data, indexed by moodleoverflow ID.
+     * @param array  $discussions      Cache for discussion data, indexed by discussion ID.
+     * @param array  $posts            Cache for post data, indexed by post ID.
+     * @param array  $authors          Cache for author data, indexed by author ID.
+     * @param array  $recipients       Cache for recipient data, indexed by recipient ID.
      *
      * @return void
      */
