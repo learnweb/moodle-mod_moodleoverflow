@@ -55,3 +55,65 @@ $userto:
 - lang
 
 $canreply: bool
+
+
+Long cache function:
+// Check if the course module is not cached yet.
+if (!isset($coursemodules[$record->cmid])) {
+    // Save all coursemodule information as an object in the cache.
+    $coursemodules[$record->cmid] = (object) [ 'id' => $record->cmid, 'groupingid' => $record->cmgroupingid ];
+}
+
+// Check if the course is not cached yet.
+if (!isset($courses[$record->courseid])) {
+    // Save all course information as an object in the cache.
+    $courses[$record->courseid] = (object) [ 'id' => $record->courseid, 'idnumber' => $record->courseidnumber,
+        'fullname' => $record->coursefullname, 'shortname' => $record->courseshortname,
+    ];
+}
+
+// Check if the moodleoverflow is not cached yet.
+if (!isset($moodleoverflows[$record->moodleoverflowid])) {
+    $moodleoverflows[$record->moodleoverflowid] = (object) [ 'id' => $record->moodleoverflowid,
+        'name' => $record->moodleoverflowname, 'anonymous' => $record->moodleoverflowanonymous,
+        'forcesubscribe' => $record->moodleoverflowforcesubscribe,
+    ];
+}
+
+// Check if the discussion is not cached yet.
+if (!isset($discussions[$record->discussionid])) {
+    $discussions[$record->discussionid] = (object) [ 'id' => $record->discussionid, 'name' => $record->discussionname,
+        'userid' => $record->discussionuserid, 'firstpost' => $record->discussionfirstpost,
+    ];
+}
+
+// Check if the post is not cached yet.
+if (!isset($posts[$record->postid])) {
+    $posts[$record->postid] = (object) [ 'id' => $record->postid, 'message' => $record->postmessage,
+        'messageformat' => $record->postmessageformat, 'modified' => $record->postmodified,
+        'parent' => $record->postparent, 'userid' => $record->postuserid, 'reviewed' => $record->postreviewed,
+    ];
+}
+
+// Check if the author is not cached yet.
+if (!isset($authors[$record->authorid])) {
+    $authors[$record->authorid] = (object) [ 'id' => $record->authorid, 'firstname' => $record->authorfirstname,
+        'lastname' => $record->authorlastname, 'firstnamephonetic' => $record->authorfirstnamephonetic,
+        'lastnamephonetic' => $record->authorlastnamephonetic, 'middlename' => $record->authormiddlename,
+        'alternatename' => $record->authoralternatename, 'picture' => $record->authorpicture,
+        'imagealt' => $record->authorimagealt, 'email' => $record->authoremail,
+    ];
+}
+
+// Check if the recipient is not cached yet.
+if (!isset($recipients[$record->usertoid])) {
+    $recipients[$record->usertoid] = (object) [ 'id' => $record->usertoid, 'description' => $record->usertodescription,
+        'password' => $record->usertopassword, 'lang' => $record->usertolang, 'auth' => $record->usertoauth,
+        'suspended' => $record->usertosuspended, 'deleted' => $record->usertodeleted,
+        'emailstop' => $record->usertoemailstop,
+    ];
+
+    // Add capability caches to the recipient.
+    $recipients[$record->usertoid]->viewfullnames = [];
+    $recipients[$record->usertoid]->canpost = [];
+}

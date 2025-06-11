@@ -95,6 +95,7 @@ class mail_manager {
         // Retrieve posts that need to be send to users.
         mtrace("Fetching records");
         if (!$records = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
+            var_dump("No records found for mailing.");
             mtrace('No posts to be mailed.');
             return true;
         }
@@ -268,6 +269,7 @@ class mail_manager {
                                                                                     $smallmessage, $record->usertolang);
 
             // Finally: send the notification mail.
+            var_dump("Finally");
             $mailsent = message_send($emailmessage);
 
             // Check if an error occurred and mark the post as mailed_error.
@@ -432,36 +434,6 @@ class mail_manager {
     }
 
     /**
-     * Gets all posts and subscribed users to posts from the database
-     *
-     * @param int $starttime posts created after this time
-     * @param int $endtime posts created before this time
-     *
-     * @return array
-     */
-    public static function moodleoverflow_get_mail_data($starttime, $endtime): array {
-        global $DB;
-
-        // Set params for the sql query.
-        $params = [];
-        $params['ptimestart'] = $starttime;
-        $params['ptimeend'] = $endtime;
-
-        $pendingmail = self::MOODLEOVERFLOW_MAILED_PENDING;
-        $reviewsent = self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
-
-        // Retrieve the records.
-        $sql = "SELECT p.*, d.course, d.moodleoverflow
-            FROM {moodleoverflow_posts} p
-            JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-            WHERE p.mailed IN ($pendingmail, $reviewsent) AND p.reviewed = 1
-            AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
-            ORDER BY p.modified ASC";
-
-        return $DB->get_records_sql($sql, $params);
-    }
-
-    /**
      * Marks posts before a certain time as being mailed already.
      *
      * @param int $endtime
@@ -490,53 +462,4 @@ class mail_manager {
         return $DB->execute($sql, $params);
 
     }
-    /**
-     * Removes unnecessary information from the user records for the mail generation.
-     *
-     * @param stdClass $user
-     */
-    public static function moodleoverflow_minimise_user_record(stdClass $user) {
-        // Remove all information for the mail generation that are not needed.
-        unset($user->institution);
-        unset($user->department);
-        unset($user->address);
-        unset($user->city);
-        unset($user->url);
-        unset($user->currentlogin);
-        unset($user->description);
-        unset($user->descriptionformat);
-    }
-
-    /**
-     * Helper function for check_post(). Caches the a record exists in the database and caches the record if needed.
-     * @param string $table
-     * @param int $id
-     * @param array $cache
-     * @param string $errormessage
-     * @param array $posts
-     * @param int $postid
-     * @param bool $fillsubscache    If the subscription cache is being filled (only when checking discussion cache)
-     * @return bool
-     * @throws dml_exception
-     */
-    private static function cache_record($table, $id, &$cache, $errormessage, &$posts, $postid, $fillsubscache) {
-        global $DB;
-        // Check if cache if an record exists already in the cache.
-        if (!isset($cache[$id])) {
-            // If there is a record in the database, update the cache. Else ignore the post.
-            if ($record = $DB->get_record($table, ['id' => $id])) {
-                $cache[$id] = $record;
-                if ($fillsubscache) {
-                    subscriptions::fill_subscription_cache($record->moodleoverflow);
-                    subscriptions::fill_discussion_subscription_cache($record->moodleoverflow);
-                }
-            } else {
-                mtrace($errormessage . $id);
-                unset($posts[$postid]);
-                return false;
-            }
-        }
-        return true;
-    }
-
 }
