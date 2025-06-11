@@ -25,6 +25,7 @@
 namespace mod_moodleoverflow\task;
 
 use coding_exception;
+use Exception;
 use lang_string;
 use mod_moodleoverflow\manager\mail_manager;
 
@@ -43,7 +44,7 @@ class send_mails extends \core\task\scheduled_task {
      * @return lang_string|string
      * @throws coding_exception
      */
-    public function get_name() {
+    public function get_name(): lang_string|string {
         return get_string('tasksendmails', 'mod_moodleoverflow');
     }
 
@@ -52,8 +53,14 @@ class send_mails extends \core\task\scheduled_task {
      *
      * @return bool
      */
-    public function execute() {
-        mail_manager::moodleoverflow_send_mails();
+    public function execute(): bool {
+        try {
+            mail_manager::moodleoverflow_send_mails();
+        } catch (Exception $e) {
+            // Log the exception.
+            \core\notification::error(get_string('error_sending_mails', 'mod_moodleoverflow', $e->getMessage()));
+            return false;
+        }
         return true;
     }
 }

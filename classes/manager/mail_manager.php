@@ -30,9 +30,12 @@ use core\context\course;
 use core\cron;
 use core\message\message;
 use core_php_time_limit;
+use core_user;
+use dml_exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\subscriptions;
+use moodle_exception;
 use moodle_url;
 use renderer_base;
 use stdClass;
@@ -63,6 +66,16 @@ class mail_manager {
      */
     const MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS = 3;
 
+    /**
+     * This functions executes the task of sending a notification mail to users that are subscribed to a moodleoverflow.
+     * This function does the following:
+     * - Retrieve all posts that are unmailed and need to be send.
+     *
+     *
+     * @return bool
+     * @throws moodle_exception
+     * @throws dml_exception
+     */
     public static function moodleoverflow_send_mails(): bool {
         global $DB, $CFG, $PAGE;
 
@@ -88,426 +101,189 @@ class mail_manager {
 
         // Mark those posts as mailed.
         // TODO: Set 0 to $endtime as soon this function is ready for work.
-        if (!self::moodleoverflow_mark_old_posts_as_mailed(0)) {
+        if (!self::moodleoverflow_mark_old_posts_as_mailed( $endtime)) {
             mtrace('Errors occurred while trying to mark some posts as being mailed.');
             return false;
         }
 
         // Start processing the records.
 
-        // Build cache arrays. All caches are structured with id => object.
+        // Build cache arrays for most important objects. All caches are structured with id => object.
         $posts = [];
         $authors = [];
         $recipients = [];
-
-        // Build error cache that saves posts (with postid) that were not mailed correctly.
-        $errorcount = [];
+        $courses = [];
+        $moodleoverflows = [];
+        $discussions = [];
+        $coursemodules = [];
 
         mtrace("Records found, start processing");
+
         // Loop through each records.
         foreach ($records as $record) {
-            // TODO: Fill processing.
-            continue;
-        }
+            // Terminate if the process takes more time then two minutes.
+            core_php_time_limit::raise(120);
 
-
-        return true;
-    }
-    /**
-     * Sends mail notifications about new posts.
-     *
-     * @return bool
-     */
-    public static function moodleoverflow_send_mails_deprecated(): bool {
-        global $DB, $CFG, $PAGE;
-
-        // Get the course object of the top level site.
-        $site = get_site();
-
-        // Get the main renderers.
-        $htmlout = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
-        $textout = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
-
-        // Initiate the arrays that are saving the users that are subscribed to posts that needs sending.
-        $users = [];
-
-        // Status arrays.
-        $mailcount = [];
-        $errorcount = [];
-
-        // Cache arrays.
-        $discussions = [];
-        $moodleoverflows = [];
-        $courses = [];
-        $coursemodules = [];
-        $subscribedusers = [];
-
-        // Posts older than x days will not be mailed.
-        // This will avoid problems with the cron not beeing ran for a long time.
-        $timenow = time();
-        $endtime = $timenow - get_config('moodleoverflow', 'maxeditingtime');
-        $starttime = $endtime - (get_config('moodleoverflow', 'maxmailingtime') * 60 * 60);
-
-        // Retrieve all unmailed posts.
-        if (!$posts = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
-            mtrace('No posts to be mailed.');
-            return true;
-        }
-
-        // Mark those posts as mailed.
-        if (!self::moodleoverflow_mark_old_posts_as_mailed($endtime)) {
-            mtrace('Errors occurred while trying to mark some posts as being mailed.');
-            return false;
-        }
-
-        // Loop through all posts to be mailed.
-        foreach ($posts as $postid => $post) {
-
-            // Check the cache if the discussion exists.
-            $discussionid = $post->discussion;
-            $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
-            if (!self::cache_record('moodleoverflow_discussions', $discussionid, $discussions,
-                'Could not find discussion ', $posts, $postid, true)) {
+            // Check if the user that is subscribed to the post wants a resume instead of a notification mail.
+            if ($record->usertomaildigest != 0) {
+                // Process the record for the mail digest.
+                self::moodleoverflow_process_maildigest_record($record);
                 continue;
             }
 
-            // Retrieve the connected moodleoverflow instance from the database.
-            $moodleoverflowid = $discussions[$discussionid]->moodleoverflow;
-            if (!self::cache_record('moodleoverflow', $moodleoverflowid, $moodleoverflows,
-                'Could not find moodleoverflow ', $posts, $postid, false)) {
+            // Fill the caches with objects if needed.
+            // Add additional information that were not retrievable from the database to the objects if needed.
+            self::moodleoverflow_update_mail_caches($record, $coursemodules, $courses, $moodleoverflows,
+                $discussions, $posts, $authors, $recipients);
+
+            // Set up the user that receives the mail.
+            $CFG->branch >= 402 ? \core\cron::setup_user($recipients[$record->usertoid]) : cron_setup_user($recipients[$record->usertoid]);
+
+            // Check if the user can see the post.
+            if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
+                $posts[$record->postid], $coursemodules[$record->cmid])) {
+                mtrace('User ' . $record->usertoid . ' can not see ' . $record->postid . '. Not sending message.');
                 continue;
             }
 
-            // Retrieve the connected courses from the database.
-            $courseid = $moodleoverflows[$moodleoverflowid]->course;
-            if (!self::cache_record('course', $courseid, $courses,
-                'Could not find course ', $posts, $postid, false)) {
-                continue;
+            // Determine if the author should be anonymous.
+            $authoranonymous = match ($record->moodleoverflowanonymous) {
+                anonymous::NOT_ANONYMOUS => false,
+                anonymous::EVERYTHING_ANONYMOUS => true,
+                anonymous::QUESTION_ANONYMOUS => ($record->discussionuserid == $record->authorid)
+            };
+
+            // Set the userfrom variable, that is anonymous or the post author.
+            if ($authoranonymous) {
+                $userfrom = core_user::get_noreply_user();
+                $userfrom->anonymous = true;
+            } else {
+                $userfrom = clone($authors[$record->authorid]);
+                $userfrom->anonymous = false;
             }
 
-            // Retrieve the connected course modules from the database.
-            if (!isset($coursemodules[$moodleoverflowid])) {
-                // Retrieve the coursemodule and update the cache.
-                $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid, $courseid);
-                if ($cm) {
-                    $coursemodules[$moodleoverflowid] = $cm;
+            // Cache the recipients capabilities to view full names for the moodleoverflow instance.
+            if (!isset($recipients[$record->usertoid]->viewfullnames[$record->moodleoverflowid])) {
+                // Find the context module.
+                $modulecontext = context_module::instance($record->cmid);
+
+                // Check the users capabilities.
+                $recipients[$record->usertoid]->viewfullnames[$record->moodleoverflowid] =
+                    has_capability('moodle/site:viewfullnames', $modulecontext, $record->usertoid);
+            }
+
+            // Cache the recipients capability to post in the discussion.
+            if (!isset($recipients[$record->usertoid]->canpost[$record->discussionid])) {
+                // Find the context module.
+                $modulecontext = context_module::instance($record->cmid);
+
+                // Check the users capabilities.
+                $canreply = moodleoverflow_user_can_post($modulecontext, $posts[$record->postid], $record->usertoid);
+                $recipients[$record->usertoid]->canpost[$record->discussionid] = $canreply;
+            }
+
+            // Preparation complete. Ready to send message.
+            mtrace('Preparation complete. Build mail event');
+
+            // Build up content of the mail
+            $cleanname = str_replace('"', "'", strip_tags(format_string($record->moodleoverflowname)));
+            $shortname = format_string($record->courseshortname, true, ['context' => context_course::instance($record->courseid)]);
+
+            // Define a header to make mails easier to track.
+            $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $record->moodleoverflowid);
+            $userfrom->customheaders = [
+                'List-Id: "' . $cleanname . '" ' . $emailmessageid,
+                'List-Help: ' . $CFG->wwwroot . '/mod/moodleoverflow/view.php?m=' . $record->moodleoverflowid,
+                'Message-ID: ' . generate_email_messageid(hash('sha256', $record->postid . 'to' . $record->usertoid)),
+                'X-Course-Id: ' . $record->courseid,
+                'X-Course-Name: ' . format_string($record->coursefullname),
+                'Precedence: Bulk',
+                'X-Auto-Response-Suppress: All',
+                'Auto-Submitted: auto-generated',
+            ];
+
+            // Build the mail object.
+            $email = new moodleoverflow_email(
+                $courses[$record->courseid],
+                $coursemodules[$record->moodleoverflowid],
+                $moodleoverflows[$record->moodleoverflowid],
+                $discussions[$record->discussionid],
+                $posts[$record->postid],
+                $userfrom,
+                $recipients[$record->usertoid],
+                $recipients[$record->usertoid]->canpost[$record->discussionid]
+            );
+
+            // TODO: check if this is needed.
+            $email->viewfullnames = $recipients[$record->usertoid]->viewfullnames[$record->moodleoverflowid];
+
+            // The email object is build. Now build all data that is needed for the event that really send the mail.
+            $userfrom->customheader[] = sprintf('List-Unsubscribe: <%s>', $email->get_unsubscribediscussionlink());
+            if ($record->postparent != 0) {
+                $parentid = generate_email_messageid(hash('sha256', $record->postparent . 'to' . $record->usertoid));
+                $rootid = generate_email_messageid(hash('sha256', $record->discussionfirstpost . 'to' . $record->usertoid));
+                $userfrom->customheaders[] = "In-Reply-To: $parentid";
+
+                if ($record->postparent != $record->discussionfirstpost) {
+                    $userfrom->customheaders[] = "References: $rootid $parentid";
                 } else {
-                    mtrace('Could not find course module for moodleoverflow ' . $moodleoverflowid);
-                    unset($posts[$postid]);
-                    continue;
+                    $userfrom->customheaders[] = "References: $parentid";
                 }
             }
 
-            // Cache subscribed users of each moodleoverflow.
-            if (!isset($subscribedusers[$moodleoverflowid])) {
-                // Retrieve the context module.
-                $modulecontext = context_module::instance($coursemodules[$moodleoverflowid]->id);
+            // Build post subject for mail event.
+            $postsubject = (object) ['subject' => $email->get_subject(),  'moodleoverflowname' => $cleanname,
+                'sitefullname' => format_string($site->fullname), 'siteshortname' => format_string($site->shortname),
+                'courseidnumber' => $email->get_courseidnumber(), 'coursefullname' => $email->get_coursefullname(),
+                'courseshortname' => $email->get_coursename(),
+            ];
 
-                // Retrieve all subscribed users.
-                $mid = $moodleoverflows[$moodleoverflowid];
-                $subusers = \mod_moodleoverflow\subscriptions::get_subscribed_users($mid, $modulecontext, 'u.*', true);
-                if ($subusers) {
-                    // Loop through all subscribed users.
-                    foreach ($subusers as $postuser) {
-                        // Save the user into the cache.
-                        $subscribedusers[$moodleoverflowid][$postuser->id] = $postuser->id;
-                        self::moodleoverflow_minimise_user_record($postuser);
-                        $users[$postuser->id] = $postuser;
-                    }
+            // Build small message of the mail.
+            $smallmessage = (object) [
+                'user' => fullname($userfrom),
+                'moodleoverflowname' => "$shortname: " . format_string($record->moodleoverflowname) . ": "
+                                        . $record->discussionname,
+                'message' => $record->postmessage,
+            ];
 
-                    // Release the memory.
-                    unset($subusers);
-                    unset($postuser);
-                }
-            }
+            mtrace('Preparation complete. Sending mail to user ' . $record->usertoid . ' for post ' . $record->postid);
 
-            // Initiate the count of the mails send and errors.
-            $mailcount[$postid] = 0;
-            $errorcount[$postid] = 0;
-        }
+            // Create the message event.
+            $emailmessage = new message();
+            $emailmessage->courseid = $record->courseid;
+            $emailmessage->component = 'mod_moodleoverflow';
+            $emailmessage->name = 'posts';
+            $emailmessage->userfrom = $userfrom;
+            $emailmessage->userto = $recipients[$record->usertoid];
+            $emailmessage->subject = html_to_text(get_string('postmailsubject', 'moodleoverflow', $postsubject), 0);
+            $emailmessage->fullmessage = $textout->render($email);
+            $emailmessage->fullmessageformat = FORMAT_PLAIN;
+            $emailmessage->fullmessagehtml = $htmlout->render($email);
+            $emailmessage->notification = 1;
+            $emailmessage->contexturl = new moodle_url('/mod/moodleoverflow/discussion.php',
+                                                        ['d' => $record->discussionid], 'p' . $record->postid);
+            $emailmessage->contexturlname = $record->discussionname;
+            $emailmessage->smallmessage = get_string_manager()->get_string('smallmessage', 'moodleoverflow',
+                                                                                    $smallmessage, $record->usertolang);
 
-        // Send mails to the users with information about the posts.
-        if ($users && $posts) {
-            // Send one mail to every user.
-            foreach ($users as $userto) {
-                // Terminate if the process takes more time then two minutes.
-                core_php_time_limit::raise(120);
+            // Finally: send the notification mail.
+            $mailsent = message_send($emailmessage);
 
-                // Tracing information.
-                mtrace('Processing user ' . $userto->id);
-                // Initiate the user caches to save memory.
-                $userto = clone($userto);
-                $userto->viewfullnames = [];
-                $userto->canpost = [];
-                $userto->markposts = [];
-
-                // Cache the capabilities of the user.
-                // Check for moodle version. Version 401 supported until 8 December 2025.
-                $CFG->branch >= 402 ? \core\cron::setup_user($userto) : cron_setup_user($userto);
-
-                // Loop through all posts of this users.
-                foreach ($posts as $post) {
-
-                    // Initiate variables for the post.
-                    $discussion = $discussions[$post->discussion];
-                    $moodleoverflow = $moodleoverflows[$discussion->moodleoverflow];
-                    $course = $courses[$moodleoverflow->course];
-                    $cm             =& $coursemodules[$moodleoverflow->id];
-
-                    // Check if user wants a resume.
-                    // in this case: make a new dataset in "moodleoverflow_mail_info" to save the posts data.
-                    // Dataset from moodleoverflow_mail_info will be send later in a mail.
-                    $usermailsetting = $userto->maildigest;
-                    if ($usermailsetting != 0) {
-                        $dataobject = new stdClass();
-                        $dataobject->userid = $userto->id;
-                        $dataobject->courseid = $course->id;
-                        $dataobject->forumid = $moodleoverflow->id;
-                        $dataobject->forumdiscussionid = $discussion->id;
-                        $record = $DB->get_record('moodleoverflow_mail_info',
-                            ['userid' => $dataobject->userid,
-                                'courseid' => $dataobject->courseid,
-                                'forumid' => $dataobject->forumid,
-                                'forumdiscussionid' => $dataobject->forumdiscussionid, ],
-                            'numberofposts, id');
-                        if (is_object($record)) {
-                            $dataset = $record;
-                            $dataobject->numberofposts = $dataset->numberofposts + 1;
-                            $dataobject->id = $dataset->id;
-                            $DB->update_record('moodleoverflow_mail_info', $dataobject);
-                        } else {
-                            $dataobject->numberofposts = 1;
-                            $DB->insert_record('moodleoverflow_mail_info', $dataobject);
-                        }
-                        continue;
-                    }
-
-                    // Check whether the user is subscribed.
-                    if (!isset($subscribedusers[$moodleoverflow->id][$userto->id])) {
-                        continue;
-                    }
-
-                    // Check whether the user is subscribed to the discussion.
-                    $iscm = $coursemodules[$moodleoverflow->id];
-                    $uid = $userto->id;
-                    $did = $post->discussion;
-                    $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($uid, $moodleoverflow, $modulecontext, $did);
-                    if (!$issubscribed) {
-                        continue;
-                    }
-
-                    // Check whether the user unsubscribed to the discussion after it was created.
-                    $subnow = \mod_moodleoverflow\subscriptions::fetch_discussion_subscription($moodleoverflow->id, $userto->id);
-                    if ($subnow && isset($subnow[$post->discussion]) && ($subnow[$post->discussion] > $post->created)) {
-                        continue;
-                    }
-
-                    // Get and initiate the post author variable.
-                    if (anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
-                        $userfrom = \core_user::get_noreply_user();
-                        $userfrom->anonymous = true;
-                    } else {
-                        // Check whether the sending user is cached already.
-                        if (array_key_exists($post->userid, $users)) {
-                            $userfrom = $users[$post->userid];
-                            $userfrom->anonymous = false;
-                        } else {
-                            // We dont know the the user yet.
-
-                            // Retrieve the user from the database.
-                            $userfrom = $DB->get_record('user', ['id' => $post->userid]);
-                            if ($userfrom) {
-                                self::moodleoverflow_minimise_user_record($userfrom);
-                                $userfrom->anonymous = false;
-                            } else {
-                                $uid = $post->userid;
-                                $pid = $post->id;
-                                mtrace('Could not find user ' . $uid . ', author of post ' . $pid . '. Unable to send message.');
-                                continue;
-                            }
-                        }
-                    }
-
-                    // Setup roles and languages.
-                    // Check for moodle version. Version 401 supported until 8 December 2025.
-                    $CFG->branch >= 402 ? \core\cron::setup_user($userto, $course) : cron_setup_user($userto, $course);
-
-                    // Cache the users capability to view full names.
-                    if (!isset($userto->viewfullnames[$moodleoverflow->id])) {
-
-                        // Find the context module.
-                        $modulecontext = context_module::instance($cm->id);
-
-                        // Check the users capabilities.
-                        $userto->viewfullnames[$moodleoverflow->id] = has_capability('moodle/site:viewfullnames', $modulecontext);
-                    }
-
-                    // Cache the users capability to post in the discussion.
-                    if (!isset($userto->canpost[$discussion->id])) {
-
-                        // Find the context module.
-                        $modulecontext = context_module::instance($cm->id);
-
-                        // Check the users capabilities.
-                        $canpost = moodleoverflow_user_can_post($modulecontext, $post, $userto->id);
-                        $userto->canpost[$discussion->id] = $canpost;
-                    }
-
-                    // Make sure the current user is allowed to see the post.
-                    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
-                        mtrace('User ' . $userto->id . ' can not see ' . $post->id . '. Not sending message.');
-                        continue;
-                    }
-
-                    // Sent the email.
-
-                    // Preapare to actually send the post now. Build up the content.
-                    $cleanname = str_replace('"', "'", strip_tags(format_string($moodleoverflow->name)));
-                    $coursecontext = context_course::instance($course->id);
-                    $shortname = format_string($course->shortname, true, ['context' => $coursecontext]);
-
-                    // Define a header to make mails easier to track.
-                    $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $moodleoverflow->id);
-                    $userfrom->customheaders = [
-                        'List-Id: "' . $cleanname . '" ' . $emailmessageid,
-                        'List-Help: ' . $CFG->wwwroot . '/mod/moodleoverflow/view.php?m=' . $moodleoverflow->id,
-                        'Message-ID: ' . generate_email_messageid(hash('sha256', $post->id . 'to' . $userto->id)),
-                        'X-Course-Id: ' . $course->id,
-                        'X-Course-Name: ' . format_string($course->fullname, true),
-
-                        // Headers to help prevent auto-responders.
-                        'Precedence: Bulk',
-                        'X-Auto-Response-Suppress: All',
-                        'Auto-Submitted: auto-generated',
-                    ];
-
-                    // Cache the users capabilities.
-                    if (!isset($userto->canpost[$discussion->id])) {
-                        $canreply = moodleoverflow_user_can_post($modulecontext, $post, $userto->id);
-                    } else {
-                        $canreply = $userto->canpost[$discussion->id];
-                    }
-
-                    // Format the data.
-                    $data = new moodleoverflow_email(
-                        $course,
-                        $cm,
-                        $moodleoverflow,
-                        $discussion,
-                        $post,
-                        $userfrom,
-                        $userto,
-                        $canreply
-                    );
-
-                    // Retrieve the unsubscribe-link.
-                    $userfrom->customheaders[] = sprintf('List-Unsubscribe: <%s>', $data->get_unsubscribediscussionlink());
-
-                    // Check the capabilities to view full names.
-                    if (!isset($userto->viewfullnames[$moodleoverflow->id])) {
-                        $data->viewfullnames = has_capability('moodle/site:viewfullnames', $modulecontext, $userto->id);
-                    } else {
-                        $data->viewfullnames = $userto->viewfullnames[$moodleoverflow->id];
-                    }
-
-                    // Retrieve needed variables for the mail.
-                    $var = new \stdClass();
-                    $var->subject = $data->get_subject();
-                    $var->moodleoverflowname = $cleanname;
-                    $var->sitefullname = format_string($site->fullname);
-                    $var->siteshortname = format_string($site->shortname);
-                    $var->courseidnumber = $data->get_courseidnumber();
-                    $var->coursefullname = $data->get_coursefullname();
-                    $var->courseshortname = $data->get_coursename();
-                    $postsubject = html_to_text(get_string('postmailsubject', 'moodleoverflow', $var), 0);
-                    $rootid = generate_email_messageid(hash('sha256', $discussion->firstpost . 'to' . $userto->id));
-
-                    // Check whether the post is a reply.
-                    if ($post->parent) {
-
-                        // Add a reply header.
-                        $parentid = generate_email_messageid(hash('sha256', $post->parent . 'to' . $userto->id));
-                        $userfrom->customheaders[] = "In-Reply-To: $parentid";
-
-                        // Comments need a reference to the starting post as well.
-                        if ($post->parent != $discussion->firstpost) {
-                            $userfrom->customheaders[] = "References: $rootid $parentid";
-                        } else {
-                            $userfrom->customheaders[] = "References: $parentid";
-                        }
-                    }
-
-                    // Send the post now.
-                    mtrace('Sending ', '');
-
-                    // Create the message event.
-                    $eventdata = new message();
-                    $eventdata->courseid = $course->id;
-                    $eventdata->component = 'mod_moodleoverflow';
-                    $eventdata->name = 'posts';
-                    $eventdata->userfrom = $userfrom;
-                    $eventdata->userto = $userto;
-                    $eventdata->subject = $postsubject;
-                    $eventdata->fullmessage = $textout->render($data);
-                    $eventdata->fullmessageformat = FORMAT_PLAIN;
-                    $eventdata->fullmessagehtml = $htmlout->render($data);
-                    $eventdata->notification = 1;
-
-                    // Initiate another message array.
-                    $small = new \stdClass();
-                    $small->user = fullname($userfrom);
-                    $formatedstring = format_string($moodleoverflow->name, true);
-                    $small->moodleoverflowname = "$shortname: " . $formatedstring . ": " . $discussion->name;
-                    $small->message = $post->message;
-
-                    // Make sure the language is correct.
-                    $usertol = $userto->lang;
-                    $eventdata->smallmessage = get_string_manager()->get_string('smallmessage', 'moodleoverflow', $small, $usertol);
-
-                    // Generate the url to view the post.
-                    $url = '/mod/moodleoverflow/discussion.php';
-                    $params = ['d' => $discussion->id];
-                    $contexturl = new moodle_url($url, $params, 'p' . $post->id);
-                    $eventdata->contexturl = $contexturl->out();
-                    $eventdata->contexturlname = $discussion->name;
-
-                    // Actually send the message.
-                    $mailsent = message_send($eventdata);
-
-                    // Check whether the sending failed.
-                    if (!$mailsent) {
-                        mtrace('Error: mod/moodleoverflow/classes/task/send_mail.php execute(): ' .
-                            "Could not send out mail for id $post->id to user $userto->id ($userto->email) .. not trying again.");
-                        $errorcount[$post->id]++;
-                    } else {
-                        $mailcount[$post->id]++;
-                    }
-
-                    // Tracing message.
-                    mtrace('post ' . $post->id . ': ' . $discussion->name);
-                }
-
-                // Release the memory.
-                unset($userto);
+            // Check if an error occurred and mark the post as mailed_error.
+            if (!$mailsent) {
+                mtrace('Error: mod/moodleoverflow/classes/manager/mail_manager.php moodleoverflow_send_mails(): ' .
+                    'Could not send out mail for id $record->postid to user $record->usertoid ($record->usertoemail).' .
+                    ' ... not trying again.');
+                $DB->set_field('moodleoverflow_posts', 'mailed', MOODLEOVERFLOW_MAILED_ERROR, ['id' => $record->postid]);
+            } else {
+                mtrace('Mail sent successfully for post ' . $record->postid . ' to user ' . $record->usertoid);
             }
         }
 
-        // Check for all posts whether errors occurred.
-        if ($posts) {
-            // Loop through all posts.
-            foreach ($posts as $post) {
-                // Tracing information.
-                mtrace($mailcount[$post->id] . " users were sent post $post->id, '$discussion->name'");
-                // Mark the posts with errors in the database.
-                if ($errorcount[$post->id]) {
-                    $DB->set_field('moodleoverflow_posts', 'mailed', MOODLEOVERFLOW_MAILED_ERROR, ['id' => $post->id]);
-                }
-            }
-        }
-
-        // The task was completed.
+        // The task is completed.
         return true;
     }
+
 
     /**
      * Return a list of records that will be mailed. One record has all the information that is needed. This includes:
@@ -519,17 +295,19 @@ class mail_manager {
      * many posts. Because all data is in one table, every record represents one mail.
      *
      * @param int $starttime posts created after this time
-     * @param int $endtime   posts created before this time
+     * @param int $endtime posts created before this time
      *
      * @return array
+     * @throws dml_exception
      */
-    public static function moodleoverflow_get_unmailed_posts($starttime, $endtime) {
+    public static function moodleoverflow_get_unmailed_posts($starttime, $endtime): array {
         global $DB;
 
         // Define fields that will be get from the database.
         $postfields = "p.id AS postid, p.message AS postmessage, p.messageformat as postmessageformat, p.modified as postmodified,
                        p.parent AS postparent, p.userid AS postuserid, p.reviewed AS postreviewed";
-        $discussionfields = "d.id AS discussionid, d.name AS discussionname, d.userid AS discussionuserid";
+        $discussionfields = "d.id AS discussionid, d.name AS discussionname, d.userid AS discussionuserid,
+                             d.firstpost AS discussionfirstpost";
         $moodleoverflowfields = "mo.id AS moodleoverflowid, mo.name AS moodleoverflowname, mo.anonymous AS moodleoverflowanonymous,
                                  mo.forcesubscribe AS moodleoverflowforcesubscribe";
         $coursefields = "c.id AS courseid, c.idnumber AS courseidnumber, c.fullname AS coursefullname,
@@ -539,9 +317,9 @@ class mail_manager {
                          author.firstnamephonetic AS authorfirstnamephonetic, author.lastnamephonetic AS authorlastnamephonetic,
                          author.middlename AS authormiddlename, author.alternatename AS authoralternatename,
                          author.picture AS authorpicture, author.imagealt AS authorimagealt, author.email AS authoremail";
-        $usertofields = "userto.id AS usertoid, userto.description AS usertodescription, userto.password AS usertopassword,
-                         userto.lang AS usertolang, userto.auth AS usertoauth, userto.suspended AS usertosuspended,
-                         userto.deleted AS usertodeleted, userto.emailstop AS usertoemailstop";
+        $usertofields = "userto.id AS usertoid, userto.maildigest AS usertomaildigest, userto.description AS usertodescription,
+                         userto.password AS usertopassword, userto.lang AS usertolang, userto.auth AS usertoauth,
+                         userto.suspended AS usertosuspended, userto.deleted AS usertodeleted, userto.emailstop AS usertoemailstop";
 
         $fields = "(ROW_NUMBER() OVER (ORDER BY p.modified)) AS row_num, " . $postfields . ", " . $discussionfields . ", "
                     . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields . ", " . $authorfields . ", " . $usertofields;
@@ -555,7 +333,7 @@ class mail_manager {
         $params['ptimeend'] = $endtime;
 
         // Retrieve the records.
-        $sql = "SELECT $fields 
+        $sql = "SELECT $fields
                 FROM {moodleoverflow_posts} p
                 JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
                 JOIN {moodleoverflow} mo ON mo.id = d.moodleoverflow
@@ -590,6 +368,66 @@ class mail_manager {
         return $DB->get_records_sql($sql, $params);
     }
 
+    /**
+     * Fills and updates cache arrays with data from a record object.
+     *
+     * This function checks if specific data (course modules, courses, moodleoverflows, discussions, posts, authors, recipients)
+     * is already cached. If not, it creates an object with the relevant data from the provided record and stores it in the cache.
+     *
+     * @param object $record            The record containing data to be cached.
+     * @param array &$coursemodules     Cache for course module data, indexed by course module ID.
+     * @param array &$courses           Cache for course data, indexed by course ID.
+     * @param array &$moodleoverflows   Cache for moodleoverflow data, indexed by moodleoverflow ID.
+     * @param array &$discussions       Cache for discussion data, indexed by discussion ID.
+     * @param array &$posts             Cache for post data, indexed by post ID.
+     * @param array &$authors           Cache for author data, indexed by author ID.
+     * @param array &$recipients        Cache for recipient data, indexed by recipient ID.
+     * @return void
+     */
+    public static function moodleoverflow_update_mail_caches(object $record, array &$coursemodules, array &$courses, array &$moodleoverflows,
+                                                             array  &$discussions, array &$posts, array &$authors, array &$recipients ): void {
+        // TODO: Check this simplified version
+        // Define cache types and their corresponding record properties.
+        $cachetypes = [
+            'coursemodules' => ['id' => 'cmid', 'groupingid' => 'cmgroupingid'],
+            'courses' => ['id' => 'courseid', 'idnumber' => 'courseidnumber', 'fullname' => 'coursefullname',
+                          'shortname' => 'courseshortname'],
+            'moodleoverflows' => ['id' => 'moodleoverflowid', 'name' => 'moodleoverflowname',
+                                  'anonymous' => 'moodleoverflowanonymous', 'forcesubscribe' => 'moodleoverflowforcesubscribe'],
+            'discussions' => ['id' => 'discussionid', 'name' => 'discussionname', 'userid' => 'discussionuserid',
+                              'firstpost' => 'discussionfirstpost'],
+            'posts' => ['id' => 'postid', 'message' => 'postmessage', 'messageformat' => 'postmessageformat',
+                        'modified' => 'postmodified', 'parent' => 'postparent', 'userid' => 'postuserid',
+                        'reviewed' => 'postreviewed'],
+            'authors' => ['id' => 'authorid', 'firstname' => 'authorfirstname', 'lastname' => 'authorlastname',
+                          'firstnamephonetic' => 'authorfirstnamephonetic', 'lastnamephonetic' => 'authorlastnamephonetic',
+                          'middlename' => 'authormiddlename', 'alternatename' => 'authoralternatename',
+                          'picture' => 'authorpicture', 'imagealt' => 'authorimagealt', 'email' => 'authoremail'],
+            'recipients' => ['id' => 'usertoid', 'description' => 'usertodescription', 'password' => 'usertopassword',
+                             'lang' => 'usertolang', 'auth' => 'usertoauth', 'suspended' => 'usertosuspended',
+                             'deleted' => 'usertodeleted', 'emailstop' => 'usertoemailstop', 'viewfullnames' => [],
+                             'canpost' => []],
+        ];
+
+        // Iterate over cache types and update caches if not already set.
+        foreach ($cachetypes as $cachename => $properties) {
+            $cachekey = $record->{$properties['id']};
+            if (!isset(${$cachename}[$cachekey])) {
+                ${$cachename}[$cachekey] = (object) array_map(fn($prop) => $record->{$prop}, $properties);
+            }
+        }
+    }
+
+    /**
+     * Function that processes a record from self::moodleoverflow_get_unmailed_posts() if the user that gets the mail wants a
+     * resume instead of a mail for every post.
+     *
+     * @param $record object Record from self::moodleoverflow_get_unmailed_posts()
+     * @return void
+     */
+    public static function moodleoverflow_process_maildigest_record($record) {
+
+    }
     /**
      * Gets all posts and subscribed users to posts from the database
      *
@@ -676,7 +514,7 @@ class mail_manager {
      * @param int $postid
      * @param bool $fillsubscache    If the subscription cache is being filled (only when checking discussion cache)
      * @return bool
-     * @throws \dml_exception
+     * @throws dml_exception
      */
     private static function cache_record($table, $id, &$cache, $errormessage, &$posts, $postid, $fillsubscache) {
         global $DB;

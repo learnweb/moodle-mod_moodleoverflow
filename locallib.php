@@ -903,7 +903,7 @@ function moodleoverflow_go_back_to($default) {
 /**
  * Checks whether the user can reply to posts in a discussion.
  *
- * @param object $modulecontext
+ * @param context $modulecontext
  * @param object $posttoreplyto
  * @param bool $considerreviewstatus
  * @param int $userid
