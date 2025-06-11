@@ -137,7 +137,8 @@ class mail_manager {
                 $discussions, $posts, $authors, $recipients);
 
             // Set up the user that receives the mail.
-            $CFG->branch >= 402 ? \core\cron::setup_user($recipients[$record->usertoid]) : cron_setup_user($recipients[$record->usertoid]);
+            $CFG->branch >= 402 ? \core\cron::setup_user($recipients[$record->usertoid]) :
+                                  cron_setup_user($recipients[$record->usertoid]);
 
             // Check if the user can see the post.
             if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
@@ -185,7 +186,7 @@ class mail_manager {
             // Preparation complete. Ready to send message.
             mtrace('Preparation complete. Build mail event');
 
-            // Build up content of the mail
+            // Build up content of the mail.
             $cleanname = str_replace('"', "'", strip_tags(format_string($record->moodleoverflowname)));
             $shortname = format_string($record->courseshortname, true, ['context' => context_course::instance($record->courseid)]);
 
@@ -370,7 +371,6 @@ class mail_manager {
 
     /**
      * Fills and updates cache arrays with data from a record object.
-     *
      * This function checks if specific data (course modules, courses, moodleoverflows, discussions, posts, authors, recipients)
      * is already cached. If not, it creates an object with the relevant data from the provided record and stores it in the cache.
      *
@@ -382,11 +382,13 @@ class mail_manager {
      * @param array &$posts             Cache for post data, indexed by post ID.
      * @param array &$authors           Cache for author data, indexed by author ID.
      * @param array &$recipients        Cache for recipient data, indexed by recipient ID.
+     *
      * @return void
      */
-    public static function moodleoverflow_update_mail_caches(object $record, array &$coursemodules, array &$courses, array &$moodleoverflows,
-                                                             array  &$discussions, array &$posts, array &$authors, array &$recipients ): void {
-        // TODO: Check this simplified version
+    public static function moodleoverflow_update_mail_caches(object $record, array &$coursemodules, array &$courses,
+                                                             array &$moodleoverflows, array  &$discussions, array &$posts,
+                                                             array &$authors, array &$recipients ): void {
+        // TODO: Check this simplified version.
         // Define cache types and their corresponding record properties.
         $cachetypes = [
             'coursemodules' => ['id' => 'cmid', 'groupingid' => 'cmgroupingid'],
@@ -428,6 +430,7 @@ class mail_manager {
     public static function moodleoverflow_process_maildigest_record($record) {
 
     }
+
     /**
      * Gets all posts and subscribed users to posts from the database
      *
