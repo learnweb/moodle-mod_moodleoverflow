@@ -102,7 +102,7 @@ class mail_manager {
 
         // Mark those posts as mailed.
         // TODO: Set 0 to $endtime as soon this function is ready for work.
-        if (!self::moodleoverflow_mark_old_posts_as_mailed( $endtime)) {
+        if (!self::moodleoverflow_mark_old_posts_as_mailed($endtime)) {
             mtrace('Errors occurred while trying to mark some posts as being mailed.');
             return false;
         }
@@ -117,7 +117,7 @@ class mail_manager {
         $discussions = [];
         $coursemodules = [];
 
-        mtrace("Records found, start processing");
+        mtrace("Records found, start processing"); // Until here everything is okay.
 
         // Loop through each records.
         foreach ($records as $record) {
@@ -361,18 +361,6 @@ class mail_manager {
                 AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
                 AND author.id <> userto.id";
 
-        $sql2= " SELECT userid, moodleoverflow, -1 as discussion
-                  FROM {moodleoverflow_subscriptions} s
-                  UNION
-                  SELECT userid, moodleoverflow, discussion
-                  FROM {moodleoverflow_discuss_subs} ds
-                  WHERE ds.preference <> -1";
-
-        //var_export($DB->get_records_sql($sql2));
-        var_export($DB->get_records('moodleoverflow'));
-        var_export($DB->get_records('moodleoverflow_posts'));
-        var_export($DB->get_records('moodleoverflow_subscriptions'));
-        var_export($DB->get_records('moodleoverflow_discuss_subs'));
         return $DB->get_records_sql($sql, $params);
     }
 

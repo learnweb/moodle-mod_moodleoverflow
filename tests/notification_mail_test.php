@@ -117,9 +117,9 @@ final class notification_mail_test extends \advanced_testcase {
 
         // TODO: THIS need to be done with the plugin generator, only temporary solution
         // subscribe users to moodleoverflow
-        $DB->insert_record('mooodleoverflow_subscriptions', ['userid' => $this->testdata->teacher->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
-        $DB->insert_record('mooodleoverflow_subscriptions', ['userid' => $this->testdata->student1->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
-        $DB->insert_record('mooodleoverflow_subscriptions', ['userid' => $this->testdata->student2->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
+        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->teacher->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
+        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->student1->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
+        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->student2->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
     }
 
 }
