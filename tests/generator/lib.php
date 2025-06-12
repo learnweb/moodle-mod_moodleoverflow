@@ -85,20 +85,12 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $record->timemodified = time();
         }
         if (!isset($record->forcesubscribe)) {
+            // TODO: fill the subscription table if forcesubscribe is on.
             $record->forcesubscribe = MOODLEOVERFLOW_CHOOSESUBSCRIBE;
         }
 
         return parent::create_instance($record, (array) $options);
     }
-
-    /**
-     * Creates a moodleoverflow discussion.
-     *
-     * @param null $record
-     *
-     * @return bool|int
-     * @throws coding_exception
-     */
 
     /**
      * Creates a moodleoverflow discussion.

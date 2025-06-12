@@ -94,8 +94,8 @@ class mail_manager {
 
         // Retrieve posts that need to be send to users.
         mtrace("Fetching records");
-        if (!$records = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
-            var_dump("No records found for mailing.");
+        // TODO: change this to $starttime and $endtime when this is ready for production.
+        if (!$records = self::moodleoverflow_get_unmailed_posts(0, 9999999999)) {
             mtrace('No posts to be mailed.');
             return true;
         }
@@ -108,7 +108,6 @@ class mail_manager {
         }
 
         // Start processing the records.
-
         // Build cache arrays for most important objects. All caches are structured with id => object.
         $posts = [];
         $authors = [];
@@ -138,8 +137,7 @@ class mail_manager {
                 $discussions, $posts, $authors, $recipients);
 
             // Set up the user that receives the mail.
-            $CFG->branch >= 402 ? \core\cron::setup_user($recipients[$record->usertoid]) :
-                                  cron_setup_user($recipients[$record->usertoid]);
+            $CFG->branch >= 402 ? cron::setup_user($recipients[$record->usertoid]): cron_setup_user($recipients[$record->usertoid]);
 
             // Check if the user can see the post.
             if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
@@ -156,13 +154,8 @@ class mail_manager {
             };
 
             // Set the userfrom variable, that is anonymous or the post author.
-            if ($authoranonymous) {
-                $userfrom = core_user::get_noreply_user();
-                $userfrom->anonymous = true;
-            } else {
-                $userfrom = clone($authors[$record->authorid]);
-                $userfrom->anonymous = false;
-            }
+            $authoranonymous ? $userfrom = core_user::get_noreply_user(): $userfrom = clone($authors[$record->authorid]);
+            $userfrom->anonymous = $authoranonymous;
 
             // Cache the recipients capabilities to view full names for the moodleoverflow instance.
             if (!isset($recipients[$record->usertoid]->viewfullnames[$record->moodleoverflowid])) {
@@ -368,6 +361,18 @@ class mail_manager {
                 AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
                 AND author.id <> userto.id";
 
+        $sql2= " SELECT userid, moodleoverflow, -1 as discussion
+                  FROM {moodleoverflow_subscriptions} s
+                  UNION
+                  SELECT userid, moodleoverflow, discussion
+                  FROM {moodleoverflow_discuss_subs} ds
+                  WHERE ds.preference <> -1";
+
+        //var_export($DB->get_records_sql($sql2));
+        var_export($DB->get_records('moodleoverflow'));
+        var_export($DB->get_records('moodleoverflow_posts'));
+        var_export($DB->get_records('moodleoverflow_subscriptions'));
+        var_export($DB->get_records('moodleoverflow_discuss_subs'));
         return $DB->get_records_sql($sql, $params);
     }
 

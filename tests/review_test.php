@@ -24,6 +24,7 @@
 
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\task\send_review_mails;
 
 defined('MOODLE_INTERNAL') || die();
