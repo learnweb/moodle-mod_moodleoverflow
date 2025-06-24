@@ -1,18 +1,4 @@
 {
-<<<<<<< Updated upstream
-  "main-moodle": "MOODLE_500_STABLE",
-  "main-php": "8.3",
-  "main-db": "pgsql",
-  "dbs": ["pgsql", "mariadb"],
-  "moodle-php": {
-    "MOODLE_401_STABLE": ["8.0", "8.1"],
-    "MOODLE_404_STABLE": ["8.1", "8.2", "8.3"],
-    "MOODLE_405_STABLE": ["8.1", "8.2", "8.3"],
-    "MOODLE_500_STABLE": ["8.2", "8.3", "8.4"]
-  },
-  "moodle-plugin-ci": "4.5.7"
-}
-=======
   "moodle-plugin-ci": "4.5.7",
   "main-moodle": "MOODLE_500_STABLE",
   "main-php": "8.3",
@@ -34,4 +20,3 @@
     }
   }
 }
->>>>>>> Stashed changes
