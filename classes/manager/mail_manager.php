@@ -137,7 +137,7 @@ class mail_manager {
                 $discussions, $posts, $authors, $recipients);
 
             // Set up the user that receives the mail.
-            $CFG->branch >= 402 ? cron::setup_user($recipients[$record->usertoid]): cron_setup_user($recipients[$record->usertoid]);
+            $CFG->branch >= 402 ? cron::setup_user($recipients[$record->usertoid]) : cron_setup_user($recipients[$record->usertoid]);
 
             // Check if the user can see the post.
             if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
@@ -147,14 +147,14 @@ class mail_manager {
             }
 
             // Determine if the author should be anonymous.
-            $authoranonymous = match ($record->moodleoverflowanonymous) {
+            $authoranonymous = match ((int)$record->moodleoverflowanonymous) {
                 anonymous::NOT_ANONYMOUS => false,
                 anonymous::EVERYTHING_ANONYMOUS => true,
                 anonymous::QUESTION_ANONYMOUS => ($record->discussionuserid == $record->authorid)
             };
 
             // Set the userfrom variable, that is anonymous or the post author.
-            $authoranonymous ? $userfrom = core_user::get_noreply_user(): $userfrom = clone($authors[$record->authorid]);
+            $authoranonymous ? $userfrom = core_user::get_noreply_user() : $userfrom = clone($authors[$record->authorid]);
             $userfrom->anonymous = $authoranonymous;
 
             // Cache the recipients capabilities to view full names for the moodleoverflow instance.
@@ -200,7 +200,7 @@ class mail_manager {
             // Build the mail object.
             $email = new moodleoverflow_email(
                 $courses[$record->courseid],
-                $coursemodules[$record->moodleoverflowid],
+                $coursemodules[$record->cmid],
                 $moodleoverflows[$record->moodleoverflowid],
                 $discussions[$record->discussionid],
                 $posts[$record->postid],
@@ -262,13 +262,11 @@ class mail_manager {
                                                                                     $smallmessage, $record->usertolang);
 
             // Finally: send the notification mail.
-            var_dump("Finally");
             $mailsent = message_send($emailmessage);
-
             // Check if an error occurred and mark the post as mailed_error.
             if (!$mailsent) {
                 mtrace('Error: mod/moodleoverflow/classes/manager/mail_manager.php moodleoverflow_send_mails(): ' .
-                    'Could not send out mail for id $record->postid to user $record->usertoid ($record->usertoemail).' .
+                     'Could not send out mail for id $record->postid to user $record->usertoid ($record->usertoemail).' .
                     ' ... not trying again.');
                 $DB->set_field('moodleoverflow_posts', 'mailed', MOODLEOVERFLOW_MAILED_ERROR, ['id' => $record->postid]);
             } else {
@@ -299,7 +297,7 @@ class mail_manager {
     public static function moodleoverflow_get_unmailed_posts($starttime, $endtime): array {
         global $DB;
 
-        // Define fields that will be get from the database.
+        // Define fields that will be retrieved from the database.
         $postfields = "p.id AS postid, p.message AS postmessage, p.messageformat as postmessageformat, p.modified as postmodified,
                        p.parent AS postparent, p.userid AS postuserid, p.reviewed AS postreviewed";
         $discussionfields = "d.id AS discussionid, d.name AS discussionname, d.userid AS discussionuserid,
@@ -315,7 +313,8 @@ class mail_manager {
                          author.picture AS authorpicture, author.imagealt AS authorimagealt, author.email AS authoremail";
         $usertofields = "userto.id AS usertoid, userto.maildigest AS usertomaildigest, userto.description AS usertodescription,
                          userto.password AS usertopassword, userto.lang AS usertolang, userto.auth AS usertoauth,
-                         userto.suspended AS usertosuspended, userto.deleted AS usertodeleted, userto.emailstop AS usertoemailstop";
+                         userto.suspended AS usertosuspended, userto.deleted AS usertodeleted, userto.emailstop AS usertoemailstop,
+                         userto.email AS usertoemail, userto.username AS usertousername";
 
         $fields = "(ROW_NUMBER() OVER (ORDER BY p.modified)) AS row_num, " . $postfields . ", " . $discussionfields . ", "
                     . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields . ", " . $authorfields . ", " . $usertofields;
@@ -402,15 +401,24 @@ class mail_manager {
                           'picture' => 'authorpicture', 'imagealt' => 'authorimagealt', 'email' => 'authoremail'],
             'recipients' => ['id' => 'usertoid', 'description' => 'usertodescription', 'password' => 'usertopassword',
                              'lang' => 'usertolang', 'auth' => 'usertoauth', 'suspended' => 'usertosuspended',
-                             'deleted' => 'usertodeleted', 'emailstop' => 'usertoemailstop', 'viewfullnames' => [],
-                             'canpost' => []],
+                             'deleted' => 'usertodeleted', 'emailstop' => 'usertoemailstop', 'email' => 'usertoemail',
+                             'username' => 'usertousername'],
         ];
 
         // Iterate over cache types and update caches if not already set.
         foreach ($cachetypes as $cachename => $properties) {
             $cachekey = $record->{$properties['id']};
             if (!isset(${$cachename}[$cachekey])) {
-                ${$cachename}[$cachekey] = (object) array_map(fn($prop) => $record->{$prop}, $properties);
+                $obj = new stdClass();
+                foreach ($properties as $propname => $recordkey) {
+                    $obj->$propname = $record->$recordkey;
+                }
+                // Only for recipients, add empty arrays for viewfullnames and canpost.
+                if ($cachename === 'recipients') {
+                    $obj->viewfullnames = [];
+                    $obj->canpost = [];
+                }
+                ${$cachename}[$cachekey] = $obj;
             }
         }
     }

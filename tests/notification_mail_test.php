@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace block_townsquare;
+namespace mod_moodleoverflow;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -23,6 +23,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\subscriptions;
+use PHPUnit\Exception;
 use stdClass;
 
 /**
@@ -40,8 +41,8 @@ use stdClass;
  * @copyright 2025 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
- * @covers \mod_moodleoverflow\manager\mail_manager::moodleoverflow_send_mails
  */
+#[CoversClass(mail_manager::class)]
 final class notification_mail_test extends \advanced_testcase {
 
     // Attributes.
@@ -75,8 +76,12 @@ final class notification_mail_test extends \advanced_testcase {
      */
     public function test_sortorder(): void {
         global $DB;
-        //var_export($DB->get_records('moodleoverflow_posts'));
-        mail_manager::moodleoverflow_send_mails();
+        try {
+            $result = mail_manager::moodleoverflow_send_mails();
+        } catch (\dml_exception | \moodle_exception $e) {
+            $this->fail('Exception thrown during mail sending: ' . $e->getMessage());
+        }
+        $this->assertTrue($result);
     }
 
     // Helper functions.
@@ -115,11 +120,14 @@ final class notification_mail_test extends \advanced_testcase {
         $this->testdata->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->testdata->moodleoverflow->id);
         $this->testdata->discussion = $plugingenerator->post_to_forum($this->testdata->moodleoverflow, $this->testdata->teacher);
 
-        // TODO: THIS need to be done with the plugin generator, only temporary solution
-        // subscribe users to moodleoverflow
-        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->teacher->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
-        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->student1->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
-        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->student2->id, 'moodleoverflow' => $this->testdata->moodleoverflow->id]);
+        // TODO: THIS need to be done with the plugin generator, only temporary solution.
+        // Subscribe users to moodleoverflow.
+        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->teacher->id,
+            'moodleoverflow' => $this->testdata->moodleoverflow->id, ]);
+        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->student1->id,
+            'moodleoverflow' => $this->testdata->moodleoverflow->id, ]);
+        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->student2->id,
+            'moodleoverflow' => $this->testdata->moodleoverflow->id, ]);
     }
 
 }

@@ -25,6 +25,7 @@
 namespace mod_moodleoverflow\output;
 
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\subscriptions;
 
 /**
  * Moodleoverflow email renderable for use in e-mail.
@@ -251,8 +252,7 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_unsubscribediscussionlink() {
 
         // Check whether the moodleoverflow is subscribable.
-        $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow,
-                \context_module::instance($this->cm->id));
+        $subscribable = subscriptions::is_subscribable($this->moodleoverflow, \context_module::instance($this->cm->id));
         if (!$subscribable) {
             return null;
         }
@@ -432,7 +432,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_unsubscribemoodleoverflowlink() {
-        if (!\mod_moodleoverflow\subscriptions::is_subscribable($this->moodleoverflow,
+        if (!subscriptions::is_subscribable($this->moodleoverflow,
                 \context_module::instance($this->cm->id))) {
             return null;
         }
