@@ -87,8 +87,8 @@ final class dailymail_test extends \advanced_testcase {
      */
     public function tearDown(): void {
         // Clear all caches.
-        \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
-        \mod_moodleoverflow\subscriptions::reset_discussion_cache();
+        subscriptions::reset_moodleoverflow_cache();
+        subscriptions::reset_discussion_cache();
         parent::tearDown();
     }
 

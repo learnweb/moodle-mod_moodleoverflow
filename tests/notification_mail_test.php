@@ -23,7 +23,9 @@ require_once($CFG->libdir . '/completionlib.php');
 
 use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\subscriptions;
+use mod_moodleoverflow\task\send_mails;
 use PHPUnit\Exception;
+use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
 /**
@@ -53,6 +55,7 @@ final class notification_mail_test extends \advanced_testcase {
      * - a moodleoverflow activity
      * - a teacher.
      * - two students.
+     * - message and mail sinks to check if mails were sent.
      */
     private $testdata;
 
@@ -76,11 +79,10 @@ final class notification_mail_test extends \advanced_testcase {
      */
     public function test_sortorder(): void {
         global $DB;
-        try {
-            $result = mail_manager::moodleoverflow_send_mails();
-        } catch (\dml_exception | \moodle_exception $e) {
-            $this->fail('Exception thrown during mail sending: ' . $e->getMessage());
-        }
+        $result = $this->helper_run_task();
+        print_r(var_export($result, true));
+        print_r(var_export($this->testdata->mailsink, true));
+        print_r(var_export($this->testdata->messagesink, true));
         $this->assertTrue($result);
     }
 
@@ -114,6 +116,11 @@ final class notification_mail_test extends \advanced_testcase {
         $datagenerator->enrol_user($this->testdata->student1->id, $this->testdata->course->id, 'student');
         $datagenerator->enrol_user($this->testdata->student2->id, $this->testdata->course->id, 'student');
 
+        // Change configs so that mails will be sent immediately.
+        set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
+        set_config('maxeditingtime', -10, 'moodleoverflow');
+        unset_config('noemailever');
+
         // Create a moodleoverflow with a discussion from the teacher.
         $options = ['course' => $this->testdata->course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $this->testdata->moodleoverflow = $datagenerator->create_module('moodleoverflow', $options);
@@ -130,4 +137,18 @@ final class notification_mail_test extends \advanced_testcase {
             'moodleoverflow' => $this->testdata->moodleoverflow->id, ]);
     }
 
+    /**
+     * Runs the task to send notification mails.
+     * @return false|string
+     */
+    private function helper_run_task() {
+        $mailtask = new send_mails();
+        ob_start();
+        $mailtask->execute();
+        $output = ob_get_contents();
+        $this->testdata->mailsink = $this->redirectEmails();
+        $this->testdata->messagesink = $this->redirectMessages();
+        ob_end_clean();
+        return $output;
+    }
 }
