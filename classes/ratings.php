@@ -42,40 +42,29 @@ class ratings {
      * @param int    $postid
      * @param int    $rating
      * @param object $cm
-     * @param null   $userid
+     * @param int   $userid
      *
      * @return bool|int
      */
-    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid = null) {
-        global $DB, $USER, $SESSION;
-
-        // Has a user been submitted?
-        if (!isset($userid)) {
-            $userid = $USER->id;
-        }
+    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid) {
+        global $DB;
 
         // Is the submitted rating valid?
         $possibleratings = [RATING_NEUTRAL, RATING_DOWNVOTE, RATING_UPVOTE, RATING_SOLVED,
             RATING_HELPFUL, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE,
             RATING_REMOVE_SOLVED, RATING_REMOVE_HELPFUL, ];
-        if (!in_array($rating, $possibleratings)) {
-            throw new moodle_exception('invalidratingid', 'moodleoverflow');
-        }
+        moodleoverflow_throw_exception_with_check(!in_array($rating, $possibleratings), 'invalidratingid');
 
-        // Get the related discussion.
-        if (!$post = $DB->get_record('moodleoverflow_posts', ['id' => $postid])) {
-            throw new moodle_exception('invalidparentpostid', 'moodleoverflow');
-        }
+        // Get the related post.
+        $post = moodleoverflow_get_record_or_exception('moodleoverflow_posts', ['id' => $postid], 'invalidparentpostid');
 
         // Check if the post belongs to a discussion.
-        if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion])) {
-            throw new moodle_exception('notpartofdiscussion', 'moodleoverflow');
-        }
+        $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $post->discussion],
+                                                   'notpartofdiscussion');
 
         // Get the related course.
-        if (!$course = $DB->get_record('course', ['id' => $moodleoverflow->course])) {
-            throw new moodle_exception('invalidcourseid');
-        }
+        $course = moodleoverflow_get_record_or_exception('course', ['id' => $moodleoverflow->course],
+                                                         'invalidcourseid', '*', true);
 
         // Are multiple marks allowed?
         $markssetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'allowmultiplemarks');
@@ -86,39 +75,25 @@ class ratings {
         $coursecontext = \context_course::instance($course->id);
 
         // Redirect the user if capabilities are missing.
-        $canrate = self::moodleoverflow_user_can_rate($post, $modulecontext, $userid);
-        if (!$canrate) {
+        if (!self::moodleoverflow_user_can_rate($post, $modulecontext, $userid)) {
 
             // Catch unenrolled users.
-            if (!isguestuser() && !is_enrolled($coursecontext)) {
-                $SESSION->wantsurl = qualified_me();
-                $SESSION->enrolcancel = get_local_referer(false);
-                redirect(new \moodle_url('/enrol/index.php', [
-                    'id' => $course->id,
-                    'returnurl' => '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id,
-                ]), get_string('youneedtoenrol'));
-            }
+            $returnurl = '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id;
+            moodleoverflow_catch_unenrolled_user($coursecontext, $course->id, $returnurl);
 
             // Notify the user, that he can not post a new discussion.
             throw new moodle_exception('noratemoodleoverflow', 'moodleoverflow');
         }
 
         // Make sure post author != current user, unless they have permission.
-        if (($post->userid == $userid) && !
-            (($rating == RATING_SOLVED || $rating == RATING_REMOVE_SOLVED) &&
-                has_capability('mod/moodleoverflow:marksolved', $modulecontext))
-        ) {
-            throw new moodle_exception('rateownpost', 'moodleoverflow');
-        }
+        $authorcheck = ($post->userid == $userid) && !(($rating == RATING_SOLVED || $rating == RATING_REMOVE_SOLVED) &&
+                                                        has_capability('mod/moodleoverflow:marksolved', $modulecontext));
+        moodleoverflow_throw_exception_with_check($authorcheck, 'rateownpost');
 
         // Check if we are removing a mark.
         if (in_array($rating / 10, $possibleratings)) {
-
-            if (!get_config('moodleoverflow', 'allowratingchange')) {
-                throw new moodle_exception('noratingchangeallowed', 'moodleoverflow');
-
-                return false;
-            }
+            moodleoverflow_get_config_or_exception('moodleoverflow', 'allowratingchange',
+                                                   'noratingchangeallowed', 'moodleoverflow');
 
             // Delete the rating.
             return self::moodleoverflow_remove_rating($postid, $rating / 10, $userid, $modulecontext);
@@ -129,16 +104,13 @@ class ratings {
 
         // Mark a post as solution or as helpful.
         if ($rating == RATING_SOLVED || $rating == RATING_HELPFUL) {
+            // Make sure that a helpful mark is made by the user who started the discussion.
+            $isnotstartuser = $rating == RATING_HELPFUL && $userid != $discussion->userid;
+            moodleoverflow_throw_exception_with_check($isnotstartuser, 'nostartuser');
 
-            // Check if the current user is the startuser.
-            if ($rating == RATING_HELPFUL && $userid != $discussion->userid) {
-                throw new moodle_exception('notstartuser', 'moodleoverflow');
-            }
-
-            // Check if the current user is a teacher.
-            if ($rating == RATING_SOLVED && !has_capability('mod/moodleoverflow:marksolved', $modulecontext)) {
-                throw new moodle_exception('notteacher', 'moodleoverflow');
-            }
+            // Make sure that a solution mark is made by a teacher (or someone with the right capability).
+            $isnotteacher = $rating == RATING_SOLVED && !has_capability('mod/moodleoverflow:marksolved', $modulecontext);
+            moodleoverflow_throw_exception_with_check($isnotteacher, 'notteacher');
 
             // Check if multiple marks are not enabled.
             if (!$multiplemarks) {
@@ -154,27 +126,20 @@ class ratings {
                     return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
 
                 } else {
-                    $mid = $moodleoverflow->id;
-
-                    return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id,
+                    return self::moodleoverflow_add_rating_record($moodleoverflow->id, $discussion->id, $post->id,
                                                                   $rating, $userid, $modulecontext);
                 }
-
             } else {
                 // If multiplemarks are allowed, only create a new rating.
-                $mid = $moodleoverflow->id;
-                return self::moodleoverflow_add_rating_record($mid, $discussion->id, $post->id, $rating, $userid, $modulecontext);
+                return self::moodleoverflow_add_rating_record($moodleoverflow->id, $discussion->id, $post->id,
+                                                              $rating, $userid, $modulecontext);
             }
         }
 
         // Update an rating record.
         if ($oldrating['normal']) {
-
-            if (!get_config('moodleoverflow', 'allowratingchange')) {
-                throw new moodle_exception('noratingchangeallowed', 'moodleoverflow');
-
-                return false;
-            }
+            moodleoverflow_get_config_or_exception('moodleoverflow', 'allowratingchange',
+                                                   'noratingchangeallowed', 'moodleoverflow');
 
             // Check if the rating can still be changed.
             if (!self::moodleoverflow_can_be_changed($postid, $oldrating['normal']->rating, $userid)) {
@@ -186,10 +151,8 @@ class ratings {
         }
 
         // Create a new rating record.
-        $mid = $moodleoverflow->id;
-        $did = $post->discussion;
-
-        return self::moodleoverflow_add_rating_record($mid, $did, $postid, $rating, $userid, $modulecontext);
+        return self::moodleoverflow_add_rating_record($moodleoverflow->id, $post->discussion, $postid,
+                                                      $rating, $userid, $modulecontext);
     }
 
     /**
@@ -197,24 +160,16 @@ class ratings {
      * Whether within a course or an instance is decided by the settings.
      *
      * @param int  $moodleoverflowid
-     * @param null $userid
+     * @param int $userid
      * @param bool $forcesinglerating If true you only get the reputation for the given $moodleoverflowid,
      * even if coursewidereputation = true
      *
      * @return int
      */
-    public static function moodleoverflow_get_reputation($moodleoverflowid, $userid = null, $forcesinglerating = false) {
-        global $DB, $USER;
-
-        // Get the user id.
-        if (!isset($userid)) {
-            $userid = $USER->id;
-        }
-
+    public static function moodleoverflow_get_reputation($moodleoverflowid, $userid, $forcesinglerating = false) {
         // Check the moodleoverflow instance.
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid])) {
-            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
-        }
+        $moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $moodleoverflowid],
+                                                                 'invalidmoodleoverflowid');
 
         // Check whether the reputation can be summed over the whole course.
         if ($moodleoverflow->coursewidereputation && !$forcesinglerating) {
@@ -244,111 +199,43 @@ class ratings {
         if ($posts[array_key_first($posts)]->ratingpreference == 1) {
             $solutionspreferred = true;
         }
+        // Build array groups for different types of answers (solved and helpful, only solved/helpful, unmarked).
+        $solvedhelpfulposts = [];
+        $solvedposts = [];
+        $helpfulposts = [];
+        $unmarkedposts = [];
 
-        // Sort the answer posts by ratings.
-        // Build groups of different types of answers (Solved and helpful, only solved/helpful, other).
+        // Sort the answer posts by ratings..
         // markedsolved == 1 means the post is marked as solved.
         // markedhelpful == 1 means the post is marked as helpful.
-        // If a group is complete, sort the group.
-        $index = 1;
-        $startsolvedandhelpful = 1;
-        $startsolved = 1;
-        $starthelpful = 1;
-        $startother = 1;
-        // Solved and helpful posts are first.
+        // Step 1: Iterate trough the answerposts and assign each post to a group.
         foreach ($answerposts as $post) {
-            if ($post->markedsolution > 0 && $post->markedhelpful > 0) {
-                $sortedposts[$index] = $post;
-                $index++;
-            }
-        }
-        // Update the indices and sort the group by votes.
-        if ($index > $startsolvedandhelpful) {
-            $startsolved = $index;
-            $starthelpful = $index;
-            $startother = $index;
-            self::moodleoverflow_quicksort_posts($sortedposts, $startsolvedandhelpful, $index - 1, 'votesdifference');
-            self::moodleoverflow_check_equal_votes($sortedposts, $startsolvedandhelpful, $index - 1);
-        }
-
-        // Check if solutions are preferred.
-        if ($solutionspreferred) {
-
-            // Build the group of only solved posts.
-            foreach ($answerposts as $post) {
-                if ($post->markedsolution > 0 && $post->markedhelpful == 0) {
-                    $sortedposts[$index] = $post;
-                    $index++;
+            if ($post->markedsolution > 0) {
+                if ($post->markedhelpful > 0) {
+                    $solvedhelpfulposts[] = $post;
+                } else {
+                    $solvedposts[] = $post;
+                }
+            } else {
+                if ($post->markedhelpful > 0) {
+                    $helpfulposts[] = $post;
+                } else {
+                    $unmarkedposts[] = $post;
                 }
             }
-            // Update the indices and sort the group by votes.
-            if ($index > $startsolved) {
-                $starthelpful = $index;
-                $startother = $index;
-                self::moodleoverflow_quicksort_posts($sortedposts, $startsolved, $index - 1, 'votesdifference');
-                self::moodleoverflow_check_equal_votes($sortedposts, $startsolved, $index - 1);
-            }
-
-            // Build the group of only helpful posts.
-            foreach ($answerposts as $post) {
-                if ($post->markedsolution == 0 && $post->markedhelpful > 0) {
-                    $sortedposts[$index] = $post;
-                    $index++;
-                }
-            }
-            // Update the indices and sort the group by votes.
-            if ($index > $starthelpful) {
-                $startother = $index;
-                self::moodleoverflow_quicksort_posts($sortedposts, $starthelpful, $index - 1, 'votesdifference');
-                self::moodleoverflow_check_equal_votes($sortedposts, $starthelpful, $index - 1);
-            }
-        } else {
-
-            // Build the group of only helpful posts.
-            foreach ($answerposts as $post) {
-                if ($post->markedsolution == 0 && $post->markedhelpful > 0) {
-                    $sortedposts[$index] = $post;
-                    $index++;
-                }
-            }
-            // Update the indices and sort the group by votes.
-            if ($index > $starthelpful) {
-                $startsolved = $index;
-                $startother = $index;
-                self::moodleoverflow_quicksort_posts($sortedposts, $starthelpful, $index - 1, 'votesdifference');
-                self::moodleoverflow_check_equal_votes($sortedposts, $starthelpful, $index - 1);
-            }
-
-            // Build the group of only solved posts.
-            foreach ($answerposts as $post) {
-                if ($post->markedsolution > 0 && $post->markedhelpful == 0) {
-                    $sortedposts[$index] = $post;
-                    $index++;
-                }
-            }
-            // Update the indices and sort the group by votes.
-            if ($index > $startsolved) {
-                $startother = $index;
-                self::moodleoverflow_quicksort_posts($sortedposts, $startsolved, $index - 1, 'votesdifference');
-                self::moodleoverflow_check_equal_votes($sortedposts, $startsolved, $index - 1);
-            }
         }
 
-        // Now build the group of posts without ratings like helpful/solved.
-        foreach ($answerposts as $post) {
-            if ($post->markedsolution == 0 && $post->markedhelpful == 0) {
-                $sortedposts[$index] = $post;
-                $index++;
-            }
-        }
-        // Update the indices and sort the group by votes.
-        if ($index > $startother) {
-            self::moodleoverflow_quicksort_posts($sortedposts, $startother, $index - 1, 'votesdifference');
-            self::moodleoverflow_check_equal_votes($sortedposts, $startother, $index - 1);
-        }
+        // Step 2: Sort each group after their votes and eventually time modified.
+        self::moodleoverflow_sort_postgroup($solvedhelpfulposts, 0, count($solvedhelpfulposts) - 1);
+        self::moodleoverflow_sort_postgroup($solvedposts, 0, count($solvedposts) - 1);
+        self::moodleoverflow_sort_postgroup($helpfulposts, 0, count($helpfulposts) - 1);
+        self::moodleoverflow_sort_postgroup($unmarkedposts, 0, count($unmarkedposts) - 1);
+
+        // Step 3: Put each group together in the right order depending on the rating preferences.
+        $temp = $solutionspreferred ? array_merge($solvedposts, $helpfulposts) : array_merge($helpfulposts, $solvedposts);
+        $sortedposts = array_merge($sortedposts, $solvedhelpfulposts, $temp, $unmarkedposts);
 
         // Rearrange the indices and return the sorted posts.
-
         $neworder = [];
         foreach ($sortedposts as $post) {
             $neworder[$post->id] = $post;
@@ -377,7 +264,7 @@ class ratings {
         // Get the rating.
         $sql = "SELECT firstrated, rating
                   FROM {moodleoverflow_ratings}
-                 WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
+                  WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
 
         return ($DB->get_record_sql($sql, [ $userid, $postid ]));
     }
@@ -393,9 +280,7 @@ class ratings {
         global $DB;
 
         // Retrieve the full post.
-        if (!$post = $DB->get_record('moodleoverflow_posts', ['id' => $postid])) {
-            throw new moodle_exception('postnotexist', 'moodleoverflow');
-        }
+        $post = moodleoverflow_get_record_or_exception('moodleoverflow_posts', ['id' => $postid], 'postnotexist');
 
         // Get the rating for this single post.
         return self::moodleoverflow_get_ratings_by_discussion($post->discussion, $postid);
@@ -498,57 +383,37 @@ class ratings {
 
         // Initiate a variable.
         $reputation = 0;
+        // Get all posts of this user in this module.
+        // Do not count votes for own posts.
+        $sql = "SELECT r.id, r.postid as post, r.rating
+              FROM {moodleoverflow_posts} p
+              JOIN {moodleoverflow_ratings} r ON p.id = r.postid
+              JOIN {moodleoverflow} m ON r.moodleoverflowid = m.id
+             WHERE p.userid = ? AND NOT r.userid = ? AND r.moodleoverflowid = ? AND m.anonymous <> ?";
 
-        if ($moodleoverflow->anonymous != anonymous::EVERYTHING_ANONYMOUS) {
+        if ($moodleoverflow->anonymous == anonymous::QUESTION_ANONYMOUS) {
+            $sql .= " AND p.parent <> 0 ";
+        }
 
-            // Get all posts of this user in this module.
-            // Do not count votes for own posts.
-            $sql = "SELECT r.id, r.postid as post, r.rating
-                  FROM {moodleoverflow_posts} p
-                  JOIN {moodleoverflow_ratings} r ON p.id = r.postid
-                 WHERE p.userid = ? AND NOT r.userid = ? AND r.moodleoverflowid = ? ";
+        $sql .= " ORDER BY r.postid ASC";
 
-            if ($moodleoverflow->anonymous == anonymous::QUESTION_ANONYMOUS) {
-                $sql .= " AND p.parent <> 0 ";
-            }
-
-            $sql .= "ORDER BY r.postid ASC";
-
-            $params = [$userid, $userid, $moodleoverflowid];
-            $records = $DB->get_records_sql($sql, $params);
-
-            // Check if there are results.
-            $records = (isset($records)) ? $records : [];
-
-            // Iterate through all ratings.
-            foreach ($records as $record) {
-
-                // The rating is a downvote.
-                if ($record->rating == RATING_DOWNVOTE) {
+        $params = [$userid, $userid, $moodleoverflowid, anonymous::EVERYTHING_ANONYMOUS];
+        $records = $DB->get_records_sql($sql, $params);
+        // Iterate through all ratings.
+        foreach ($records as $record) {
+            switch ($record->rating) {
+                case RATING_DOWNVOTE:
                     $reputation += get_config('moodleoverflow', 'votescaledownvote');
-                    continue;
-                }
-
-                // The rating is an upvote.
-                if ($record->rating == RATING_UPVOTE) {
+                    break;
+                case RATING_UPVOTE:
                     $reputation += get_config('moodleoverflow', 'votescaleupvote');
-                    continue;
-                }
-
-                // The post has been marked as helpful by the question owner.
-                if ($record->rating == RATING_HELPFUL) {
+                    break;
+                case RATING_HELPFUL:
                     $reputation += get_config('moodleoverflow', 'votescalehelpful');
-                    continue;
-                }
-
-                // The post has been marked as solved by a teacher.
-                if ($record->rating == RATING_SOLVED) {
+                    break;
+                case RATING_SOLVED:
                     $reputation += get_config('moodleoverflow', 'votescalesolved');
-                    continue;
-                }
-
-                // Another rating should not exist.
-                continue;
+                    break;
             }
         }
 
@@ -556,7 +421,7 @@ class ratings {
         // Votes for own posts are not counting.
         $sql = "SELECT COUNT(id) as amount
                 FROM {moodleoverflow_ratings}
-                WHERE userid = ? AND moodleoverflowid = ? AND (rating = 1 OR rating = 2)";
+                 WHERE userid = ? AND moodleoverflowid = ? AND (rating = 1 OR rating = 2)";
         $params = [$userid, $moodleoverflowid];
         $votes = $DB->get_record_sql($sql, $params);
 
@@ -592,9 +457,7 @@ class ratings {
         $reputation = 0;
 
         // Check if the course exists.
-        if (!$course = $DB->get_record('course', ['id' => $courseid])) {
-            throw new moodle_exception('invalidcourseid');
-        }
+        $course = moodleoverflow_get_record_or_exception('course', ['id' => $courseid], 'invalidcourseid', '*', true);
 
         // Get all moodleoverflow instances in this course.
         $sql = "SELECT id
@@ -603,9 +466,6 @@ class ratings {
                    AND coursewidereputation = 1";
         $params = [$course->id];
         $instances = $DB->get_records_sql($sql, $params);
-
-        // Check if there are instances in this course.
-        $instances = (isset($instances)) ? $instances : [];
 
         // Sum the reputation of each individual instance.
         foreach ($instances as $instance) {
@@ -631,11 +491,11 @@ class ratings {
         // Initiate the array.
         $rating = [];
 
-        // Get the normal rating.
         $sql = "SELECT *
-                FROM {moodleoverflow_ratings}
-                WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
-        $rating['normal'] = $DB->get_record_sql($sql, [ $userid, $postid ]);
+                FROM {moodleoverflow_ratings}";
+        // Get the normal rating.
+        $condition = " WHERE userid = ? AND postid = ? AND (rating = 1 OR rating = 2)";
+        $rating['normal'] = $DB->get_record_sql($sql . $condition, [$userid, $postid]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_DOWNVOTE || $oldrating == RATING_UPVOTE) {
@@ -643,10 +503,8 @@ class ratings {
         }
 
         // Get the solved rating.
-        $sql = "SELECT *
-                FROM {moodleoverflow_ratings}
-                WHERE postid = ? AND rating = 3";
-        $rating['solved'] = $DB->get_record_sql($sql, [ $postid ]);
+        $condition = " WHERE postid = ? AND rating = 3";
+        $rating['solved'] = $DB->get_record_sql($sql . $condition, [ $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_SOLVED) {
@@ -654,10 +512,8 @@ class ratings {
         }
 
         // Get the helpful rating.
-        $sql = "SELECT *
-                FROM {moodleoverflow_ratings}
-                WHERE postid = ? AND rating = 4";
-        $rating['helpful'] = $DB->get_record_sql($sql, [ $postid ]);
+        $condition = " WHERE postid = ? AND rating = 4";
+        $rating['helpful'] = $DB->get_record_sql($sql . $condition, [ $postid ]);
 
         // Return the rating if it is requested.
         if ($oldrating == RATING_HELPFUL) {
@@ -678,8 +534,6 @@ class ratings {
      * @return bool
      */
     private static function moodleoverflow_can_be_changed($postid, $rating, $userid) {
-        global $CFG;
-
         // Check if the old read record exists.
         $old = self::moodleoverflow_check_old_rating($postid, $userid, $rating);
         if (!$old) {
@@ -691,7 +545,6 @@ class ratings {
 
     /**
      * Removes a rating record.
-     *
      * @param int             $postid
      * @param int             $rating
      * @param int             $userid
@@ -711,11 +564,7 @@ class ratings {
         $oldrecord = self::moodleoverflow_check_old_rating($postid, $userid, $rating);
 
         // Trigger an event.
-        $params = [
-            'objectid' => $oldrecord->id,
-            'context' => $modulecontext,
-        ];
-        $event = \mod_moodleoverflow\event\rating_deleted::create($params);
+        $event = \mod_moodleoverflow\event\rating_deleted::create(['objectid' => $oldrecord->id, 'context' => $modulecontext]);
         $event->add_record_snapshot('moodleoverflow_ratings', $oldrecord);
         $event->trigger();
 
@@ -818,65 +667,19 @@ class ratings {
     }
 
     /**
-     * Sorts answerposts of a discussion with quicksort algorithm
-     * @param array  $posts     the posts that are being sorted
-     * @param int    $low       the index from where the sorting begins
-     * @param int    $high      the index until the array is being sorted
-     * @param string $sortby    the attribute by which the posts are being sorted, can be 'votesdifference' or 'modified'
-     */
-    private static function moodleoverflow_quicksort_posts(array &$posts, $low, $high, $sortby): void {
-        if ($low >= $high) {
-            return;
-        }
-        $left = $low;
-        $right = $high;
-        $pivot = 0;
-        if ($sortby == 'votesdifference') {
-            $pivot = $posts[intval(($low + $high) / 2)]->votesdifference;
-        } else if ($sortby == 'modified') {
-            $pivot = $posts[intval(($low + $high) / 2)]->modified;
-        }
-        do {
-            if ($sortby == 'votesdifference') {
-                while ($posts[$left]->votesdifference > $pivot) {
-                    $left++;
-                }
-                while ($posts[$right]->votesdifference < $pivot) {
-                    $right--;
-                }
-            } else if ($sortby == 'modified') {
-                while ($posts[$left]->modified < $pivot) {
-                    $left++;
-                }
-                while ($posts[$right]->modified > $pivot) {
-                    $right--;
-                }
-            }
-            if ($left <= $right) {
-                $temp = $posts[$right];
-                $posts[$right] = $posts[$left];
-                $posts[$left] = $temp;
-                $right--;
-                $left++;
-            }
-        } while ($left <= $right);
-        if ($low < $right) {
-            self::moodleoverflow_quicksort_posts($posts, $low, $right, $sortby);
-        }
-        if ($high > $left ) {
-            self::moodleoverflow_quicksort_posts($posts, $left, $high, $sortby);
-        }
-    }
-
-    /**
-     * Helper function for moodleoverflow_sort_answer_by_rating. For posts that have the same mark and votesdifference,
-     * the posts are sorted by time modified
+     * Helper function for moodleoverflow_sort_answer_by_rating. Sorts a group of posts (solved and helpful, only solved/helpful
+     * and other) after their votesdifference and if needed after their modified time.
+     *
      * @param array $posts  The array that will be sorted
      * @param int   $low    Startindex from where equal votes will be checked
      * @param int   $high   Endindex until where equal votes will be checked
      * @return void
      */
-    private static function moodleoverflow_check_equal_votes(&$posts, $low, $high) {
+    private static function moodleoverflow_sort_postgroup(&$posts, $low, $high) {
+        // First sort the array after their votesdifference.
+        moodleoverflow_quick_array_sort($posts, 0, $high, 'votesdifference', 'desc');
+
+        // Check if posts have the same votesdifference and sort them after their modified time if needed.
         while ($low < $high) {
             if ($posts[$low]->votesdifference == $posts[$low + 1]->votesdifference) {
                 $tempstartindex = $low;
@@ -885,7 +688,7 @@ class ratings {
                       ($posts[$tempendindex]->votesdifference == $posts[$tempendindex + 1]->votesdifference)) {
                     $tempendindex++;
                 }
-                self::moodleoverflow_quicksort_posts($posts, $tempstartindex, $tempendindex, 'modified');
+                moodleoverflow_quick_array_sort($posts, $tempstartindex, $tempendindex, 'modified', 'asc');
                 $low = $tempendindex + 1;
             } else {
                 $low++;

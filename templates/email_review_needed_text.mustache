@@ -77,15 +77,15 @@
         "unsubscribediscussionlink": "https://example.com/mod/discussion/subscribe.php?id=2&d=2"
     }
 }}
-{{{ coursename }}} -> {{{ moodleoverflowname }}}{{# showdiscussionname }} -> {{{ discussionname }}} {{/ showdiscussionname }}
+{{{ coursename }}} -> {{{ moodleoverflowname }}}{{#showdiscussionname}} -> {{{ discussionname }}} {{/showdiscussionname}}
 
-{{# str }}review_needed, mod_moodleoverflow {{/str}}: {{ permalink }}
+{{#str}}review_needed, mod_moodleoverflow {{/str}}: {{ permalink }}
 
 {{{ subject }}}
-{{# str }} bynameondate, mod_moodleoverflow, {
-"name": {{# quote }}{{{ authorfullname }}}{{/ quote }},
-"date": {{# quote}}{{ postdate }}{{/ quote }}
-} {{/ str }}
+{{#str}} bynameondate, mod_moodleoverflow, {
+"name": {{#quote}}{{{ authorfullname }}}{{/quote}},
+"date": {{#quote}}{{ postdate }}{{/quote}}
+} {{/str}}
 ---------------------------------------------------------------------
 {{{ message }}}
 ---------------------------------------------------------------------

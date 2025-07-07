@@ -94,6 +94,15 @@ $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $m
 // The page should not be large, only pages containing broad tables are usually.
 $PAGE->add_body_class('limitedwidth');
 
+// If a topic is to be moved, do it.
+if ($linktoforum && $movetopopup && has_capability('mod/moodleoverflow:movetopic', $context)) {
+    // Take the $movetopopup-id and the $linktoforum-id and move the discussion to the forum.
+    $topic = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup]);
+    $topic->moodleoverflow = $linktoforum;
+    $DB->update_record('moodleoverflow_discussions', $topic);
+    redirect($CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id);
+}
+
 // Output starts here.
 echo $OUTPUT->header();
 
@@ -127,14 +136,6 @@ if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
 
 if ($movetopopup && has_capability('mod/moodleoverflow:movetopic', $context)) {
     moodleoverflow_print_forum_list($course, $cm, $movetopopup);
-}
-
-if ($linktoforum && $movetopopup && has_capability('mod/moodleoverflow:movetopic', $context)) {
-    // Take the $movetopopup-id and the $linktoforum-id and move the discussion to the forum.
-    $topic = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup]);
-    $topic->moodleoverflow = $linktoforum;
-    $DB->update_record('moodleoverflow_discussions', $topic);
-    redirect($CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id);
 }
 
 // Return here after posting, etc.

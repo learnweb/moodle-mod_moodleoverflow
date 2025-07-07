@@ -95,7 +95,6 @@ define('RATING_REMOVE_HELPFUL', 40);
  * @return mixed true if the feature is supported, null if unknown
  */
 function moodleoverflow_supports($feature) {
-    global $CFG;
 
     if (defined('FEATURE_MOD_PURPOSE')) {
         if ($feature == FEATURE_MOD_PURPOSE) {
@@ -127,18 +126,17 @@ function moodleoverflow_supports($feature) {
  * of the new instance.
  *
  * @param stdClass                    $moodleoverflow Submitted data from the form in mod_form.php
- * @param mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
+ * @param ?mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
  *
  * @return int The id of the newly inserted moodleoverflow record
  */
-function moodleoverflow_add_instance(stdClass $moodleoverflow, mod_moodleoverflow_mod_form $mform = null) {
+function moodleoverflow_add_instance(stdClass $moodleoverflow, ?mod_moodleoverflow_mod_form $mform = null) {
     global $DB;
 
     // Set the current time.
     $moodleoverflow->timecreated = time();
 
     // You may have to add extra stuff in here.
-
     $moodleoverflow->id = $DB->insert_record('moodleoverflow', $moodleoverflow);
 
     return $moodleoverflow->id;
@@ -173,12 +171,12 @@ function moodleoverflow_instance_created($context, $moodleoverflow) {
  * (defined by the form in mod_form.php) this function
  * will update an existing instance with new data.
  *
- * @param stdClass                    $moodleoverflow An object from the form in mod_form.php
- * @param mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
+ * @param stdClass                         $moodleoverflow An object from the form in mod_form.php
+ * @param mod_moodleoverflow_mod_form|null $mform          The form instance itself (if needed)
  *
  * @return boolean Success/Fail
  */
-function moodleoverflow_update_instance(stdClass $moodleoverflow, mod_moodleoverflow_mod_form $mform = null) {
+function moodleoverflow_update_instance(stdClass $moodleoverflow, ?mod_moodleoverflow_mod_form $mform = null) {
     global $DB;
 
     $moodleoverflow->timemodified = time();
@@ -232,11 +230,11 @@ function moodleoverflow_refresh_events($courseid = 0) {
     global $DB;
 
     if ($courseid == 0) {
-        if (!$moodleoverflows = $DB->get_records('moodleoverflow')) {
+        if (!$DB->get_records('moodleoverflow')) {
             return true;
         }
     } else {
-        if (!$moodleoverflows = $DB->get_records('moodleoverflow', ['course' => $courseid])) {
+        if (!$DB->get_records('moodleoverflow', ['course' => $courseid])) {
             return true;
         }
     }
@@ -450,17 +448,6 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
 
     $file = $fs->get_file($context->id, 'mod_moodleoverflow', $filearea, $itemid, $filepath, $filename);
 
-    // Make sure groups allow this user to see this file.
-    if ($discussion->groupid > 0) {
-        $groupmode = groups_get_activity_groupmode($cm, $course);
-        if ($groupmode == SEPARATEGROUPS) {
-
-            if (!groups_is_member($discussion->groupid) && !has_capability('moodle/site:accessallgroups', $context)) {
-                return false;
-            }
-        }
-    }
-
     // Make sure we're allowed to see it...
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
         return false;
@@ -476,25 +463,32 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  * Extends the settings navigation with the moodleoverflow settings.
  *
  * This function is called when the context for the page is a moodleoverflow module. This is not called by AJAX
- * so it is safe to rely on the $PAGE.
+ * so it is safe to rely on the page variable.
  *
- * @param settings_navigation $settingsnav        complete settings navigation tree
- * @param navigation_node     $moodleoverflownode moodleoverflow administration node
+ * @param settings_navigation $settingsnav complete settings navigation tree
+ * @param navigation_node|null $moodleoverflownode moodleoverflow administration node
+ * @throws \core\exception\moodle_exception
+ * @throws coding_exception
+ * @throws dml_exception
+ * @throws moodle_exception
  */
-function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $moodleoverflownode = null) {
-    global $CFG, $DB, $PAGE, $USER;
+function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, ?navigation_node $moodleoverflownode = null) {
+    global $DB, $USER;
 
     // Retrieve the current moodle record.
-    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $PAGE->cm->instance]);
+    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $settingsnav->get_page()->cm->instance]);
 
     // Check if the user can subscribe to the instance.
-    $enrolled = is_enrolled($PAGE->cm->context, $USER, '', false);
-    $activeenrolled = is_enrolled($PAGE->cm->context, $USER, '', true);
-    $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $PAGE->cm->context);
+    if (!$context = context_module::instance($settingsnav->get_page()->cm->id)) {
+        throw new \moodle_exception('badcontext');
+    }
+    $enrolled = is_enrolled($context, $USER, '', false);
+    $activeenrolled = is_enrolled($context, $USER, '', true);
+    $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $context);
     $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
     $subscdisabled = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
     $cansubscribe = $activeenrolled && (!$subscdisabled || $canmanage) &&
-        !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $PAGE->cm->context));
+        !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $context));
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
 
     // Display a link to the index.
@@ -516,7 +510,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     if ($cansubscribe) {
 
         // Choose the linktext depending on the current state of subscription.
-        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $PAGE->cm->context);
+        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $context);
         if ($issubscribed) {
             $linktext = get_string('unsubscribe', 'moodleoverflow');
         } else {
@@ -827,10 +821,12 @@ function moodleoverflow_send_mails() {
 
                 if (\mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid)) {
                     $userfrom = \core_user::get_noreply_user();
+                    $userfrom->anonymous = true;
                 } else {
                     // Check whether the sending user is cached already.
                     if (array_key_exists($post->userid, $users)) {
                         $userfrom = $users[$post->userid];
+                        $userfrom->anonymous = false;
                     } else {
                         // We dont know the the user yet.
 
@@ -838,6 +834,7 @@ function moodleoverflow_send_mails() {
                         $userfrom = $DB->get_record('user', ['id' => $post->userid]);
                         if ($userfrom) {
                             moodleoverflow_minimise_user_record($userfrom);
+                            $userfrom->anonymous = false;
                         } else {
                             $uid = $post->userid;
                             $pid = $post->id;
@@ -1100,7 +1097,7 @@ function moodleoverflow_mark_old_posts_as_mailed($endtime) {
  *
  * @param stdClass $user
  */
-function moodleoverflow_minimise_user_record(stdClass $user) {
+function moodleoverflow_minimise_user_record(stdClass &$user) {
 
     // Remove all information for the mail generation that are not needed.
     unset($user->institution);

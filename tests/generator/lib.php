@@ -64,7 +64,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      *
      * @return stdClass
      */
-    public function create_instance($record = null, array $options = null) {
+    public function create_instance($record = null, ?array $options = null) {
 
         // Transform the record.
         $record = (object) (array) $record;
@@ -156,6 +156,8 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         // Transform the array into an object.
         $record = (object) $record;
 
+        $record->draftideditor = -1;
+
         // Get the module context.
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
 
@@ -234,6 +236,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         if ($straighttodb) {
             $record->id = $DB->insert_record('moodleoverflow_posts', $record);
         } else {
+            $record->draftideditor = -1;
             $record->id = moodleoverflow_add_new_post($record);
         }
         // Update the last post.

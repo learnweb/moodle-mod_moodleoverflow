@@ -219,7 +219,7 @@ class subscriptions {
                 $subscriptions = $DB->get_recordset('moodleoverflow_subscriptions', $params, '', 'id, userid');
 
                 // Loop through the records.
-                foreach ($subscriptions as $id => $data) {
+                foreach ($subscriptions as $data) {
 
                     // Create a new record if necessary.
                     if (!isset(self::$moodleoverflowcache[$data->userid])) {

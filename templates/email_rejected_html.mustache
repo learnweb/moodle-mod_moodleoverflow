@@ -78,13 +78,13 @@
     }
 }}
 <div class="navbar">
-    <a target="_blank" href="{{{ courselink }}}">{{{ coursename }}}</a>
+    <a target="_blank" href="{{{courselink}}}">{{{coursename}}}</a>
     &raquo;
-    <a target="_blank" href="{{{ moodleoverflowviewlink }}}">{{{ moodleoverflowname }}}</a>
-    {{# showdiscussionname }}
+    <a target="_blank" href="{{{moodleoverflowviewlink}}}">{{{moodleoverflowname}}}</a>
+    {{#showdiscussionname}}
         &raquo;
-        <a target="_blank" href="{{{ discussionlink }}}">{{{ discussionname }}}</a>
-    {{/ showdiscussionname }}
+        <a target="_blank" href="{{{discussionlink}}}">{{{discussionname}}}</a>
+    {{/showdiscussionname}}
 </div>
 
 {{^reason}}
@@ -101,36 +101,36 @@
 <hr/>
 <br>
 
-<table border="0" cellpadding="3" cellspacing="0" class="moodleoverflowpost">
+<table class="moodleoverflowpost" style="border:none;">
     <tr class="header">
-        <td width="35" valign="top" class="picture left">
+        <td class="picture left" style="vertical-align:top; width:35px; padding:3px;">
             {{{ authorpicture }}}
         </td>
-        <td class="topic {{# firstpost }}starter{{/ firstpost }}">
+        <td class="topic {{#firstpost}}starter{{/firstpost}}"  style="padding:3px;">
             <div class="subject">
-                {{{ subject }}}
+                {{{subject}}}
             </div>
             <div class="author">
-                {{# str }} bynameondatenorating, moodleoverflow, {
+                {{#str}} bynameondatenorating, moodleoverflow, {
                     "name":
-                    {{# authorlink }}{{# quote }} <a target='_blank' href='{{{ authorlink }}}'>{{ authorfullname }}</a>{{/ quote }}{{/authorlink}}
-                    {{^ authorlink }}{{# quote }} {{ authorfullname }} {{/ quote }}{{/ authorlink }} ,
-                    "date": {{# quote }}{{ postdate }}{{/ quote }}
-                    } {{/ str }}
+                    {{#authorlink}}{{#quote}} <a target='_blank' href='{{{authorlink}}}'>{{authorfullname}}</a>{{/quote}}{{/authorlink}}
+                    {{^authorlink}}{{#quote}} {{authorfullname}} {{/quote}}{{/authorlink}} ,
+                    "date": {{#quote}}{{postdate}}{{/quote}}
+                    } {{/str}}
             </div>
         </td>
     </tr>
     <tr>
-        <td class="left side" valign="top">
-            {{# grouppicture }}
-                {{{ grouppicture }}}
-            {{/ grouppicture }}
-            {{^ grouppicture }}
+        <td class="left side" style="vertical-align:top; padding:3px;">
+            {{#grouppicture}}
+                {{{grouppicture}}}
+            {{/grouppicture}}
+            {{^grouppicture}}
                 &nbsp;
-            {{/ grouppicture }}
+            {{/grouppicture}}
         </td>
-        <td class="content">
-            {{{ message }}}
+        <td class="content" style="padding:3px;">
+            {{{message}}}
         </td>
     </tr>
 </table>

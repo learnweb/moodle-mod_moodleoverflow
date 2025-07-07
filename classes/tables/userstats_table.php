@@ -26,8 +26,11 @@ namespace mod_moodleoverflow\tables;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_moodleoverflow\ratings;
+global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
+require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 require_once($CFG->libdir . '/tablelib.php');
+use mod_moodleoverflow\output\helpicon;
 
 /**
  * Table listing all user statistics of a course
@@ -69,13 +72,8 @@ class userstats_table extends \flexible_table {
 
         $this->set_attribute('class', 'moodleoverflow-statistics-table');
         $this->set_attribute('id', $uniqueid);
-        $this->define_columns(['username',
-                               'receivedupvotes',
-                               'receiveddownvotes',
-                               'forumactivity',
-                               'courseactivity',
-                               'forumreputation',
-                               'coursereputation', ]);
+        $this->define_columns(['username', 'receivedupvotes', 'receiveddownvotes', 'forumactivity', 'courseactivity',
+                               'forumreputation', 'coursereputation', ]);
         $this->define_baseurl($url);
         $this->define_headers([get_string('fullnameuser'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
@@ -103,94 +101,16 @@ class userstats_table extends \flexible_table {
     }
 
     /**
-     * Method to sort the userstatsdata-table.
-     *
-     * @param array $sortorder The sort order array.
-     *
-     * @return void
-     */
-    private function sort_table_data($sortorder) {
-        $key = $sortorder['sortby'];
-        // The index of each object in usertable is it's value of $key.
-        $length = count($this->userstatsdata);
-        if ($sortorder['sortorder'] == 4) {
-            // 4 means sort in ascending order.
-            $this->quick_usertable_sort(0, $length - 1, $key, 'asc');
-        } else if ($sortorder['sortorder'] == 3) {
-            // 3 means sort in descending order.
-            $this->quick_usertable_sort(0, $length - 1, $key, 'desc');
-        }
-    }
-
-    /**
-     * Sorts userstatsdata with quicksort algorithm.
-     *
-     * @param int    $low       index for quicksort.
-     * @param int    $high      index for quicksort.
-     * @param int    $key       the column that is being sorted (upvotes, downvotes etc.).
-     * @param string $order     sort in ascending or descending order.
-     *
-     * @return void
-     */
-    private function quick_usertable_sort($low, $high, $key, $order) {
-        if ($low >= $high) {
-            return;
-        }
-        $left = $low;
-        $right = $high;
-        $pivot = $this->userstatsdata[intval(($low + $high) / 2)];
-        $pivot = $pivot->$key;
-        do {
-            if ($order == 'asc') {
-                while ($this->userstatsdata[$left]->$key < $pivot) {
-                    $left++;
-                }
-                while ($this->userstatsdata[$right]->$key > $pivot) {
-                    $right--;
-                }
-            } else if ($order == 'desc') {
-                while ($this->userstatsdata[$left]->$key > $pivot) {
-                    $left++;
-                }
-                while ($this->userstatsdata[$right]->$key < $pivot) {
-                    $right--;
-                }
-            }
-            if ($left <= $right) {
-                $temp = $this->userstatsdata[$right];
-                $this->userstatsdata[$right] = $this->userstatsdata[$left];
-                $this->userstatsdata[$left] = $temp;
-                $right--;
-                $left++;
-            }
-        } while ($left <= $right);
-        if ($low < $right) {
-            if ($order == 'asc') {
-                $this->quick_usertable_sort($low, $right, $key, 'asc');
-            } else if ($order == 'desc') {
-                $this->quick_usertable_sort($low, $right, $key, 'desc');
-            }
-        }
-        if ($high > $left) {
-            if ($order == 'asc') {
-                $this->quick_usertable_sort($left, $high, $key, 'asc');
-            } else if ($order == 'desc') {
-                $this->quick_usertable_sort($left, $high, $key, 'desc');
-            }
-        }
-    }
-
-    /**
      * Method to collect all the data.
      * Method will collect all users from the given course and will determine the user statistics
-     *
-     * @return 2d-array with user statistic
+     * Builds an 2d-array with user statistic
      */
     public function get_table_data() {
         // Get all userdata from a course.
         $context = \context_course::instance($this->courseid);
         $users = get_enrolled_users($context , '',  0, 'u.id, u.firstname, u.lastname');
 
+        // Step 1.0: Build the datatable with all relevant information.
         $ratingdata = $this->get_rating_data();
 
         // Step 2.0: Now collect the data for every user in the course.
@@ -198,55 +118,26 @@ class userstats_table extends \flexible_table {
             $student = $this->createstudent($user);
 
             foreach ($ratingdata as $row) {
-                // Is the rating from or for the current student?
-                if ($row->postuserid !== $student->id && $row->rateuserid !== $student->id) {
-                    continue;
-                }
-
                 // Did the student receive an up- or downvote?
-                // Only count if the discussion is not anonymous or if the user is not starter of the discussion.
-                if ($row->postuserid == $student->id &&
-                   (($row->anonymoussetting == 0) || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
-                    if ($row->rating == RATING_UPVOTE) {
-                        $student->receivedupvotes += 1;
-                    } else if ($row->rating == RATING_DOWNVOTE) {
-                        $student->receiveddownvotes += 1;
-                    }
+                if ($row->postuserid == $student->id) {
+                    $this->process_received_votes($student, $row);
                 }
 
                 // Did a student submit a rating?
-                // For solution marks: only count a solution if the discussion is not completely anonymous.
-                // For helpful marks: only count helpful marks if the discussion is not any kind of anonymous.
-                // Up and downvotes are always counted.
-                if ($row->rateuserid == $student->id && !array_key_exists($row->rateid, $student->ratedposts) &&
-                    (($row->rating == RATING_SOLVED && $row->anonymoussetting != 2) ||
-                     ($row->rating == RATING_HELPFUL && $row->anonymoussetting == 0) ||
-                     ($row->rating == RATING_UPVOTE) ||
-                     ($row->rating == RATING_DOWNVOTE))) {
-
-                    if ($row->moodleoverflowid == $this->moodleoverflowid) {
-                        $student->forumactivity += 1;
-                    }
-                    $student->courseactivity += 1;
-                    $student->ratedposts[$row->rateid] = $row->rateid;
+                if ($row->rateuserid == $student->id ) {
+                    $this->process_submitted_ratings($student, $row);
                 }
 
-                // Did the student write a post? Only count a written post if: the post is not in an anonymous discussion;
-                // or the post is in a partial anonymous discussion and the user is not the starter of the discussion.
-                if ($row->postuserid == $student->id && !array_key_exists($row->postid, $student->submittedposts) &&
-                    ($row->anonymoussetting == 0 || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
-
-                    if ($row->moodleoverflowid == $this->moodleoverflowid) {
-                        $student->forumactivity += 1;
-                    }
-                    $student->courseactivity += 1;
-                    $student->submittedposts[$row->postid] = $row->postid;
+                // Did the student write a post?
+                if ($row->postuserid == $student->id ) {
+                    $this->process_written_posts($student, $row);
                 }
+
             }
             // Get the user reputation from the course.
             $student->forumreputation = ratings::moodleoverflow_get_reputation_instance($this->moodleoverflowid, $student->id);
             $student->coursereputation = ratings::moodleoverflow_get_reputation_course($this->courseid, $student->id);
-            array_push($this->userstatsdata, $student);
+            $this->userstatsdata[] = $student;
         }
     }
 
@@ -261,27 +152,11 @@ class userstats_table extends \flexible_table {
      * Setup the help icon for amount of activity
      */
     public function set_helpactivity() {
-        global $CFG;
+        $htmlclass = 'helpactivityclass btn btn-link';
+        $content = get_string('helpamountofactivity', 'moodleoverflow');
+        $helpobject = new helpicon($htmlclass, $content);
         $this->helpactivity = new \stdClass();
-        $this->helpactivity->iconurl = $CFG->wwwroot . '/pix/a/help.png';
-        $this->helpactivity->icon = \html_writer::img($this->helpactivity->iconurl,
-                                                      get_string('helpamountofactivity', 'moodleoverflow'));
-        $this->helpactivity->class = 'helpactivityclass btn btn-link';
-        $this->helpactivity->iconattributes = ['role' => 'button',
-                                                    'data-container' => 'body',
-                                                    'data-toggle' => 'popover',
-                                                    'data-placement' => 'right',
-                                                    'data-action' => 'showhelpicon',
-                                                    'data-html' => 'true',
-                                                    'data-trigger' => 'focus',
-                                                    'tabindex' => '0',
-                                                    'data-content' => '<div class=&quot;no-overflow&quot;><p>' .
-                                                                      get_string('helpamountofactivity', 'moodleoverflow') .
-                                                                      '</p> </div>', ];
-
-        $this->helpactivity->object = \html_writer::span($this->helpactivity->icon,
-                                                         $this->helpactivity->class,
-                                                         $this->helpactivity->iconattributes);
+        $this->helpactivity->object = $helpobject->get_helpicon();
     }
 
     // Functions that show the data.
@@ -350,7 +225,7 @@ class userstats_table extends \flexible_table {
     }
 
     /**
-     * Dependeng on the value display success or warning badge.
+     * Depending on the value display success or warning badge.
      * @param int $number
      * @return string
      */
@@ -363,6 +238,7 @@ class userstats_table extends \flexible_table {
                 $number . \html_writer::end_span());
         }
     }
+
     /**
      * error handling
      * @param object $colname
@@ -372,6 +248,9 @@ class userstats_table extends \flexible_table {
     public function other_cols($colname, $attempt) {
         return null;
     }
+
+    // Helper functions.
+
     /**
      * Return a student object.
      * @param \stdClass $user
@@ -383,14 +262,14 @@ class userstats_table extends \flexible_table {
         $student->name = $user->firstname . ' ' . $user->lastname;
         $linktostudent = new \moodle_url('/user/view.php', ['id' => $student->id, 'course' => $this->courseid]);
         $student->link = \html_writer::link($linktostudent->out(), $student->name);
-        $student->submittedposts = []; // Posts written by the student. Key = postid, Value = postid.
-        $student->ratedposts = [];     // Posts that the student rated. Key = rateid, Value = rateid.
+        $student->submittedposts = [];      // Posts written by the student. Key = postid, Value = postid.
+        $student->ratedposts = [];          // Posts that the student rated. Key = rateid, Value = rateid.
         $student->receivedupvotes = 0;
         $student->receiveddownvotes = 0;
-        $student->forumactivity = 0;             // Number of written posts and submitted ratings in the current moodleoverflow.
-        $student->courseactivity = 0;            // Number of written posts and submitted ratings in the course.
-        $student->forumreputation = 0;           // Reputation in the current moodleoverflow.
-        $student->coursereputation = 0;          // Reputation in the course.
+        $student->forumactivity = 0;        // Number of written posts and submitted ratings in the current moodleoverflow.
+        $student->courseactivity = 0;       // Number of written posts and submitted ratings in the course.
+        $student->forumreputation = 0;      // Reputation in the current moodleoverflow.
+        $student->coursereputation = 0;     // Reputation in the course.
         return $student;
     }
 
@@ -401,7 +280,6 @@ class userstats_table extends \flexible_table {
      */
     private function get_rating_data() {
         global $DB;
-        // Step 1.0: Build the datatable with all relevant Informations.
         $sqlquery = 'SELECT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,
                             discuss.id AS discussid,
                             discuss.userid AS discussuserid,
@@ -419,5 +297,91 @@ class userstats_table extends \flexible_table {
                       LEFT JOIN {moodleoverflow} moodleoverflow ON discuss.moodleoverflow = moodleoverflow.id
                       WHERE discuss.course = ' . $this->courseid . ';';
         return $DB->get_records_sql($sqlquery);
+    }
+
+    /**
+     * Process the received votes for a student.
+     * @param object $student
+     * @param object $row
+     */
+    private function process_received_votes(object $student, object $row) {
+        // Only count received votes if the post is not anonymous (no anonymous setting or only questioner anonymous discussion).
+        if ((($row->anonymoussetting == 0) || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
+            if ($row->rating == RATING_UPVOTE) {
+                $student->receivedupvotes += 1;
+            } else if ($row->rating == RATING_DOWNVOTE) {
+                $student->receiveddownvotes += 1;
+            }
+        }
+    }
+
+    /**
+     * Process the submitted ratings from a student.
+     * @param object $student
+     * @param object $row
+     */
+    private function process_submitted_ratings($student, $row) {
+        // For solution marks: only count a solution if the discussion is not completely anonymous.
+        // For helpful marks: only count helpful marks if the discussion is not any kind of anonymous.
+        // Up and downvotes are always counted.
+        $solvedcheck = ($row->rating == RATING_SOLVED && $row->anonymoussetting != 2);
+        $helpfulcheck = ($row->rating == RATING_HELPFUL && $row->anonymoussetting == 0);
+        $isvote = ($row->rating == RATING_UPVOTE || $row->rating == RATING_DOWNVOTE);
+
+        if (!array_key_exists($row->rateid, $student->ratedposts)) {
+            if ($solvedcheck || $helpfulcheck || $isvote) {
+                $this->increment_forumactivity($student, $row);
+                $student->courseactivity++;
+                $student->ratedposts[$row->rateid] = $row->rateid;
+            }
+        }
+    }
+
+    /**
+     * Process the written posts from a student for the activity.
+     * @param object $student
+     * @param object $row
+     */
+    private function process_written_posts($student, $row) {
+        // Only count a written post if: the post is not in an anonymous discussion:
+        // or the post is in a partial anonymous discussion and the user is not the starter of the discussion.
+        if (!array_key_exists($row->postid, $student->submittedposts) &&
+            ($row->anonymoussetting == 0 || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
+
+            $this->increment_forumactivity($student, $row);
+            $student->courseactivity += 1;
+            $student->submittedposts[$row->postid] = $row->postid;
+        }
+    }
+
+    /**
+     * Increments the forum activity of a student.
+     * @param object $student
+     * @param object $row
+     */
+    private function increment_forumactivity($student, $row) {
+        if ($row->moodleoverflowid == $this->moodleoverflowid) {
+            $student->forumactivity++;
+        }
+    }
+
+    // Sort function.
+
+    /**
+     * Method to sort the userstatsdata-table.
+     * @param array $sortorder The sort order array.
+     * @return void
+     */
+    private function sort_table_data($sortorder) {
+        $key = $sortorder['sortby'];
+        // The index of each object in usertable is it's value of $key.
+        $length = count($this->userstatsdata);
+        if ($sortorder['sortorder'] == 4) {
+            // 4 means sort in ascending order.
+            moodleoverflow_quick_array_sort($this->userstatsdata, 0, $length - 1, $key, 'asc');
+        } else if ($sortorder['sortorder'] == 3) {
+            // 3 means sort in descending order.
+            moodleoverflow_quick_array_sort($this->userstatsdata, 0, $length - 1, $key, 'desc');
+        }
     }
 }

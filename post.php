@@ -23,12 +23,13 @@
  */
 
 use mod_moodleoverflow\post\post_control;
+// Include config and locallib.
+use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\review;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-require_once(dirname(__FILE__) . '/locallib.php');
-
 global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
+require_once(dirname(__FILE__) . '/locallib.php');
 require_once($CFG->libdir . '/completionlib.php');
 
 // Declare optional url parameters.

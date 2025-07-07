@@ -25,6 +25,7 @@
 namespace mod_moodleoverflow\task;
 
 use core\session\exception;
+use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
 
 defined('MOODLE_INTERNAL') || die();
@@ -89,13 +90,10 @@ class send_mails extends \core\task\scheduled_task {
         }
 
         $course = null;
-
         $moodleoverflow = null;
         $usersto = null;
         $cm = null;
-
         $discussion = null;
-
         $success = [];
 
         foreach ($postinfos as $postinfo) {
@@ -125,6 +123,7 @@ class send_mails extends \core\task\scheduled_task {
 
             $post = $postinfo;
             $userfrom = \core_user::get_user($postinfo->userid, '*', MUST_EXIST);
+            $userfrom->anonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $postinfo->userid);
 
             foreach ($usersto as $userto) {
                 try {
@@ -135,16 +134,8 @@ class send_mails extends \core\task\scheduled_task {
                         cron_setup_user($userto, $course);
                     }
 
-                    $maildata = new moodleoverflow_email(
-                        $course,
-                        $cm,
-                        $moodleoverflow,
-                        $discussion,
-                        $post,
-                        $userfrom,
-                        $userto,
-                        false
-                    );
+                    $maildata = new moodleoverflow_email($course, $cm, $moodleoverflow, $discussion,
+                                                         $post, $userfrom, $userto, false);
 
                     $textcontext = $maildata->export_for_template($renderertext, true);
                     $htmlcontext = $maildata->export_for_template($rendererhtml, false);

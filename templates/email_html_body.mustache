@@ -77,56 +77,56 @@
         "unsubscribediscussionlink": "https://example.com/mod/discussion/subscribe.php?id=2&d=2"
     }
 }}
-<table border="0" cellpadding="3" cellspacing="0" class="moodleoverflowpost">
+<table class="moodleoverflowpost" style="border:none;">
     <tr class="header">
-        <td width="35" valign="top" class="picture left">
+        <td class="picture left" style="vertical-align:top; width:35px; padding:3px;">
             {{{ authorpicture }}}
         </td>
-        <td class="topic {{# firstpost }}starter{{/ firstpost }}">
+        <td class="topic {{#firstpost}}starter{{/firstpost}}" style="padding:3px;">
             <div class="subject">
                 {{{ subject }}}
             </div>
             <div class="author">
-                {{# str }} bynameondatenorating, moodleoverflow, {
+                {{#str}} bynameondatenorating, moodleoverflow, {
                     "name":
-                        {{# authorlink }}{{# quote }} <a target='_blank' href='{{{ authorlink }}}'>{{ authorfullname }}</a>{{/ quote }}{{/authorlink}}
-                        {{^ authorlink }}{{# quote }} {{ authorfullname }} {{/ quote }}{{/ authorlink }} ,
-                    "date": {{# quote }}{{ postdate }}{{/ quote }}
-                    } {{/ str }}
+                        {{#authorlink}}{{#quote}} <a target='_blank' href='{{{ authorlink }}}'>{{ authorfullname }}</a>{{/quote}}{{/authorlink}}
+                        {{^authorlink}}{{#quote}} {{ authorfullname }} {{/quote}}{{/authorlink}} ,
+                    "date": {{#quote}}{{ postdate }}{{/quote}}
+                    } {{/str}}
             </div>
         </td>
     </tr>
     <tr>
-        <td class="left side" valign="top">
-            {{# grouppicture }}
+        <td class="left side" style="vertical-align:top; padding:3px;">
+            {{#grouppicture}}
                 {{{ grouppicture }}}
-            {{/ grouppicture }}
-            {{^ grouppicture }}
+            {{/grouppicture}}
+            {{^grouppicture}}
                 &nbsp;
-            {{/ grouppicture }}
+            {{/grouppicture}}
         </td>
-        <td class="content">
+        <td class="content" style="padding:3px;">
             {{{ message }}}
 
             <div class="commands">
-                {{^ firstpost }}
+                {{^firstpost}}
                     <a target="_blank" href="{{{ parentpostlink }}}">
-                        {{# str }} parent, moodleoverflow {{/ str }}
+                        {{#str}} parent, moodleoverflow {{/str}}
                     </a>
-                    {{# canreply }}
+                    {{#canreply}}
                         |
-                    {{/ canreply }}
-                {{/ firstpost }}
-                {{# canreply }}
+                    {{/canreply}}
+                {{/firstpost}}
+                {{#canreply}}
                     <a target="_blank" href="{{{ replylink }}}">
-                        {{# str }} reply, moodleoverflow {{/ str }}
+                        {{#str}} reply, moodleoverflow {{/str}}
                     </a>
-                {{/ canreply }}
+                {{/canreply}}
             </div>
 
             <div class="link">
                 <a target="_blank" href="{{{ permalink }}}">
-                    {{# str }} postincontext, moodleoverflow {{/ str }}
+                    {{#str}} postincontext, moodleoverflow {{/str}}
                 </a>
             </div>
         </td>

@@ -77,7 +77,7 @@
         "unsubscribediscussionlink": "https://example.com/mod/discussion/subscribe.php?id=2&d=2"
     }
 }}
-{{{ coursename }}} -> {{{ moodleoverflowname }}}{{# showdiscussionname }} -> {{{ discussionname }}} {{/ showdiscussionname }}
+{{{coursename}}} -> {{{moodleoverflowname}}}{{#showdiscussionname}} -> {{{discussionname}}} {{/showdiscussionname}}
 
 {{^reason}}
     {{#str}} your_post_was_rejected, mod_moodleoverflow {{/str}}
@@ -91,11 +91,11 @@
 =====================================================================
 
 
-{{{ subject }}}
-{{# str }} bynameondate, mod_moodleoverflow, {
-"name": {{# quote }}{{{ authorfullname }}}{{/ quote }},
-"date": {{# quote}}{{ postdate }}{{/ quote }}
-} {{/ str }}
+{{{subject}}}
+{{#str}} bynameondate, mod_moodleoverflow, {
+"name": {{#quote}}{{{authorfullname}}}{{/quote}},
+"date": {{#quote}}{{ postdate }}{{/quote}}
+} {{/str}}
 ---------------------------------------------------------------------
-{{{ message }}}
+{{{message}}}
 ---------------------------------------------------------------------

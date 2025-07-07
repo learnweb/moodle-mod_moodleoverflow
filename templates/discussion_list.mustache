@@ -35,16 +35,16 @@
 {{! There are discussions. Start to print the table. }}
 {{#hasdiscussions}}
 
-    <table cellspacing="0" class="moodleoverflowheaderlist generaltable">
+    <table class="moodleoverflowheaderlist generaltable">
 
         {{! Print the heading row of the table. }}
         <thead>
             <tr>
-                {{# canreview }}
+                {{#canreview}}
                 <th class="header replies">
                     {{#str}} review, moodleoverflow {{/str}}
                 </th>
-                {{/ canreview }}
+                {{/canreview}}
 
                 <th class="header replies" scope="col">
                     {{#str}} headerstatus, moodleoverflow {{/str}}
@@ -102,41 +102,41 @@
         {{#discussions}}
             <tr class="discussion">
 
-                {{# canreview }}
+                {{#canreview}}
                     <td class="replies ">
-                        {{# needreview }}
+                        {{#needreview}}
                             <a href="{{{reviewlink}}}" class="text-danger bold"
                                title="{{#str}}amount_waiting_for_review, mod_moodleoverflow, {{needreview}}{{/str}}">
                                 {{#pix}}i/commenting, mod_moodleoverflow{{/pix}}{{ needreview }}
                             </a>
-                        {{/ needreview }}
+                        {{/needreview}}
                     </td>
-                {{/ canreview }}
+                {{/canreview}}
 
                 {{! The status of the discussion. }}
                 <td class="topic replies">
-                    {{# questionunderreview }}
+                    {{#questionunderreview}}
                         {{#pix}}i/duration, moodle, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
-                    {{/ questionunderreview }}
-                    {{^ questionunderreview }}
+                    {{/questionunderreview}}
+                    {{^questionunderreview}}
                         {{#markedsolution}}
                             <a href="{{teacherlink}}">
-                                {{# pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/ pix}}
+                                {{#pix}} status/c_outline, moodleoverflow, {{#str}}teacherrating, moodleoverflow{{/str}} {{/pix}}
                             </a>
                         {{/markedsolution}}
                         {{^markedsolution}}
-                            {{# pix}} status/c_blank, moodleoverflow, {{#str}}marknotsolved, moodleoverflow{{/str}}{{/ pix}}
+                            {{#pix}} status/c_blank, moodleoverflow, {{#str}}marknotsolved, moodleoverflow{{/str}}{{/pix}}
                         {{/markedsolution}}
 
                         {{#markedhelpful}}
                             <a href="{{starterlink}}">
-                                {{# pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/ pix}}
+                                {{#pix}} status/b_outline, moodleoverflow, {{#str}}starterrating, moodleoverflow{{/str}} {{/pix}}
                             </a>
                         {{/markedhelpful}}
                         {{^markedhelpful}}
-                            {{# pix}} status/b_blank, moodleoverflow, {{#str}}marknothelpful, moodleoverflow{{/str}} {{/ pix}}
+                            {{#pix}} status/b_blank, moodleoverflow, {{#str}}marknothelpful, moodleoverflow{{/str}} {{/pix}}
                         {{/markedhelpful}}
-                    {{/ questionunderreview }}
+                    {{/questionunderreview}}
                 </td>
 
                 {{! The votes of the discussion. }}
@@ -168,7 +168,7 @@
                                     <span class="mod_moodleoverflow-label-unread">
                                         <a href="{{ unreadlink }}">{{ unreadamount }}</a>
                                         <a href="{{ markreadlink }}">
-                                            {{# pix}} t/markasread, core, {{#str}}markread, moodleoverflow{{/str}} {{/ pix}}
+                                            {{#pix}} t/markasread, core, {{#str}}markread, moodleoverflow{{/str}} {{/pix}}
                                         </a>
                                     </span>
                                 {{/unread}}
@@ -194,12 +194,12 @@
                 </td>
 
                 <td class="author">
-                    {{# userlink }}<a href="{{ userlink }}">{{ username }}</a>{{/userlink}} {{^userlink}}{{username}}{{/userlink}}
+                    {{#userlink}}<a href="{{ userlink }}">{{ username }}</a>{{/userlink}} {{^userlink}}{{username}}{{/userlink}}
                 </td>
 
                 <td class="lastpost">
-                    {{# lastpostusername }}<a href="{{ lastpostuserlink }}">{{ lastpostusername }}</a>{{/ lastpostusername }}
-                    {{^ lastpostusername }}-{{/ lastpostusername }}<br />
+                    {{#lastpostusername}}<a href="{{ lastpostuserlink }}">{{ lastpostusername }}</a>{{/lastpostusername}}
+                    {{^lastpostusername}}-{{/lastpostusername}}<br />
                     <a href="{{ lastpostlink }}">{{ lastpostdate }}</a>
                 </td>
                 

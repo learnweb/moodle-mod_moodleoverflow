@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\review;
 
@@ -89,19 +90,15 @@ class mod_moodleoverflow_external extends external_api {
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $params['postid']], '*', MUST_EXIST);
 
         // Check if the discussion is valid.
-        if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion])) {
-            throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
-        }
+        $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $post->discussion],
+                                                             'invaliddiscussionid');
 
         // Check if the related moodleoverflow instance is valid.
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow])) {
-            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
-        }
+        $moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $discussion->moodleoverflow],
+                                                                 'invalidmoodleoverflowid');
 
         // Check if the related moodleoverflow instance is valid.
-        if (!$course = $DB->get_record('course', ['id' => $discussion->course])) {
-            throw new moodle_exception('invalidcourseid');
-        }
+        $course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->course], 'invalidcourseid', '*', true);
 
         // Get the related coursemodule and its context.
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
@@ -115,7 +112,7 @@ class mod_moodleoverflow_external extends external_api {
 
         // Rate the post.
         if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,
-            $params['postid'], $params['ratingid'], $cm)) {
+            $params['postid'], $params['ratingid'], $cm, $USER->id)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
@@ -126,7 +123,7 @@ class mod_moodleoverflow_external extends external_api {
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
 
-        $cannotseeowner = \mod_moodleoverflow\anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) &&
+        $cannotseeowner = anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) &&
             $USER->id != $postownerid;
 
         $params['postrating'] = $rating->upvotes - $rating->downvotes;
@@ -259,6 +256,7 @@ class mod_moodleoverflow_external extends external_api {
         $renderertext = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
 
         $userto = core_user::get_user($post->userid);
+        $userto->anonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid);
 
         $maildata = new moodleoverflow_email(
                 $course,

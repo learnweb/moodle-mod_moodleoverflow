@@ -17,19 +17,19 @@
 /**
  * Defines the version and other meta-info about the plugin
  *
- * Setting the $plugin->version to 0 prevents the plugin from being installed.
  * See https://docs.moodle.org/dev/version.php for more info.
  *
  * @package   mod_moodleoverflow
- * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
+ * @copyright 2025 Thomas Niedermaier, University Münster
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
+$plugin->version = 2024070700;
+$plugin->requires = 2022112819; // Require Moodle 4.1.
+$plugin->supported = [401, 500];
 $plugin->component = 'mod_moodleoverflow';
-$plugin->release = 'v4.2-r4';
-$plugin->version = 2024031200;
-$plugin->requires = 2020061500; // Requires Moodle 3.9+.
-$plugin->maturity = MATURITY_STABLE;
+$plugin->maturity = MATURITY_RC;
+$plugin->release = 'v5.0-rc1';
 $plugin->dependencies = [];

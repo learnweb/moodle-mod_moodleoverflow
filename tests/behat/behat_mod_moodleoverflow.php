@@ -45,12 +45,15 @@ class behat_mod_moodleoverflow extends behat_base {
      * Adds a new moodleoverflow to the specified course and section.
      *
      * @Given I add a moodleoverflow to course :coursefullname section :sectionnum and I fill the form with:
-     * @param $courseshortname
-     * @param $sectionnumber
-     * @param $data
-     * @return void
+     * @param string $courseshortname
+     * @param string $sectionnumber
+     * @param TableNode $data
      */
-    public function i_add_a_moodleoverflow_to_course_section_and_fill_form($courseshortname, $sectionnumber, TableNode $data) {
+    public function i_add_a_moodleoverflow_to_course_section_and_fill_form(
+        string $courseshortname,
+        string $sectionnumber,
+        TableNode $data
+    ) {
         global $CFG;
 
         if ($CFG->branch >= 404) {
@@ -159,6 +162,7 @@ class behat_mod_moodleoverflow extends behat_base {
             $discussiontitle . '"]]');
     }
 
+    // phpcs:disable moodle.Files.LineLength.TooLong
     /**
      * Checks that an element and selector type exists in another element and selector type on the current page.
      *
@@ -171,6 +175,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param string $discussiontitle The discussion title
      */
     public function should_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // phpcs:enable
         // Get the container node.
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
@@ -182,6 +187,7 @@ class behat_mod_moodleoverflow extends behat_base {
         $this->find($selectortype, $element, $exception, $containernode);
     }
 
+    // phpcs:disable moodle.Files.LineLength.TooLong
     /**
      * Click on the element of the specified type which is located inside the second element.
      *
@@ -191,6 +197,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param string $discussiontitle The discussion title
      */
     public function i_click_on_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // phpcs:enable
         // Get the container node.
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
@@ -204,6 +211,7 @@ class behat_mod_moodleoverflow extends behat_base {
         $node->click();
     }
 
+    // phpcs:disable moodle.Files.LineLength.TooLong
     /**
      * Checks that an element and selector type does not exist in another element and selector type on the current page.
      *
@@ -216,6 +224,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param string $discussiontitle The discussion title
      */
     public function should_not_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+        // phpcs:enable
         // Get the container node.
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
@@ -234,5 +243,23 @@ class behat_mod_moodleoverflow extends behat_base {
             "The '{$element}' '{$selectortype}' exists in the '{$discussiontitle}' moodleoverflow discussion card",
             $this->getSession()
         );
+    }
+
+    /**
+     * Sets the limited answer starttime attribute of a moodleoverflow to the current time.
+     *
+     * @Given I set the :activity moodleoverflow limitedanswerstarttime to now
+     * @param string $activity
+     * @return void
+     */
+    public function i_set_the_moodleoverflow_limitedanswerstarttime_to_now($activity): void {
+        global $DB;
+
+        if (!$activityrecord = $DB->get_record('moodleoverflow', ['name' => $activity])) {
+            throw new Exception("Activity '$activity' not found");
+        }
+        // Update the specified field.
+        $activityrecord->la_starttime = time();
+        $DB->update_record('moodleoverflow', $activityrecord);
     }
 }

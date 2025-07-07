@@ -73,13 +73,13 @@ class moodleoverflow_email implements \renderable, \templatable {
     /**
      * Whether the user can reply to this post.
      *
-     * @var boolean $canreply
+     * @var bool $canreply
      */
     protected $canreply = false;
 
     /**
      * Whether to override forum display when displaying usernames.
-     * @var boolean $viewfullnames
+     * @var bool $viewfullnames
      */
     protected $viewfullnames = false;
 
@@ -358,7 +358,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_author_fullname() {
-        if (anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id)) {
+        if ($this->author->anonymous) {
             return get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
         } else {
             return fullname($this->author, $this->viewfullnames);
@@ -521,7 +521,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_authorlink() {
-        if (anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id)) {
+        if ($this->author->anonymous) {
             return null;
         }
 
@@ -542,7 +542,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      */
     public function get_author_picture() {
         global $OUTPUT;
-        if (anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id)) {
+        if ($this->author->anonymous) {
             return '';
         }
 
@@ -555,7 +555,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_group_picture() {
-        if (anonymous::is_post_anonymous($this->discussion, $this->moodleoverflow, $this->author->id)) {
+        if ($this->author->anonymous) {
             return '';
         }
 
