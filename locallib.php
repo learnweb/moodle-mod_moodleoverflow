@@ -1135,6 +1135,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
  * @param array $usermapping
  * @param int $level
  * @param bool $multiplemarks setting of multiplemarks
+ * @param stdClass|null $limitedanswersetting
  * @return void|null
  * @throws coding_exception
  * @throws dml_exception

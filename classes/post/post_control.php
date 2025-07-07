@@ -37,6 +37,7 @@ use mod_moodleoverflow\post\post;
 use mod_moodleoverflow\discussion\discussion;
 use mod_moodleoverflow\subscriptions;
 use moodle_exception;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -89,12 +90,13 @@ class post_control {
      * Constructor
      */
     public function __construct() {
-        $this->info = new \stdClass();
+        $this->info = new stdClass();
     }
 
     /**
      * Detects the interaction and builds the prepost.
-     * @param object $urlparamter parameter from the post.php
+     * @param stdClass $urlparameter parameter from the post.php
+     * @throws \coding_exception
      * @throws moodle_exception if the interaction is not correct.
      */
     public function detect_interaction($urlparameter) {
@@ -620,7 +622,7 @@ class post_control {
         // If the user is not the original author append an extra message to the message. (Happens when interaction = 'edit').
         if ($USER->id != $this->prepost->userid) {
             // Create a temporary object.
-            $data = new \stdClass();
+            $data = new stdClass();
             $data->date = userdate(time());
             $this->prepost->messageformat = editors_get_preferred_format();
             if ($this->prepost->messageformat == FORMAT_HTML) {
@@ -721,7 +723,7 @@ class post_control {
      * Some prepost parameters will be assigned individually by the build_prepost functions.
      */
     private function assemble_prepost() {
-        $this->prepost = new \stdClass();
+        $this->prepost = new stdClass();
         $this->prepost->courseid = $this->info->course->id;
         $this->prepost->moodleoverflowid = $this->info->moodleoverflow->id;
         $this->prepost->modulecontext = $this->info->modulecontext;

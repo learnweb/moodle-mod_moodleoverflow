@@ -53,7 +53,7 @@ $systemcontext = context_system::instance();
 $postcontrol = new post_control();
 
 // Put all interaction parameters in one object for the post_control.
-$urlparameter = new \stdClass();
+$urlparameter = new stdClass();
 $urlparameter->create = $moodleoverflow;
 $urlparameter->reply = $reply;
 $urlparameter->edit = $edit;
@@ -137,7 +137,7 @@ if ($fromform = $mformpost->get_data()) {
 // The post_form will be displayed.
 
 // Define the message to be displayed above the form.
-$toppost = new \stdClass();
+$toppost = new stdClass();
 $toppost->subject = get_string('addanewdiscussion', 'moodleoverflow');
 
 // Initiate the page.

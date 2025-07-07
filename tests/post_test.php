@@ -24,8 +24,10 @@
 namespace mod_moodleoverflow;
 
 // Use the post class.
+use context;
 use mod_moodleoverflow\post\post;
 use mod_moodleoverflow\discussion\discussion;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../locallib.php');
@@ -41,19 +43,19 @@ require_once(__DIR__ . '/../locallib.php');
  */
 final class post_test extends \advanced_testcase {
 
-    /** @var \stdClass test course */
+    /** @var stdClass test course */
     private $course;
 
-    /** @var \stdClass coursemodule */
+    /** @var stdClass coursemodule */
     private $coursemodule;
 
-    /** @var \stdClass modulecontext */
+    /** @var stdClass modulecontext */
     private $modulecontext;
 
-    /** @var \stdClass test moodleoverflow */
+    /** @var stdClass test moodleoverflow */
     private $moodleoverflow;
 
-    /** @var \stdClass test teacher */
+    /** @var stdClass test teacher */
     private $teacher;
 
     /** @var discussion a discussion */
@@ -184,13 +186,12 @@ final class post_test extends \advanced_testcase {
     }
 
     /**
-     * Helper function to add a new attachment to a post.
+     * Adds a new attachment to a post.
      *
-     * @param object $object // The object that will have the attachment
-     * @param $modulecontext
-     * @param string $filename
-     * @param $filecontent
-     * @return void
+     * @param stdClass $object The post object to which the attachment should be added.
+     * @param context $modulecontext The context of the module.
+     * @param string $filename The name of the file to be added.
+     * @param string $filecontent The content of the file to be added.
      */
     private function add_new_attachment($object, $modulecontext, $filename, $filecontent) {
         global $DB;
