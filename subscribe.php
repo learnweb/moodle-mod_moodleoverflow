@@ -216,7 +216,7 @@ if ($issubscribed) {
             // Create a new info object.
             $info2 = new stdClass();
             $info2->moodleoverflow = format_string($moodleoverflow->name);
-            $info2->discussion = format_string($discussion->name);
+            $info2->discussion = format_string($discussion->get_name());
 
             // Create a confirm statement.
             $string = get_string('confirmunsubscribediscussion', 'moodleoverflow', $info2);
@@ -252,7 +252,7 @@ if ($issubscribed) {
 
         // Unsubscribe the user from the discussion.
         if (\mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($user->id, $discussion, $context)) {
-            $info->discussion = $discussion->name;
+            $info->discussion = $discussion->get_name();
             redirect($returnto, get_string('discussionnownotsubscribed', 'moodleoverflow', $info), null, $notify['success']);
         } else {
             throw new moodle_exception('cannotunsubscribe', 'moodleoverflow', get_local_referer(false));
@@ -296,7 +296,7 @@ if ($issubscribed) {
             // Create a new info object.
             $info2 = new stdClass();
             $info2->moodleoverflow = format_string($moodleoverflow->name);
-            $info2->discussion = format_string($discussion->name);
+            $info2->discussion = format_string($discussion->get_name());
 
             // Create a confirm dialog.
             $string = get_string('confirmsubscribediscussion', 'moodleoverflow', $info2);
@@ -327,7 +327,7 @@ if ($issubscribed) {
         exit;
 
     } else {
-        $info->discussion = $discussion->name;
+        $info->discussion = $discussion->get_name();
 
         // Subscribe the user to the discussion.
         \mod_moodleoverflow\subscriptions::subscribe_user_to_discussion($user->id, $discussion, $context);
