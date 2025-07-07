@@ -184,6 +184,8 @@ final class post_test extends \advanced_testcase {
     }
 
     /**
+     * Helper function to add a new attachment to a post.
+     *
      * @param object $object // The object that will have the attachment
      * @param $modulecontext
      * @param string $filename

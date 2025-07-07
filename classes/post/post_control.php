@@ -28,10 +28,14 @@ namespace mod_moodleoverflow\post;
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\event\discussion_created;
+use mod_moodleoverflow\event\post_created;
+use mod_moodleoverflow\event\post_updated;
 use mod_moodleoverflow\review;
 
 use mod_moodleoverflow\post\post;
 use mod_moodleoverflow\discussion\discussion;
+use mod_moodleoverflow\subscriptions;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -284,7 +288,7 @@ class post_control {
                 $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
             }
         } else {
-            // TODO: remove this else branch when support for php version 7.4 ends.
+            // LEARNWEB-TODO: remove this else branch when support for php version 7.4 ends.
             if (!(substr($this->prepost->subject, 0, strlen($strre)) == $strre)) {
                 $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
             }
@@ -371,6 +375,13 @@ class post_control {
 
     // Execute Functions.
 
+    /**
+     * Executes the creation of a new discussion.
+     *
+     * @param object $form The results from the post_form.
+     * @param string $errordestination The URL to redirect to in case of an error.
+     * @throws moodle_exception if the discussion could not be added.
+     */
     private function execute_create($form, $errordestination) {
         global $USER;
         // Check if the user is allowed to post.
@@ -400,13 +411,13 @@ class post_control {
 
         // Trigger the discussion created event.
         $params = ['context' => $this->info->modulecontext, 'objectid' => $discussion->get_id()];
-        $event = \mod_moodleoverflow\event\discussion_created::create($params);
+        $event = discussion_created::create($params);
         $event->trigger();
 
         // Subscribe to this thread.
         // Please be aware that in future the use of get_db_object() should be replaced with only $this->info->discussion,
         // as the subscription class should be refactored with the new way of working with posts.
-        \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
+        subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
                                                                             $discussion->get_db_object(),
                                                                             $this->info->modulecontext);
 
@@ -415,6 +426,13 @@ class post_control {
         redirect(moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
     }
 
+    /**
+     * Executes the reply to an existing post.
+     *
+     * @param object $form The results from the post_form.
+     * @param string $errordestination The URL to redirect to in case of an error.
+     * @throws moodle_exception if the reply could not be added.
+     */
     private function execute_reply($form, $errordestination) {
         // Check if the user has the capability to write a reply.
         $this->check_user_can_create_reply();
@@ -443,13 +461,13 @@ class post_control {
                                'moodleoverflowid' => $this->prepost->moodleoverflowid,
                               ],
                   ];
-        $event = \mod_moodleoverflow\event\post_created::create($params);
+        $event = post_created::create($params);
         $event->trigger();
 
         // Subscribe to this thread.
         // Please be aware that in future the use of build_db_object() should be replaced with only $this->info->discussion,
         // as the subscription class should be refactored with the new way of working with posts.
-        \mod_moodleoverflow\subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
+        subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
                                                                              $this->info->discussion->get_db_object(),
                                                                              $this->info->modulecontext);
 
@@ -460,6 +478,13 @@ class post_control {
 
     }
 
+    /**
+     * Executes the edit of an existing post.
+     *
+     * @param object $form The results from the post_form.
+     * @param string $errordestination The URL to redirect to in case of an error.
+     * @throws moodle_exception if the post could not be updated.
+     */
     private function execute_edit($form, $errordestination) {
         global $USER, $DB;
         // Check if the user has the capability to edit his post.
@@ -496,7 +521,7 @@ class post_control {
                               ],
                    'relateduserid' => $this->prepost->userid == $USER->id ? $this->prepost->userid : null,
                   ];
-        $event = \mod_moodleoverflow\event\post_updated::create($params);
+        $event = post_updated::create($params);
         $event->trigger();
 
         // Define the location to redirect the user after successfully editing.
@@ -505,6 +530,11 @@ class post_control {
         redirect(moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
     }
 
+    /**
+     * Executes the deletion of a post.
+     *
+     * @throws moodle_exception if the post could not be deleted.
+     */
     public function execute_delete() {
         $this->check_interaction('delete');
 

@@ -233,7 +233,7 @@ class discussion {
             'context' => $prepost->modulecontext,
             'objectid' => $this->id,
         ];
-        // TODO: check if the event functions.
+        // LEARNWEB-TODO: check if the event functions.
         $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
         $event->trigger();
 

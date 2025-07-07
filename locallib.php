@@ -49,7 +49,7 @@ require_once(dirname(__FILE__) . '/lib.php');
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     global $DB, $CFG, $USER;
 
-    // TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
+    // LEARNWEB-TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
 
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
@@ -531,7 +531,7 @@ function moodleoverflow_count_discussion_replies($cm) {
 }
 
 /**
- * TODO: Delete this function when adapting the print-functions to the new post and discussion structure.
+ * LEARNWEB-TODO: Delete this function when adapting the print-functions to the new post and discussion structure.
  * Check if the user is capable of starting a new discussion.
  *
  * @param object $moodleoverflow
@@ -925,7 +925,7 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
 
 /**
  * Prints a moodleoverflow discussion.
- * TODO: REFACTOR WITH NEW POST AND DISCUSSION STRUCTURE.
+ * LEARNWEB-TODO: REFACTOR WITH NEW POST AND DISCUSSION STRUCTURE.
  *
  * @param stdClass $course              The course object
  * @param object   $cm
@@ -1117,7 +1117,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
 /**
  *
- * TODO: REFACTOR THIS FUNCTION FOR THE NEW POST STRUCTURE.
+ * LEARNWEB-TODO: REFACTOR THIS FUNCTION FOR THE NEW POST STRUCTURE.
  * Prints a moodleoverflow post.
  * @param object $post
  * @param object $discussion
@@ -1642,7 +1642,7 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
 }
 
 /**
- * TODO: Delete this function after adapting the print_post function to the new post structure
+ * LEARNWEB-TODO: Delete this function after adapting the print_post function to the new post structure
  * Returns attachments with information for the template
  *
  * @param object $post

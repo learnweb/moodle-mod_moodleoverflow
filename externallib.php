@@ -40,7 +40,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  */
 class mod_moodleoverflow_external extends external_api {
 
-    // TODO: Adapt the functions to the new way of working with posts.
+    // LEARNWEB-TODO: Adapt the functions to the new way of working with posts.
     /**
      * Returns description of method parameters
      * @return external_function_parameters

@@ -31,6 +31,7 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\discussion\discussion;
+use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -680,7 +681,7 @@ class post {
         return $dbobject;
     }
 
-    /*
+    /**
      * Count all replies of a post.
      *
      * @param bool $onlyreviewed Whether to count only reviewed posts.
@@ -710,7 +711,7 @@ class post {
      */
     private function existence_check() {
         if (empty($this->id) || $this->id == false || $this->id == null) {
-            throw new \moodle_exception('noexistingpost', 'moodleoverflow');
+            throw new moodle_exception('noexistingpost', 'moodleoverflow');
         }
         return true;
     }

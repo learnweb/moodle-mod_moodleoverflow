@@ -227,146 +227,7 @@ $string['moodleoverflow:replypost'] = 'Reply in discussion';
 $string['moodleoverflow:reviewpost'] = 'Review (approve or reject) posts';
 $string['moodleoverflow:startdiscussion'] = 'Start a discussion';
 $string['moodleoverflow:viewanyrating'] = 'View total ratings that anyone received';
-<<<<<<< HEAD
-
-// Strings for the view.php.
-$string['noviewdiscussionspermission'] = 'You do not have the permission to view discussions in this forum';
-$string['lastpost'] = 'Last post';
-
-// Strings for the locallib.php.
-$string['addanewdiscussion'] = 'Add a new discussion topic';
-$string['seeuserstats'] = 'View user statistics';
-$string['nodiscussions'] = 'There are no discussion topics yet in this forum.';
-$string['markallread_forum'] = 'Mark all posts as read';
-$string['markallread'] = 'Mark all posts in this discussion as read';
-$string['delete'] = 'Delete';
-$string['parent'] = 'Show parent';
-$string['markread'] = 'Mark read';
-$string['markunread'] = 'Mark unread';
-$string['permalink'] = 'Permalink';
-$string['postbyuser'] = '{$a->post} by {$a->user}';
-$string['bynameondate'] = 'by {$a->name} ({$a->rating}) - {$a->date}';
-$string['bynameondatenorating'] = 'by {$a->name} - {$a->date}';
-$string['deletesure'] = 'Are you sure you want to delete this post?';
-$string['deletesureplural'] = 'Are you sure you want to delete this post and all replies? ({$a} posts)';
-$string['amount_unread_posts_in_discussion'] = 'There are {$a} unread posts in this discussion.';
-
-// Strings for the settings.php.
-$string['configmanydiscussions'] = 'Maximum number of discussions shown in a Moodleoverflow instance per page';
-$string['manydiscussions'] = 'Discussions per page';
-$string['maxattachmentsize'] = 'Maximum attachment size';
-$string['maxattachmentsize_help'] = 'This setting specifies the largest size of file that can be attached to a forum post.';
-$string['configmaxbytes'] = 'Default maximum size for all forum attachments on the site (subject to course limits and other local settings)';
-$string['maxattachments'] = 'Maximum number of attachments';
-$string['maxattachments_help'] = 'This setting specifies the maximum number of files that can be attached to a forum post.';
-$string['configmaxattachments'] = 'Default maximum number of attachments allowed per post.';
-$string['maxeditingtime'] = 'Maximum amount of time during which a post can be edited by its owner (sec)';
-$string['configmaxeditingtime'] = 'Default maximum seconds are 3600 (= one hour). Regarding editing posts, please also consider the <a href="#admin-reviewpossibleaftertime">"Review possible after" setting</a> for moderated forums.';
-$string['configoldpostdays'] = 'Number of days old any post is considered read.';
-$string['oldpostdays'] = 'Read after days';
-$string['trackingoff'] = 'Off';
-$string['trackingon'] = 'Forced';
-$string['trackingoptional'] = 'Optional';
-$string['trackingtype'] = 'Read tracking';
-$string['configtrackingtype'] = 'Default setting for read tracking.';
-$string['trackmoodleoverflow'] = 'Track unread posts';
-$string['configtrackmoodleoverflow'] = 'Set to \'yes\' if you want to track read/unread for each user.';
-$string['forcedreadtracking'] = 'Allow forced read tracking';
-$string['configforcedreadtracking'] = 'Allows Moodleoverflows to be set to forced read tracking. Will result in decreased performance for some users, particularly on courses with many moodleoverflows and posts. When off, any moodleoverflows previously set to Forced are treated as optional.';
-$string['cleanreadtime'] = 'Mark old posts as read hour';
-$string['configcleanreadtime'] = 'The hour of the day to clean old posts from the \'read\' table.';
-$string['allowdisablerating'] = 'Allow teachers to disable rating and reputation';
-$string['configallowdisablerating'] = 'Set to \'yes\' if you want to give teachers the ability to disable rating and reputation.';
-
-$string['votescalevote'] = 'Reputation: Vote.';
-$string['configvotescalevote'] = 'The amount of reputation voting gives.';
-$string['votescaledownvote'] = 'Reputation: Downvote';
-$string['configvotescaledownvote'] = 'The amount of reputation a downvote for your post gives.';
-$string['votescaleupvote'] = 'Reputation: Upvote';
-$string['configvotescaleupvote'] = 'The amount of reputation an upvote for your post gives.';
-$string['votescalesolved'] = 'Reputation: Solution';
-$string['configvotescalesolved'] = 'The amount of reputation a mark as solution on your post gives.';
-$string['votescalehelpful'] = 'Reputation: Helpful';
-$string['configvotescalehelpful'] = 'The amount of reputation a mark as helpful on your post gives.';
-$string['reputationnotnegative'] = 'Reputation just positive?';
-$string['configreputationnotnegative'] = 'Prohibits the users reputation being negative.';
-$string['allowcoursereputation'] = 'Sum reputation within a course.';
-$string['configallowcoursereputation'] = 'Allow to sum the reputation of all instances of the current course?';
-$string['maxmailingtime'] = 'Maximal mailing time';
-$string['configmaxmailingtime'] = 'Posts older than this number of hours will not be mailed to the users. This will help to avoid problems where the cron has not been running for a long time.';
-
-// Strings for the post.php environment.
-$string['invalidmoodleoverflowid'] = 'Forum ID was incorrect';
-$string['invalidparentpostid'] = 'Parent post ID was incorrect';
-$string['notpartofdiscussion'] = 'This post is not part of a discussion!';
-$string['noguestpost'] = 'Sorry, guests are not allowed to post.';
-$string['nopostmoodleoverflow'] = 'Sorry, you are not allowed to post to this forum.';
-$string['yourreply'] = 'Your reply';
-$string['re'] = 'Re:';
-$string['invalidpostid'] = 'Invalid post ID - {$a}';
-$string['cannotfindparentpost'] = 'Could not find top parent of post {$a}';
-$string['edit'] = 'Edit';
-$string['cannotreply'] = 'You cannot reply to this post';
-$string['cannotcreatediscussion'] = 'Could not create new discussion';
-$string['couldnotadd'] = 'Could not add your post due to an unknown error';
-$string['postaddedsuccess'] = 'Your post was successfully added.';
-$string['postaddedtimeleft'] = 'You have {$a} to edit it if you want to make any changes.';
-$string['cannotupdatepost'] = 'You can not update this post';
-$string['couldnotupdate'] = 'Could not update your post due to an unknown error';
-$string['editedpostupdated'] = '{$a}\'s post was updated';
-$string['postupdated'] = 'Your post was updated';
-$string['editedby'] = 'Edited by {$a->name} on {$a->date}';
-$string['cannotdeletepost'] = 'You can\'t delete this post!';
-$string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
-$string['errorwhiledelete'] = 'An error occurred while deleting record.';
-$string['couldnotdeletereplies'] = 'Sorry, that cannot be deleted as people have already responded to it';
-$string['noexistingpost'] = 'Post does not exists, needs to be created first';
-$string['noexistingdiscussion'] = 'Discussion does not exists, needs to be created first';
-$string['notallpostsavailable'] = 'This Discussion does not have all of its posts, this could lead to errors!';
-$string['missingformattachments'] = 'This functions requires data that was not submitted.';
-$string['unexpectedinteractionerror'] = 'An unexpected error occured, please try again';
-
-// String for the classes/post/post_control.php.
-$string['wronginteraction'] = 'Wrong interaction detected, please choose the right function';
-
-// Strings for the classes/mod_form.php.
-$string['subject'] = 'Subject';
-$string['reply'] = 'Comment';
-$string['replyfirst'] = 'Answer';
-$string['message'] = 'Message';
-$string['discussionsubscription'] = 'Discussion subscription';
-$string['discussionsubscription_help'] = 'Subscribing to a discussion means you will receive notifications of new posts to that discussion.';
-$string['posttomoodleoverflow'] = 'Post to forum';
-$string['posts'] = 'Posts';
-$string['erroremptysubject'] = 'Post subject cannot be empty.';
-$string['erroremptymessage'] = 'Post message cannot be empty';
-$string['yournewtopic'] = 'Your new discussion topic';
-
-// Strings for the classes/ratings.php.
-$string['postnotexist'] = 'Requested post does not exist';
-$string['noratemoodleoverflow'] = 'Sorry, you are not allowed to vote in this forum.';
-$string['configallowratingchange'] = 'Can a user change its ratings?';
-$string['allowratingchange'] = 'Allow rating changes';
-$string['configpreferteachersmark'] = 'The answer marked as solution by a course owner are prioritized over the answer marked as helpful by the starter of the discussion.';
-$string['preferteachersmark'] = 'Prefer course owners\' marks?';
-$string['noratingchangeallowed'] = 'You are not allowed to change your ratings.';
-$string['invalidratingid'] = 'The submitted rating is neither an upvote nor a downvote.';
-$string['notstartuser'] = 'Only the user who started the discussion can mark an answer as helpful.';
-$string['notteacher'] = 'Only course owners can do this.';
-$string['ratingtoold'] = 'Ratings can only be changed within 30 minutes after the first vote. ';
-$string['postnotpartofdiscussion'] = 'Post does not exist in this discussion, please check the parameter';
-
-// Strings for the discussion.php.
-$string['invaliddiscussionid'] = 'Discussion ID was incorrect';
-$string['notexists'] = 'Discussion no longer exists';
-$string['discussionname'] = 'Discussion name';
-$string['discussionlocked'] = 'This discussion has been locked so you can no longer reply to it.';
-$string['hiddenmoodleoverflowpost'] = 'Hidden forum post';
-$string['moodleoverflowsubjecthidden'] = 'Subject (hidden)';
-
-=======
 $string['moodleoverflow:viewdiscussion'] = 'View discussion';
->>>>>>> 0702bd3437f0d25ebe364a04cb0149f0ca79f0e2
 $string['moodleoverflowauthorhidden'] = 'Author (hidden)';
 $string['moodleoverflowbodyhidden'] = 'This post cannot be viewed by you, probably because you have not posted in the discussion, the maximum editing time hasn\'t passed yet, the discussion has not started or the discussion has expired.';
 $string['moodleoverflowfieldset'] = 'Custom example fieldset';
@@ -410,9 +271,7 @@ $string['postaddedsuccess'] = 'Your post was successfully added.';
 $string['postaddedtimeleft'] = 'You have {$a} to edit it if you want to make any changes.';
 $string['postbyuser'] = '{$a->post} by {$a->user}';
 $string['postincontext'] = 'See this post in context';
-$string['postmailinfolink'] = 'This is a copy of a message posted in {$a->coursename}.
-
-To reply click on this link: {$a->replylink}';
+$string['postmailinfolink'] = 'This is a copy of a message posted in {$a->coursename}. To reply click on this link: {$a->replylink}';
 $string['postmailsubject'] = '{$a->courseshortname}: {$a->subject}';
 $string['postnotexist'] = 'Requested post does not exist';
 $string['posts'] = 'Posts';

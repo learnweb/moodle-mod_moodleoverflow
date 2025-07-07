@@ -35,7 +35,7 @@ use mod_moodleoverflow\discussion\discussion;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\discussion\discussion
  */
-class discussion_test extends \advanced_testcase {
+final class discussion_test extends \advanced_testcase {
 
     /** @var \stdClass test course */
     private $course;
@@ -62,6 +62,7 @@ class discussion_test extends \advanced_testcase {
     private $generator;
 
     public function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest();
         $this->helper_course_set_up();
     }
@@ -70,6 +71,7 @@ class discussion_test extends \advanced_testcase {
         // Clear all caches.
         subscriptions::reset_moodleoverflow_cache();
         subscriptions::reset_discussion_cache();
+        parent::tearDown();
     }
 
     /**
