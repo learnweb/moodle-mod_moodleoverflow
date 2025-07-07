@@ -48,15 +48,19 @@ async function sendVote(postid, rating, userid) {
             ratingid: rating
         }
     }])[0];
+
     root.querySelectorAll(`[data-moodleoverflow-userreputation="${userid}"]`).forEach((i) => {
         i.textContent = response.raterreputation;
     });
+
     root.querySelectorAll(`[data-moodleoverflow-userreputation="${response.ownerid}"]`).forEach((i) => {
         i.textContent = response.ownerreputation;
     });
+
     root.querySelectorAll(`[data-moodleoverflow-postreputation="${postid}"]`).forEach((i) => {
         i.textContent = response.postrating;
     });
+
     return response;
 }
 

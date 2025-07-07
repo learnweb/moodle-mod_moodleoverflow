@@ -38,6 +38,7 @@ export function init(previousSetting) {
         if (value == previousSetting || value == 1 || value == 3) {
             return;
         }
+
         e.preventDefault();
         await Notification.confirm(
             await getString('confirm'),
