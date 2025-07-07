@@ -7,4 +7,3 @@ jobs:
     uses: learnweb/moodle-workflows-learnweb/.github/workflows/moodle-ci.yml@main
     with:
       allow-mustache-lint-error: true
-      allow-grunt-error: true
