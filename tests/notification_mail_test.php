@@ -43,6 +43,7 @@ use stdClass;
  * @copyright 2025 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
+ * @covers \mod_moodleoverflow\manager\mail_manager
  */
 #[CoversClass(mail_manager::class)]
 final class notification_mail_test extends \advanced_testcase {
@@ -75,15 +76,15 @@ final class notification_mail_test extends \advanced_testcase {
     // Tests.
 
     /**
-     * Test, if calendar events are sorted correctly.
+     * Test if order of the mails is correct.
+     *
+     * @return void
+     * @covers \mod_moodleoverflow\task\send_mails
      */
     public function test_sortorder(): void {
         global $DB;
         $result = $this->helper_run_task();
-        print_r(var_export($result, true));
-        print_r(var_export($this->testdata->mailsink, true));
-        print_r(var_export($this->testdata->messagesink, true));
-        $this->assertTrue($result);
+        $this->assertTrue(false);
     }
 
     // Helper functions.
@@ -100,7 +101,8 @@ final class notification_mail_test extends \advanced_testcase {
         global $DB;
         $datagenerator = $this->getDataGenerator();
         $plugingenerator = $datagenerator->get_plugin_generator('mod_moodleoverflow');
-
+        $this->testdata->mailsink = $this->redirectEmails();
+        $this->testdata->messagesink = $this->redirectMessages();
         // Create a new course.
         $this->testdata->course = $datagenerator->create_course();
 
@@ -126,15 +128,6 @@ final class notification_mail_test extends \advanced_testcase {
         $this->testdata->moodleoverflow = $datagenerator->create_module('moodleoverflow', $options);
         $this->testdata->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->testdata->moodleoverflow->id);
         $this->testdata->discussion = $plugingenerator->post_to_forum($this->testdata->moodleoverflow, $this->testdata->teacher);
-
-        // TODO: THIS need to be done with the plugin generator, only temporary solution.
-        // Subscribe users to moodleoverflow.
-        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->teacher->id,
-            'moodleoverflow' => $this->testdata->moodleoverflow->id, ]);
-        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->student1->id,
-            'moodleoverflow' => $this->testdata->moodleoverflow->id, ]);
-        $DB->insert_record('moodleoverflow_subscriptions', ['userid' => $this->testdata->student2->id,
-            'moodleoverflow' => $this->testdata->moodleoverflow->id, ]);
     }
 
     /**
@@ -145,10 +138,8 @@ final class notification_mail_test extends \advanced_testcase {
         $mailtask = new send_mails();
         ob_start();
         $mailtask->execute();
-        $output = ob_get_contents();
-        $this->testdata->mailsink = $this->redirectEmails();
-        $this->testdata->messagesink = $this->redirectMessages();
+        $this->testdata->output = ob_get_contents();
         ob_end_clean();
-        return $output;
+        return false;
     }
 }

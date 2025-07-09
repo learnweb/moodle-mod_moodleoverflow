@@ -567,7 +567,6 @@ if (!empty($parent)) {
 }
 
 // Set data for the form.
-// TODO Refactor.
 $param1 = (isset($discussion->id) ? [$discussion->id] : []);
 $param2 = (isset($post->format) ? ['format' => $post->format] : []);
 $param3 = (isset($discussion->timestart) ? ['timestart' => $discussion->timestart] : []);

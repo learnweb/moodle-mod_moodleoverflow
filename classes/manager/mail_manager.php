@@ -94,14 +94,12 @@ class mail_manager {
 
         // Retrieve posts that need to be send to users.
         mtrace("Fetching records");
-        // TODO: change this to $starttime and $endtime when this is ready for production.
         if (!$records = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
             mtrace('No posts to be mailed.');
             return true;
         }
 
         // Mark those posts as mailed.
-        // TODO: Set 0 to $endtime as soon this function is ready for work.
         if (!self::moodleoverflow_mark_old_posts_as_mailed($endtime)) {
             mtrace('Errors occurred while trying to mark some posts as being mailed.');
             return false;
@@ -137,7 +135,11 @@ class mail_manager {
                 $discussions, $posts, $authors, $recipients);
 
             // Set up the user that receives the mail.
-            $CFG->branch >= 402 ? cron::setup_user($recipients[$record->usertoid]) : cron_setup_user($recipients[$record->usertoid]);
+            if ( $CFG->branch >= 402) {
+                cron::setup_user($recipients[$record->usertoid]);
+            } else {
+                cron_setup_user($recipients[$record->usertoid]);
+            }
 
             // Check if the user can see the post.
             if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
@@ -209,7 +211,7 @@ class mail_manager {
                 $recipients[$record->usertoid]->canpost[$record->discussionid]
             );
 
-            // TODO: check if this is needed.
+            // LEARNWEB-TODO: check if this is needed.
             $email->viewfullnames = $recipients[$record->usertoid]->viewfullnames[$record->moodleoverflowid];
 
             // The email object is build. Now build all data that is needed for the event that really send the mail.
@@ -335,6 +337,7 @@ class mail_manager {
         ];
 
         // Retrieve the records.
+        // Documentation can be found on: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-Developers.
         $sql = "SELECT $fields
                 FROM {moodleoverflow_posts} p
                 JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
@@ -404,7 +407,6 @@ class mail_manager {
     public static function moodleoverflow_update_mail_caches(object $record, array &$coursemodules, array &$courses,
                                                              array &$moodleoverflows, array  &$discussions, array &$posts,
                                                              array &$authors, array &$recipients ): void {
-        // TODO: Check this simplified version.
         // Define cache types and their corresponding record properties.
         $cachetypes = [
             'coursemodules' => ['id' => 'cmid', 'groupingid' => 'cmgroupingid'],
@@ -453,7 +455,7 @@ class mail_manager {
      * @return void
      */
     public static function moodleoverflow_process_maildigest_record($record) {
-
+        // LEARNWEB-TODO: Implement this function.
     }
 
     /**
