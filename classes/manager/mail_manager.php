@@ -95,7 +95,7 @@ class mail_manager {
         // Retrieve posts that need to be send to users.
         mtrace("Fetching records");
         // TODO: change this to $starttime and $endtime when this is ready for production.
-        if (!$records = self::moodleoverflow_get_unmailed_posts(0, 9999999999)) {
+        if (!$records = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
             mtrace('No posts to be mailed.');
             return true;
         }
@@ -248,7 +248,7 @@ class mail_manager {
             $emailmessage->courseid = $record->courseid;
             $emailmessage->component = 'mod_moodleoverflow';
             $emailmessage->name = 'posts';
-            $emailmessage->userfrom = $userfrom;
+            $emailmessage->userfrom = core_user::get_noreply_user();
             $emailmessage->userto = $recipients[$record->usertoid];
             $emailmessage->subject = html_to_text(get_string('postmailsubject', 'moodleoverflow', $postsubject), 0);
             $emailmessage->fullmessage = $textout->render($email);
