@@ -320,12 +320,19 @@ class mail_manager {
                     . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields . ", " . $authorfields . ", " . $usertofields;
 
         // Set params for the sql query.
-        $params = [];
-        $params['unsubscribed'] = subscriptions::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED;
-        $params['pendingmail'] = self::MOODLEOVERFLOW_MAILED_PENDING;
-        $params['reviewsent'] = self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
-        $params['ptimestart'] = $starttime;
-        $params['ptimeend'] = $endtime;
+        $timenow = round(time(), -2);
+        $params = [
+            'unsubscribed' => subscriptions::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED,
+            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE,
+            'active' => ENROL_USER_ACTIVE,
+            'enabled' => ENROL_INSTANCE_ENABLED,
+            'now1' => $timenow,
+            'now2' => $timenow,
+            'pendingmail' => self::MOODLEOVERFLOW_MAILED_PENDING,
+            'reviewsent' => self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS,
+            'ptimestart' => $starttime,
+            'ptimeend' => $endtime,
+        ];
 
         // Retrieve the records.
         $sql = "SELECT $fields
@@ -349,6 +356,21 @@ class mail_manager {
                         SELECT userid, moodleoverflow, discussion
                         FROM {moodleoverflow_discuss_subs} ds
                         WHERE ds.preference <> :unsubscribed
+                        UNION
+                        SELECT userid, moodleoverflow, discussion
+                        FROM (
+                            SELECT u.id AS userid, m.id AS moodleoverflow, -1 AS discussion
+                            FROM {user} u
+                            JOIN {user_enrolments} ue ON ue.userid = u.id
+                            JOIN {enrol} e ON e.id = ue.enrolid
+                            JOIN {course} c ON c.id = e.courseid
+                            JOIN {moodleoverflow} m ON m.course = c.id
+                            WHERE m.forcesubscribe = :forcesubscribe
+                            AND ue.status = :active
+                            AND e.status = :enabled
+                            AND ue.timestart < :now1
+                            AND (ue.timeend = 0 OR ue.timeend > :now2)
+                        ) as forcedsubs
                     ) as subscriptions
                     LEFT JOIN {user} u ON u.id = subscriptions.userid
                     ORDER BY u.email ASC
