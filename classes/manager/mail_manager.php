@@ -122,30 +122,31 @@ class mail_manager {
             // Terminate if the process takes more time then two minutes.
             core_php_time_limit::raise(120);
 
-            // Check if the user that is subscribed to the post wants a resume instead of a notification mail.
+            // Fill the caches with objects if needed.
+            // Add additional information that were not retrievable from the database to the objects if needed.
+            self::moodleoverflow_update_mail_caches($record, $coursemodules, $courses, $moodleoverflows,
+                $discussions, $posts, $authors, $recipients);
+
+            // Filter records that are not getting mailed.
+            // Check if the user can see the post.
+            if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
+                $posts[$record->postid], $coursemodules[$record->cmid])) {
+                mtrace('User ' . $record->usertoid . ' can not see ' . $record->postid . '. Not sending message.');
+                continue;
+            }
+
+            // Check if the user subscribed to the post wants a summary instead of a notification mail.
             if ($record->usertomaildigest != 0) {
                 // Process the record for the mail digest.
                 self::moodleoverflow_process_maildigest_record($record);
                 continue;
             }
 
-            // Fill the caches with objects if needed.
-            // Add additional information that were not retrievable from the database to the objects if needed.
-            self::moodleoverflow_update_mail_caches($record, $coursemodules, $courses, $moodleoverflows,
-                $discussions, $posts, $authors, $recipients);
-
             // Set up the user that receives the mail.
             if ( $CFG->branch >= 402) {
                 cron::setup_user($recipients[$record->usertoid]);
             } else {
                 cron_setup_user($recipients[$record->usertoid]);
-            }
-
-            // Check if the user can see the post.
-            if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
-                $posts[$record->postid], $coursemodules[$record->cmid])) {
-                mtrace('User ' . $record->usertoid . ' can not see ' . $record->postid . '. Not sending message.');
-                continue;
             }
 
             // Determine if the author should be anonymous.
@@ -215,7 +216,7 @@ class mail_manager {
             $email->viewfullnames = $recipients[$record->usertoid]->viewfullnames[$record->moodleoverflowid];
 
             // The email object is build. Now build all data that is needed for the event that really send the mail.
-            $userfrom->customheader[] = sprintf('List-Unsubscribe: <%s>', $email->get_unsubscribediscussionlink());
+            $userfrom->customheaders[] = sprintf('List-Unsubscribe: <%s>', $email->get_unsubscribediscussionlink());
             if ($record->postparent != 0) {
                 $parentid = generate_email_messageid(hash('sha256', $record->postparent . 'to' . $record->usertoid));
                 $rootid = generate_email_messageid(hash('sha256', $record->discussionfirstpost . 'to' . $record->usertoid));
@@ -253,9 +254,9 @@ class mail_manager {
             $emailmessage->userfrom = core_user::get_noreply_user();
             $emailmessage->userto = $recipients[$record->usertoid];
             $emailmessage->subject = html_to_text(get_string('postmailsubject', 'moodleoverflow', $postsubject), 0);
-            $emailmessage->fullmessage = $textout->render($email);
+            $emailmessage->fullmessage = $email->export_for_template($textout, true);
             $emailmessage->fullmessageformat = FORMAT_PLAIN;
-            $emailmessage->fullmessagehtml = $htmlout->render($email);
+            $emailmessage->fullmessagehtml = $email->export_for_template($htmlout, false);
             $emailmessage->notification = 1;
             $emailmessage->contexturl = new moodle_url('/mod/moodleoverflow/discussion.php',
                                                         ['d' => $record->discussionid], 'p' . $record->postid);
@@ -451,11 +452,27 @@ class mail_manager {
      * Function that processes a record from self::moodleoverflow_get_unmailed_posts() if the user that gets the mail wants a
      * resume instead of a mail for every post.
      *
-     * @param object $record Record from self::moodleoverflow_get_unmailed_posts()
+     * @param object $data a single record object from self::moodleoverflow_get_unmailed_posts()
      * @return void
      */
-    public static function moodleoverflow_process_maildigest_record($record) {
-        // LEARNWEB-TODO: Implement this function.
+    public static function moodleoverflow_process_maildigest_record(object $data): void {
+        global $DB;
+        // LEARNWEB-TODO: Rename database table attribute names. Rethink the table structure. What should the mail have?
+        // If the record exists, update it. If not, insert a new record.
+        if ($dbrecord = $DB->get_record('moodleoverflow_mail_info', ['userid' => $data->usertoid, 'courseid' => $data->courseid,
+                'forumid' => $data->moodleoverflowid, 'forumdiscussionid' => $data->discussionid, ], 'numberofposts, id')) {
+            $dbrecord->numberofposts++;
+            $DB->update_record('moodleoverflow_mail_info', $dbrecord);
+        } else {
+            $record = (object) [
+                'userid' => $data->usertoid,
+                'courseid' => $data->courseid,
+                'forumid' => $data->moodleoverflowid,
+                'forumdiscussionid' => $data->discussionid,
+                'numberofposts' => 1,
+            ];
+            $DB->insert_record('moodleoverflow_mail_info', $record);
+        }
     }
 
     /**
