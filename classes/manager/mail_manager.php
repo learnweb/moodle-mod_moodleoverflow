@@ -254,9 +254,9 @@ class mail_manager {
             $emailmessage->userfrom = core_user::get_noreply_user();
             $emailmessage->userto = $recipients[$record->usertoid];
             $emailmessage->subject = html_to_text(get_string('postmailsubject', 'moodleoverflow', $postsubject), 0);
-            $emailmessage->fullmessage = $email->export_for_template($textout, true);
-            $emailmessage->fullmessageformat = FORMAT_PLAIN;
-            $emailmessage->fullmessagehtml = $email->export_for_template($htmlout, false);
+            $emailmessage->fullmessage = $textout->render($email);
+            $emailmessage->fullmessageformat = FORMAT_HTML;
+            $emailmessage->fullmessagehtml = $htmlout->render($email);
             $emailmessage->notification = 1;
             $emailmessage->contexturl = new moodle_url('/mod/moodleoverflow/discussion.php',
                                                         ['d' => $record->discussionid], 'p' . $record->postid);
@@ -266,6 +266,8 @@ class mail_manager {
 
             // Finally: send the notification mail.
             $mailsent = message_send($emailmessage);
+            //$mailsent = true;
+            //email_to_user($emailmessage->userto , $emailmessage->userfrom , $emailmessage->subject, $emailmessage->fullmessage,$emailmessage->fullmessagehtml );
             // Check if an error occurred and mark the post as mailed_error.
             if (!$mailsent) {
                 mtrace('Error: mod/moodleoverflow/classes/manager/mail_manager.php moodleoverflow_send_mails(): ' .
