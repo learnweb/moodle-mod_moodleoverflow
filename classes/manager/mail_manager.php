@@ -319,7 +319,10 @@ class mail_manager {
         $usertofields = "userto.id AS usertoid, userto.maildigest AS usertomaildigest, userto.description AS usertodescription,
                          userto.password AS usertopassword, userto.lang AS usertolang, userto.auth AS usertoauth,
                          userto.suspended AS usertosuspended, userto.deleted AS usertodeleted, userto.emailstop AS usertoemailstop,
-                         userto.email AS usertoemail, userto.username AS usertousername";
+                         userto.email AS usertoemail, userto.username AS usertousername, userto.firstname AS usertofirstname,
+                         userto.lastname AS usertolastname, userto.firstnamephonetic AS usertofirstnamephonetic,
+                         userto.lastnamephonetic AS usertolastnamephonetic, userto.middlename AS usertomiddlename,
+                         userto.alternatename AS usertoalternatename";
 
         $fields = "(ROW_NUMBER() OVER (ORDER BY p.modified)) AS row_num, " . $postfields . ", " . $discussionfields . ", "
                     . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields . ", " . $authorfields . ", " . $usertofields;
@@ -429,7 +432,9 @@ class mail_manager {
             'recipients' => ['id' => 'usertoid', 'description' => 'usertodescription', 'password' => 'usertopassword',
                              'lang' => 'usertolang', 'auth' => 'usertoauth', 'suspended' => 'usertosuspended',
                              'deleted' => 'usertodeleted', 'emailstop' => 'usertoemailstop', 'email' => 'usertoemail',
-                             'username' => 'usertousername'],
+                             'username' => 'usertousername', 'firstname' => 'usertofirstname', 'lastname' => 'usertolastname',
+                             'firstnamephonetic' => 'usertofirstnamephonetic', 'lastnamephonetic' => 'usertolastnamephonetic',
+                             'middlename' => 'usertomiddlename', 'alternatename' => 'usertoalternatename'],
         ];
 
         // Iterate over cache types and update caches if not already set.
