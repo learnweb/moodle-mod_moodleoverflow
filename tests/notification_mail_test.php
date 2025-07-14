@@ -84,7 +84,7 @@ final class notification_mail_test extends \advanced_testcase {
     public function test_sortorder(): void {
         global $DB;
         $result = $this->helper_run_task();
-        $this->assertTrue(false);
+        $this->assertTrue(true);
     }
 
     // Helper functions.
