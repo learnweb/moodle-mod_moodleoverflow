@@ -77,10 +77,7 @@ class mail_manager {
      * @throws dml_exception
      */
     public static function moodleoverflow_send_mails(): bool {
-        global $DB, $CFG, $PAGE;
-
-        // Get the course object of the top level site.
-        $site = get_site();
+        global $DB, $PAGE;
 
         // Get the main renderers.
         $htmlout = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
@@ -93,15 +90,12 @@ class mail_manager {
         $starttime = $endtime - (get_config('moodleoverflow', 'maxmailingtime') * 60 * 60);
 
         // Retrieve posts that need to be send to users.
-        mtrace("Fetching records");
         if (!$records = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
-            mtrace('No posts to be mailed.');
             return true;
         }
 
         // Mark those posts as mailed.
         if (!self::moodleoverflow_mark_old_posts_as_mailed($endtime)) {
-            mtrace('Errors occurred while trying to mark some posts as being mailed.');
             return false;
         }
 
@@ -115,12 +109,9 @@ class mail_manager {
         $discussions = [];
         $coursemodules = [];
 
-        mtrace("Records found, start processing"); // Until here everything is okay.
-
         // Loop through each records.
         foreach ($records as $record) {
             // Terminate if the process takes more time then two minutes.
-            core_php_time_limit::raise(120);
 
             // Fill the caches with objects if needed.
             // Add additional information that were not retrievable from the database to the objects if needed.
@@ -131,7 +122,6 @@ class mail_manager {
             // Check if the user can see the post.
             if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
                 $posts[$record->postid], $coursemodules[$record->cmid])) {
-                mtrace('User ' . $record->usertoid . ' can not see ' . $record->postid . '. Not sending message.');
                 continue;
             }
 
@@ -140,13 +130,6 @@ class mail_manager {
                 // Process the record for the mail digest.
                 self::moodleoverflow_process_maildigest_record($record);
                 continue;
-            }
-
-            // Set up the user that receives the mail.
-            if ( $CFG->branch >= 402) {
-                cron::setup_user($recipients[$record->usertoid]);
-            } else {
-                cron_setup_user($recipients[$record->usertoid]);
             }
 
             // Determine if the author should be anonymous.
@@ -181,24 +164,6 @@ class mail_manager {
             }
 
             // Preparation complete. Ready to send message.
-            mtrace('Preparation complete. Build mail event');
-
-            // Build up content of the mail.
-            $cleanname = str_replace('"', "'", strip_tags(format_string($record->moodleoverflowname)));
-            $shortname = format_string($record->courseshortname, true, ['context' => context_course::instance($record->courseid)]);
-
-            // Define a header to make mails easier to track.
-            $emailmessageid = generate_email_messageid('moodlemoodleoverflow' . $record->moodleoverflowid);
-            $userfrom->customheaders = [
-                'List-Id: "' . $cleanname . '" ' . $emailmessageid,
-                'List-Help: ' . $CFG->wwwroot . '/mod/moodleoverflow/view.php?m=' . $record->moodleoverflowid,
-                'Message-ID: ' . generate_email_messageid(hash('sha256', $record->postid . 'to' . $record->usertoid)),
-                'X-Course-Id: ' . $record->courseid,
-                'X-Course-Name: ' . format_string($record->coursefullname),
-                'Precedence: Bulk',
-                'X-Auto-Response-Suppress: All',
-                'Auto-Submitted: auto-generated',
-            ];
 
             // Build the mail object.
             $email = new moodleoverflow_email(
@@ -216,57 +181,18 @@ class mail_manager {
             $email->viewfullnames = $recipients[$record->usertoid]->viewfullnames[$record->moodleoverflowid];
 
             // The email object is build. Now build all data that is needed for the event that really send the mail.
-            $userfrom->customheaders[] = sprintf('List-Unsubscribe: <%s>', $email->get_unsubscribediscussionlink());
-            if ($record->postparent != 0) {
-                $parentid = generate_email_messageid(hash('sha256', $record->postparent . 'to' . $record->usertoid));
-                $rootid = generate_email_messageid(hash('sha256', $record->discussionfirstpost . 'to' . $record->usertoid));
-                $userfrom->customheaders[] = "In-Reply-To: $parentid";
 
-                if ($record->postparent != $record->discussionfirstpost) {
-                    $userfrom->customheaders[] = "References: $rootid $parentid";
-                } else {
-                    $userfrom->customheaders[] = "References: $parentid";
-                }
-            }
-
-            // Build post subject for mail event.
-            $postsubject = (object) ['subject' => $email->get_subject(),  'moodleoverflowname' => $cleanname,
-                'sitefullname' => format_string($site->fullname), 'siteshortname' => format_string($site->shortname),
-                'courseidnumber' => $email->get_courseidnumber(), 'coursefullname' => $email->get_coursefullname(),
-                'courseshortname' => $email->get_coursename(),
-            ];
-
-            // Build small message of the mail.
-            $smallmessage = (object) [
-                'user' => fullname($userfrom),
-                'moodleoverflowname' => "$shortname: " . format_string($record->moodleoverflowname) . ": "
-                                        . $record->discussionname,
-                'message' => $record->postmessage,
-            ];
-
-            mtrace('Preparation complete. Sending mail to user ' . $record->usertoid . ' for post ' . $record->postid);
-            $contexturl = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $record->discussionid], 'p' . $record->postid);
-            // Create the message event.
-            $emailmessage = new message();
-            $emailmessage->courseid = $record->courseid;
-            $emailmessage->component = 'mod_moodleoverflow';
-            $emailmessage->name = 'posts';
-            $emailmessage->userfrom = core_user::get_noreply_user();
-            $emailmessage->userto = $recipients[$record->usertoid];
-            $emailmessage->subject = html_to_text(get_string('postmailsubject', 'moodleoverflow', $postsubject), 0);
-            $emailmessage->fullmessage = $textout->render($email);
-            $emailmessage->fullmessageformat = FORMAT_PLAIN;
-            $emailmessage->fullmessagehtml = $htmlout->render($email);
-            $emailmessage->notification = 1;
-            $emailmessage->contexturl = $contexturl->out();
-            $emailmessage->contexturlname = $record->discussionname;
-            $emailmessage->smallmessage = get_string_manager()->get_string('smallmessage', 'moodleoverflow',
-                                                                                    $smallmessage, $record->usertolang);
+            // Build post subject.
+            $subject = html_to_text(get_string('postmailsubject', 'moodleoverflow',
+                                    ['subject' => $email->get_subject(), 'courseshortname' => $email->get_coursename()]), 0);
 
             // Finally: send the notification mail.
-            $mailsent = message_send($emailmessage);
-            //$mailsent = true;
-            //email_to_user($emailmessage->userto , $emailmessage->userfrom , $emailmessage->subject, $emailmessage->fullmessage,$emailmessage->fullmessagehtml );
+            $userto = $recipients[$record->usertoid];
+            $htmlmessage = $htmlout->render($email);
+            $textmessage = $textout->render($email);
+
+            $mailsent = email_to_user($userto, core_user::get_noreply_user(), $subject, $textmessage, $htmlmessage);
+
             // Check if an error occurred and mark the post as mailed_error.
             if (!$mailsent) {
                 mtrace('Error: mod/moodleoverflow/classes/manager/mail_manager.php moodleoverflow_send_mails(): ' .
