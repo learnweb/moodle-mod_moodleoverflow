@@ -315,7 +315,8 @@ class mail_manager {
                          author.firstnamephonetic AS authorfirstnamephonetic, author.lastnamephonetic AS authorlastnamephonetic,
                          author.middlename AS authormiddlename, author.alternatename AS authoralternatename,
                          author.picture AS authorpicture, author.imagealt AS authorimagealt, author.email AS authoremail";
-        $usertofields = "userto.id AS usertoid, userto.maildigest AS usertomaildigest, userto.description AS usertodescription,
+        $usertofields = "userto.id AS usertoid, userto.maildigest AS usertomaildigest, userto.mailformat AS usertomailformat,
+                         userto.maildisplay AS usertomaildisplay, userto.description AS usertodescription,
                          userto.password AS usertopassword, userto.lang AS usertolang, userto.auth AS usertoauth,
                          userto.suspended AS usertosuspended, userto.deleted AS usertodeleted, userto.emailstop AS usertoemailstop,
                          userto.email AS usertoemail, userto.username AS usertousername, userto.firstname AS usertofirstname,
@@ -428,12 +429,14 @@ class mail_manager {
                           'firstnamephonetic' => 'authorfirstnamephonetic', 'lastnamephonetic' => 'authorlastnamephonetic',
                           'middlename' => 'authormiddlename', 'alternatename' => 'authoralternatename',
                           'picture' => 'authorpicture', 'imagealt' => 'authorimagealt', 'email' => 'authoremail'],
-            'recipients' => ['id' => 'usertoid', 'description' => 'usertodescription', 'password' => 'usertopassword',
-                             'lang' => 'usertolang', 'auth' => 'usertoauth', 'suspended' => 'usertosuspended',
-                             'deleted' => 'usertodeleted', 'emailstop' => 'usertoemailstop', 'email' => 'usertoemail',
-                             'username' => 'usertousername', 'firstname' => 'usertofirstname', 'lastname' => 'usertolastname',
-                             'firstnamephonetic' => 'usertofirstnamephonetic', 'lastnamephonetic' => 'usertolastnamephonetic',
-                             'middlename' => 'usertomiddlename', 'alternatename' => 'usertoalternatename'],
+            'recipients' => ['id' => 'usertoid', 'maildigest' => 'usertomaildigest', 'mailformat' => 'usertomailformat',
+                              'maildisplay' => 'usertomaildisplay', 'description' => 'usertodescription',
+                              'password' => 'usertopassword', 'lang' => 'usertolang', 'auth' => 'usertoauth',
+                              'suspended' => 'usertosuspended', 'deleted' => 'usertodeleted',
+                              'emailstop' => 'usertoemailstop', 'email' => 'usertoemail', 'username' => 'usertousername',
+                              'firstname' => 'usertofirstname', 'lastname' => 'usertolastname',
+                              'firstnamephonetic' => 'usertofirstnamephonetic', 'lastnamephonetic' => 'usertolastnamephonetic',
+                              'middlename' => 'usertomiddlename', 'alternatename' => 'usertoalternatename'],
         ];
 
         // Iterate over cache types and update caches if not already set.
