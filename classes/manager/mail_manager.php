@@ -245,7 +245,7 @@ class mail_manager {
             ];
 
             mtrace('Preparation complete. Sending mail to user ' . $record->usertoid . ' for post ' . $record->postid);
-
+            $contexturl = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $record->discussionid], 'p' . $record->postid);
             // Create the message event.
             $emailmessage = new message();
             $emailmessage->courseid = $record->courseid;
@@ -255,11 +255,10 @@ class mail_manager {
             $emailmessage->userto = $recipients[$record->usertoid];
             $emailmessage->subject = html_to_text(get_string('postmailsubject', 'moodleoverflow', $postsubject), 0);
             $emailmessage->fullmessage = $textout->render($email);
-            $emailmessage->fullmessageformat = FORMAT_HTML;
+            $emailmessage->fullmessageformat = FORMAT_PLAIN;
             $emailmessage->fullmessagehtml = $htmlout->render($email);
             $emailmessage->notification = 1;
-            $emailmessage->contexturl = new moodle_url('/mod/moodleoverflow/discussion.php',
-                                                        ['d' => $record->discussionid], 'p' . $record->postid);
+            $emailmessage->contexturl = $contexturl->out();
             $emailmessage->contexturlname = $record->discussionname;
             $emailmessage->smallmessage = get_string_manager()->get_string('smallmessage', 'moodleoverflow',
                                                                                     $smallmessage, $record->usertolang);
