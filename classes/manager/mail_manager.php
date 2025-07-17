@@ -195,12 +195,8 @@ class mail_manager {
 
             // Check if an error occurred and mark the post as mailed_error.
             if (!$mailsent) {
-                mtrace('Error: mod/moodleoverflow/classes/manager/mail_manager.php moodleoverflow_send_mails(): ' .
-                     'Could not send out mail for id $record->postid to user $record->usertoid ($record->usertoemail).' .
-                    ' ... not trying again.');
+                // A mail does not get resend if it was not sent successfully.
                 $DB->set_field('moodleoverflow_posts', 'mailed', MOODLEOVERFLOW_MAILED_ERROR, ['id' => $record->postid]);
-            } else {
-                mtrace('Mail sent successfully for post ' . $record->postid . ' to user ' . $record->usertoid);
             }
         }
 
