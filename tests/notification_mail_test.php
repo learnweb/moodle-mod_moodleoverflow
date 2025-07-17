@@ -85,6 +85,8 @@ final class notification_mail_test extends \advanced_testcase {
         global $DB;
         $result = $this->helper_run_task();
         $this->assertTrue(true);
+        /* LEARNWEB-TODO: Add tests. A simple test coverage of the notification mails are in review_test.php for now.
+                          They need to be removed from there and added here (+extending test cases). */
     }
 
     // Helper functions.
