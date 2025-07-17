@@ -25,6 +25,8 @@
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 require_once(dirname(__FILE__) . '/locallib.php');
+
+global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
 require_once($CFG->dirroot . '/course/lib.php');
 
 // Require needed files.
@@ -56,9 +58,7 @@ $coursecontext = context_course::instance($course->id);
 unset($SESSION->fromdiscussion);
 
 // Trigger the course module instace lise viewed evewnt.
-$params = [
-    'context' => context_course::instance($course->id),
-];
+$params = ['context' => context_course::instance($course->id)];
 $event = \mod_moodleoverflow\event\course_module_instance_list_viewed::create($params);
 $event->add_record_snapshot('course', $course);
 $event->trigger();

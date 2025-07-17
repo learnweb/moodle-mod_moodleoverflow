@@ -31,7 +31,10 @@ import {get_string as getString} from 'core/str';
 export function init() {
     Prefetch.prefetchTemplates(['mod_moodleoverflow/reject_post_form', 'mod_moodleoverflow/review_buttons']);
     Prefetch.prefetchStrings('mod_moodleoverflow',
-        ['post_was_approved', 'jump_to_next_post_needing_review', 'there_are_no_posts_needing_review', 'post_was_rejected']);
+        ['post_was_approved',
+               'jump_to_next_post_needing_review',
+               'there_are_no_posts_needing_review',
+               'post_was_rejected']);
 
     const root = document.getElementById('moodleoverflow-posts');
     root.onclick = async(e) => {

@@ -26,6 +26,9 @@
 
 namespace mod_moodleoverflow;
 
+use context_module;
+use stdClass;
+
 /**
  * Moodleoverflow subscription manager.
  *
@@ -356,7 +359,7 @@ class subscriptions {
      * Checks wheter the specified moodleoverflow can be subscribed to.
      *
      * @param object $moodleoverflow The moodleoverflow ID
-     * @param \context_module $context The module context.
+     * @param context_module $context The module context.
      *
      * @return boolean
      */
@@ -456,7 +459,7 @@ class subscriptions {
     /**
      * Get the list of potential subscribers to a moodleoverflow.
      *
-     * @param \context_module $context The moodleoverflow context.
+     * @param context_module $context The moodleoverflow context.
      * @param string          $fields  The list of fields to return for each user.
      * @param string          $sort    Sort order.
      *
@@ -522,7 +525,7 @@ class subscriptions {
      * Returns a list of user object who are subscribed to this moodleoverflow.
      *
      * @param stdClass        $moodleoverflow     The moodleoverflow record
-     * @param \context_module $context            The moodleoverflow context
+     * @param context_module  $context            The moodleoverflow context
      * @param string          $fields             Requested user fields
      * @param boolean         $includediscussions Whether to take discussion subscriptions into consideration
      *
@@ -641,8 +644,8 @@ class subscriptions {
      * Adds user to the subscriber list.
      *
      * @param int             $userid         The user ID
-     * @param \stdClass       $moodleoverflow The moodleoverflow record
-     * @param \context_module $context        The module context
+     * @param stdClass       $moodleoverflow The moodleoverflow record
+     * @param context_module $context        The module context
      * @param bool            $userrequest    Whether the user requested this change themselves.
      *
      * @return bool|int Returns true if the user is already subscribed or the subscription id if successfully subscribed.
@@ -656,7 +659,7 @@ class subscriptions {
         }
 
         // Create a new subscription object.
-        $sub = new \stdClass();
+        $sub = new stdClass();
         $sub->userid = $userid;
         $sub->moodleoverflow = $moodleoverflow->id;
 
@@ -706,8 +709,8 @@ class subscriptions {
      * Removes user from the subscriber list.
      *
      * @param int             $userid         The user ID.
-     * @param \stdClass       $moodleoverflow The moodleoverflow record
-     * @param \context_module $context        The module context
+     * @param stdClass       $moodleoverflow The moodleoverflow record
+     * @param context_module $context        The module context
      * @param boolean         $userrequest    Whether the user requested this change themselves.
      *
      * @return bool Always returns true
@@ -761,9 +764,10 @@ class subscriptions {
     /**
      * Subscribes the user to the specified discussion.
      *
+     * LEARNWEB-TODO: Refactor this function to the new way of working with discussion and posts.
      * @param int             $userid     The user ID
-     * @param \stdClass       $discussion The discussion record
-     * @param \context_module $context    The module context
+     * @param stdClass       $discussion The discussion record
+     * @param context_module $context    The module context
      *
      * @return bool Whether a change was made
      */
@@ -807,7 +811,7 @@ class subscriptions {
 
             } else {
                 // Else a new record needs to be created.
-                $subscription = new \stdClass();
+                $subscription = new stdClass();
                 $subscription->userid = $userid;
                 $subscription->moodleoverflow = $discussion->moodleoverflow;
                 $subscription->discussion = $discussion->id;
@@ -836,9 +840,9 @@ class subscriptions {
     /**
      * Unsubscribes the user from the specified discussion.
      *
-     * @param int             $userid     The user ID
-     * @param \stdClass       $discussion The discussion record
-     * @param \context_module $context    The context module
+     * @param int            $userid     The user ID
+     * @param stdClass       $discussion The discussion record
+     * @param context_module $context    The context module
      *
      * @return bool Whether a change was made
      */
@@ -886,7 +890,7 @@ class subscriptions {
                 // There is no record.
 
                 // Create a new discussion subscription record.
-                $subscription = new \stdClass();
+                $subscription = new stdClass();
                 $subscription->userid = $userid;
                 $subscription->moodleoverflow = $discussion->moodleoverflow;
                 $subscription->discussion = $discussion->id;
@@ -985,13 +989,15 @@ class subscriptions {
     /**
      * Given a new post, subscribes the user to the thread the post was posted in.
      *
-     * @param \stdClass       $moodleoverflow The moodleoverflow record
-     * @param \stdClass       $discussion     The discussion record
-     * @param \context_module $modulecontext  The context of the module
+     * LEARNWEB-TODO: Refactor this function to the new way of working with discussion and posts.
+     * @param object $fromform       The submitted form
+     * @param stdClass       $moodleoverflow The moodleoverflow record
+     * @param stdClass       $discussion     The discussion record
+     * @param context_module $modulecontext  The context of the module
      *
      * @return bool
      */
-    public static function moodleoverflow_post_subscription($moodleoverflow, $discussion, $modulecontext) {
+    public static function moodleoverflow_post_subscription($fromform, $moodleoverflow, $discussion, $modulecontext) {
         global $USER;
 
         // Check for some basic information.

@@ -271,9 +271,7 @@ $string['postaddedsuccess'] = 'Your post was successfully added.';
 $string['postaddedtimeleft'] = 'You have {$a} to edit it if you want to make any changes.';
 $string['postbyuser'] = '{$a->post} by {$a->user}';
 $string['postincontext'] = 'See this post in context';
-$string['postmailinfolink'] = 'This is a copy of a message posted in {$a->coursename}.
-
-To reply click on this link: {$a->replylink}';
+$string['postmailinfolink'] = 'This is a copy of a message posted in {$a->coursename}. To reply click on this link: {$a->replylink}';
 $string['postmailsubject'] = '{$a->courseshortname}: {$a->subject}';
 $string['postnotexist'] = 'Requested post does not exist';
 $string['posts'] = 'Posts';

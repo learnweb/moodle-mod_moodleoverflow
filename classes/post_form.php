@@ -43,8 +43,9 @@ class mod_moodleoverflow_post_form extends moodleform {
      */
     public function definition() {
 
-        $modform        =& $this->_form;
+        $modform =& $this->_form;
         $post = $this->_customdata['post'];
+        $edit = $this->_customdata['edit'];
         $modcontext = $this->_customdata['modulecontext'];
         $moodleoverflow = $this->_customdata['moodleoverflow'];
 
@@ -71,7 +72,7 @@ class mod_moodleoverflow_post_form extends moodleform {
         }
 
         // Submit buttons.
-        if (isset($post->edit)) {
+        if ($edit) {
             $strsubmit = get_string('savechanges');
         } else {
             $strsubmit = get_string('posttomoodleoverflow', 'moodleoverflow');
@@ -162,10 +163,3 @@ class mod_moodleoverflow_post_form extends moodleform {
         ];
     }
 }
-
-
-
-
-
-
-
