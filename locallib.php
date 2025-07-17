@@ -1746,7 +1746,7 @@ function moodleoverflow_add_new_post($post) {
 
     // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
     if (review::get_review_level($moodleoverflow) == review::EVERYTHING &&
-            !has_capability('mod/moodleoverflow:reviewpost', context_module::instance($cm->id))) {
+            !has_capability('mod/moodleoverflow:reviewpost', $context)) {
         $post->reviewed = 0;
     } else {
         $post->reviewed = 1;
