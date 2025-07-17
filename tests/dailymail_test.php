@@ -126,7 +126,7 @@ final class dailymail_test extends \advanced_testcase {
      * Run the send mails task.
      * @return false|string
      */
-    private function helper_run_send_review_mailss() {
+    private function helper_run_send_review_mails() {
         $mailtask = new send_review_mails();
         ob_start();
         $mailtask->execute();
@@ -147,7 +147,7 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_create_user_and_discussion('1');
 
         // Send a mail and test if the mail was sent.
-        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_review_mails();
         $this->helper_run_send_daily_mails();
         $messages = $this->sink->count();
 
@@ -171,7 +171,7 @@ final class dailymail_test extends \advanced_testcase {
         $discussion = $this->generator->post_to_forum($moodleoverflow, $student);
 
         // Send the mails.
-        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_review_mails();
         $this->helper_run_send_daily_mails();
         $messages = $this->sink->count();
         $content = $this->sink->get_messages();
@@ -209,7 +209,7 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_create_user_and_discussion('1');
 
         // Send the mails and count the messages.
-        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_review_mails();
         $this->helper_run_send_daily_mails();
         $content = $this->sink->get_messages();
         $message = $content[0]->body;
@@ -238,7 +238,7 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_create_user_and_discussion('0');
 
         // Now send the mails and test if no mail was sent.
-        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_review_mails();
         $this->helper_run_send_daily_mails();
         $messages = $this->sink->count();
 
@@ -254,7 +254,7 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_create_user_and_discussion('1');
 
         // Now send the mails.
-        $this->helper_run_send_review_mailss();
+        $this->helper_run_send_review_mails();
         $this->helper_run_send_daily_mails();
 
         // Now check the database if the records of the users are deleted.
