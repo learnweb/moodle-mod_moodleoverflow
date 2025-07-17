@@ -21,12 +21,10 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+
+require_once('../../config.php');
 
 global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
-
-// We do not need the locallib here.
-require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Define the parameters.
