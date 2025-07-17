@@ -94,8 +94,8 @@ final class userstats_test extends \advanced_testcase {
      */
     public function tearDown(): void {
         // Clear all caches.
-        \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
-        \mod_moodleoverflow\subscriptions::reset_discussion_cache();
+        subscriptions::reset_moodleoverflow_cache();
+        subscriptions::reset_discussion_cache();
         parent::tearDown();
     }
 
@@ -223,7 +223,7 @@ final class userstats_test extends \advanced_testcase {
     }
 
     /**
-     * Test, if userstats are calculated correctly if the moodleoverflow is partially anonymous.
+     * Test, if userstats are calculated correctly if the moodleoverflow is totally anonymous.
      * @covers \userstats_table
      */
     public function test_total_anonymous(): void {
@@ -232,6 +232,7 @@ final class userstats_test extends \advanced_testcase {
 
         // Get the current userstats to compare later.
         $olduserstats = $this->create_statstable();
+        $oldupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
         $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'forumactivity');
 
         $oldupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
@@ -304,7 +305,7 @@ final class userstats_test extends \advanced_testcase {
      * Makes the existing moodleoverflow anonymous.
      * There are 2 types of anonymous moodleoverflows:
      * anonymous = 1, the topic starter is anonymous
-     * anonymous = 2, all users are anonym
+     * anonymous = 2, all users are anonymous
      *
      * @param int $anonymoussetting
      */

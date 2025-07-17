@@ -21,8 +21,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
-
 const Selectors = {
     actions: {
         showHelpIcon: '[data-action="showhelpicon"]',
@@ -30,7 +28,7 @@ const Selectors = {
 };
 
 /**
- * Function that shows the help string.
+ * Function that shows the help icon string.
  */
 export const init = () => {
     document.addEventListener('click', event => {

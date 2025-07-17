@@ -49,6 +49,8 @@ require_once(dirname(__FILE__) . '/lib.php');
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     global $DB, $CFG, $USER;
 
+    // LEARNWEB-TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
+
     // User must have the permission to view the discussions.
     $modcontext = context_module::instance($cm->id);
     if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modcontext)) {
@@ -529,6 +531,7 @@ function moodleoverflow_count_discussion_replies($cm) {
 }
 
 /**
+ * LEARNWEB-TODO: Delete this function when adapting the print-functions to the new post and discussion structure.
  * Check if the user is capable of starting a new discussion.
  *
  * @param object $moodleoverflow
@@ -539,7 +542,7 @@ function moodleoverflow_count_discussion_replies($cm) {
  */
 function moodleoverflow_user_can_post_discussion($moodleoverflow, $cm = null, $context = null) {
 
-    // Guests an not-logged-in users can not psot.
+    // Guests an not-logged-in users can not post.
     if (isguestuser() || !isloggedin()) {
         return false;
     }
@@ -655,13 +658,8 @@ function moodleoverflow_get_discussions_unread($cm) {
  * @return mixed array of posts or false
  */
 function moodleoverflow_get_post_full($postid) {
-    global $DB, $CFG;
-
-    if ($CFG->branch >= 311) {
-        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-    } else {
-        $allnames = get_all_user_name_fields(true, 'u');
-    }
+    global $DB;
+    $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
     $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
               FROM {moodleoverflow_posts} p
                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
@@ -927,6 +925,7 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
 
 /**
  * Prints a moodleoverflow discussion.
+ * LEARNWEB-TODO: REFACTOR WITH NEW POST AND DISCUSSION STRUCTURE.
  *
  * @param stdClass $course              The course object
  * @param object   $cm
@@ -938,7 +937,7 @@ function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerr
  */
 function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post,
                                          $multiplemarks = false, ?stdClass $limitedanswersetting = null) {
-    global $USER;
+    global $USER, $DB;
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() && ($USER->id == $post->userid));
 
@@ -949,6 +948,7 @@ function moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discuss
     $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
 
     // Retrieve all posts of the discussion.
+    // This part is adapted/refactored to the new way of working with posts (use of get_id() function and discussion object).
     $posts = moodleoverflow_get_all_discussion_posts($discussion->id, $istracked, $modulecontext);
     $usermapping = anonymous::get_userid_mapping($moodleoverflow, $discussion->id);
 
@@ -1116,24 +1116,26 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
 
 
 /**
+ *
+ * LEARNWEB-TODO: REFACTOR THIS FUNCTION FOR THE NEW POST STRUCTURE.
  * Prints a moodleoverflow post.
  * @param object $post
  * @param object $discussion
  * @param object $moodleoverflow
  * @param object $cm
  * @param object $course
- * @param bool $ownpost
+ * @param object $ownpost
  * @param bool $link
  * @param string $footer
  * @param string $highlight
- * @param null $postisread
+ * @param bool $postisread
  * @param bool $dummyifcantsee
  * @param bool $istracked
  * @param bool $iscomment
  * @param array $usermapping
  * @param int $level
- * @param bool $multiplemarks The setting of multiplemarks (default: multiplemarks are not allowed)
- * @param stdClass|null $limitedanswersetting Two Unix timestamp wrapped in a stdClass, upper and lower label for answering.
+ * @param bool $multiplemarks setting of multiplemarks
+ * @param stdClass|null $limitedanswersetting
  * @return void|null
  * @throws coding_exception
  * @throws dml_exception
@@ -1168,6 +1170,7 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
     $post->course = $course->id;
     $post->moodleoverflow = $moodleoverflow->id;
     $mcid = $modulecontext->id;
+    $post->message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php', $mcid, 'mod_moodleoverflow', 'post', $post->id);
 
     // Check if the user has the capability to see posts.
     if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
@@ -1640,6 +1643,7 @@ function moodleoverflow_print_posts_nested($course, &$cm, $moodleoverflow, $disc
 }
 
 /**
+ * LEARNWEB-TODO: Delete this function after adapting the print_post function to the new post structure
  * Returns attachments with information for the template
  *
  * @param object $post
@@ -1721,6 +1725,7 @@ function moodleoverflow_add_attachment($post, $forum, $cm) {
 }
 
 /**
+ * WARNING: this function is only used in the lib.php. For other uses this function is deprecated.
  * Adds a new post in an existing discussion.
  * @param object $post The post object
  * @return bool|int The Id of the post if operation was successful
@@ -1775,93 +1780,6 @@ function moodleoverflow_add_new_post($post) {
 
     // Return the id of the created post.
     return $post->id;
-}
-
-/**
- * Updates a specific post.
- *
- * Capabilities are not checked, because this is happening in the post.php.
- *
- * @param object $newpost The new post object
- *
- * @return bool Whether the update was successful
- */
-function moodleoverflow_update_post($newpost) {
-    global $DB, $USER;
-
-    // Retrieve not submitted variables.
-    $post = $DB->get_record('moodleoverflow_posts', ['id' => $newpost->id]);
-    $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
-    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
-    $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
-    $context = context_module::instance($cm->id);
-
-    // Allowed modifiable fields.
-    $modifiablefields = [
-        'message',
-        'messageformat',
-    ];
-
-    // Iteratate through all modifiable fields and update the values.
-    foreach ($modifiablefields as $field) {
-        if (isset($newpost->{$field})) {
-            $post->{$field} = $newpost->{$field};
-        }
-    }
-
-    $post->modified = time();
-    if ($newpost->reviewed ?? $post->reviewed) {
-        // Update the date and the user of the post and the discussion.
-        $discussion->timemodified = $post->modified;
-        $discussion->usermodified = $post->userid;
-    }
-
-    // When editing the starting post of a discussion.
-    if (!$post->parent) {
-        $discussion->name = $newpost->subject;
-    }
-
-    // Save draft files to permanent file area.
-    $post->message = file_save_draft_area_files($newpost->draftideditor, $context->id, 'mod_moodleoverflow', 'post',
-            $post->id, mod_forum_post_form::editor_options($context, $post->id), $post->message);
-
-    // Update the post and the corresponding discussion.
-    $DB->update_record('moodleoverflow_posts', $post);
-    $DB->update_record('moodleoverflow_discussions', $discussion);
-
-    $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
-    moodleoverflow_add_attachment($newpost, $moodleoverflow, $cm);
-
-    // Mark the edited post as read.
-    $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
-    $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
-    if ($cantrack && $istracked) {
-        readtracking::moodleoverflow_mark_post_read($USER->id, $post);
-    }
-
-    // The post has been edited successfully.
-    return true;
-}
-
-/**
- * Count all replies of a post.
- *
- * @param object $post The post object
- * @param bool $onlyreviewed Whether to count only reviewed posts.
- *
- * @return int Amount of replies
- */
-function moodleoverflow_count_replies($post, $onlyreviewed) {
-    global $DB;
-
-    $conditions = ['parent' => $post->id];
-
-    if ($onlyreviewed) {
-        $conditions['reviewed'] = '1';
-    }
-
-    // Return the amount of replies.
-    return $DB->count_records('moodleoverflow_posts', $conditions);
 }
 
 /**
@@ -1992,6 +1910,7 @@ function moodleoverflow_delete_post($post, $deletechildren, $cm, $moodleoverflow
 }
 
 /**
+ * WARNING: this function is only used in the lib.php. For other uses this function is deprecated.
  * Sets the last post for a given discussion.
  *
  * @param int $discussionid The discussion ID
