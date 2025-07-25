@@ -24,7 +24,9 @@
 
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\task\send_mails;
+use mod_moodleoverflow\task\send_review_mails;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -62,10 +64,7 @@ final class review_test extends \advanced_testcase {
      * @var \phpunit_message_sink
      */
     private $mailsink;
-    /**
-     * @var \phpunit_message_sink
-     */
-    private $messagesink;
+
 
     /**
      * set Up testing data.
@@ -87,8 +86,6 @@ final class review_test extends \advanced_testcase {
 
         unset_config('noemailever');
         $this->mailsink = $this->redirectEmails();
-
-        $this->messagesink = $this->redirectMessages();
     }
 
     /**
@@ -99,10 +96,6 @@ final class review_test extends \advanced_testcase {
         $this->mailsink->clear();
         $this->mailsink->close();
         unset($this->mailsink);
-
-        $this->messagesink->clear();
-        $this->messagesink->close();
-        unset($this->messagesink);
         parent::tearDown();
     }
 
@@ -121,45 +114,46 @@ final class review_test extends \advanced_testcase {
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
-        $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
-        $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
+        // There should be one review mail for the teacher.
+        // And 1 notification mail for the student (teacher does not get a notification mail for his own post).
+        $this->assertEquals(2, $this->mailsink->count()); // Teacher has to approve student message.
 
         $this->mailsink->clear();
-        $this->messagesink->clear();
 
         $this->assertNull(\mod_moodleoverflow_external::review_approve_post($posts['studentpost']->id));
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_notification_mails();
+        $this->run_send_review_mails();
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->id]);
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
         $this->assertNotNull($post->timereviewed ?? null);
 
-        $this->assertEquals(0, $this->mailsink->count());
-        $this->assertEquals(2, $this->messagesink->count());
+        // There should be one notification mail for the approved post.
+        $this->assertEquals(1, $this->mailsink->count());
+        $this->mailsink->clear();
 
-        $this->messagesink->clear();
-
+        $this->setUser($this->student);
         $studentanswer1 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
         $studentanswer2 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
+        $this->setAdminUser();
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_notification_mails();
+        $this->run_send_review_mails();
 
+        // There should be two review mails for the teacher.
         $this->assertEquals(2, $this->mailsink->count());
-        $this->assertEquals(0, $this->messagesink->count());
 
         $this->mailsink->clear();
 
         $this->assertNotNull(\mod_moodleoverflow_external::review_approve_post($studentanswer1->id));
         $this->assertNull(\mod_moodleoverflow_external::review_reject_post($studentanswer2->id, 'This post was not good!'));
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_notification_mails();
+        $this->run_send_review_mails();
 
-        $this->assertEquals(1, $this->mailsink->count());
-        $this->assertEquals(2, $this->messagesink->count());
+        // One review mail for the teacher and one notification mail for the student.
+        $this->assertEquals(2, $this->mailsink->count());
 
         $rejectionmessage = $this->mailsink->get_messages()[0];
 
@@ -185,33 +179,27 @@ final class review_test extends \advanced_testcase {
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
-        $this->assertEquals(1, $this->mailsink->count()); // Teacher has to approve student message.
-        $this->assertEquals(2, $this->messagesink->count()); // Student and teacher get notification for student message.
+        // There should be one review needed mail for the teacher and one notification mail for the student.
+        $this->assertEquals(2, $this->mailsink->count());
 
         $this->mailsink->clear();
-        $this->messagesink->clear();
 
         $this->assertNull(\mod_moodleoverflow_external::review_approve_post($posts['studentpost']->id));
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_notification_mails();
+        $this->run_send_review_mails();
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->id]);
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
         $this->assertNotNull($post->timereviewed ?? null);
 
-        $this->assertEquals(0, $this->mailsink->count());
-        $this->assertEquals(2, $this->messagesink->count());
-
-        $this->messagesink->clear();
+        // There should be one notification mail for the student for the approved post.
+        $this->assertEquals(1, $this->mailsink->count());
 
         $studentanswer1 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
         $studentanswer2 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
 
         $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
-
-        $this->assertEquals(0, $this->mailsink->count());
-        $this->assertEquals(4, $this->messagesink->count());
     }
 
     /**
@@ -226,26 +214,37 @@ final class review_test extends \advanced_testcase {
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
 
-        $this->assertEquals(0, $this->mailsink->count()); // Teacher has to approve student message.
-        $this->assertEquals(4, $this->messagesink->count()); // Student and teacher get notification for student message.
+        // There should be 2 notifications mails (one for each post).
+        $this->assertEquals(2, $this->mailsink->count()); // Teacher has to approve student message.
 
         $this->mailsink->clear();
-        $this->messagesink->clear();
 
+        $this->setUser($this->student);
         $studentanswer1 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
         $studentanswer2 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
+        $this->setAdminUser();
 
         $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
-
-        $this->assertEquals(0, $this->mailsink->count());
-        $this->assertEquals(4, $this->messagesink->count());
     }
 
     /**
      * Run the send mails task.
      * @return false|string
      */
-    private function run_send_mails() {
+    private function run_send_review_mails() {
+        $mailtask = new send_review_mails();
+        ob_start();
+        $mailtask->execute();
+        $output = ob_get_contents();
+        ob_end_clean();
+        return $output;
+    }
+
+    /**
+     * Run the send mails task.
+     * @return false|string
+     */
+    private function run_send_notification_mails() {
         $mailtask = new send_mails();
         ob_start();
         $mailtask->execute();
@@ -307,8 +306,8 @@ final class review_test extends \advanced_testcase {
                                           'reviewed' => $review2, 'timereviewed' => null, ],
             $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
 
-        $this->run_send_mails();
-        $this->run_send_mails(); // Execute twice to ensure no duplicate mails.
+        $this->run_send_notification_mails();
+        $this->run_send_review_mails();
 
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS,
                                           'reviewed' => $review1, 'timereviewed' => null, ],

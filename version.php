@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2025070700;
+$plugin->version = 2025072500;
 $plugin->requires = 2022112819; // Require Moodle 4.1.
 $plugin->supported = [401, 500];
 $plugin->component = 'mod_moodleoverflow';
