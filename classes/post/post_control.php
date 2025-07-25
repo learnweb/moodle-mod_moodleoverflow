@@ -26,6 +26,7 @@
 namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
+use core\notification;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\discussion_created;
@@ -37,6 +38,7 @@ use mod_moodleoverflow\post\post;
 use mod_moodleoverflow\discussion\discussion;
 use mod_moodleoverflow\subscriptions;
 use moodle_exception;
+use moodle_url;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -216,7 +218,7 @@ class post_control {
                 if (enrol_selfenrol_available($this->info->course->id)) {
                     $SESSION->wantsurl = qualified_me();
                     $SESSION->enrolcancel = get_local_referer(false);
-                    redirect(new \moodle_url('/enrol/index.php',  ['id' => $this->info->course->id,
+                    redirect(new moodle_url('/enrol/index.php',  ['id' => $this->info->course->id,
                                              'returnurl' => '/mod/moodleoverflow/view.php?m=' . $this->info->moodleoverflow->id, ]),
                                              get_string('youneedtoenrol'));
                 }
@@ -270,7 +272,7 @@ class post_control {
             if (!isguestuser() && !is_enrolled($this->info->coursecontext)) {
                 $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
-                redirect(new \moodle_url('/enrol/index.php',
+                redirect(new moodle_url('/enrol/index.php',
                     ['id' => $this->info->course->id,
                      'returnurl' => '/mod/moodleoverflow/view.php?m=' . $this->info->moodleoverflow->id,
                     ]), get_string('youneedtoenrol'));
@@ -424,7 +426,7 @@ class post_control {
                                                                             $this->info->modulecontext);
 
         // Define the location to redirect the user after successfully posting.
-        $redirectto = new \moodle_url('/mod/moodleoverflow/view.php', ['m' => $form->moodleoverflow]);
+        $redirectto = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $form->moodleoverflow]);
         redirect(moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
     }
 
@@ -474,7 +476,7 @@ class post_control {
                                                                              $this->info->modulecontext);
 
         // Define the location to redirect the user after successfully posting.
-        $redirectto = new \moodle_url('/mod/moodleoverflow/discussion.php',
+        $redirectto = new moodle_url('/mod/moodleoverflow/discussion.php',
                                       ['d' => $this->prepost->discussionid, 'p' => $newpostid]);
         redirect(\moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
 
@@ -527,7 +529,7 @@ class post_control {
         $event->trigger();
 
         // Define the location to redirect the user after successfully editing.
-        $redirectto = new \moodle_url('/mod/moodleoverflow/discussion.php',
+        $redirectto = new moodle_url('/mod/moodleoverflow/discussion.php',
                                       ['d' => $this->prepost->discussionid, 'p' => $form->edit]);
         redirect(moodleoverflow_go_back_to($redirectto->out()), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
     }
@@ -542,7 +544,7 @@ class post_control {
 
         // Check if the user has the capability to delete the post.
         $timepassed = time() - $this->info->relatedpost->created;
-        $url = new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
+        $url = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
         if (($timepassed > get_config('moodleoverflow', 'maxeditingtime')) && !$this->info->deleteanypost) {
             throw new moodle_exception('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to($url));
         }
@@ -562,7 +564,7 @@ class post_control {
             redirect('view.php?m=' . $moodleoverflowid);
         } else {
             $this->info->discussion->moodleoverflow_delete_post_from_discussion($this->prepost);
-            $discussionurl = new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
+            $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
             redirect(moodleoverflow_go_back_to($discussionurl));
         }
     }
@@ -680,18 +682,18 @@ class post_control {
         $result = match($errormessage) {
             'moodleoverflow/cannotdeletereplies' => [
                 'msg' => get_string('errorcannotdeletereplies', 'moodleoverflow'),
-                'url' => new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]),
+                'url' => new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]),
             ],
             'moodleoverflow/cannotdeletepost' => [
                 'msg' => get_string('errorcannotdeletepost', 'moodleoverflow'),
-                'url' => new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()])
+                'url' => new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()])
             ],
             default => [
                 'msg' => get_string('errorunknown', 'moodleoverflow'),
-                'url' => new \moodle_url('/mod/moodleoverflow/view.php', ['d' => $this->prepost->moodleoverflowid])
+                'url' => new moodle_url('/mod/moodleoverflow/view.php', ['d' => $this->prepost->moodleoverflowid])
             ],
         };
-        \core\notification::error($result['msg']);
+        notification::error($result['msg']);
         redirect($result['url']);
     }
 
