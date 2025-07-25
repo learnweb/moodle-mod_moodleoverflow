@@ -22,7 +22,7 @@
  * the module version number should be bumped up.
  *
  * The system has four possible values for a capability:
- * CAP_ALLOW, CAP_PREVENT, CAP_PROHIBIT, and inherit (not set).
+ * CAP_ALLOW, CAP_PREVENT, CAP_PROHIBIT, and inherit (not set].
  *
  * It is important that capability names are unique. The naming convention
  * for capabilities that are specific to modules and blocks is as follows:

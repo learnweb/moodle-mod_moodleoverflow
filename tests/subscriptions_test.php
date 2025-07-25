@@ -1228,7 +1228,7 @@ final class subscriptions_test extends advanced_testcase {
     }
 
     /**
-     * Returns subscription obtions.
+     * Returns subscription options.
      * @return array
      */
     public static function is_subscribable_loggedin_provider(): array {

@@ -189,7 +189,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      *
      * @param \mod_moodleoverflow_renderer $renderer The render to be used for formatting the message and attachments
      *
-     * @return stdClass Data ready for use in a mustache template
+     * @return array Data ready for use in a mustache template
      */
     protected function export_for_template_html(\mod_moodleoverflow_renderer $renderer) {
         return [

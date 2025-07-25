@@ -21,15 +21,15 @@
  *
  * @package   mod_moodleoverflow
  * @copyright 2025 Thomas Niedermaier, University Münster
- * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
+$plugin->version = 2025072500;
+$plugin->requires = 2022112819; // Require Moodle 4.1.
+$plugin->supported = [401, 500];
 $plugin->component = 'mod_moodleoverflow';
-$plugin->version = 2025070200;
-$plugin->requires = 2022112800;
-$plugin->release = 'v4.5-r2';
-$plugin->supported = [401, 405];
 $plugin->maturity = MATURITY_RC;
+$plugin->release = 'v5.0-rc1';
+$plugin->dependencies = [];

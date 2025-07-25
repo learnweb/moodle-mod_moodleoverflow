@@ -134,7 +134,7 @@ class review {
      */
     public static function should_post_be_reviewed($post, $moodleoverflow): bool {
         $reviewlevel = self::get_review_level($moodleoverflow);
-        if ($post->parent) {
+        if ($post->parent != 0) {
             return $reviewlevel == self::EVERYTHING;
         } else {
             return $reviewlevel >= self::QUESTIONS;
