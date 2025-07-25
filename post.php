@@ -80,11 +80,19 @@ require_login(0, false);
 // Now the post_control checks which interaction is wanted and builds a prepost.
 $postcontrol->detect_interaction($urlparameter);
 
+// Get attributes from the postcontrol.
+$information = $postcontrol->get_information();
+$prepost = $postcontrol->get_prepost();
+
 // If a post is being deleted, delete it immediately.
 if ($postcontrol->get_interaction() == 'delete') {
     // Has the user confirmed the deletion?
     if (!empty($confirm) && confirm_sesskey()) {
-        $postcontrol->execute_delete();
+        try {
+            $postcontrol->execute_delete();
+        } catch (moodle_exception $e) {
+            $postcontrol->error_handling($e->getMessage());
+        }
     } else {
         // Deletion needs to be confirmed.
         $postcontrol->confirm_delete();
@@ -113,10 +121,6 @@ $mformpost = $postcontrol->build_postform($pageparams);
 
 // The User now entered information in the form. The post.php now needs to process the information and call the right function.
 
-// Get attributes from the postcontrol.
-$information = $postcontrol->get_information();
-$prepost = $postcontrol->get_prepost();
-
 // If the interaction was cancelled, the user needs to be redirected.
 if ($mformpost->is_cancelled()) {
     if (!isset($prepost->discussionid)) {
@@ -124,7 +128,6 @@ if ($mformpost->is_cancelled()) {
     } else {
         redirect(new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $prepost->discussionid]));
     }
-    exit;
 }
 
 // If the post_form is submitted, the post_control executes the right function.

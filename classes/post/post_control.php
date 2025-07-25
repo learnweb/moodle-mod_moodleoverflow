@@ -668,6 +668,33 @@ class post_control {
 
     // Helper functions.
 
+    // Error handling functions.
+
+    /**
+     * Handles errors that occur in the post controller.
+     *
+     * @param string $errormessage
+     * @return void
+     */
+    public function error_handling(string $errormessage): void {
+        $result = match($errormessage) {
+            'moodleoverflow/cannotdeletereplies' => [
+                'msg' => get_string('errorcannotdeletereplies', 'moodleoverflow'),
+                'url' => new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]),
+            ],
+            'moodleoverflow/cannotdeletepost' => [
+                'msg' => get_string('errorcannotdeletepost', 'moodleoverflow'),
+                'url' => new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()])
+            ],
+            default => [
+                'msg' => get_string('errorunknown', 'moodleoverflow'),
+                'url' => new \moodle_url('/mod/moodleoverflow/view.php', ['d' => $this->prepost->moodleoverflowid])
+            ],
+        };
+        \core\notification::error($result['msg']);
+        redirect($result['url']);
+    }
+
     // Getter.
 
     /**
