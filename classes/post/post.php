@@ -259,7 +259,7 @@ class post {
 
         // Add post to the database.
         $this->id = $DB->insert_record('moodleoverflow_posts', $this->build_db_object());
-        $this->moodleoverflow_add_attachment($this, $this->get_moodleoverflow(), $this->get_coursemodule());
+        $this->moodleoverflow_add_attachment();
 
         if ($this->reviewed) {
             // Update the discussion.
