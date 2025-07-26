@@ -26,6 +26,7 @@
 namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
+use coding_exception;
 use core\notification;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
@@ -98,7 +99,7 @@ class post_control {
     /**
      * Detects the interaction and builds the prepost.
      * @param stdClass $urlparameter parameter from the post.php
-     * @throws \coding_exception
+     * @throws coding_exception
      * @throws moodle_exception if the interaction is not correct.
      */
     public function detect_interaction($urlparameter) {
@@ -108,7 +109,7 @@ class post_control {
         $count += $urlparameter->edit ? 1 : 0;
         $count += $urlparameter->delete ? 1 : 0;
         if ($count !== 1) {
-            throw new \coding_exception('Exactly one parameter should be specified!');
+            throw new moodle_exception('wrongparametercount', 'moodleoverflow');
         }
 
         if ($urlparameter->create) {
@@ -130,8 +131,6 @@ class post_control {
             $this->interaction = 'delete';
             $this->info->deletepostid = $urlparameter->delete;
             $this->build_prepost_delete($this->info->deletepostid);
-        } else {
-            throw new moodle_exception('unknownaction');
         }
     }
 
@@ -140,13 +139,9 @@ class post_control {
      * @param object $form The results from the post_form.
      */
     public function execute_interaction($form) {
-        global $CFG;
+        global $CFG, $SESSION;
         // Redirect url in case of occurring errors.
-        if (empty($SESSION->fromurl)) {
-            $errordestination = $CFG->wwwroot . '/mod/moodleoverflow/view.php?m=' . $this->prepost->moodleoverflowid;
-        } else {
-            $errordestination = $SESSION->fromurl;
-        }
+        $SESSION->errorreturnurl = new moodle_url('/mod/moodleoverflow/view.php?', ['m' => $this->prepost->moodleoverflowid]);
 
         // Format the submitted data.
         $this->prepost->messageformat = $form->message['format'];
@@ -159,13 +154,13 @@ class post_control {
 
         // Execute the right function.
         if ($this->interaction == 'create' && $form->moodleoverflow == $this->prepost->moodleoverflowid) {
-            $this->execute_create($form, $errordestination);
+            $this->execute_create($form);
         } else if ($this->interaction == 'reply' && $form->reply == $this->prepost->parentid) {
-            $this->execute_reply($form, $errordestination);
+            $this->execute_reply($form);
         } else if ($this->interaction == 'edit' && $form->edit == $this->prepost->postid) {
-            $this->execute_edit($form, $errordestination);
+            $this->execute_edit($form);
         } else {
-            throw new moodle_exception('unexpectedinteractionerror', 'moodleoverflow', $errordestination);
+            throw new coding_exception(get_string('errorunexpectedinteraction', 'moodleoverflow'));
         }
     }
 
@@ -179,7 +174,7 @@ class post_control {
     public function catch_guest($postid = false, $moodleoverflowid = false) {
         global $PAGE;
         if ((!$postid && !$moodleoverflowid) || ($postid && $moodleoverflowid)) {
-            throw new moodle_exception('inaccurateparameter', 'moodleoverflow');
+            throw new coding_exception('inaccurateparameter', 'moodleoverflow');
         }
         if ($postid) {
             $this->collect_information($postid, false);
@@ -215,6 +210,7 @@ class post_control {
 
             // Catch unenrolled user.
             if (!isguestuser() && !is_enrolled($this->info->coursecontext)) {
+                $SESSION->errorreturnurl = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $this->info->moodleoverflow->id]);
                 if (enrol_selfenrol_available($this->info->course->id)) {
                     $SESSION->wantsurl = qualified_me();
                     $SESSION->enrolcancel = get_local_referer(false);
@@ -383,10 +379,9 @@ class post_control {
      * Executes the creation of a new discussion.
      *
      * @param object $form The results from the post_form.
-     * @param string $errordestination The URL to redirect to in case of an error.
      * @throws moodle_exception if the discussion could not be added.
      */
-    private function execute_create($form, $errordestination) {
+    private function execute_create($form) {
         global $USER;
         // Check if the user is allowed to post.
         $this->check_user_can_create_discussion();
@@ -407,7 +402,7 @@ class post_control {
                                                        $this->prepost->subject, 0, $this->prepost->userid,
                                                        $this->prepost->timenow, $this->prepost->timenow, $this->prepost->userid);
         if (!$discussion->moodleoverflow_add_discussion($this->prepost)) {
-            throw new moodle_exception('couldnotadd', 'moodleoverflow', $errordestination);
+            throw new moodle_exception('couldnotadd', 'moodleoverflow');
         }
 
         // The creation was successful.
@@ -434,10 +429,9 @@ class post_control {
      * Executes the reply to an existing post.
      *
      * @param object $form The results from the post_form.
-     * @param string $errordestination The URL to redirect to in case of an error.
      * @throws moodle_exception if the reply could not be added.
      */
-    private function execute_reply($form, $errordestination) {
+    private function execute_reply($form) {
         // Check if the user has the capability to write a reply.
         $this->check_user_can_create_reply();
 
@@ -451,7 +445,7 @@ class post_control {
 
         // Create the new post.
         if (!$newpostid = $this->info->discussion->moodleoverflow_add_post_to_discussion($this->prepost)) {
-            throw new moodle_exception('couldnotadd', 'moodleoverflow', $errordestination);
+            throw new moodle_exception('couldnotadd', 'moodleoverflow');
         }
 
         // The creation was successful.
@@ -486,10 +480,9 @@ class post_control {
      * Executes the edit of an existing post.
      *
      * @param object $form The results from the post_form.
-     * @param string $errordestination The URL to redirect to in case of an error.
      * @throws moodle_exception if the post could not be updated.
      */
-    private function execute_edit($form, $errordestination) {
+    private function execute_edit($form) {
         global $USER, $DB;
         // Check if the user has the capability to edit his post.
         $this->check_user_can_edit_post();
@@ -501,7 +494,7 @@ class post_control {
 
         // Update the post.
         if (!$this->info->discussion->moodleoverflow_edit_post_from_discussion($this->prepost)) {
-            throw new moodle_exception('couldnotupdate', 'moodleoverflow', $errordestination);
+            throw new moodle_exception('couldnotupdate', 'moodleoverflow');
         }
 
         // The edit was successful.
@@ -540,18 +533,20 @@ class post_control {
      * @throws moodle_exception if the post could not be deleted.
      */
     public function execute_delete() {
+        global $SESSION;
         $this->check_interaction('delete');
 
         // Check if the user has the capability to delete the post.
         $timepassed = time() - $this->info->relatedpost->created;
-        $url = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
+        $SESSION->errorreturnurl = new moodle_url('/mod/moodleoverflow/discussion.php',
+                                                  ['d' => $this->info->discussion->get_id()]);
         if (($timepassed > get_config('moodleoverflow', 'maxeditingtime')) && !$this->info->deleteanypost) {
-            throw new moodle_exception('cannotdeletepost', 'moodleoverflow', moodleoverflow_go_back_to($url));
+            throw new moodle_exception('cannotdeletepost', 'moodleoverflow');
         }
 
         // A normal user cannot delete his post if there are direct replies.
         if ($this->info->replycount && !$this->info->deleteanypost) {
-            throw new moodle_exception('cannotdeletereplies', 'moodleoverflow', moodleoverflow_go_back_to($url));
+            throw new moodle_exception('cannotdeletereplies', 'moodleoverflow');
         }
 
         // Check if the post is a parent post or not.
@@ -679,22 +674,9 @@ class post_control {
      * @return void
      */
     public function error_handling(string $errormessage): void {
-        $result = match($errormessage) {
-            'moodleoverflow/cannotdeletereplies' => [
-                'msg' => get_string('errorcannotdeletereplies', 'moodleoverflow'),
-                'url' => new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]),
-            ],
-            'moodleoverflow/cannotdeletepost' => [
-                'msg' => get_string('errorcannotdeletepost', 'moodleoverflow'),
-                'url' => new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()])
-            ],
-            default => [
-                'msg' => get_string('errorunknown', 'moodleoverflow'),
-                'url' => new moodle_url('/mod/moodleoverflow/view.php', ['d' => $this->prepost->moodleoverflowid])
-            ],
-        };
-        notification::error($result['msg']);
-        redirect($result['url']);
+        global $SESSION;
+        notification::error($errormessage);
+        isset($SESSION->errorreturnurl) ? redirect($SESSION->errorreturnurl) : redirect(new moodle_url('/my/'));
     }
 
     // Getter.

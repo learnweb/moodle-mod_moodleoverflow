@@ -62,7 +62,8 @@ $urlparameter->delete = $delete;
 // Catch guests.
 if (!isloggedin() || isguestuser()) {
     // Gather information and set the page right so that user can be redirected to the right site.
-    $information = $postcontrol->catch_guest();
+    $information = $urlparameter->create ? $postcontrol->catch_guest(false, $urlparameter->create)
+                                  : $postcontrol->catch_guest($urlparameter->reply ?: $urlparameter->edit ?: $urlparameter->delete);
 
     // The guest needs to login.
     $strlogin = get_string('noguestpost', 'forum') . '<br /><br />' . get_string('liketologin');
@@ -78,8 +79,11 @@ if (!isloggedin() || isguestuser()) {
 require_login(0, false);
 
 // Now the post_control checks which interaction is wanted and builds a prepost.
-$postcontrol->detect_interaction($urlparameter);
-
+try {
+    $postcontrol->detect_interaction($urlparameter);
+} catch (moodle_exception $e) {
+    $postcontrol->error_handling($e->getMessage());
+}
 // Get attributes from the postcontrol.
 $information = $postcontrol->get_information();
 $prepost = $postcontrol->get_prepost();
@@ -132,7 +136,11 @@ if ($mformpost->is_cancelled()) {
 
 // If the post_form is submitted, the post_control executes the right function.
 if ($fromform = $mformpost->get_data()) {
-    $postcontrol->execute_interaction($fromform);
+    try {
+        $postcontrol->execute_interaction($fromform);
+    } catch (moodle_exception $e) {
+        $postcontrol->error_handling($e->getMessage());
+    }
     exit;
 }
 
