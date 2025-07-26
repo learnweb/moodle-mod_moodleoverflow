@@ -831,7 +831,7 @@ class post_control {
      */
     private function check_user_can_create_discussion(): void {
         if (!has_capability('mod/moodleoverflow:startdiscussion', $this->info->modulecontext)) {
-            throw new moodle_exception('cannotcreatediscussion', 'moodleoverflow');
+            throw new moodle_exception('nopostmoodleoverflow', 'moodleoverflow');
         }
     }
 
@@ -894,8 +894,6 @@ class post_control {
                     'returnurl' => '/mod/moodleoverflow/view.php?m=' . $this->info->moodleoverflow->id, ]),
                     get_string('youneedtoenrol'));
             }
-            // Notify the user, that he can not post a new discussion.
-            throw new moodle_exception('nopostmoodleoverflow', 'moodleoverflow');
         }
     }
 }
