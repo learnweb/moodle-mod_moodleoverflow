@@ -40,6 +40,7 @@ $delete = optional_param('delete', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
+$SESSION->errorreturnurl = get_local_referer(false);
 $PAGE->set_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit,
                                                       'delete' => $delete, 'confirm' => $confirm, ]);
 
