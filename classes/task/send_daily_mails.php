@@ -26,7 +26,7 @@ namespace mod_moodleoverflow\task;
 /**
  * This task sends a daily mail of unread posts
  */
-class send_daily_mail extends \core\task\scheduled_task {
+class send_daily_mails extends \core\task\scheduled_task {
 
     /**
      * Return the task's name as shown in admin screens.
@@ -34,7 +34,7 @@ class send_daily_mail extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('tasksenddailymail', 'mod_moodleoverflow');
+        return get_string('tasksenddailymails', 'mod_moodleoverflow');
     }
 
     /**
@@ -88,7 +88,7 @@ class send_daily_mail extends \core\task\scheduled_task {
             $message = implode('<br>', $mail);
             $userto = $DB->get_record('user', ['id' => $user->userid]);
             $from = \core_user::get_noreply_user();
-            $subject = get_string('tasksenddailymail', 'mod_moodleoverflow');
+            $subject = get_string('tasksenddailymails', 'mod_moodleoverflow');
             email_to_user($userto, $from, $subject, $message);
             $DB->delete_records('moodleoverflow_mail_info', ['userid' => $user->userid]);
         }

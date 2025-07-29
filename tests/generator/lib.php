@@ -94,15 +94,6 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     /**
      * Creates a moodleoverflow discussion.
      *
-     * @param null $record
-     *
-     * @return bool|int
-     * @throws coding_exception
-     */
-
-    /**
-     * Creates a moodleoverflow discussion.
-     *
      * @param null $record The discussion record.
      * @param null $forum The moodleoverflow to insert the discussion.
      *
