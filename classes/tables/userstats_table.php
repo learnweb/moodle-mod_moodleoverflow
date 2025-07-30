@@ -30,7 +30,6 @@ global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 require_once($CFG->libdir . '/tablelib.php');
-use mod_moodleoverflow\output\helpicon;
 
 /**
  * Table listing all user statistics of a course
@@ -50,9 +49,6 @@ class userstats_table extends \flexible_table {
     /** @var array table that will have objects with every user and his statistics. */
     private $userstatsdata = [];
 
-    /** @var \stdClass Help icon for amountofactivity-column.*/
-    private $helpactivity;
-
     /**
      * Constructor for workflow_table.
      *
@@ -62,13 +58,13 @@ class userstats_table extends \flexible_table {
      * @param string $url The url of the table
      */
     public function __construct($uniqueid, $courseid, $moodleoverflow, $url) {
-        global $PAGE;
+        global $PAGE, $OUTPUT;
         parent::__construct($uniqueid);
         $PAGE->requires->js_call_amd('mod_moodleoverflow/activityhelp', 'init');
 
         $this->courseid = $courseid;
         $this->moodleoverflowid = $moodleoverflow;
-        $this->set_helpactivity();
+        $helpactivity = $OUTPUT->help_icon('helpamountofactivity', 'moodleoverflow');
 
         $this->set_attribute('class', 'moodleoverflow-statistics-table');
         $this->set_attribute('id', $uniqueid);
@@ -78,8 +74,8 @@ class userstats_table extends \flexible_table {
         $this->define_headers([get_string('fullnameuser'),
                                get_string('userstatsupvotes', 'moodleoverflow'),
                                get_string('userstatsdownvotes', 'moodleoverflow'),
-                               (get_string('userstatsforumactivity', 'moodleoverflow') . $this->helpactivity->object),
-                               (get_string('userstatscourseactivity', 'moodleoverflow') . $this->helpactivity->object),
+                               (get_string('userstatsforumactivity', 'moodleoverflow') . $helpactivity),
+                               (get_string('userstatscourseactivity', 'moodleoverflow') . $helpactivity),
                                get_string('userstatsforumreputation', 'moodleoverflow'),
                                get_string('userstatscoursereputation', 'moodleoverflow'), ]);
         $this->get_table_data();
@@ -146,17 +142,6 @@ class userstats_table extends \flexible_table {
      */
     public function get_usertable() {
         return $this->userstatsdata;
-    }
-
-    /**
-     * Setup the help icon for amount of activity
-     */
-    public function set_helpactivity() {
-        $htmlclass = 'helpactivityclass btn btn-link';
-        $content = get_string('helpamountofactivity', 'moodleoverflow');
-        $helpobject = new helpicon($htmlclass, $content);
-        $this->helpactivity = new \stdClass();
-        $this->helpactivity->object = $helpobject->get_helpicon();
     }
 
     // Functions that show the data.

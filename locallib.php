@@ -27,7 +27,6 @@
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
-use mod_moodleoverflow\output\helpicon;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
@@ -1327,21 +1326,21 @@ function moodleoverflow_print_post($post, $discussion, $moodleoverflow, $cm, $co
             // Check if limitedanswertime is on.
             $settingexist = $limitedanswersetting->la_starttime != 0 || $limitedanswersetting->la_endtime != 0;
             if ($settingexist) {
-                $infolimited = $limitedanswersetting->la_starttime ? " " . get_string('limitedanswer_info_starttime',
+                $infolimited = $limitedanswersetting->la_starttime ? " " . get_string('la_info_starttime',
                         'moodleoverflow', ['limitedanswerdate' => date('d.m.Y H:i', $limitedanswersetting->la_starttime)]) : '';
-                $infolimited .= $limitedanswersetting->la_endtime ? " " . get_string('limitedanswer_info_endtime', 'moodleoverflow',
+                $infolimited .= $limitedanswersetting->la_endtime ? " " . get_string('la_info_endtime', 'moodleoverflow',
                         ['limitedanswerdate' => date('d.m.Y H:i', $limitedanswersetting->la_endtime)]) : '';
                 echo html_writer::div($infolimited, 'alert alert-warning', ['role' => 'alert']);
             }
             if (is_currently_time_limited($limitedanswersetting)) {
                 if (!has_capability('mod/moodleoverflow:addinstance', $modulecontext)) {
                     // In case the user can not change the limited answer time he/she can not answer.
-                    render_limited_answer('text-muted', $commands, $infolimited, 'student', $str->replyfirst);
+                    render_limited_answer('text-muted', $commands, 'student', $str->replyfirst);
                 } else {
                     // The user is a teacher.
                     $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
                     $answerbutton = html_writer::link($replyurl, $str->replyfirst, ['class' => 'onlyifreviewed answerbutton']);
-                    render_limited_answer('', $commands, $infolimited, 'teacher', $answerbutton);
+                    render_limited_answer('', $commands, 'teacher', $answerbutton);
                 }
             } else {
                 $replyurl = new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $post->id]);
@@ -1537,30 +1536,27 @@ function is_currently_time_limited($limitedanswersetting): bool {
 
 /**
  * Renders the answer action in a post.
- * @param String $htmlattributes additional attributes passed to the html class and the command (either 'text-muted' or empty).
+ * @param string $htmlattributes additional attributes passed to the html class and the command (either 'text-muted' or empty).
  * @param array $commands array of actions available to the user in a post.
- * @param String $infolimited information about the limited answer setting.
- * @param String $role either 'student' or 'teacher'.
- * @param String $helpstring content for the tag specifing the helpicon for the answer button.
+ * @param string $role either 'student' or 'teacher'.
+ * @param string $helpstring content for the tag specifing the helpicon for the answer button.
  * @return void
  * @throws coding_exception
  */
-function render_limited_answer($htmlattributes, &$commands, $infolimited, $role, $helpstring) {
+function render_limited_answer(string $htmlattributes, array &$commands, string $role, string $helpstring): void {
+    global $OUTPUT;
     $limitedanswerattributes = ['class' => 'onlyifreviewed ' . $htmlattributes];
-    $htmlclass = 'onlyifreviewed helpicon ' . $htmlattributes;
-    $content = get_string('limitedanswer_info_start', 'moodleoverflow');
-    $content .= $infolimited;
-    $htmlattributes == '' ? $content .= " " . get_string('limitedanswer_helpicon_teacher', 'moodleoverflow') : $content .= '';
 
-    $helpobject = new helpicon($htmlclass, $content);
-    $helpicon = $helpobject->get_helpicon();
+    $helpicon = match ($htmlattributes) {
+        'text-muted' => $OUTPUT->help_icon('la_student_helpicon', 'moodleoverflow'),
+        '' => $OUTPUT->help_icon('la_teacher_helpicon', 'moodleoverflow'),
+    };
+
     // Build a html span that has the answer button and the help icon.
     $limitedanswerobject = html_writer::tag('span', $helpstring . '    ' . $helpicon);
 
     // Save the span in the commands with an extra value.
-    $commands[] = ['text' => $limitedanswerobject,
-        'attributes' => $limitedanswerattributes,
-        'limitedanswer' => $role, ];
+    $commands[] = ['text' => $limitedanswerobject, 'attributes' => $limitedanswerattributes,  'limitedanswer' => $role];
 }
 
 /**
