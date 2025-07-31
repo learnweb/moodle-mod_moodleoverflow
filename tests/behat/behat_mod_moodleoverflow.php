@@ -120,20 +120,21 @@ class behat_mod_moodleoverflow extends behat_base {
     /**
      * Logs in as a user and navigates in a course to dedicated moodleoverflow discussion.
      *
-     * @Given /^I navigate as "(?P<username>[^"]*)" to "(?P<coursefullname>[^"]*)" "(?P<moodleoverflowname>[^"]*)" "(?P<discussionname>[^"]*)"$/
-     * @param string $username The username to log in as
-     * @param string $coursefullname The full name of the course
-     * @param string $moodleoverflowname The name of the moodleoverflow activity
-     * @param string $discussionname The name of the discussion
+     * @Given /^I navigate as "(?P<user>[^"]*)" to "(?P<course>[^"]*)" "(?P<moodleoverflow>[^"]*)" "(?P<discussion>[^"]*)"$/
+     *
+     * @param string $user The username to log in as
+     * @param string $course The full name of the course
+     * @param string $moodleoverflow The name of the moodleoverflow activity
+     * @param string $discussion The name of the discussion
      * @return void
      * @throws Exception
      */
-    public function i_navigate_as_user_to_the_discussion(string $username, string $coursefullname, string $moodleoverflowname,
-                                                         string $discussionname): void {
-        $this->execute('behat_auth::i_log_in_as', $username);
-        $this->execute('behat_navigation::i_am_on_course_homepage', $coursefullname);
-        $this->execute('behat_general::click_link', $this->escape($moodleoverflowname));
-        $this->execute('behat_general::click_link', $this->escape($discussionname));
+    public function i_navigate_as_user_to_the_discussion(string $user, string $course, string $moodleoverflow,
+                                                         string $discussion): void {
+        $this->execute('behat_auth::i_log_in_as', $user);
+        $this->execute('behat_navigation::i_am_on_course_homepage', $course);
+        $this->execute('behat_general::click_link', $this->escape($moodleoverflow));
+        $this->execute('behat_general::click_link', $this->escape($discussion));
     }
 
     /**
@@ -148,7 +149,7 @@ class behat_mod_moodleoverflow extends behat_base {
         // Find the div containing the post message and click the delete link within it.
         $this->execute('behat_general::i_click_on', [
             "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) . "')]//a[text()='Delete']",
-            "xpath_element"
+            "xpath_element",
         ]);
         $this->execute('behat_general::i_click_on', ['Continue', 'button']);
     }
@@ -164,8 +165,9 @@ class behat_mod_moodleoverflow extends behat_base {
      */
     public function i_comment_moodleoverflow_post_with_message(string $postmessage, string $replymessage): void {
         $this->execute('behat_general::i_click_on', [
-            "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) . "')]//a[text()='Comment']",
-            "xpath_element"
+            "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) .
+                "')]//a[text()='Comment']",
+            "xpath_element",
         ]);
         $table = new TableNode([
             ['Message', $replymessage],
