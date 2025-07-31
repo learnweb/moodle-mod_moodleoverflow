@@ -230,7 +230,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->setDefault('allowmultiplemarks', 0);
 
         // Limited answer options.
-        $mform->addElement('header', 'limitedanswerheading', get_string('limitedanswerheading', 'moodleoverflow'));
+        $mform->addElement('header', 'limitedanswerheading', get_string('la_heading', 'moodleoverflow'));
 
         $answersfound = false;
         if (!empty($this->current->id)) {
@@ -244,8 +244,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $answerpostscount = $answerpostscount[array_key_first($answerpostscount)]->answerposts;
             $answersfound = $answerpostscount > 0;
             if ($answersfound) {
-                $warningstring = get_string('limitedanswerwarning_answers', 'moodleoverflow');
-                $warningstring .= '<br>' . get_string('limitedanswerwarning_conclusion', 'moodleoverflow');
+                $warningstring = get_string('la_warning_answers', 'moodleoverflow');
+                $warningstring .= '<br>' . get_string('la_warning_conclusion', 'moodleoverflow');
                 $htmlwarning = html_writer::div($warningstring, 'alert alert-warning', ['role' => 'alert']);
                 $mform->addElement('html', $htmlwarning);
             }
