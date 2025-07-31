@@ -258,9 +258,8 @@ class discussion {
             $transaction = $DB->start_delegated_transaction();
 
             // Delete every post of this discussion.
-            foreach ($this->posts as $post) {
-                $post->moodleoverflow_delete_post(false);
-            }
+            $firstpost = $this->posts[$this->firstpost];
+            $firstpost->moodleoverflow_delete_post(true);
 
             // Delete the read-records for the discussion.
             readtracking::moodleoverflow_delete_read_records(-1, -1, $this->id);
