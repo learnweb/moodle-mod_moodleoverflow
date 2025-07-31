@@ -260,7 +260,6 @@ class post {
 
         // Add post to the database.
         $this->id = $DB->insert_record('moodleoverflow_posts', $this->build_db_object());
-        $this->moodleoverflow_add_attachment();
 
         // Save draft files to permanent file area.
         $context = \context_module::instance($this->get_coursemodule()->id);
@@ -268,6 +267,9 @@ class post {
         $this->message = file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
             $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $this->message);
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
+
+        // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
+        $this->moodleoverflow_add_attachment();
 
         if ($this->reviewed) {
             // Update the discussion.
@@ -390,8 +392,7 @@ class post {
         $context = \context_module::instance($this->get_coursemodule()->id);
         $draftid = file_get_submitted_draft_itemid('introeditor');
         $this->message = file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
-            $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $this->message);
-        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
+            $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $postmessage);
 
         // Update the record in the database.
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
