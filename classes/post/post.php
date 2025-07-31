@@ -31,6 +31,7 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\discussion\discussion;
+use mod_moodleoverflow_post_form;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -261,6 +262,13 @@ class post {
         $this->id = $DB->insert_record('moodleoverflow_posts', $this->build_db_object());
         $this->moodleoverflow_add_attachment();
 
+        // Save draft files to permanent file area.
+        $context = \context_module::instance($this->get_coursemodule()->id);
+        $draftid = file_get_submitted_draft_itemid('introeditor');
+        $this->message = file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
+            $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $this->message);
+        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
+
         if ($this->reviewed) {
             // Update the discussion.
             $DB->set_field('moodleoverflow_discussions', 'timemodified', $this->modified, ['id' => $this->discussion]);
@@ -375,9 +383,15 @@ class post {
 
         // Update the attributes.
         $this->modified = $time;
-        $this->message = $postmessage;
         $this->messageformat = $messageformat;
         $this->formattachments = $formattachments;
+
+        // Update the message and save draft files to permanent file area.
+        $context = \context_module::instance($this->get_coursemodule()->id);
+        $draftid = file_get_submitted_draft_itemid('introeditor');
+        $this->message = file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
+            $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $this->message);
+        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
 
         // Update the record in the database.
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
