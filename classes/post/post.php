@@ -103,8 +103,8 @@ class post {
     /** @var string The subject/title of the Discussion */
     public $subject;
 
-    /** @var object The discussion where the post is located */
-    public $discussionobject;
+    /** @var discussion The discussion where the post is located */
+    public discussion $discussionobject;
 
     /** @var object The Moodleoverflow where the post is located*/
     public $moodleoverflowobject;
@@ -154,9 +154,9 @@ class post {
      * Builds a Post from a DB record.
      * Look up database structure for standard values.
      * @param object  $record Data object.
-     * @return object post instance
+     * @return post post instance
      */
-    public static function from_record($record) {
+    public static function from_record($record): post {
         $id = null;
         if (object_property_exists($record, 'id') && $record->id) {
             $id = $record->id;
@@ -546,9 +546,9 @@ class post {
     /**
      * Returns the discussion where the post is located.
      *
-     * @return object $discussionobject.
+     * @return discussion $discussionobject.
      */
-    public function get_discussion() {
+    public function get_discussion(): discussion {
         global $DB;
         $this->existence_check();
 
@@ -631,7 +631,7 @@ class post {
     public function moodleoverflow_get_post_ratings() {
         $this->existence_check();
 
-        $discussionid = $this->get_discussion()->id;
+        $discussionid = $this->get_discussion()->get_id();
         $postratings = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussionid, $this->id);
 
         $ratingsobject = new \stdClass();

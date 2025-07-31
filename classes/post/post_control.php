@@ -796,11 +796,11 @@ class post_control {
     /**
      * Checks if the related discussion exists.
      * @param int $discussionid
-     * @return object $discussion
+     * @return discussion $discussion
      * @throws dml_exception
      * @throws moodle_exception
      */
-    private function check_discussion_exists(int $discussionid): object {
+    private function check_discussion_exists(int $discussionid): discussion {
         global $DB;
         if (!$discussionrecord = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid])) {
             throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
@@ -811,11 +811,11 @@ class post_control {
     /**
      * Checks if a post exists.
      * @param int $postid
-     * @return object $post
+     * @return post $post
      * @throws dml_exception
      * @throws moodle_exception
      */
-    private function check_post_exists(int $postid): object {
+    private function check_post_exists(int $postid): post {
         global $DB;
         if (!$postrecord = $DB->get_record('moodleoverflow_posts', ['id' => $postid])) {
             throw new moodle_exception('invalidpostid', 'moodleoverflow');

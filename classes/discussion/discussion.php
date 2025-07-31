@@ -81,7 +81,7 @@ class discussion {
 
     // Not Database-related attributes.
 
-    /** @var array an Array of posts that belong to this discussion */
+    /** @var post[] an Array of posts that belong to this discussion */
     public $posts;
 
     /** @var bool  a variable for checking if this instance has all its posts */
@@ -126,7 +126,7 @@ class discussion {
      * Builds a Discussion from a DB record.
      *
      * @param object   $record Data object.
-     * @return object discussion instance
+     * @return discussion discussion instance
      */
     public static function from_record($record) {
         $id = null;
