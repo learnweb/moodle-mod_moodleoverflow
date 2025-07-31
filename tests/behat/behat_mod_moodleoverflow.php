@@ -41,6 +41,140 @@ use Behat\Mink\Exception\ExpectationException;
  */
 class behat_mod_moodleoverflow extends behat_base {
 
+
+    /**
+     * Build basic background for moodleoverflow tests.
+     * Builds:
+     * - A course
+     * - One teacher and one student, both enrolled in the course
+     * - A moodleoverflow activity
+     * - A discussion started by the teacher
+     * - A reply to the discussion by the student
+     *
+     * @Given /^I add a moodleoverflow discussion with posts from different users$/
+     * @return void
+     */
+    public function i_add_a_moodleoverflow_discussion_with_posts_from_different_users(): void {
+        global $DB;
+        $time = time();
+        $starttime = $time - 31556926;
+        $endtime = $time + 31556926;
+
+        // Create users.
+        $this->execute('behat_data_generators::the_following_entities_exist', ['users', new TableNode([
+            ['username', 'firstname', 'lastname'],
+            ['teacher1', 'Tamaro', 'Walter'],
+            ['student1', 'John', 'Smith'],
+        ])]);
+
+        $teacher = $DB->get_record('user', ['username' => 'teacher1']);
+        $student = $DB->get_record('user', ['username' => 'student1']);
+
+        // Create course.
+        $this->execute('behat_data_generators::the_following_entities_exist', ['courses', new TableNode([
+            ['fullname', 'shortname', 'category', 'startdate', 'enddate'],
+            ['Course 1', 'C1', '0', $starttime, $endtime],
+        ])]);
+        $course = $DB->get_record('course', ['shortname' => 'C1']);
+
+        // Enroll users.
+        $this->execute('behat_data_generators::the_following_entities_exist', ['course enrolments', new TableNode([
+            ['user', 'course', 'role'],
+            ['teacher1', 'C1', 'teacher'],
+            ['student1', 'C1', 'student'],
+        ])]);
+
+        // Create activity.
+        $this->execute('behat_data_generators::the_following_entities_exist', ['activities', new TableNode([
+            ['activity', 'course', 'name'],
+            ['moodleoverflow', 'C1', 'Moodleoverflow 1'],
+        ])]);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => 'Moodleoverflow 1']);
+
+        // Create discussion.
+        $discussionid = $DB->insert_record('moodleoverflow_discussions', ['course' => $course->id,
+            'moodleoverflow' => $moodleoverflow->id, 'name' => 'Discussion 1', 'firstpost' => 1, 'userid' => $teacher->id,
+            'timemodified' => $time, 'timestart' => $time, 'usermodified' => $teacher->id,
+        ]);
+
+        // Create teacher's post.
+        $teacherpostid = $DB->insert_record('moodleoverflow_posts', ['discussion' => $discussionid,
+            'moodleoverflow' => $moodleoverflow->id, 'parent' => 0, 'userid' => $teacher->id, 'created' => $time,
+            'modified' => $time, 'message' => 'Message from teacher', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1,
+            'reviewed' => '1', 'timereviewed' => null,
+        ]);
+
+        // Update firstpost field in discussion.
+        $record = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid]);
+        $record->firstpost = $teacherpostid;
+        $DB->update_record('moodleoverflow_discussions', $record);
+
+        // Create student reply.
+        $DB->insert_record('moodleoverflow_posts', ['discussion' => $discussionid, 'moodleoverflow' => $moodleoverflow->id,
+            'parent' => $teacherpostid, 'userid' => $student->id, 'created' => $time, 'modified' => $time,
+            'message' => 'Answer from student', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1, 'reviewed' => '1',
+            'timereviewed' => null,
+        ]);
+    }
+
+    /**
+     * Logs in as a user and navigates in a course to dedicated moodleoverflow discussion.
+     *
+     * @Given /^I navigate as "(?P<username>[^"]*)" to "(?P<coursefullname>[^"]*)" "(?P<moodleoverflowname>[^"]*)" "(?P<discussionname>[^"]*)"$/
+     * @param string $username The username to log in as
+     * @param string $coursefullname The full name of the course
+     * @param string $moodleoverflowname The name of the moodleoverflow activity
+     * @param string $discussionname The name of the discussion
+     * @return void
+     * @throws Exception
+     */
+    public function i_navigate_as_user_to_the_discussion(string $username, string $coursefullname, string $moodleoverflowname,
+                                                         string $discussionname): void {
+        $this->execute('behat_auth::i_log_in_as', $username);
+        $this->execute('behat_navigation::i_am_on_course_homepage', $coursefullname);
+        $this->execute('behat_general::click_link', $this->escape($moodleoverflowname));
+        $this->execute('behat_general::click_link', $this->escape($discussionname));
+    }
+
+    /**
+     * Clicks on the delete button of a moodleoverflow post.
+     *
+     * @Given /^I try to delete moodleoverflow post "(?P<postmessage_string>(?:[^"]|\\")*)"$/
+     * @param string $postmessage
+     * @return void
+     * @throws Exception
+     */
+    public function i_try_to_delete_moodleoverflow_post(string $postmessage): void {
+        // Find the div containing the post message and click the delete link within it.
+        $this->execute('behat_general::i_click_on', [
+            "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) . "')]//a[text()='Delete']",
+            "xpath_element"
+        ]);
+        $this->execute('behat_general::i_click_on', ['Continue', 'button']);
+    }
+
+    /**
+     * Clicks on the comment button of a moodleoverflow post
+     *
+     * @Given /^I comment "(?P<postmessage_string>(?:[^"]|\\")*)" with "(?P<replymessage_string>(?:[^"]|\\")*)"$/
+     * @param string $postmessage
+     * @param string $replymessage
+     * @return void
+     * @throws Exception
+     */
+    public function i_comment_moodleoverflow_post_with_message(string $postmessage, string $replymessage): void {
+        $this->execute('behat_general::i_click_on', [
+            "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) . "')]//a[text()='Comment']",
+            "xpath_element"
+        ]);
+        $table = new TableNode([
+            ['Message', $replymessage],
+        ]);
+        $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
+        $this->execute('behat_forms::press_button', get_string('posttomoodleoverflow', 'moodleoverflow'));
+        $this->execute('behat_general::i_wait_to_be_redirected');
+    }
+
     /**
      * Adds a new moodleoverflow to the specified course and section.
      *
@@ -104,7 +238,7 @@ class behat_mod_moodleoverflow extends behat_base {
     }
 
     /**
-     * Adds a reply to the specified post of the specified moodleoverflow.
+     * Adds a reply to the starter post of the specified moodleoverflow.
      * The step begins from the moodleoverflow's page or from the moodleoverflow's course page.
      *
      * @Given /^I reply "(?P<post_subject_string>(?:[^"]|\\")*)" post
