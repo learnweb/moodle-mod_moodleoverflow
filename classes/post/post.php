@@ -31,6 +31,7 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\discussion\discussion;
+use mod_moodleoverflow_post_form;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -103,8 +104,8 @@ class post {
     /** @var string The subject/title of the Discussion */
     public $subject;
 
-    /** @var object The discussion where the post is located */
-    public $discussionobject;
+    /** @var discussion The discussion where the post is located */
+    public discussion $discussionobject;
 
     /** @var object The Moodleoverflow where the post is located*/
     public $moodleoverflowobject;
@@ -154,9 +155,9 @@ class post {
      * Builds a Post from a DB record.
      * Look up database structure for standard values.
      * @param object  $record Data object.
-     * @return object post instance
+     * @return post post instance
      */
-    public static function from_record($record) {
+    public static function from_record($record): post {
         $id = null;
         if (object_property_exists($record, 'id') && $record->id) {
             $id = $record->id;
@@ -259,6 +260,15 @@ class post {
 
         // Add post to the database.
         $this->id = $DB->insert_record('moodleoverflow_posts', $this->build_db_object());
+
+        // Save draft files to permanent file area.
+        $context = \context_module::instance($this->get_coursemodule()->id);
+        $draftid = file_get_submitted_draft_itemid('introeditor');
+        $this->message = file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
+            $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $this->message);
+        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
+
+        // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
         $this->moodleoverflow_add_attachment();
 
         if ($this->reviewed) {
@@ -375,9 +385,14 @@ class post {
 
         // Update the attributes.
         $this->modified = $time;
-        $this->message = $postmessage;
         $this->messageformat = $messageformat;
         $this->formattachments = $formattachments;
+
+        // Update the message and save draft files to permanent file area.
+        $context = \context_module::instance($this->get_coursemodule()->id);
+        $draftid = file_get_submitted_draft_itemid('introeditor');
+        $this->message = file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
+            $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $postmessage);
 
         // Update the record in the database.
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
@@ -546,9 +561,9 @@ class post {
     /**
      * Returns the discussion where the post is located.
      *
-     * @return object $discussionobject.
+     * @return discussion $discussionobject.
      */
-    public function get_discussion() {
+    public function get_discussion(): discussion {
         global $DB;
         $this->existence_check();
 
@@ -631,7 +646,7 @@ class post {
     public function moodleoverflow_get_post_ratings() {
         $this->existence_check();
 
-        $discussionid = $this->get_discussion()->id;
+        $discussionid = $this->get_discussion()->get_id();
         $postratings = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussionid, $this->id);
 
         $ratingsobject = new \stdClass();

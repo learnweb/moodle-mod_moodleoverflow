@@ -81,7 +81,7 @@ class discussion {
 
     // Not Database-related attributes.
 
-    /** @var array an Array of posts that belong to this discussion */
+    /** @var post[] an Array of posts that belong to this discussion */
     public $posts;
 
     /** @var bool  a variable for checking if this instance has all its posts */
@@ -126,7 +126,7 @@ class discussion {
      * Builds a Discussion from a DB record.
      *
      * @param object   $record Data object.
-     * @return object discussion instance
+     * @return discussion discussion instance
      */
     public static function from_record($record) {
         $id = null;
@@ -258,9 +258,8 @@ class discussion {
             $transaction = $DB->start_delegated_transaction();
 
             // Delete every post of this discussion.
-            foreach ($this->posts as $post) {
-                $post->moodleoverflow_delete_post(false);
-            }
+            $firstpost = $this->posts[$this->firstpost];
+            $firstpost->moodleoverflow_delete_post(true);
 
             // Delete the read-records for the discussion.
             readtracking::moodleoverflow_delete_read_records(-1, -1, $this->id);
