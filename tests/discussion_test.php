@@ -91,6 +91,9 @@ final class discussion_test extends \advanced_testcase {
         $prepost->formattachments = '';
         $prepost->modulecontext = $this->modulecontext;
 
+        // Log in as the teacher.
+        $this->setUser($this->teacher);
+
         // Build a new discussion object.
         $discussion = discussion::construct_without_id($this->course->id, $this->moodleoverflow->id, 'Discussion Topic',
                                            0, $this->teacher->id, $time, $time, $this->teacher->id);

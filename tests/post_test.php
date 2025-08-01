@@ -85,6 +85,10 @@ final class post_test extends \advanced_testcase {
      */
     public function test_create_post(): void {
         global $DB;
+
+        // Log in as the teacher.
+        $this->setUser($this->teacher);
+
         // Build a new post object.
         $time = time();
         $message = 'a unique message';
@@ -102,6 +106,9 @@ final class post_test extends \advanced_testcase {
      */
     public function test_edit_post(): void {
         global $DB;
+
+        // Log in as the teacher.
+        $this->setUser($this->teacher);
 
         // The post and the attachment should exist.
         $numberofattachments = count($DB->get_records('files', ['itemid' => $this->post->get_id()]));
