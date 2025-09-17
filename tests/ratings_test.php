@@ -532,7 +532,7 @@ final class ratings_test extends \advanced_testcase {
 
     /**
      * Executing the sort function and comparing the sorted post to the expected order.
-     * @param String $group1
+     * @param string $group1
      * @param string $group2
      * @param array $orderposts
      * @return void
