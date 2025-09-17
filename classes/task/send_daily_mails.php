@@ -27,7 +27,6 @@ namespace mod_moodleoverflow\task;
  * This task sends a daily mail of unread posts
  */
 class send_daily_mails extends \core\task\scheduled_task {
-
     /**
      * Return the task's name as shown in admin screens.
      *

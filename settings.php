@@ -25,28 +25,47 @@
 defined('MOODLE_INTERNAL') || die;
 
 if ($ADMIN->fulltree) {
-
     require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
     // Number of discussions per page.
-    $settings->add(new admin_setting_configtext('moodleoverflow/manydiscussions', get_string('manydiscussions', 'moodleoverflow'),
-        get_string('configmanydiscussions', 'moodleoverflow'), 10, PARAM_INT));
+    $settings->add(new admin_setting_configtext(
+        'moodleoverflow/manydiscussions',
+        get_string('manydiscussions', 'moodleoverflow'),
+        get_string('configmanydiscussions', 'moodleoverflow'),
+        10,
+        PARAM_INT
+    ));
 
     if (isset($CFG->maxbytes)) {
         $maxbytes = 0;
         if (get_config('moodleoverflow', 'maxbytes')) {
             $maxbytes = get_config('moodleoverflow', 'maxbytes');
         }
-        $settings->add(new admin_setting_configselect('moodleoverflow/maxbytes', get_string('maxattachmentsize', 'moodleoverflow'),
-            get_string('configmaxbytes', 'moodleoverflow'), 512000, get_max_upload_sizes($CFG->maxbytes, 0, 0, $maxbytes)));
+        $settings->add(new admin_setting_configselect(
+            'moodleoverflow/maxbytes',
+            get_string('maxattachmentsize', 'moodleoverflow'),
+            get_string('configmaxbytes', 'moodleoverflow'),
+            512000,
+            get_max_upload_sizes($CFG->maxbytes, 0, 0, $maxbytes)
+        ));
     }
 
     // Default number of attachments allowed per post in all moodlevoerflows.
-    $settings->add(new admin_setting_configtext('moodleoverflow/maxattachments', get_string('maxattachments', 'moodleoverflow'),
-        get_string('configmaxattachments', 'moodleoverflow'), 9, PARAM_INT));
+    $settings->add(new admin_setting_configtext(
+        'moodleoverflow/maxattachments',
+        get_string('maxattachments', 'moodleoverflow'),
+        get_string('configmaxattachments', 'moodleoverflow'),
+        9,
+        PARAM_INT
+    ));
 
-    $settings->add(new admin_setting_configtext('moodleoverflow/maxeditingtime', get_string('maxeditingtime', 'moodleoverflow'),
-        get_string('configmaxeditingtime', 'moodleoverflow'), 3600, PARAM_INT));
+    $settings->add(new admin_setting_configtext(
+        'moodleoverflow/maxeditingtime',
+        get_string('maxeditingtime', 'moodleoverflow'),
+        get_string('configmaxeditingtime', 'moodleoverflow'),
+        3600,
+        PARAM_INT
+    ));
 
 
     // Default read tracking settings.
@@ -54,92 +73,159 @@ if ($ADMIN->fulltree) {
     $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
     $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
     $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
-    $settings->add(new admin_setting_configselect('moodleoverflow/trackingtype', get_string('trackingtype', 'moodleoverflow'),
-        get_string('configtrackingtype', 'moodleoverflow'), MOODLEOVERFLOW_TRACKING_OPTIONAL, $options));
+    $settings->add(new admin_setting_configselect(
+        'moodleoverflow/trackingtype',
+        get_string('trackingtype', 'moodleoverflow'),
+        get_string('configtrackingtype', 'moodleoverflow'),
+        MOODLEOVERFLOW_TRACKING_OPTIONAL,
+        $options
+    ));
 
     // Should unread posts be tracked for each user?
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow/trackreadposts',
-        get_string('trackmoodleoverflow', 'moodleoverflow'), get_string('configtrackmoodleoverflow', 'moodleoverflow'), 1));
+    $settings->add(new admin_setting_configcheckbox(
+        'moodleoverflow/trackreadposts',
+        get_string('trackmoodleoverflow', 'moodleoverflow'),
+        get_string('configtrackmoodleoverflow', 'moodleoverflow'),
+        1
+    ));
 
     // Allow moodleoverflows to be set to forced read tracking.
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowforcedreadtracking',
-        get_string('forcedreadtracking', 'moodleoverflow'), get_string('configforcedreadtracking', 'moodleoverflow'), 0));
+    $settings->add(new admin_setting_configcheckbox(
+        'moodleoverflow/allowforcedreadtracking',
+        get_string('forcedreadtracking', 'moodleoverflow'),
+        get_string('configforcedreadtracking', 'moodleoverflow'),
+        0
+    ));
 
     // Default number of days that a post is considered old.
-    $settings->add(new admin_setting_configtext('moodleoverflow/oldpostdays', get_string('oldpostdays', 'moodleoverflow'),
-        get_string('configoldpostdays', 'moodleoverflow'), 14, PARAM_INT));
+    $settings->add(new admin_setting_configtext(
+        'moodleoverflow/oldpostdays',
+        get_string('oldpostdays', 'moodleoverflow'),
+        get_string('configoldpostdays', 'moodleoverflow'),
+        14,
+        PARAM_INT
+    ));
 
     // Default time (hour) to execute 'clean_read_records' cron.
     $options = [];
     for ($i = 0; $i < 24; $i++) {
         $options[$i] = sprintf("%02d", $i);
     }
-    $settings->add(new admin_setting_configselect('moodleoverflow/cleanreadtime', get_string('cleanreadtime', 'moodleoverflow'),
-        get_string('configcleanreadtime', 'moodleoverflow'), 2, $options));
+    $settings->add(new admin_setting_configselect(
+        'moodleoverflow/cleanreadtime',
+        get_string('cleanreadtime', 'moodleoverflow'),
+        get_string('configcleanreadtime', 'moodleoverflow'),
+        2,
+        $options
+    ));
 
     $url = new moodle_url('/mod/moodleoverflow/resetanonymous.php');
 
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowanonymous',
+    $settings->add(new admin_setting_configcheckbox(
+        'moodleoverflow/allowanonymous',
         get_string('allowanonymous', 'moodleoverflow'),
         get_string('allowanonymous_desc', 'moodleoverflow', $url->out(false)),
         1
     ));
 
     // Allow teachers to disable ratings/reputation.
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowdisablerating',
-        get_string('allowdisablerating', 'moodleoverflow'), get_string('configallowdisablerating', 'moodleoverflow'), 1));
+    $settings->add(new admin_setting_configcheckbox(
+        'moodleoverflow/allowdisablerating',
+        get_string('allowdisablerating', 'moodleoverflow'),
+        get_string('configallowdisablerating', 'moodleoverflow'),
+        1
+    ));
 
     // Allow users to change their votes?
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowratingchange',
-        get_string('allowratingchange', 'moodleoverflow'), get_string('configallowratingchange', 'moodleoverflow'), 1));
+    $settings->add(new admin_setting_configcheckbox(
+        'moodleoverflow/allowratingchange',
+        get_string('allowratingchange', 'moodleoverflow'),
+        get_string('configallowratingchange', 'moodleoverflow'),
+        1
+    ));
 
     // Allow teachers to enable review before publish.
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow/allowreview',
-        get_string('allowreview', 'moodleoverflow'), get_string('allowreview_desc', 'moodleoverflow'), 1));
+    $settings->add(new admin_setting_configcheckbox(
+        'moodleoverflow/allowreview',
+        get_string('allowreview', 'moodleoverflow'),
+        get_string('allowreview_desc', 'moodleoverflow'),
+        1
+    ));
 
-    $settings->add(new admin_setting_configtext('moodleoverflow/reviewpossibleaftertime',
+    $settings->add(new admin_setting_configtext(
+        'moodleoverflow/reviewpossibleaftertime',
         get_string('reviewpossibleaftertime', 'moodleoverflow'),
-        get_string('reviewpossibleaftertime_desc', 'moodleoverflow'), 1800, PARAM_INT));
+        get_string('reviewpossibleaftertime_desc', 'moodleoverflow'),
+        1800,
+        PARAM_INT
+    ));
 
     // Set scales for the reputation.
     $votesettings = [];
 
     // Votescale: How much reputation gives a vote for another post?
-    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescalevote',
+    $settings->add($votesettings[] = new admin_setting_configtext(
+        'moodleoverflow/votescalevote',
         get_string('votescalevote', 'moodleoverflow'),
-        get_string('configvotescalevote', 'moodleoverflow'), 1, PARAM_INT));
+        get_string('configvotescalevote', 'moodleoverflow'),
+        1,
+        PARAM_INT
+    ));
 
     // Votescale: How much reputation gives a post that has been downvoted?
-    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescaledownvote',
-        get_string('votescaledownvote', 'moodleoverflow'), get_string('configvotescaledownvote', 'moodleoverflow'), -5, PARAM_INT));
+    $settings->add($votesettings[] = new admin_setting_configtext(
+        'moodleoverflow/votescaledownvote',
+        get_string('votescaledownvote', 'moodleoverflow'),
+        get_string('configvotescaledownvote', 'moodleoverflow'),
+        -5,
+        PARAM_INT
+    ));
 
     // Votescale: How much reputation gives a post that has been upvoted?
-    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescaleupvote',
+    $settings->add($votesettings[] = new admin_setting_configtext(
+        'moodleoverflow/votescaleupvote',
         get_string('votescaleupvote', 'moodleoverflow'),
-        get_string('configvotescaleupvote', 'moodleoverflow'), 5, PARAM_INT));
+        get_string('configvotescaleupvote', 'moodleoverflow'),
+        5,
+        PARAM_INT
+    ));
 
     // Votescale: How much reputation gives a post that is marked as solved.
-    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescalesolved',
+    $settings->add($votesettings[] = new admin_setting_configtext(
+        'moodleoverflow/votescalesolved',
         get_string('votescalesolved', 'moodleoverflow'),
-        get_string('configvotescalesolved', 'moodleoverflow'), 30, PARAM_INT));
+        get_string('configvotescalesolved', 'moodleoverflow'),
+        30,
+        PARAM_INT
+    ));
 
     // Votescale: How much reputation gives a post that is marked as helpful.
-    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/votescalehelpful',
+    $settings->add($votesettings[] = new admin_setting_configtext(
+        'moodleoverflow/votescalehelpful',
         get_string('votescalehelpful', 'moodleoverflow'),
-        get_string('configvotescalehelpful', 'moodleoverflow'), 15, PARAM_INT));
+        get_string('configvotescalehelpful', 'moodleoverflow'),
+        15,
+        PARAM_INT
+    ));
 
     // Number of discussions per page.
-    $settings->add($votesettings[] = new admin_setting_configtext('moodleoverflow/maxmailingtime',
+    $settings->add($votesettings[] = new admin_setting_configtext(
+        'moodleoverflow/maxmailingtime',
         get_string('maxmailingtime', 'moodleoverflow'),
-        get_string('configmaxmailingtime', 'moodleoverflow'), 48, PARAM_INT));
+        get_string('configmaxmailingtime', 'moodleoverflow'),
+        48,
+        PARAM_INT
+    ));
 
     foreach ($votesettings as $setting) {
         $setting->set_updatedcallback('moodleoverflow_update_all_grades');
     }
 
     // Allow teachers to see cumulative userstats.
-    $settings->add(new admin_setting_configcheckbox('moodleoverflow/showuserstats',
-        get_string('showuserstats', 'moodleoverflow'), get_string('configshowuserstats', 'moodleoverflow'), 0));
-
-
+    $settings->add(new admin_setting_configcheckbox(
+        'moodleoverflow/showuserstats',
+        get_string('showuserstats', 'moodleoverflow'),
+        get_string('configshowuserstats', 'moodleoverflow'),
+        0
+    ));
 }

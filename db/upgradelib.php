@@ -303,10 +303,10 @@ function mod_moodleoverflow_move_draftfiles_to_permanent_filearea() {
     $baseurl = $CFG->wwwroot . '/draftfile.php/';
 
     $posts = $DB->get_recordset_select(
-            'moodleoverflow_posts',
-            $DB->sql_like('message', ':searchurl'),
-            ['searchurl' => '%' . $DB->sql_like_escape($baseurl) . '%'],
-            'discussion'
+        'moodleoverflow_posts',
+        $DB->sql_like('message', ':searchurl'),
+        ['searchurl' => '%' . $DB->sql_like_escape($baseurl) . '%'],
+        'discussion'
     );
 
     $discussion = null;
@@ -315,7 +315,6 @@ function mod_moodleoverflow_move_draftfiles_to_permanent_filearea() {
     $postsupdated = 0;
 
     foreach ($posts as $post) {
-
         if (!$discussion || $discussion->id != $post->discussion) {
             $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion]);
             $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow]);
@@ -339,8 +338,16 @@ function mod_moodleoverflow_move_draftfiles_to_permanent_filearea() {
             continue;
         }
 
-        $post->message = mod_moodleoverflow_file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
-                $post->id, $usercontext, mod_forum_post_form::editor_options($context, null), $post->message);
+        $post->message = mod_moodleoverflow_file_save_draft_area_files(
+            $draftid,
+            $context->id,
+            'mod_moodleoverflow',
+            'post',
+            $post->id,
+            $usercontext,
+            mod_forum_post_form::editor_options($context, null),
+            $post->message
+        );
 
         $DB->set_field('moodleoverflow_posts', 'message', $post->message, ['id' => $post->id]);
 
@@ -348,5 +355,4 @@ function mod_moodleoverflow_move_draftfiles_to_permanent_filearea() {
     }
 
     return $postsupdated;
-
 }

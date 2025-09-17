@@ -67,5 +67,4 @@ class subscription_created extends \core\event\base {
     public static function get_name() {
         return get_string('eventsubscriptioncreated', 'mod_moodleoverflow');
     }
-
 }

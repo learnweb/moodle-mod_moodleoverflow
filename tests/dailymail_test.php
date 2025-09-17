@@ -42,8 +42,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow\task\send_daily_mails::execute
  */
 final class dailymail_test extends \advanced_testcase {
-
-
     /** @var stdClass test environment
      * This Class contains the test environment:
      * - the message sink to check if mails were sent.
@@ -70,7 +68,7 @@ final class dailymail_test extends \advanced_testcase {
         $this->env->course = $this->getDataGenerator()->create_course();
         $location = ['course' => $this->env->course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $this->env->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
-        $this->env->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->env->moodleoverflow->id);
+        $this->env->cm = get_coursemodule_from_instance('moodleoverflow', $this->env->moodleoverflow->id);
     }
 
     /**
@@ -200,8 +198,8 @@ final class dailymail_test extends \advanced_testcase {
 
         // Build the text that the mail should have.
         // Text structure at get_string('digestunreadpost', moodleoverflow).
-        $linktocourse = '<a href=3D"https://www.example.com/mood=le/course/view.php?id=3D'. $this->env->course->id;
-        $linktoforum = '<a href=3D"https://www.=example.com/moodle/mod/moodleoverflow/view.php?id=3D'. $this->env->coursemodule->id;
+        $linktocourse = '<a href=3D"https://www.example.com/mood=le/course/view.php?id=3D' . $this->env->course->id;
+        $linktoforum = '<a href=3D"https://www.=example.com/moodle/mod/moodleoverflow/view.php?id=3D' . $this->env->cm->id;
         $linktodiscussion = '<a href=3D"https://www.example.com/moodle/mod/moodleoverflow/=discussion.php?d=3D'
                             . $this->env->discussions[0]->id;
 

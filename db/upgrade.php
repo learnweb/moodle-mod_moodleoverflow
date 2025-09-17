@@ -83,7 +83,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
     }
 
     if ($oldversion < 2019052600) {
-
         // Define table moodleoverflow_grades to be created.
         $table = new xmldb_table('moodleoverflow_grades');
 
@@ -135,7 +134,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
     }
 
     if ($oldversion < 2021060800) {
-
         // Define table moodleoverflow to be edited.
         $table = new xmldb_table('moodleoverflow');
 
@@ -171,7 +169,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
     }
 
     if ($oldversion < 2021111700) {
-
         // Define table moodleoverflow to be edited.
         $table = new xmldb_table('moodleoverflow');
 
@@ -196,7 +193,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
     }
 
     if ($oldversion < 2022072000) {
-
         // Define field needsreview to be added to moodleoverflow.
         $table = new xmldb_table('moodleoverflow');
         $field = new xmldb_field('needsreview', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'anonymous');
@@ -231,7 +227,6 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
     }
 
     if ($oldversion < 2022110700) {
-
         if (get_capability_info('mod/moodleoverflow:reviewpost')) {
             foreach (get_archetype_roles('manager') as $role) {
                 unassign_capability('mod/moodleoverflow:reviewpost', $role->id);
@@ -239,7 +234,10 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
             foreach (get_archetype_roles('teacher') as $role) {
                 assign_capability(
-                    'mod/moodleoverflow:reviewpost', CAP_ALLOW, $role->id, context_system::instance()
+                    'mod/moodleoverflow:reviewpost',
+                    CAP_ALLOW,
+                    $role->id,
+                    context_system::instance()
                 );
             }
         }

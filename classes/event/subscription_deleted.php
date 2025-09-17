@@ -67,5 +67,4 @@ class subscription_deleted extends \core\event\base {
     public static function get_name() {
         return get_string('eventsubscriptiondeleted', 'mod_moodleoverflow');
     }
-
 }

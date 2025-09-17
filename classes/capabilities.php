@@ -34,7 +34,6 @@ use context;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class capabilities {
-
     /** capability add instance */
     const ADD_INSTANCE = 'mod/moodleoverflow:addinstance';
 
@@ -100,5 +99,4 @@ class capabilities {
 
         return self::$cache[$key];
     }
-
 }

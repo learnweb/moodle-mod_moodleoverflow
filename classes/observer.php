@@ -28,7 +28,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_observer {
-
     /**
      * Triggered via user_enrolment_deleted event.
      *
@@ -42,7 +41,6 @@ class mod_moodleoverflow_observer {
 
         // Check if the user was enrolled.
         if ($cp->lastenrol) {
-
             // Get the moodleoverflow instances from which the user was unenrolled from.
             $moodleoverflows = $DB->get_records('moodleoverflow', ['course' => $cp->courseid], '', 'id');
 
@@ -52,7 +50,7 @@ class mod_moodleoverflow_observer {
             }
 
             // Get the sql parameters for the moodleoverflow instances and add the user ID.
-            list($select, $params) = $DB->get_in_or_equal(array_keys($moodleoverflows), SQL_PARAMS_NAMED);
+            [$select, $params] = $DB->get_in_or_equal(array_keys($moodleoverflows), SQL_PARAMS_NAMED);
             $params['userid'] = $cp->userid;
 
             // Delete all records that are connected to those moodleoverflow instances.
@@ -100,7 +98,6 @@ class mod_moodleoverflow_observer {
 
         // Loop through all moodleoverflows.
         foreach ($moodleoverflows as $moodleoverflow) {
-
             // If user doesn't have allowforcesubscribe capability then don't subscribe.
 
             // Retrieve the context of the module.
@@ -128,7 +125,6 @@ class mod_moodleoverflow_observer {
 
         // Check if a moodleoverflow instance was created.
         if ($event->other['modulename'] === 'moodleoverflow') {
-
             // Require the library.
             require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 

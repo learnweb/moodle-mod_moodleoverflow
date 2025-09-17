@@ -70,7 +70,6 @@ require_once($CFG->libdir . '/completionlib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post_control {
-
     /** @var string the Interaction type, the interactions are:
      * - create (creates a new discussion with a first post)
      * - reply (replies to a existing post, can be an answer or a comment)
@@ -117,17 +116,14 @@ class post_control {
             $this->interaction = 'create';
             $this->info->moodleoverflowid = $urlparameter->create;
             $this->build_prepost_create($this->info->moodleoverflowid);
-
         } else if ($urlparameter->edit) {
             $this->interaction = 'edit';
             $this->info->editpostid = $urlparameter->edit;
             $this->build_prepost_edit($this->info->editpostid);
-
         } else if ($urlparameter->reply) {
             $this->interaction = 'reply';
             $this->info->replypostid = $urlparameter->reply;
             $this->build_prepost_reply($this->info->replypostid);
-
         } else if ($urlparameter->delete) {
             $this->interaction = 'delete';
             $this->info->deletepostid = $urlparameter->delete;
@@ -303,18 +299,24 @@ class post_control {
         // as the review class should be refactored with the new way of working with posts.
         $alreadyreviewed = review::should_post_be_reviewed($this->info->relatedpost->get_db_object(), $this->info->moodleoverflow)
                            && $this->info->relatedpost->reviewed;
-        if (($beyondtime || $alreadyreviewed) && !has_capability('mod/moodleoverflow:editanypost',
-                                                                 $this->info->modulecontext)) {
-            throw new moodle_exception('maxtimehaspassed', 'moodleoverflow', '',
-                format_time(get_config('moodleoverflow', 'maxeditingtime')));
+        if (
+            ($beyondtime || $alreadyreviewed) && !has_capability(
+                'mod/moodleoverflow:editanypost',
+                $this->info->modulecontext
+            )
+        ) {
+            throw new moodle_exception(
+                'maxtimehaspassed',
+                'moodleoverflow',
+                '',
+                format_time(get_config('moodleoverflow', 'maxeditingtime'))
+            );
         }
 
         // If the current user is not the one who posted this post.
         if ($this->info->relatedpost->get_userid() != $USER->id) {
-
             // Check if the current user has not the capability to edit any post.
             if (!has_capability('mod/moodleoverflow:editanypost', $this->info->modulecontext)) {
-
                 // Display the error. Capabilities are missing.
                 throw new moodle_exception('cannoteditposts', 'moodleoverflow');
             }
@@ -369,8 +371,10 @@ class post_control {
         $this->check_user_can_create_discussion();
 
         // Set the post to not reviewed if questions should be reviewed and the user is not a reviewed themselves.
-        if (review::get_review_level($this->info->moodleoverflow) >= review::QUESTIONS &&
-                !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)) {
+        if (
+            review::get_review_level($this->info->moodleoverflow) >= review::QUESTIONS &&
+                !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)
+        ) {
             $this->prepost->reviewed = 0;
         } else {
             $this->prepost->reviewed = 1;
@@ -380,9 +384,16 @@ class post_control {
         $this->prepost->subject = $form->subject;
 
         // Create the discussion object.
-        $discussion = discussion::construct_without_id($this->prepost->courseid, $this->prepost->moodleoverflowid,
-                                                       $this->prepost->subject, 0, $this->prepost->userid,
-                                                       $this->prepost->timenow, $this->prepost->timenow, $this->prepost->userid);
+        $discussion = discussion::construct_without_id(
+            $this->prepost->courseid,
+            $this->prepost->moodleoverflowid,
+            $this->prepost->subject,
+            0,
+            $this->prepost->userid,
+            $this->prepost->timenow,
+            $this->prepost->timenow,
+            $this->prepost->userid
+        );
         if (!$discussion->moodleoverflow_add_discussion($this->prepost)) {
             throw new moodle_exception('couldnotadd', 'moodleoverflow');
         }
@@ -398,9 +409,12 @@ class post_control {
         // Subscribe to this thread.
         // Please be aware that in future the use of get_db_object() should be replaced with only $this->info->discussion,
         // as the subscription class should be refactored with the new way of working with posts.
-        subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
-                                                                            $discussion->get_db_object(),
-                                                                            $this->info->modulecontext);
+        subscriptions::moodleoverflow_post_subscription(
+            $form,
+            $this->info->moodleoverflow,
+            $discussion->get_db_object(),
+            $this->info->modulecontext
+        );
 
         // Define the location to redirect the user after successfully posting.
         $redirectto = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $form->moodleoverflow]);
@@ -418,8 +432,10 @@ class post_control {
         $this->check_user_can_create_reply();
 
         // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
-        if (review::get_review_level($this->info->moodleoverflow) == review::EVERYTHING &&
-                !has_capability('mod/moodleoverflow:reviewpost', \context_module::instance($this->info->cm->id))) {
+        if (
+            review::get_review_level($this->info->moodleoverflow) == review::EVERYTHING &&
+                !has_capability('mod/moodleoverflow:reviewpost', \context_module::instance($this->info->cm->id))
+        ) {
             $this->prepost->reviewed = 0;
         } else {
             $this->prepost->reviewed = 1;
@@ -432,8 +448,11 @@ class post_control {
 
         // The creation was successful.
         $redirectmessage = html_writer::tag('p', get_string("postaddedsuccess", "moodleoverflow"));
-        $redirectmessage .= html_writer::tag('p', get_string("postaddedtimeleft", "moodleoverflow",
-                                              format_time(get_config('moodleoverflow', 'maxeditingtime'))));
+        $redirectmessage .= html_writer::tag('p', get_string(
+            "postaddedtimeleft",
+            "moodleoverflow",
+            format_time(get_config('moodleoverflow', 'maxeditingtime'))
+        ));
 
         // Trigger the post created event.
         $params = ['context' => $this->info->modulecontext, 'objectid' => $newpostid,
@@ -447,15 +466,19 @@ class post_control {
         // Subscribe to this thread.
         // Please be aware that in future the use of build_db_object() should be replaced with only $this->info->discussion,
         // as the subscription class should be refactored with the new way of working with posts.
-        subscriptions::moodleoverflow_post_subscription($form, $this->info->moodleoverflow,
-                                                                             $this->info->discussion->get_db_object(),
-                                                                             $this->info->modulecontext);
+        subscriptions::moodleoverflow_post_subscription(
+            $form,
+            $this->info->moodleoverflow,
+            $this->info->discussion->get_db_object(),
+            $this->info->modulecontext
+        );
 
         // Define the location to redirect the user after successfully posting.
-        $redirectto = new moodle_url('/mod/moodleoverflow/discussion.php',
-                                      ['d' => $this->prepost->discussionid, 'p' => $newpostid]);
+        $redirectto = new moodle_url(
+            '/mod/moodleoverflow/discussion.php',
+            ['d' => $this->prepost->discussionid, 'p' => $newpostid]
+        );
         redirect(\moodleoverflow_go_back_to($redirectto), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
-
     }
 
     /**
@@ -502,8 +525,10 @@ class post_control {
         $event->trigger();
 
         // Define the location to redirect the user after successfully editing.
-        $redirectto = new moodle_url('/mod/moodleoverflow/discussion.php',
-                                      ['d' => $this->prepost->discussionid, 'p' => $form->edit]);
+        $redirectto = new moodle_url(
+            '/mod/moodleoverflow/discussion.php',
+            ['d' => $this->prepost->discussionid, 'p' => $form->edit]
+        );
         redirect(moodleoverflow_go_back_to($redirectto), $redirectmessage, null, \core\output\notification::NOTIFY_SUCCESS);
     }
 
@@ -518,8 +543,10 @@ class post_control {
 
         // Check if the user has the capability to delete the post.
         $timepassed = time() - $this->info->relatedpost->created;
-        $SESSION->errorreturnurl = new moodle_url('/mod/moodleoverflow/discussion.php',
-                                                  ['d' => $this->info->discussion->get_id()]);
+        $SESSION->errorreturnurl = new moodle_url(
+            '/mod/moodleoverflow/discussion.php',
+            ['d' => $this->info->discussion->get_id()]
+        );
         if (($timepassed > get_config('moodleoverflow', 'maxeditingtime')) && !$this->info->deleteanypost) {
             throw new moodle_exception('cannotdeletepost', 'moodleoverflow');
         }
@@ -574,13 +601,23 @@ class post_control {
 
         // Prepare the attachments.
         $draftitemid = file_get_submitted_draft_itemid('attachments');
-        file_prepare_draft_area($draftitemid, $this->info->modulecontext->id, 'mod_moodleoverflow', 'attachment',
-                                empty($this->prepost->postid) ? null : $this->prepost->postid,
-                                mod_moodleoverflow_post_form::attachment_options($this->info->moodleoverflow));
+        file_prepare_draft_area(
+            $draftitemid,
+            $this->info->modulecontext->id,
+            'mod_moodleoverflow',
+            'attachment',
+            empty($this->prepost->postid) ? null : $this->prepost->postid,
+            mod_moodleoverflow_post_form::attachment_options($this->info->moodleoverflow)
+        );
 
         // If the post is anonymous, attachments should have an anonymous author when editing the attachment.
-        if ($draftitemid && $this->interaction == 'edit' && anonymous::is_post_anonymous($this->info->discussion,
-                $this->info->moodleoverflow, $this->prepost->userid)) {
+        if (
+            $draftitemid && $this->interaction == 'edit' && anonymous::is_post_anonymous(
+                $this->info->discussion,
+                $this->info->moodleoverflow,
+                $this->prepost->userid
+            )
+        ) {
             $usercontext = \context_user::instance($USER->id);
             $anonymousstr = get_string('anonymous', 'moodleoverflow');
             foreach (get_file_storage()->get_area_files($usercontext->id, 'user', 'draft', $draftitemid) as $file) {
@@ -607,8 +644,11 @@ class post_control {
             if ($this->prepost->messageformat == FORMAT_HTML) {
                 $data->name = html_writer::tag('a', $CFG->wwwroot . '/user/view.php?id' . $USER->id .
                                                 '&course=' . $this->prepost->courseid . '">' . fullname($USER));
-                $this->prepost->message .= html_writer::tag('p', html_writer::tag('span',
-                             get_string('editedby', 'moodleoverflow', $data), ["class" => "edited"]));
+                $this->prepost->message .= html_writer::tag('p', html_writer::tag(
+                    'span',
+                    get_string('editedby', 'moodleoverflow', $data),
+                    ["class" => "edited"]
+                ));
             } else {
                 $data->name = fullname($USER);
                 $this->prepost->message .= "\n\n(" . get_string('editedby', 'moodleoverflow', $data) . ')';
@@ -634,8 +674,7 @@ class post_control {
              'discussion' => $this->prepost->discussionid,
              'course' => $this->prepost->courseid,
             ]
-            + $pageparams
-        );
+            + $pageparams);
 
         return $mformpost;
     }
@@ -741,7 +780,7 @@ class post_control {
      */
     private function check_interaction($interaction): void {
         if ($this->interaction != $interaction) {
-            throw new moodle_exception('wronginteraction' , 'moodleoverflow');
+            throw new moodle_exception('wronginteraction', 'moodleoverflow');
         }
     }
 
@@ -770,8 +809,13 @@ class post_control {
      * @throws moodle_exception
      */
     private function check_coursemodule_exists(int $moodleoverflowid, int $courseid): object {
-        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid,
-                                                                    $courseid)) {
+        if (
+            !$cm = get_coursemodule_from_instance(
+                'moodleoverflow',
+                $moodleoverflowid,
+                $courseid
+            )
+        ) {
             throw new moodle_exception('invalidcoursemodule');
         }
         return $cm;
@@ -890,9 +934,11 @@ class post_control {
             if (enrol_selfenrol_available($this->info->course->id)) {
                 $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
-                redirect(new moodle_url('/enrol/index.php',  ['id' => $this->info->course->id,
+                redirect(
+                    new moodle_url('/enrol/index.php', ['id' => $this->info->course->id,
                     'returnurl' => '/mod/moodleoverflow/view.php?m=' . $this->info->moodleoverflow->id, ]),
-                    get_string('youneedtoenrol'));
+                    get_string('youneedtoenrol')
+                );
             }
         }
     }

@@ -40,7 +40,6 @@ require_once(__DIR__ . '/../../locallib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class send_review_mails extends \core\task\scheduled_task {
-
     /**
      * Get a descriptive name for this task (shown to admins).
      *
@@ -59,7 +58,6 @@ class send_review_mails extends \core\task\scheduled_task {
 
         // The cron is finished.
         return true;
-
     }
 
     /**
@@ -132,8 +130,16 @@ class send_review_mails extends \core\task\scheduled_task {
                         cron_setup_user($userto, $course);
                     }
 
-                    $maildata = new moodleoverflow_email($course, $cm, $moodleoverflow, $discussion,
-                                                         $post, $userfrom, $userto, false);
+                    $maildata = new moodleoverflow_email(
+                        $course,
+                        $cm,
+                        $moodleoverflow,
+                        $discussion,
+                        $post,
+                        $userfrom,
+                        $userto,
+                        false
+                    );
 
                     $textcontext = $maildata->export_for_template($renderertext, true);
                     $htmlcontext = $maildata->export_for_template($rendererhtml, false);
@@ -153,14 +159,15 @@ class send_review_mails extends \core\task\scheduled_task {
         }
 
         if (!empty($success)) {
-            list($insql, $inparams) = $DB->get_in_or_equal($success);
+            [$insql, $inparams] = $DB->get_in_or_equal($success);
             $DB->set_field_select(
-                'moodleoverflow_posts', 'mailed', MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS,
-                    'id ' . $insql, $inparams
-                );
+                'moodleoverflow_posts',
+                'mailed',
+                MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS,
+                'id ' . $insql,
+                $inparams
+            );
             mtrace('Sent review notifications for ' . count($success) . ' posts successfully!');
         }
     }
-
 }
-

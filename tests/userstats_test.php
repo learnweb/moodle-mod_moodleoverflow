@@ -40,7 +40,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \userstats_table
  */
 final class userstats_test extends \advanced_testcase {
-
     /** @var \stdClass test course */
     private $course;
 
@@ -144,7 +143,6 @@ final class userstats_test extends \advanced_testcase {
         $data = $this->create_statstable();
         $activity = $this->get_specific_userstats($data, $this->user1, 'forumactivity');
         $this->assertEquals(5, $activity);
-
     }
     /**
      * Test, if the reputation is calculated correctly.
@@ -158,8 +156,10 @@ final class userstats_test extends \advanced_testcase {
         $this->create_solution($this->teacher, $this->discussion1[1], $this->answer1);
 
         // Calculate the forum reputation of user2.
-        $reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation_instance($this->moodleoverflow->id,
-                                                                                          $this->user2->id);
+        $reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation_instance(
+            $this->moodleoverflow->id,
+            $this->user2->id
+        );
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
         $reputation2 = $this->get_specific_userstats($data, $this->user2, 'forumreputation');

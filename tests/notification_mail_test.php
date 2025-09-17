@@ -47,7 +47,6 @@ use stdClass;
  */
 #[CoversClass(mail_manager::class)]
 final class notification_mail_test extends \advanced_testcase {
-
     // Attributes.
 
     /** @var object The data that will be used for testing.

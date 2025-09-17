@@ -38,7 +38,6 @@ use mod_moodleoverflow\manager\mail_manager;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class send_mails extends \core\task\scheduled_task {
-
     /**
      * Get a descriptive name for this task (shwon to admins).
      *

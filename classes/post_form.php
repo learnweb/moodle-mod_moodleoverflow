@@ -35,7 +35,6 @@ require_once($CFG->dirroot . '/repository/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_post_form extends moodleform {
-
     /**
      * Form definition.
      *
@@ -59,15 +58,24 @@ class mod_moodleoverflow_post_form extends moodleform {
         $modform->addRule('subject', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
         // The message.
-        $modform->addElement('editor', 'message', get_string('message', 'moodleoverflow'), null,
-                             self::editor_options($modcontext, (empty($post->id) ? null : $post->id)));
+        $modform->addElement(
+            'editor',
+            'message',
+            get_string('message', 'moodleoverflow'),
+            null,
+            self::editor_options($modcontext, (empty($post->id) ? null : $post->id))
+        );
         $modform->setType('message', PARAM_RAW);
         $modform->addRule('message', get_string('required'), 'required', null, 'client');
 
         if (moodleoverflow_can_create_attachment($moodleoverflow, $modcontext)) {
-            $modform->addElement('filemanager', 'attachments',
+            $modform->addElement(
+                'filemanager',
+                'attachments',
                 get_string('attachment', 'moodleoverflow'),
-                null, self::attachment_options($moodleoverflow));
+                null,
+                self::attachment_options($moodleoverflow)
+            );
             $modform->addHelpButton('attachments', 'attachment', 'moodleoverflow');
         }
 

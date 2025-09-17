@@ -35,7 +35,6 @@ require_once(__DIR__ . '/../../locallib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class clean_readrecords extends \core\task\scheduled_task {
-
     /**
      * Get a descriptive name for this task (shown to admins).
      *
@@ -56,6 +55,4 @@ class clean_readrecords extends \core\task\scheduled_task {
         // The cron is finished.
         return true;
     }
-
 }
-

@@ -27,7 +27,7 @@
 
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 
-use Behat\Gherkin\Node\TableNode as TableNode;
+use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
 
@@ -40,8 +40,6 @@ use Behat\Mink\Exception\ExpectationException;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class behat_mod_moodleoverflow extends behat_base {
-
-
     /**
      * Build basic background for moodleoverflow tests.
      * Builds:
@@ -129,8 +127,12 @@ class behat_mod_moodleoverflow extends behat_base {
      * @return void
      * @throws Exception
      */
-    public function i_navigate_as_user_to_the_discussion(string $user, string $course, string $moodleoverflow,
-                                                         string $discussion): void {
+    public function i_navigate_as_user_to_the_discussion(
+        string $user,
+        string $course,
+        string $moodleoverflow,
+        string $discussion
+    ): void {
         $this->execute('behat_auth::i_log_in_as', $user);
         $this->execute('behat_navigation::i_am_on_course_homepage', $course);
         $this->execute('behat_general::click_link', $this->escape($moodleoverflow));
@@ -283,8 +285,10 @@ class behat_mod_moodleoverflow extends behat_base {
 
         // Fill form and post.
         $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
-        $this->execute('behat_forms::press_button', get_string('posttomoodleoverflow',
-            'moodleoverflow'));
+        $this->execute('behat_forms::press_button', get_string(
+            'posttomoodleoverflow',
+            'moodleoverflow'
+        ));
         $this->execute('behat_general::i_wait_to_be_redirected');
     }
 
@@ -293,9 +297,11 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param string $discussiontitle
      */
     protected function find_moodleoverflow_discussion_card(string $discussiontitle): \Behat\Mink\Element\Element {
-        return $this->find('xpath',
-            '//*[contains(concat(" ",normalize-space(@class)," ")," moodleoverflowdiscussion ")][.//*[text()="'.
-            $discussiontitle . '"]]');
+        return $this->find(
+            'xpath',
+            '//*[contains(concat(" ",normalize-space(@class)," ")," moodleoverflowdiscussion ")][.//*[text()="' .
+            $discussiontitle . '"]]'
+        );
     }
 
     // phpcs:disable moodle.Files.LineLength.TooLong
@@ -316,8 +322,12 @@ class behat_mod_moodleoverflow extends behat_base {
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
         // Specific exception giving info about where can't we find the element.
-        $exception = new ElementNotFoundException($this->getSession(), $selectortype, null,
-        "$element in the moodleoverflow discussion card.");
+        $exception = new ElementNotFoundException(
+            $this->getSession(),
+            $selectortype,
+            null,
+            "$element in the moodleoverflow discussion card."
+        );
 
         // Looks for the requested node inside the container node.
         $this->find($selectortype, $element, $exception, $containernode);
@@ -338,8 +348,12 @@ class behat_mod_moodleoverflow extends behat_base {
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
         // Specific exception giving info about where can't we find the element.
-        $exception = new ElementNotFoundException($this->getSession(), $selectortype, null,
-            "$element in the moodleoverflow discussion card.");
+        $exception = new ElementNotFoundException(
+            $this->getSession(),
+            $selectortype,
+            null,
+            "$element in the moodleoverflow discussion card."
+        );
 
         // Looks for the requested node inside the container node.
         $node = $this->find($selectortype, $element, $exception, $containernode);

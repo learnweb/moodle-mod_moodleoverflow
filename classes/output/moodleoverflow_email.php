@@ -35,7 +35,6 @@ use mod_moodleoverflow\subscriptions;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class moodleoverflow_email implements \renderable, \templatable {
-
     /**
      * The course that the moodleoverflow post is in.
      *
@@ -316,7 +315,8 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_courselink() {
         $link = new \moodle_url(
         // Posts are viewed on the topic.
-            '/course/view.php', [
+            '/course/view.php',
+            [
                 'id' => $this->course->id,
             ]
         );
@@ -420,7 +420,8 @@ class moodleoverflow_email implements \renderable, \templatable {
      */
     public function get_replylink() {
         return new \moodle_url(
-            '/mod/moodleoverflow/post.php', [
+            '/mod/moodleoverflow/post.php',
+            [
                 'reply' => $this->post->id,
             ]
         );
@@ -432,12 +433,17 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_unsubscribemoodleoverflowlink() {
-        if (!subscriptions::is_subscribable($this->moodleoverflow,
-                \context_module::instance($this->cm->id))) {
+        if (
+            !subscriptions::is_subscribable(
+                $this->moodleoverflow,
+                \context_module::instance($this->cm->id)
+            )
+        ) {
             return null;
         }
         $link = new \moodle_url(
-            '/mod/moodleoverflow/subscribe.php', [
+            '/mod/moodleoverflow/subscribe.php',
+            [
                 'id' => $this->moodleoverflow->id,
             ]
         );
@@ -465,7 +471,8 @@ class moodleoverflow_email implements \renderable, \templatable {
     protected function get_discussionurl() {
         return new \moodle_url(
         // Posts are viewed on the topic.
-            '/mod/moodleoverflow/discussion.php', [
+            '/mod/moodleoverflow/discussion.php',
+            [
                 // Within a discussion.
                 'd' => $this->discussion->id,
             ]
@@ -491,7 +498,8 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_moodleoverflowindexlink() {
         $link = new \moodle_url(
         // Posts are viewed on the topic.
-            '/mod/moodleoverflow/index.php', [
+            '/mod/moodleoverflow/index.php',
+            [
                 'id' => $this->course->id,
             ]
         );
@@ -507,7 +515,8 @@ class moodleoverflow_email implements \renderable, \templatable {
     public function get_moodleoverflowviewlink() {
         $link = new \moodle_url(
         // Posts are viewed on the topic.
-            '/mod/moodleoverflow/view.php', [
+            '/mod/moodleoverflow/view.php',
+            [
                 'm' => $this->moodleoverflow->id,
             ]
         );
@@ -526,7 +535,8 @@ class moodleoverflow_email implements \renderable, \templatable {
         }
 
         $link = new \moodle_url(
-            '/user/view.php', [
+            '/user/view.php',
+            [
                 'id' => $this->post->userid,
                 'course' => $this->course->id,
             ]

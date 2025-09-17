@@ -65,19 +65,15 @@ require_login($course, false, $cm);
 
 // Default relink address.
 if ($returndiscussion === 0) {
-
     // If no parameter is set, relink to the view.
     $returnto = new moodle_url("/mod/moodleoverflow/view.php", ['m' => $moodleoverflow->id]);
-
 } else {
-
     // Else relink back to the discussion we are coming from.
     $returnto = new moodle_url("/mod/moodleoverflow/discussion.php", ['d' => $returndiscussion]);
 }
 
 // Guests can't mark posts as read.
 if (isguestuser()) {
-
     // Set Page-Parameter.
     $PAGE->set_title($course->shortname);
     $PAGE->set_heading($course->fullname);
@@ -94,19 +90,21 @@ if (isguestuser()) {
 
 // Delete a single discussion.
 if (!empty($discussionid)) {
-
     // Check if the discussion exists.
     $options = ['id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id];
     $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', $options, 'invaliddiscussionid');
 
     // Mark all the discussions read.
-    if (!\mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read($discussionid,
-        context_module::instance($cm->id), $user->id)) {
-
+    if (
+        !\mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read(
+            $discussionid,
+            context_module::instance($cm->id),
+            $user->id
+        )
+    ) {
         // Display an error, if something failes.
         $message = get_string('markreadfailed', 'moodleoverflow');
         $status = \core\output\notification::NOTIFY_ERROR;
-
     } else {
         // The discussion is successfully marked as read.
         $message = get_string('markmoodleoverflowreadsuccessful', 'moodleoverflow');
@@ -116,18 +114,13 @@ if (!empty($discussionid)) {
     // Redirect the user.
     redirect(moodleoverflow_go_back_to($returnto), $message, null, $status);
     exit;
-
 } else {
-
     // Mark all message read in the current instance.
     if (!\mod_moodleoverflow\readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $user->id)) {
-
         // Display an error, if something fails.
         $message = get_string('markreadfailed', 'moodleoverflow');
         $status = \core\output\notification::NOTIFY_ERROR;
-
     } else {
-
         // All posts of the instance have been marked as read.
         $message = get_string('markdiscussionreadsuccessful', 'moodleoverflow');
         $status = \core\output\notification::NOTIFY_SUCCESS;

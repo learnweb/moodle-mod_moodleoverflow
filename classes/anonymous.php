@@ -32,7 +32,6 @@ namespace mod_moodleoverflow;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class anonymous {
-
     /**
      * Used if nothing is anonymous.
      */
@@ -86,8 +85,11 @@ class anonymous {
         }
         if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
             return [
-                $DB->get_field('moodleoverflow_posts', 'userid',
-                    ['parent' => 0, 'discussion' => $discussionid]) => get_string('questioner', 'mod_moodleoverflow'),
+                $DB->get_field(
+                    'moodleoverflow_posts',
+                    'userid',
+                    ['parent' => 0, 'discussion' => $discussionid]
+                ) => get_string('questioner', 'mod_moodleoverflow'),
             ];
         }
 
@@ -96,7 +98,9 @@ class anonymous {
             'FROM {moodleoverflow_posts} ' .
             'WHERE discussion = :discussion ' .
             'GROUP BY userid ' .
-            'ORDER BY MIN(created) ASC;', ['discussion' => $discussionid]);
+            'ORDER BY MIN(created) ASC;',
+            ['discussion' => $discussionid]
+        );
 
         $mapping = [];
         $questioner = array_shift($userids);
@@ -108,5 +112,4 @@ class anonymous {
         }
         return $mapping;
     }
-
 }

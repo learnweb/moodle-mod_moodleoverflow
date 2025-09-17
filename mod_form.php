@@ -40,7 +40,6 @@ require_once($CFG->dirroot . '/course/moodleform_mod.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_mod_form extends moodleform_mod {
-
     /**
      * Defines forms elements.
      */
@@ -51,8 +50,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform = $this->_form;
 
         if ($this->get_instance()) {
-            $PAGE->requires->js_call_amd('mod_moodleoverflow/warnmodechange', 'init',
-                [$this->get_current()->forcesubscribe]);
+            $PAGE->requires->js_call_amd(
+                'mod_moodleoverflow/warnmodechange',
+                'init',
+                [$this->get_current()->forcesubscribe]
+            );
         }
 
         // Adding the "general" fieldset, where all the common settings are showed.
@@ -169,8 +171,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->setDefault('trackingtype', $default);
 
         // Grade options.
-        $mform->addElement('header', 'gradeheading',
-            $CFG->branch >= 311 ? get_string('gradenoun') : get_string('grade'));
+        $mform->addElement(
+            'header',
+            'gradeheading',
+            $CFG->branch >= 311 ? get_string('gradenoun') : get_string('grade')
+        );
 
         $mform->addElement('text', 'grademaxgrade', get_string('modgrademaxgrade', 'grades'));
         $mform->setType('grademaxgrade', PARAM_INT);
@@ -183,7 +188,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         if ($this->_features->gradecat) {
             $mform->addElement(
-                'select', 'gradecat',
+                'select',
+                'gradecat',
                 get_string('gradecategoryonmodform', 'grades'),
                 grade_get_categories_menu($COURSE->id, $this->_outcomesused)
             );
@@ -254,14 +260,22 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         // Limited answer setting elements..
         $mform->addElement('hidden', 'la_answersfound', $answersfound);
         $mform->setType('la_answersfound', PARAM_BOOL);
-        $mform->addElement('date_time_selector', 'la_starttime', get_string('la_starttime', 'moodleoverflow'),
-                ['optional' => true]);
+        $mform->addElement(
+            'date_time_selector',
+            'la_starttime',
+            get_string('la_starttime', 'moodleoverflow'),
+            ['optional' => true]
+        );
 
         $mform->addHelpButton('la_starttime', 'la_starttime', 'moodleoverflow');
         $mform->disabledIf('la_starttime', 'la_answersfound', 'eq', true);
 
-        $mform->addElement('date_time_selector', 'la_endtime', get_string('la_endtime', 'moodleoverflow'),
-            ['optional' => true]);
+        $mform->addElement(
+            'date_time_selector',
+            'la_endtime',
+            get_string('la_endtime', 'moodleoverflow'),
+            ['optional' => true]
+        );
 
         $mform->addHelpButton('la_endtime', 'la_endtime', 'moodleoverflow');
 

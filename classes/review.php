@@ -32,7 +32,6 @@ namespace mod_moodleoverflow;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class review {
-
     /**
      * Nothing has to be reviewed.
      */
@@ -68,9 +67,10 @@ class review {
         global $DB;
 
         return $DB->get_record_sql(
-                'SELECT COUNT(*) as count, MIN(id) AS first ' .
+            'SELECT COUNT(*) as count, MIN(id) AS first ' .
                 'FROM {moodleoverflow_posts} ' .
-                'WHERE discussion = :discussionid AND reviewed = 0 AND created < :cutofftime', [
+                'WHERE discussion = :discussionid AND reviewed = 0 AND created < :cutofftime',
+            [
                         'discussionid' => $discussionid,
                         'cutofftime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime'),
                 ]
@@ -95,8 +95,12 @@ class review {
         $addwhere = '';
 
         if ($afterpostid) {
-            $afterdiscussionid = $DB->get_field('moodleoverflow_posts', 'discussion', ['id' => $afterpostid],
-                MUST_EXIST);
+            $afterdiscussionid = $DB->get_field(
+                'moodleoverflow_posts',
+                'discussion',
+                ['id' => $afterpostid],
+                MUST_EXIST
+            );
 
             $orderby = 'CASE WHEN (p.discussion > :afterdiscussionid OR (p.discussion = :afterdiscussionid2 AND p.id
              > :afterpostid)) THEN 0 ELSE 1 END, ';
@@ -159,15 +163,14 @@ class review {
     public static function count_outstanding_reviews_in_moodleoverflow($moodleoverflowid): int {
         global $DB;
         return $DB->count_records_sql(
-                'SELECT COUNT(*) ' .
+            'SELECT COUNT(*) ' .
                 'FROM {moodleoverflow_posts} p ' .
                 'JOIN {moodleoverflow_discussions} d ON d.id = p.discussion ' .
-                'WHERE d.moodleoverflow = :moodleoverflowid AND p.created < :cutofftime AND reviewed = 0', [
+                'WHERE d.moodleoverflow = :moodleoverflowid AND p.created < :cutofftime AND reviewed = 0',
+            [
                         'moodleoverflowid' => $moodleoverflowid,
                         'cutofftime' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime'),
                 ]
         );
     }
-
-
 }

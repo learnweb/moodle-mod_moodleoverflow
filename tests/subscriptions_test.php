@@ -39,7 +39,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \subscriptions
  */
 final class subscriptions_test extends advanced_testcase {
-
     /**
      * Test setUp.
      */
@@ -125,7 +124,7 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($moodleoverflow->cmid);
 
         // Create a user enrolled in the course as a student.
-        list ($user) = $this->helper_create_users($course, 1);
+         [$user] = $this->helper_create_users($course, 1);
 
         // Must be logged in as the current user.
         $this->setUser($user);
@@ -133,8 +132,10 @@ final class subscriptions_test extends advanced_testcase {
         // Test the forced subscription.
         subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_FORCESUBSCRIBE);
         $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
-        $this->assertEquals(MOODLEOVERFLOW_FORCESUBSCRIBE,
-            subscriptions::get_subscription_mode($moodleoverflow));
+        $this->assertEquals(
+            MOODLEOVERFLOW_FORCESUBSCRIBE,
+            subscriptions::get_subscription_mode($moodleoverflow)
+        );
         $this->assertTrue(subscriptions::is_forcesubscribed($moodleoverflow));
         $this->assertFalse(subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(subscriptions::subscription_disabled($moodleoverflow));
@@ -178,7 +179,7 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create a user enrolled in the course as a student.
-        list ($user) = $this->helper_create_users($course, 1);
+         [$user] = $this->helper_create_users($course, 1);
 
         // Must be logged in as the current user.
         $this->setUser($user);
@@ -225,11 +226,11 @@ final class subscriptions_test extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
-        list ($author) = $this->helper_create_users($course, 1);
+         [$author] = $this->helper_create_users($course, 1);
 
         // Post a discussion to the moodleoverflow.
         $discussion = new \stdClass();
-        list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
         unset($post);
         $discussion->moodleoverflow = $moodleoverflow->id;
 
@@ -326,18 +327,22 @@ final class subscriptions_test extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create users enrolled in the course as students.
-        list($author) = $this->helper_create_users($course, 1);
+        [$author] = $this->helper_create_users($course, 1);
 
         // Check that the user is currently not subscribed to the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $moodleoverflow));
 
         // Post a discussion to the moodleoverflow.
-        list($discussion, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+        [$discussion, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
         unset($post);
 
         // Check that the user is unsubscribed from the discussion too.
-        $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow,
-            $moodleoverflow, $discussion));
+        $this->assertFalse(subscriptions::is_subscribed(
+            $author->id,
+            $moodleoverflow,
+            $moodleoverflow,
+            $discussion
+        ));
     }
 
     /**
@@ -357,12 +362,15 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create users enrolled in the course as students.
-        list($author) = $this->helper_create_users($course, 1);
+        [$author] = $this->helper_create_users($course, 1);
 
         // Enrol the user in the moodleoverflow.
         // If a subscription was added, we get the record ID.
-        $this->assertIsInt(subscriptions::subscribe_user($author->id,
-            $moodleoverflow, $modulecontext));
+        $this->assertIsInt(subscriptions::subscribe_user(
+            $author->id,
+            $moodleoverflow,
+            $modulecontext
+        ));
 
         // If we already have a subscription when subscribing the user, we get a boolean (true).
         $this->assertTrue(subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext));
@@ -371,12 +379,16 @@ final class subscriptions_test extends advanced_testcase {
         $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // Post a discussion to the moodleoverflow.
-        list($discussion, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+        [$discussion, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
         unset($post);
 
         // Check that the user is subscribed to the discussion too.
-        $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
-            $discussion));
+        $this->assertTrue(subscriptions::is_subscribed(
+            $author->id,
+            $moodleoverflow,
+            $modulecontext,
+            $discussion
+        ));
     }
 
     /**
@@ -396,31 +408,41 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create a user enrolled in the course as a student.
-        list($author) = $this->helper_create_users($course, 1);
+        [$author] = $this->helper_create_users($course, 1);
 
         // Check that the user is currently not subscribed to the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $moodleoverflow));
 
         // Post a discussion to the moodleoverflow.
         $discussion = new \stdClass();
-        list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
         unset($post);
         $discussion->moodleoverflow = $moodleoverflow->id;
 
         // Attempting to unsubscribe from the discussion should not make a change.
-        $this->assertFalse(subscriptions::unsubscribe_user_from_discussion($author->id,
-            $discussion, $modulecontext));
+        $this->assertFalse(subscriptions::unsubscribe_user_from_discussion(
+            $author->id,
+            $discussion,
+            $modulecontext
+        ));
 
         // Then subscribe them to the discussion.
-        $this->assertTrue(subscriptions::subscribe_user_to_discussion($author->id,
-            $discussion, $modulecontext));
+        $this->assertTrue(subscriptions::subscribe_user_to_discussion(
+            $author->id,
+            $discussion,
+            $modulecontext
+        ));
 
         // Check that the user is still unsubscribed from the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $moodleoverflow));
 
         // But subscribed to the discussion.
-        $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
-            $discussion->id));
+        $this->assertTrue(subscriptions::is_subscribed(
+            $author->id,
+            $moodleoverflow,
+            $modulecontext,
+            $discussion->id
+        ));
     }
 
     /**
@@ -440,7 +462,7 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create two users enrolled in the course as students.
-        list($author) = $this->helper_create_users($course, 2);
+        [$author] = $this->helper_create_users($course, 2);
 
         // Enrol the student in the moodleoverflow.
         subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
@@ -450,7 +472,7 @@ final class subscriptions_test extends advanced_testcase {
 
         // Post a discussion to the moodleoverflow.
         $discussion = new \stdClass();
-        list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
         unset($post);
         $discussion->moodleoverflow = $moodleoverflow->id;
 
@@ -461,8 +483,12 @@ final class subscriptions_test extends advanced_testcase {
         $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // But unsubscribed from the discussion.
-        $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext,
-            $discussion->id));
+        $this->assertFalse(subscriptions::is_subscribed(
+            $author->id,
+            $moodleoverflow,
+            $modulecontext,
+            $discussion->id
+        ));
     }
 
     /**
@@ -479,12 +505,12 @@ final class subscriptions_test extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
-        list($author) = $this->helper_create_users($course, 2);
+        [$author] = $this->helper_create_users($course, 2);
         subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
 
         // Post a discussion to the moodleoverflow.
         $discussion = new \stdClass();
-        list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
         unset($post);
         $discussion->moodleoverflow = $moodleoverflow->id;
 
@@ -583,14 +609,14 @@ final class subscriptions_test extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
-        list($author) = $this->helper_create_users($course, 2);
+        [$author] = $this->helper_create_users($course, 2);
 
         // Check that the user is currently unsubscribed to the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // Post a discussion to the moodleoverflow.
         $discussion = new \stdClass();
-        list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
         unset($post);
         $discussion->moodleoverflow = $moodleoverflow->id;
 
@@ -746,7 +772,7 @@ final class subscriptions_test extends advanced_testcase {
 
         // Create the discussion.
         $discussion = new \stdClass();
-        list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $users[0]);
+        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $users[0]);
         unset($post);
         $discussion->moodleoverflow = $moodleoverflow->id;
 
@@ -824,8 +850,12 @@ final class subscriptions_test extends advanced_testcase {
         // Check that the user is currently subscribed to the moodleoverflow.
         $this->assertTrue(subscriptions::is_subscribed($user->id, $moodleoverflow, $context));
 
-        assign_capability('mod/moodleoverflow:allowforcesubscribe', CAP_PROHIBIT, $roleids['student'],
-            $context);
+        assign_capability(
+            'mod/moodleoverflow:allowforcesubscribe',
+            CAP_PROHIBIT,
+            $roleids['student'],
+            $context
+        );
         $context->mark_dirty();
         $this->assertFalse(has_capability('mod/moodleoverflow:allowforcesubscribe', $context, $user->id));
     }
@@ -976,7 +1006,7 @@ final class subscriptions_test extends advanced_testcase {
         $author = $users[0];
         for ($i = 0; $i < 20; $i++) {
             $discussion = new \stdClass();
-            list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+            [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
             unset($post);
             $discussion->moodleoverflow = $moodleoverflow->id;
             $discussions[] = $discussion;
@@ -1039,7 +1069,7 @@ final class subscriptions_test extends advanced_testcase {
         $author = $users[0];
         for ($i = 0; $i < 20; $i++) {
             $discussion = new \stdClass();
-            list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
+            [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
             unset($post);
             $discussion->moodleoverflow = $moodleoverflow->id;
             $discussions[] = $discussion;
@@ -1086,7 +1116,6 @@ final class subscriptions_test extends advanced_testcase {
         } else {
             $this->assertTrue(false, 'Unexpected amount of reads required to fill discussion subscription cache.');
         }
-
     }
 
     /**
@@ -1105,11 +1134,11 @@ final class subscriptions_test extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
-        list($user) = $this->helper_create_users($course, 1);
+        [$user] = $this->helper_create_users($course, 1);
 
         // Post a discussion to the moodleoverflow.
         $discussion = new \stdClass();
-        list($discussion->id, $post) = $this->helper_post_to_moodleoverflow($moodleoverflow, $user);
+        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $user);
         unset($post);
         $discussion->moodleoverflow = $moodleoverflow->id;
 
@@ -1263,7 +1292,9 @@ final class subscriptions_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($user->id, $course->id);
         $this->setUser($user);
 
-        $this->assertEquals($expect, subscriptions::is_subscribable($moodleoverflow,
-            \context_module::instance($moodleoverflow->cmid)));
+        $this->assertEquals($expect, subscriptions::is_subscribable(
+            $moodleoverflow,
+            \context_module::instance($moodleoverflow->cmid)
+        ));
     }
 }

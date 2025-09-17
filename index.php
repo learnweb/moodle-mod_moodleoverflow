@@ -124,7 +124,6 @@ $moodleoverflows = $DB->get_records_sql($sql, [$course->id]);
 
 // Loop through allmoodleoverflows.
 foreach ($modinfo->get_instances_of('moodleoverflow') as $moodleoverflowid => $cm) {
-
     // Check whether the user can see the instance.
     if (!$cm->uservisible || !isset($moodleoverflows[$moodleoverflowid])) {
         continue;
@@ -159,10 +158,8 @@ if ($showsubscriptioncolumns) {
 
 // Handle course wide subscriptions or unsubscriptions if requested.
 if (!is_null($subscribe)) {
-
     // Catch guests and not subscribable moodleoverflows.
     if (isguestuser() || !$showsubscriptioncolumns) {
-
         // Redirect the user back.
         $url = new moodle_url('/mod/moodleoverflow/index.php', ['id' => $id]);
         $notification = \core\output\notification::NOTIFY_ERROR;
@@ -171,7 +168,6 @@ if (!is_null($subscribe)) {
 
     // Loop through all moodleoverflows.
     foreach ($modinfo->get_instances_of('moodleoverflow') as $moodleoverflowid => $cm) {
-
         // Initiate variables.
         $moodleoverflow = $moodleoverflows[$moodleoverflowid];
         $modulecontext = context_module::instance($cm->id);
@@ -196,7 +192,6 @@ if (!is_null($subscribe)) {
         $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow) &&
                 has_capability('mod/moodleoverflow:allowforcesubscribe', $modulecontext);
         if (!$forcesubscribed) {
-
             // Check the current state.
             $subscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $modulecontext);
             $subscribable = \mod_moodleoverflow\subscriptions::is_subscribable($moodleoverflow, $modulecontext);
@@ -228,10 +223,8 @@ if (!is_null($subscribe)) {
 
 // Check if there are moodleoverflows.
 if ($generalmoodleoverflows) {
-
     // Loop through all of the moodleoverflows.
     foreach ($generalmoodleoverflows as $moodleoverflow) {
-
         // Retrieve the contexts.
         $cm = $modinfo->instances['moodleoverflow'][$moodleoverflow->id];
         $modulecontext = context_module::instance($cm->id);
@@ -241,7 +234,6 @@ if ($generalmoodleoverflows) {
 
         // Check whether the user can track the moodleoverflow.
         if ($cantrack) {
-
             // Check whether the tracking is disabled.
             if ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OFF) {
                 $unreadlink = '-';
@@ -252,8 +244,8 @@ if ($generalmoodleoverflows) {
                 // Check if this moodleoverflow is manually untracked.
                 if (isset($untracked[$moodleoverflow->id])) {
                     $unreadlink = '-';
-
-                } else if ($unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm)
+                } else if (
+                    $unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm)
                 ) {
                     // There are unread posts in the moodleoverflow instance.
 
@@ -266,7 +258,6 @@ if ($generalmoodleoverflows) {
                         $string['markallread'] . '" class="iconsmall" />';
                     $unreadlink .= '</a>';
                     $unreadlink .= '</span>';
-
                 } else {
                     // There are no unread messages for this moodleoverflow instance.
 
@@ -281,13 +272,11 @@ if ($generalmoodleoverflows) {
 
                     // Define the string.
                     $trackedlink = $string['yes'];
-
                 } else if ($moodleoverflow->trackingtype === MOODLEOVERFLOW_TRACKING_OFF) {
                     // Tracking is set to off.
 
                     // Define the string.
                     $trackedlink = '-';
-
                 } else {
                     // Tracking is optional.
 
@@ -334,7 +323,6 @@ if ($generalmoodleoverflows) {
 
         // Add the subscription information to the rows.
         if ($showsubscriptioncolumns) {
-
             // Set options to create the subscription link.
             $suboptions = [
                 'subscribed' => $string['yes'],
@@ -344,8 +332,11 @@ if ($generalmoodleoverflows) {
             ];
 
             // Add the subscription link to the row.
-            $row[] = \mod_moodleoverflow\subscriptions::moodleoverflow_get_subscribe_link($moodleoverflow,
-                $modulecontext, $suboptions);
+            $row[] = \mod_moodleoverflow\subscriptions::moodleoverflow_get_subscribe_link(
+                $moodleoverflow,
+                $modulecontext,
+                $suboptions
+            );
         }
 
         // Add the rows to the table.
@@ -365,7 +356,6 @@ echo $OUTPUT->header();
 
 // Show the subscribe all option only to non-guest and enrolled users.
 if (!isguestuser() && isloggedin() && $showsubscriptioncolumns) {
-
     // Create a box.
     echo $OUTPUT->box_start('subscription');
 

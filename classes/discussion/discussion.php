@@ -27,7 +27,6 @@ namespace mod_moodleoverflow\discussion;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use mod_moodleoverflow\anonymous;
-
 // Important namespaces.
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
@@ -51,7 +50,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * Accessing these functions directly without the checks from the post control could lead to serious errors.
  */
 class discussion {
-
     /** @var int The discussion ID */
     private $id;
 
@@ -107,8 +105,17 @@ class discussion {
      * @param int   $timestart   The course ID.
      * @param int   $usermodified   The course ID.
      */
-    public function __construct($id, $course, $moodleoverflow, $name, $firstpost,
-                                $userid, $timemodified, $timestart, $usermodified) {
+    public function __construct(
+        $id,
+        $course,
+        $moodleoverflow,
+        $name,
+        $firstpost,
+        $userid,
+        $timemodified,
+        $timestart,
+        $usermodified
+    ) {
         $this->id = $id;
         $this->course = $course;
         $this->moodleoverflow = $moodleoverflow;
@@ -195,8 +202,16 @@ class discussion {
      *
      * @return object discussion object without id.
      */
-    public static function construct_without_id($course, $moodleoverflow, $name, $firstpost,
-                                       $userid, $timemodified, $timestart, $usermodified) {
+    public static function construct_without_id(
+        $course,
+        $moodleoverflow,
+        $name,
+        $firstpost,
+        $userid,
+        $timemodified,
+        $timestart,
+        $usermodified
+    ) {
         $id = null;
         $instance = new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
         return $instance;
@@ -216,8 +231,20 @@ class discussion {
         $this->id = $DB->insert_record('moodleoverflow_discussions', $this->build_db_object());
 
         // Create the first/parent post for the new discussion and add it do the DB.
-        $post = post::construct_without_id($this->id, 0, $prepost->userid, $prepost->timenow, $prepost->timenow, $prepost->message,
-                                           $prepost->messageformat, "", 0, $prepost->reviewed, null, $prepost->formattachments);
+        $post = post::construct_without_id(
+            $this->id,
+            0,
+            $prepost->userid,
+            $prepost->timenow,
+            $prepost->timenow,
+            $prepost->message,
+            $prepost->messageformat,
+            "",
+            0,
+            $prepost->reviewed,
+            null,
+            $prepost->formattachments
+        );
         // Add it to the DB and save the id of the first/parent post.
         $this->firstpost = $post->moodleoverflow_add_new_post();
 
@@ -285,7 +312,6 @@ class discussion {
             // The discussion has been deleted.
             $transaction->allow_commit();
             return true;
-
         } catch (Exception $e) {
             $transaction->rollback($e);
         }
@@ -305,9 +331,20 @@ class discussion {
         $this->posts_check();
 
         // Create the post that will be added to the new discussion.
-        $post = post::construct_without_id($this->id, $prepost->parentid, $prepost->userid, $prepost->timenow, $prepost->timenow,
-                                           $prepost->message, $prepost->messageformat, "", 0, $prepost->reviewed, null,
-                                           $prepost->formattachments);
+        $post = post::construct_without_id(
+            $this->id,
+            $prepost->parentid,
+            $prepost->userid,
+            $prepost->timenow,
+            $prepost->timenow,
+            $prepost->message,
+            $prepost->messageformat,
+            "",
+            0,
+            $prepost->reviewed,
+            null,
+            $prepost->formattachments
+        );
         // Add the post to the DB.
         $postid = $post->moodleoverflow_add_new_post();
 
@@ -536,8 +573,13 @@ class discussion {
         $this->existence_check();
 
         if (empty($this->cmobject)) {
-            if (!$this->cmobject = $DB->get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id,
-                                                                                         $this->get_moodleoverflow()->course)) {
+            if (
+                !$this->cmobject = $DB->get_coursemodule_from_instance(
+                    'moodleoverflow',
+                    $this->get_moodleoverflow()->id,
+                    $this->get_moodleoverflow()->course
+                )
+            ) {
                 throw new \moodle_exception('invalidcoursemodule');
             }
         }

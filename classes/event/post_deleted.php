@@ -68,5 +68,4 @@ class post_deleted extends \core\event\base {
     public static function get_name() {
         return get_string('eventpostdeleted', 'mod_moodleoverflow');
     }
-
 }

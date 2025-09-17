@@ -36,7 +36,6 @@ use mod_moodleoverflow\discussion\discussion;
  * @covers \mod_moodleoverflow\discussion\discussion
  */
 final class discussion_test extends \advanced_testcase {
-
     /** @var \stdClass test course */
     private $course;
 
@@ -95,8 +94,16 @@ final class discussion_test extends \advanced_testcase {
         $this->setUser($this->teacher);
 
         // Build a new discussion object.
-        $discussion = discussion::construct_without_id($this->course->id, $this->moodleoverflow->id, 'Discussion Topic',
-                                           0, $this->teacher->id, $time, $time, $this->teacher->id);
+        $discussion = discussion::construct_without_id(
+            $this->course->id,
+            $this->moodleoverflow->id,
+            'Discussion Topic',
+            0,
+            $this->teacher->id,
+            $time,
+            $time,
+            $this->teacher->id
+        );
         $discussionid = $discussion->moodleoverflow_add_discussion($prepost);
         $posts = $discussion->moodleoverflow_get_discussion_posts();
         $post = $posts[$discussion->get_firstpostid()];

@@ -43,8 +43,11 @@ $PAGE->add_body_class('limitedwidth');
 $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $d], 'invaliddiscussionid');
 
 // Check if the related moodleoverflow instance is valid.
-$moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $discussion->moodleoverflow],
-                                                         'invalidmoodleoverflowid');
+$moodleoverflow = moodleoverflow_get_record_or_exception(
+    'moodleoverflow',
+    ['id' => $discussion->moodleoverflow],
+    'invalidmoodleoverflowid'
+);
 
 // Check if the related moodleoverflow instance is valid.
 $course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->course], 'invalidcourseid', '*', true);
@@ -111,8 +114,11 @@ if (!$post = moodleoverflow_get_post_full($parent)) {
 
 // Has the user the capability to view the post?
 if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
-    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow',
-        "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
+    throw new moodle_exception(
+        'noviewdiscussionspermission',
+        'moodleoverflow',
+        "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id"
+    );
 }
 
 // Append the discussion name to the navigation.
@@ -127,8 +133,10 @@ if ($discussion->userid === '0') {
     $discussion->name = get_string('privacy:anonym_discussion_name', 'mod_moodleoverflow');
 }
 
-$node = $forumnode->add(format_string($discussion->name),
-    new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id]));
+$node = $forumnode->add(
+    format_string($discussion->name),
+    new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id])
+);
 $node->display = false;
 if ($node && ($post->id != $discussion->firstpost)) {
     $node->add(format_string($post->subject), $PAGE->url);

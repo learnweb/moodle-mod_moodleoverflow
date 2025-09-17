@@ -44,7 +44,7 @@ class data_export_helper {
     public static function export_discussion_data($userid, array $mappings) {
         global $DB;
         // Find all of the discussions, and discussion subscriptions for this forum.
-        list($foruminsql, $forumparams) = $DB->get_in_or_equal(array_keys($mappings), SQL_PARAMS_NAMED);
+        [$foruminsql, $forumparams] = $DB->get_in_or_equal(array_keys($mappings), SQL_PARAMS_NAMED);
 
         $sql = "SELECT
                     d.*,
@@ -83,7 +83,9 @@ class data_export_helper {
             ];
             // Store the discussion content.
             writer::with_context($context)->export_data(
-                static::get_discussion_area($discussion), $discussiondata);
+                static::get_discussion_area($discussion),
+                $discussiondata
+            );
             // Forum discussions do not have any files associately directly with them.
         }
         $discussions->close();
@@ -103,7 +105,7 @@ class data_export_helper {
         global $DB;
 
         // Find all of the posts, and post subscriptions for this forum.
-        list($foruminsql, $forumparams) = $DB->get_in_or_equal(array_keys($mappings), SQL_PARAMS_NAMED);
+        [$foruminsql, $forumparams] = $DB->get_in_or_equal(array_keys($mappings), SQL_PARAMS_NAMED);
 
         $sql = "SELECT
                     p.discussion AS id,
@@ -241,7 +243,12 @@ class data_export_helper {
             'author_was_you' => transform::yesno($post->userid == $userid),
         ];
         $postdata->message = writer::with_context($context)->rewrite_pluginfile_urls(
-            $postarea, 'mod_moodleoverflow', 'attachment', $post->id, $post->message);
+            $postarea,
+            'mod_moodleoverflow',
+            'attachment',
+            $post->id,
+            $post->message
+        );
 
         $postdata->message = format_text($postdata->message, $post->messageformat, (object) [
             'para' => false,
@@ -250,7 +257,11 @@ class data_export_helper {
 
         // Store the post and the associated files.
         writer::with_context($context)->export_data($postarea, $postdata)->export_area_files(
-            $postarea, 'mod_moodleoverflow', 'attachment', $post->id);
+            $postarea,
+            'mod_moodleoverflow',
+            'attachment',
+            $post->id
+        );
 
         if ($post->userid == $userid) {
             // Store all ratings against this post as the post belongs to the user. All ratings on it are ratings of their content.
@@ -322,7 +333,11 @@ class data_export_helper {
         if (null !== $forum->subscribed) {
             // The user is subscribed to this forum.
             writer::with_context(\context_module::instance($forum->cmid))->export_metadata(
-                [], 'subscriptionpreference', 1, get_string('privacy:subscribedtoforum', 'mod_moodleoverflow'));
+                [],
+                'subscriptionpreference',
+                1,
+                get_string('privacy:subscribedtoforum', 'mod_moodleoverflow')
+            );
 
             return true;
         }
@@ -352,11 +367,11 @@ class data_export_helper {
                     break;
             }
             writer::with_context($context)->export_metadata(
-                    $area,
-                    'subscriptionpreference',
-                    $discussion->preference,
-                    get_string('privacy:discussionsubscriptionpreference', 'mod_moodleoverflow', $a)
-                );
+                $area,
+                'subscriptionpreference',
+                $discussion->preference,
+                get_string('privacy:discussionsubscriptionpreference', 'mod_moodleoverflow', $a)
+            );
 
             return true;
         }
@@ -376,7 +391,11 @@ class data_export_helper {
         if (null !== $forum->tracked) {
             // The user has a main preference to track all forums, but has opted out of this one.
             writer::with_context(\context_module::instance($forum->cmid))->export_metadata(
-                [], 'trackreadpreference', 0, get_string('privacy:readtrackingdisabled', 'mod_moodleoverflow'));
+                [],
+                'trackreadpreference',
+                0,
+                get_string('privacy:readtrackingdisabled', 'mod_moodleoverflow')
+            );
 
             return true;
         }
@@ -393,7 +412,11 @@ class data_export_helper {
     public static function export_grade_data(\stdClass $forum) {
         if ($forum->grade) {
             writer::with_context(\context_module::instance($forum->cmid))->export_metadata(
-                    [], 'grade', $forum->grade, get_string('privacy:grade', 'mod_moodleoverflow'));
+                [],
+                'grade',
+                $forum->grade,
+                get_string('privacy:grade', 'mod_moodleoverflow')
+            );
 
             return true;
         }
@@ -416,14 +439,14 @@ class data_export_helper {
                 'lastread' => $post->lastread,
             ];
             writer::with_context($context)->export_metadata(
-                    $postarea,
-                    'postread',
-                    (object) [
+                $postarea,
+                'postread',
+                (object) [
                         'firstread' => $post->firstread,
                         'lastread' => $post->lastread,
                     ],
-                    get_string('privacy:postwasread', 'mod_moodleoverflow', $a)
-                );
+                get_string('privacy:postwasread', 'mod_moodleoverflow', $a)
+            );
 
             return true;
         }

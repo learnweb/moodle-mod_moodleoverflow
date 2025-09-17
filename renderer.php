@@ -35,7 +35,6 @@ require_once($CFG->libdir . '/weblib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_renderer extends plugin_renderer_base {
-
     /**
      * Display the discussion list for the view.php.
      *

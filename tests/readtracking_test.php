@@ -39,7 +39,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @covers \readtracking
  */
 final class readtracking_test extends advanced_testcase {
-
     /**
      * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.
      */
