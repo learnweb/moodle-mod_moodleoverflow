@@ -39,7 +39,6 @@ require_once($CFG->libdir . '/tablelib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class userstats_table extends \flexible_table {
-
     /** @var int the Course ID*/
     private $courseid;
 
@@ -104,7 +103,7 @@ class userstats_table extends \flexible_table {
     public function get_table_data() {
         // Get all userdata from a course.
         $context = \context_course::instance($this->courseid);
-        $users = get_enrolled_users($context , '',  0, 'u.id, u.firstname, u.lastname');
+        $users = get_enrolled_users($context, '', 0, 'u.id, u.firstname, u.lastname');
 
         // Step 1.0: Build the datatable with all relevant information.
         $ratingdata = $this->get_rating_data();
@@ -120,15 +119,14 @@ class userstats_table extends \flexible_table {
                 }
 
                 // Did a student submit a rating?
-                if ($row->rateuserid == $student->id ) {
+                if ($row->rateuserid == $student->id) {
                     $this->process_submitted_ratings($student, $row);
                 }
 
                 // Did the student write a post?
-                if ($row->postuserid == $student->id ) {
+                if ($row->postuserid == $student->id) {
                     $this->process_written_posts($student, $row);
                 }
-
             }
             // Get the user reputation from the course.
             $student->forumreputation = ratings::moodleoverflow_get_reputation_instance($this->moodleoverflowid, $student->id);
@@ -330,9 +328,10 @@ class userstats_table extends \flexible_table {
     private function process_written_posts($student, $row) {
         // Only count a written post if: the post is not in an anonymous discussion:
         // or the post is in a partial anonymous discussion and the user is not the starter of the discussion.
-        if (!array_key_exists($row->postid, $student->submittedposts) &&
-            ($row->anonymoussetting == 0 || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
-
+        if (
+            !array_key_exists($row->postid, $student->submittedposts) &&
+            ($row->anonymoussetting == 0 || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))
+        ) {
             $this->increment_forumactivity($student, $row);
             $student->courseactivity += 1;
             $student->submittedposts[$row->postid] = $row->postid;

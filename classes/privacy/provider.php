@@ -25,6 +25,7 @@
 namespace mod_moodleoverflow\privacy;
 
 use core_privacy\local\request\approved_userlist;
+use core_privacy\local\request\core_userlist_provider;
 use core_privacy\local\request\userlist;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
@@ -39,10 +40,9 @@ use core_privacy\local\request\helper as request_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
+    core_userlist_provider,
     \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\plugin\provider,
-    \core_privacy\local\request\core_userlist_provider {
-
+    \core_privacy\local\request\plugin\provider {
     /**
      * Return the fields which contain personal data.
      *
@@ -51,16 +51,19 @@ class provider implements
      * @return collection the updated collection of metadata items.
      */
     public static function get_metadata(collection $collection): collection {
-        $collection->add_database_table('moodleoverflow_discussions',
+        $collection->add_database_table(
+            'moodleoverflow_discussions',
             [
                 'name' => 'privacy:metadata:moodleoverflow_discussions:name',
                 'userid' => 'privacy:metadata:moodleoverflow_discussions:userid',
                 'timemodified' => 'privacy:metadata:moodleoverflow_discussions:timemodified',
                 'usermodified' => 'privacy:metadata:moodleoverflow_discussions:usermodified',
             ],
-            'privacy:metadata:moodleoverflow_discussions');
+            'privacy:metadata:moodleoverflow_discussions'
+        );
 
-        $collection->add_database_table('moodleoverflow_posts',
+        $collection->add_database_table(
+            'moodleoverflow_posts',
             [
                 'discussion' => 'privacy:metadata:moodleoverflow_posts:discussion',
                 'parent' => 'privacy:metadata:moodleoverflow_posts:parent',
@@ -69,9 +72,11 @@ class provider implements
                 'modified' => 'privacy:metadata:moodleoverflow_posts:modified',
                 'message' => 'privacy:metadata:moodleoverflow_posts:message',
             ],
-            'privacy:metadata:moodleoverflow_posts');
+            'privacy:metadata:moodleoverflow_posts'
+        );
 
-        $collection->add_database_table('moodleoverflow_read',
+        $collection->add_database_table(
+            'moodleoverflow_read',
             [
                 'userid' => 'privacy:metadata:moodleoverflow_read:userid',
                 'discussionid' => 'privacy:metadata:moodleoverflow_read:discussionid',
@@ -79,24 +84,30 @@ class provider implements
                 'firstread' => 'privacy:metadata:moodleoverflow_read:firstread',
                 'lastread' => 'privacy:metadata:moodleoverflow_read:lastread',
             ],
-            'privacy:metadata:moodleoverflow_read');
+            'privacy:metadata:moodleoverflow_read'
+        );
 
-        $collection->add_database_table('moodleoverflow_subscriptions',
+        $collection->add_database_table(
+            'moodleoverflow_subscriptions',
             [
                 'userid' => 'privacy:metadata:moodleoverflow_subscriptions:userid',
                 'moodleoverflow' => 'privacy:metadata:moodleoverflow_subscriptions:moodleoverflow',
             ],
-            'privacy:metadata:moodleoverflow_subscriptions');
+            'privacy:metadata:moodleoverflow_subscriptions'
+        );
 
-        $collection->add_database_table('moodleoverflow_discuss_subs',
+        $collection->add_database_table(
+            'moodleoverflow_discuss_subs',
             [
                 'userid' => 'privacy:metadata:moodleoverflow_discuss_subs:userid',
                 'discussion' => 'privacy:metadata:moodleoverflow_discuss_subs:discussion',
                 'preference' => 'privacy:metadata:moodleoverflow_discuss_subs:preference',
             ],
-            'privacy:metadata:moodleoverflow_discuss_subs');
+            'privacy:metadata:moodleoverflow_discuss_subs'
+        );
 
-        $collection->add_database_table('moodleoverflow_ratings',
+        $collection->add_database_table(
+            'moodleoverflow_ratings',
             [
                 'userid' => 'privacy:metadata:moodleoverflow_ratings:userid',
                 'postid' => 'privacy:metadata:moodleoverflow_ratings:postid',
@@ -104,24 +115,30 @@ class provider implements
                 'firstrated' => 'privacy:metadata:moodleoverflow_ratings:firstrated',
                 'lastchanged' => 'privacy:metadata:moodleoverflow_ratings:lastchanged',
             ],
-            'privacy:metadata:moodleoverflow_ratings');
+            'privacy:metadata:moodleoverflow_ratings'
+        );
 
-        $collection->add_database_table('moodleoverflow_tracking',
+        $collection->add_database_table(
+            'moodleoverflow_tracking',
             [
                 'userid' => 'privacy:metadata:moodleoverflow_tracking:userid',
                 'moodleoverflowid' => 'privacy:metadata:moodleoverflow_tracking:moodleoverflowid',
             ],
-            'privacy:metadata:moodleoverflow_tracking');
+            'privacy:metadata:moodleoverflow_tracking'
+        );
 
-        $collection->add_database_table('moodleoverflow_grades',
+        $collection->add_database_table(
+            'moodleoverflow_grades',
             [
                 'userid' => 'privacy:metadata:moodleoverflow_grades:userid',
                 'moodleoverflowid' => 'privacy:metadata:moodleoverflow_grades:moodleoverflowid',
                 'grade' => 'privacy:metadata:moodleoverflow_grades:grade',
             ],
-            'privacy:metadata:moodleoverflow_grades');
+            'privacy:metadata:moodleoverflow_grades'
+        );
 
-        $collection->link_subsystem('core_files',
+        $collection->link_subsystem(
+            'core_files',
             'privacy:metadata:core_files'
         );
 
@@ -201,7 +218,7 @@ class provider implements
         $user = $contextlist->get_user();
         $userid = $user->id;
 
-        list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
+        [$contextsql, $contextparams] = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
 
         $sql = "SELECT
                     c.id AS contextid,
@@ -481,7 +498,7 @@ class provider implements
         $cm = $DB->get_record('course_modules', ['id' => $context->instanceid]);
         $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
 
-        list($userinsql, $userinparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+        [$userinsql, $userinparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
 
         $params = array_merge(['moodleoverflowid' => $moodleoverflow->id], $userinparams);
         // Delete the entries from the table tracking, subscriptions, read and discussion_subs.

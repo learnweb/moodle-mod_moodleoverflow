@@ -32,7 +32,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_moodleoverflow_activity_structure_step extends backup_activity_structure_step {
-
     /**
      * Defines the backup structure of the module
      *
@@ -108,11 +107,13 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
 
         // All these source definitions only happen if we are including user info.
         if ($userinfo) {
-            $discussion->set_source_sql('
+            $discussion->set_source_sql(
+                '
                 SELECT *
                   FROM {moodleoverflow_discussions}
                  WHERE moodleoverflow = ?',
-                [backup::VAR_PARENTID]);
+                [backup::VAR_PARENTID]
+            );
 
             // Need posts ordered by id so parents are always before childs on restore.
             $post->set_source_table('moodleoverflow_posts', ['discussion' => backup::VAR_PARENTID], 'id ASC');

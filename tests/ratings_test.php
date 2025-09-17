@@ -366,7 +366,8 @@ final class ratings_test extends \advanced_testcase {
         foreach ([$this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6] as $answer) {
             $answer->upvotes = 1;
             $answer->downvotes = 1;
-            $answer->votesdifference = $answer->upvotes - $answer->downvotes;;
+            $answer->votesdifference = $answer->upvotes - $answer->downvotes;
+            ;
         }
     }
 
@@ -531,12 +532,12 @@ final class ratings_test extends \advanced_testcase {
 
     /**
      * Executing the sort function and comparing the sorted post to the expected order.
-     * @param String $group1
+     * @param string $group1
      * @param string $group2
      * @param array $orderposts
      * @return void
      */
-    private function process_groups(String $group1, string $group2, array $orderposts = []) {
+    private function process_groups(string $group1, string $group2, array $orderposts = []) {
         $this->create_twogroups($group1, $group2);
         $posts = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
         $rightorder = [$this->post, $this->answer2, $this->answer1, $this->answer3, $this->answer6, $this->answer5, $this->answer4];
@@ -553,7 +554,7 @@ final class ratings_test extends \advanced_testcase {
      * @param object $answer
      */
     private function set_group(string $group, object $answer) {
-        switch($group) {
+        switch ($group) {
             case 'sh':
                 $answer->markedhelpful = 1;
                 $answer->markedsolution = 1;

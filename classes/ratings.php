@@ -33,7 +33,6 @@ use moodle_exception;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class ratings {
-
     /**
      * Add a rating.
      * This is the basic function to add or edit ratings.
@@ -59,12 +58,20 @@ class ratings {
         $post = moodleoverflow_get_record_or_exception('moodleoverflow_posts', ['id' => $postid], 'invalidparentpostid');
 
         // Check if the post belongs to a discussion.
-        $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $post->discussion],
-                                                   'notpartofdiscussion');
+        $discussion = moodleoverflow_get_record_or_exception(
+            'moodleoverflow_discussions',
+            ['id' => $post->discussion],
+            'notpartofdiscussion'
+        );
 
         // Get the related course.
-        $course = moodleoverflow_get_record_or_exception('course', ['id' => $moodleoverflow->course],
-                                                         'invalidcourseid', '*', true);
+        $course = moodleoverflow_get_record_or_exception(
+            'course',
+            ['id' => $moodleoverflow->course],
+            'invalidcourseid',
+            '*',
+            true
+        );
 
         // Are multiple marks allowed?
         $markssetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'allowmultiplemarks');
@@ -76,7 +83,6 @@ class ratings {
 
         // Redirect the user if capabilities are missing.
         if (!self::moodleoverflow_user_can_rate($post, $modulecontext, $userid)) {
-
             // Catch unenrolled users.
             $returnurl = '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id;
             moodleoverflow_catch_unenrolled_user($coursecontext, $course->id, $returnurl);
@@ -92,8 +98,12 @@ class ratings {
 
         // Check if we are removing a mark.
         if (in_array($rating / 10, $possibleratings)) {
-            moodleoverflow_get_config_or_exception('moodleoverflow', 'allowratingchange',
-                                                   'noratingchangeallowed', 'moodleoverflow');
+            moodleoverflow_get_config_or_exception(
+                'moodleoverflow',
+                'allowratingchange',
+                'noratingchangeallowed',
+                'moodleoverflow'
+            );
 
             // Delete the rating.
             return self::moodleoverflow_remove_rating($postid, $rating / 10, $userid, $modulecontext);
@@ -114,7 +124,6 @@ class ratings {
 
             // Check if multiple marks are not enabled.
             if (!$multiplemarks) {
-
                 // Get other ratings in the discussion.
                 $sql = "SELECT *
                         FROM {moodleoverflow_ratings}
@@ -124,22 +133,37 @@ class ratings {
                 // If there is an old rating, update it. Else create a new rating record.
                 if ($otherrating) {
                     return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
-
                 } else {
-                    return self::moodleoverflow_add_rating_record($moodleoverflow->id, $discussion->id, $post->id,
-                                                                  $rating, $userid, $modulecontext);
+                    return self::moodleoverflow_add_rating_record(
+                        $moodleoverflow->id,
+                        $discussion->id,
+                        $post->id,
+                        $rating,
+                        $userid,
+                        $modulecontext
+                    );
                 }
             } else {
                 // If multiplemarks are allowed, only create a new rating.
-                return self::moodleoverflow_add_rating_record($moodleoverflow->id, $discussion->id, $post->id,
-                                                              $rating, $userid, $modulecontext);
+                return self::moodleoverflow_add_rating_record(
+                    $moodleoverflow->id,
+                    $discussion->id,
+                    $post->id,
+                    $rating,
+                    $userid,
+                    $modulecontext
+                );
             }
         }
 
         // Update an rating record.
         if ($oldrating['normal']) {
-            moodleoverflow_get_config_or_exception('moodleoverflow', 'allowratingchange',
-                                                   'noratingchangeallowed', 'moodleoverflow');
+            moodleoverflow_get_config_or_exception(
+                'moodleoverflow',
+                'allowratingchange',
+                'noratingchangeallowed',
+                'moodleoverflow'
+            );
 
             // Check if the rating can still be changed.
             if (!self::moodleoverflow_can_be_changed($postid, $oldrating['normal']->rating, $userid)) {
@@ -151,8 +175,14 @@ class ratings {
         }
 
         // Create a new rating record.
-        return self::moodleoverflow_add_rating_record($moodleoverflow->id, $post->discussion, $postid,
-                                                      $rating, $userid, $modulecontext);
+        return self::moodleoverflow_add_rating_record(
+            $moodleoverflow->id,
+            $post->discussion,
+            $postid,
+            $rating,
+            $userid,
+            $modulecontext
+        );
     }
 
     /**
@@ -168,8 +198,11 @@ class ratings {
      */
     public static function moodleoverflow_get_reputation($moodleoverflowid, $userid, $forcesinglerating = false) {
         // Check the moodleoverflow instance.
-        $moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $moodleoverflowid],
-                                                                 'invalidmoodleoverflowid');
+        $moodleoverflow = moodleoverflow_get_record_or_exception(
+            'moodleoverflow',
+            ['id' => $moodleoverflowid],
+            'invalidmoodleoverflowid'
+        );
 
         // Check whether the reputation can be summed over the whole course.
         if ($moodleoverflow->coursewidereputation && !$forcesinglerating) {
@@ -310,7 +343,6 @@ class ratings {
 
         // A single post is requested.
         if ($postid) {
-
             // Check if the post is part of the discussion.
             if (array_key_exists($postid, $votes)) {
                 return $votes[$postid];
@@ -337,10 +369,8 @@ class ratings {
 
         // Is the teachers solved-status requested?
         if ($teacher) {
-
             // Check if a teacher marked a solution as solved.
             if ($DB->record_exists('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => 3])) {
-
                 // Return the rating records.
                 return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => 3]);
             }
@@ -351,7 +381,6 @@ class ratings {
 
         // Check if the topic starter marked a solution as helpful.
         if ($DB->record_exists('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => 4])) {
-
             // Return the rating records.
             return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => 4]);
         }
@@ -684,8 +713,10 @@ class ratings {
             if ($posts[$low]->votesdifference == $posts[$low + 1]->votesdifference) {
                 $tempstartindex = $low;
                 $tempendindex = $tempstartindex + 1;
-                while (($tempendindex + 1 <= $high) &&
-                      ($posts[$tempendindex]->votesdifference == $posts[$tempendindex + 1]->votesdifference)) {
+                while (
+                    ($tempendindex + 1 <= $high) &&
+                      ($posts[$tempendindex]->votesdifference == $posts[$tempendindex + 1]->votesdifference)
+                ) {
                     $tempendindex++;
                 }
                 moodleoverflow_quick_array_sort($posts, $tempstartindex, $tempendindex, 'modified', 'asc');

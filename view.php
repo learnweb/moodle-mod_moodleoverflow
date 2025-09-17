@@ -26,9 +26,9 @@
  */
 
 // Include config and locallib.
-require_once(__DIR__.'/../../config.php');
+require_once(__DIR__ . '/../../config.php');
 global $CFG, $PAGE, $DB, $OUTPUT, $SESSION, $USER;
-require_once($CFG->dirroot.'/mod/moodleoverflow/locallib.php');
+require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
 $id = optional_param('id', 0, PARAM_INT);       // Course Module ID.
@@ -129,8 +129,11 @@ if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
     $reviewpost = \mod_moodleoverflow\review::get_first_review_post($moodleoverflow->id);
 
     if ($reviewpost) {
-        echo html_writer::link($reviewpost, get_string('review_needed', 'mod_moodleoverflow'),
-                ['class' => 'btn btn-danger my-2']);
+        echo html_writer::link(
+            $reviewpost,
+            get_string('review_needed', 'mod_moodleoverflow'),
+            ['class' => 'btn btn-danger my-2']
+        );
     }
 }
 

@@ -35,7 +35,6 @@ use moodle_exception;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class readtracking {
-
     /**
      * Determine if a user can track moodleoverflows and optionally a particular moodleoverflow instance.
      * Checks the site settings and the moodleoverflow settings (if requested).
@@ -100,8 +99,10 @@ class readtracking {
         $forced = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
 
         // Check the preferences of the user.
-        $userpreference = $DB->get_record('moodleoverflow_tracking',
-            ['userid' => $user->id, 'moodleoverflowid' => $moodleoverflow->id]);
+        $userpreference = $DB->get_record(
+            'moodleoverflow_tracking',
+            ['userid' => $user->id, 'moodleoverflowid' => $moodleoverflow->id]
+        );
 
         // Return the boolean.
         if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
@@ -158,7 +159,6 @@ class readtracking {
 
         // Iterate through all posts of the discussion.
         foreach ($posts as $post) {
-
             // Ignore already read posts.
             if (!is_null($post->postread)) {
                 continue;
@@ -232,7 +232,6 @@ class readtracking {
         // Check for read records for this user an this post.
         $oldrecord = $DB->get_record('moodleoverflow_read', ['postid' => $postid, 'userid' => $userid]);
         if (!$oldrecord) {
-
             // If there are no old records, create a new one.
             $sql = "INSERT INTO {moodleoverflow_read} (userid, postid, discussionid, moodleoverflowid, firstread, lastread)
                  SELECT ?, p.id, p.discussion, d.moodleoverflow, ?, ?
@@ -364,7 +363,6 @@ class readtracking {
 
         // Stop tracking the moodleoverflow if not already stopped.
         if (!$isstopped) {
-
             // Create the tracking object.
             $tracking = new \stdClass();
             $tracking->userid = $userid;
@@ -414,7 +412,6 @@ class readtracking {
 
         // Check whether readtracking may be forced.
         if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
-
             // Create a part of a sql-statement.
             $trackingsql = "AND (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OFF . "
                             OR (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL . " AND mt.id IS NOT NULL))";
@@ -466,12 +463,14 @@ class readtracking {
                 "WHERE m.id = :moodleoverflowid", ['userid' => $USER->id, 'moodleoverflowid' => $cm->instance]);
 
         // Return if tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
-        if ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OFF || (
+        if (
+            $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OFF || (
                         ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL || (
                                         $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED &&
                                         !get_config('moodleoverflow', 'allowforcedreadtracking')
                                 )
-                        ) && $moodleoverflow->hasdisabledtracking)) {
+                        ) && $moodleoverflow->hasdisabledtracking)
+        ) {
             return 0;
         }
         // Get the current timestamp and the cutoffdate.

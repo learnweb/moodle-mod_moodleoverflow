@@ -28,4 +28,4 @@ $id = required_param('id', PARAM_INT);
 
 $cm = get_coursemodule_from_id('moodleoverflow', $id, 0, false, MUST_EXIST);
 
-redirect('view.php?id='.$cm->id);
+redirect('view.php?id=' . $cm->id);

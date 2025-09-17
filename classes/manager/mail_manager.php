@@ -115,13 +115,27 @@ class mail_manager {
 
             // Fill the caches with objects if needed.
             // Add additional information that were not retrievable from the database to the objects if needed.
-            self::moodleoverflow_update_mail_caches($record, $coursemodules, $courses, $moodleoverflows,
-                $discussions, $posts, $authors, $recipients);
+            self::moodleoverflow_update_mail_caches(
+                $record,
+                $coursemodules,
+                $courses,
+                $moodleoverflows,
+                $discussions,
+                $posts,
+                $authors,
+                $recipients
+            );
 
             // Filter records that are not getting mailed.
             // Check if the user can see the post.
-            if (!moodleoverflow_user_can_see_post($moodleoverflows[$record->moodleoverflowid], $discussions[$record->discussionid],
-                $posts[$record->postid], $coursemodules[$record->cmid])) {
+            if (
+                !moodleoverflow_user_can_see_post(
+                    $moodleoverflows[$record->moodleoverflowid],
+                    $discussions[$record->discussionid],
+                    $posts[$record->postid],
+                    $coursemodules[$record->cmid]
+                )
+            ) {
                 continue;
             }
 
@@ -183,8 +197,11 @@ class mail_manager {
             // The email object is build. Now build all data that is needed for the event that really send the mail.
 
             // Build post subject.
-            $subject = html_to_text(get_string('postmailsubject', 'moodleoverflow',
-                                    ['subject' => $email->get_subject(), 'courseshortname' => $email->get_coursename()]), 0);
+            $subject = html_to_text(get_string(
+                'postmailsubject',
+                'moodleoverflow',
+                ['subject' => $email->get_subject(), 'courseshortname' => $email->get_coursename()]
+            ), 0);
 
             // Finally: send the notification mail.
             $userto = $recipients[$record->usertoid];
@@ -332,9 +349,16 @@ class mail_manager {
      *
      * @return void
      */
-    public static function moodleoverflow_update_mail_caches(object $record, array &$coursemodules, array &$courses,
-                                                             array &$moodleoverflows, array  &$discussions, array &$posts,
-                                                             array &$authors, array &$recipients ): void {
+    public static function moodleoverflow_update_mail_caches(
+        object $record,
+        array &$coursemodules,
+        array &$courses,
+        array &$moodleoverflows,
+        array &$discussions,
+        array &$posts,
+        array &$authors,
+        array &$recipients
+    ): void {
         // Define cache types and their corresponding record properties.
         $cachetypes = [
             'coursemodules' => ['id' => 'cmid', 'groupingid' => 'cmgroupingid'],
@@ -390,8 +414,10 @@ class mail_manager {
         global $DB;
         // LEARNWEB-TODO: Rename database table attribute names. Rethink the table structure. What should the mail have?
         // If the record exists, update it. If not, insert a new record.
-        if ($dbrecord = $DB->get_record('moodleoverflow_mail_info', ['userid' => $data->usertoid, 'courseid' => $data->courseid,
-                'forumid' => $data->moodleoverflowid, 'forumdiscussionid' => $data->discussionid, ], 'numberofposts, id')) {
+        if (
+            $dbrecord = $DB->get_record('moodleoverflow_mail_info', ['userid' => $data->usertoid, 'courseid' => $data->courseid,
+                'forumid' => $data->moodleoverflowid, 'forumdiscussionid' => $data->discussionid, ], 'numberofposts, id')
+        ) {
             $dbrecord->numberofposts++;
             $DB->update_record('moodleoverflow_mail_info', $dbrecord);
         } else {
@@ -433,6 +459,5 @@ class mail_manager {
                 WHERE (created < :endtime) AND mailed IN (:mailedpending, :mailedreviewsent) AND reviewed = 1";
 
         return $DB->execute($sql, $params);
-
     }
 }

@@ -56,7 +56,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post {
-
     // Attributes. The most important attributes are private and can only be changed by internal functions.
     // Other attributes can be accessed directly.
 
@@ -134,8 +133,21 @@ class post {
      * @param int       $timereviewed       The time where the post was reviewed
      * @param object    $formattachments    Information about attachments of the post_form
      */
-    public function __construct($id, $discussion, $parent, $userid, $created, $modified, $message,
-                                $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments = false) {
+    public function __construct(
+        $id,
+        $discussion,
+        $parent,
+        $userid,
+        $created,
+        $modified,
+        $message,
+        $messageformat,
+        $attachment,
+        $mailed,
+        $reviewed,
+        $timereviewed,
+        $formattachments = false
+    ) {
         $this->id = $id;
         $this->discussion = $discussion;
         $this->parent = $parent;
@@ -218,8 +230,20 @@ class post {
             $timereviewed = $record->timereviewed;
         }
 
-        return new self($id, $discussion, $parent, $userid, $created, $modified, $message, $messageformat, $attachment, $mailed,
-                        $reviewed, $timereviewed);
+        return new self(
+            $id,
+            $discussion,
+            $parent,
+            $userid,
+            $created,
+            $modified,
+            $message,
+            $messageformat,
+            $attachment,
+            $mailed,
+            $reviewed,
+            $timereviewed
+        );
     }
 
     /**
@@ -240,11 +264,36 @@ class post {
      *
      * @return object post object without id
      */
-    public static function construct_without_id($discussion, $parent, $userid, $created, $modified, $message,
-                                $messageformat, $attachment, $mailed, $reviewed, $timereviewed, $formattachments = false) {
+    public static function construct_without_id(
+        $discussion,
+        $parent,
+        $userid,
+        $created,
+        $modified,
+        $message,
+        $messageformat,
+        $attachment,
+        $mailed,
+        $reviewed,
+        $timereviewed,
+        $formattachments = false
+    ) {
         $id = null;
-        return new self($id, $discussion, $parent, $userid, $created, $modified, $message, $messageformat, $attachment, $mailed,
-                        $reviewed, $timereviewed, $formattachments);
+        return new self(
+            $id,
+            $discussion,
+            $parent,
+            $userid,
+            $created,
+            $modified,
+            $message,
+            $messageformat,
+            $attachment,
+            $mailed,
+            $reviewed,
+            $timereviewed,
+            $formattachments
+        );
     }
 
     // Post Functions.
@@ -264,8 +313,15 @@ class post {
         // Save draft files to permanent file area.
         $context = \context_module::instance($this->get_coursemodule()->id);
         $draftid = file_get_submitted_draft_itemid('introeditor');
-        $this->message = file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
-            $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $this->message);
+        $this->message = file_save_draft_area_files(
+            $draftid,
+            $context->id,
+            'mod_moodleoverflow',
+            'post',
+            $this->id,
+            mod_moodleoverflow_post_form::editor_options($context, $this->id),
+            $this->message
+        );
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
 
         // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
@@ -328,12 +384,24 @@ class post {
                 // Delete the attachments.
                 $fs = get_file_storage();
                 $context = \context_module::instance($coursemoduleid);
-                $attachments = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment',
-                    $this->id, "filename", true);
+                $attachments = $fs->get_area_files(
+                    $context->id,
+                    'mod_moodleoverflow',
+                    'attachment',
+                    $this->id,
+                    "filename",
+                    true
+                );
                 foreach ($attachments as $attachment) {
                     // Get file.
-                    $file = $fs->get_file($context->id, 'mod_moodleoverflow', 'attachment', $this->id,
-                        $attachment->get_filepath(), $attachment->get_filename());
+                    $file = $fs->get_file(
+                        $context->id,
+                        'mod_moodleoverflow',
+                        'attachment',
+                        $this->id,
+                        $attachment->get_filepath(),
+                        $attachment->get_filename()
+                    );
                     // Delete it if it exists.
                     if ($file) {
                         $file->delete();
@@ -391,8 +459,15 @@ class post {
         // Update the message and save draft files to permanent file area.
         $context = \context_module::instance($this->get_coursemodule()->id);
         $draftid = file_get_submitted_draft_itemid('introeditor');
-        $this->message = file_save_draft_area_files($draftid, $context->id, 'mod_moodleoverflow', 'post',
-            $this->id, mod_moodleoverflow_post_form::editor_options($context, $this->id), $postmessage);
+        $this->message = file_save_draft_area_files(
+            $draftid,
+            $context->id,
+            'mod_moodleoverflow',
+            'post',
+            $this->id,
+            mod_moodleoverflow_post_form::editor_options($context, $this->id),
+            $postmessage
+        );
 
         // Update the record in the database.
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
@@ -453,8 +528,14 @@ class post {
         $context = \context_module::instance($this->get_coursemodule()->id);
         $info = file_get_draft_area_info($this->formattachments);
         $present = ($info['filecount'] > 0) ? '1' : '';
-        file_save_draft_area_files($this->formattachments, $context->id, 'mod_moodleoverflow', 'attachment', $this->id,
-                                  \mod_moodleoverflow_post_form::attachment_options($this->get_moodleoverflow()));
+        file_save_draft_area_files(
+            $this->formattachments,
+            $context->id,
+            'mod_moodleoverflow',
+            'attachment',
+            $this->id,
+            \mod_moodleoverflow_post_form::attachment_options($this->get_moodleoverflow())
+        );
         $DB->set_field('moodleoverflow_posts', 'attachment', $present, ['id' => $this->id]);
     }
 
@@ -484,11 +565,20 @@ class post {
                 $attachments[$i] = [];
                 $attachments[$i]['filename'] = $file->get_filename();
                 $mimetype = $file->get_mimetype();
-                $iconimage = $OUTPUT->pix_icon(file_file_icon($file),
-                    get_mimetype_description($file), 'moodle',
-                    ['class' => 'icon']);
-                $path = moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(), $file->get_filearea(),
-                                                         $file->get_itemid(), $file->get_filepath(), $file->get_filename());
+                $iconimage = $OUTPUT->pix_icon(
+                    file_file_icon($file),
+                    get_mimetype_description($file),
+                    'moodle',
+                    ['class' => 'icon']
+                );
+                $path = moodle_url::make_pluginfile_url(
+                    $file->get_contextid(),
+                    $file->get_component(),
+                    $file->get_filearea(),
+                    $file->get_itemid(),
+                    $file->get_filepath(),
+                    $file->get_filename()
+                );
                 $attachments[$i]['icon'] = $iconimage;
                 $attachments[$i]['filepath'] = $path;
 

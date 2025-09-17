@@ -154,7 +154,6 @@ function moodleoverflow_instance_created($context, $moodleoverflow) {
 
     // Check if users are forced to be subscribed to the moodleoverflow instance.
     if ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
-
         // Get a list of all potential subscribers.
         $users = \mod_moodleoverflow\subscriptions::get_potential_subscribers($context, 'u.id, u.email');
 
@@ -494,7 +493,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
 
     // Display a link to the index.
     if ($enrolled && $activeenrolled) {
-
         // Generate the text of the link.
         $linktext = get_string('gotoindex', 'moodleoverflow');
 
@@ -509,7 +507,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
 
     // Display a link to subscribe or unsubscribe.
     if ($cansubscribe) {
-
         // Choose the linktext depending on the current state of subscription.
         $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $context);
         if ($issubscribed) {
@@ -525,7 +522,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
 
     // Display a link to enable or disable readtracking.
     if ($enrolled && $cantrack) {
-
         // Check some basic capabilities.
         $isoptional = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
         $forceallowed = get_config('moodleoverflow', 'allowforcedreadtracking');
@@ -533,7 +529,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
 
         // Check whether the readtracking state can be changed.
         if ($isoptional || (!$forceallowed && $isforced)) {
-
             // Generate the text of the link depending on the current state.
             $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
             if ($istracked) {
@@ -568,15 +563,13 @@ function moodleoverflow_get_context($moodleoverflowid, $context = null) {
 
     // If the context does not exist, find the context.
     if (!$context || !($context instanceof context_module)) {
-
         // Try to take current page context to save on DB query.
-        if ($PAGE->cm && $PAGE->cm->modname === 'moodleoverflow' && $PAGE->cm->instance == $moodleoverflowid
+        if (
+            $PAGE->cm && $PAGE->cm->modname === 'moodleoverflow' && $PAGE->cm->instance == $moodleoverflowid
             && $PAGE->context->contextlevel == CONTEXT_MODULE && $PAGE->context->instanceid == $PAGE->cm->id
         ) {
             $context = $PAGE->context;
-
         } else {
-
             // Get the context via the coursemodule.
             $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid);
             $context = \context_module::instance($cm->id);
@@ -633,7 +626,8 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
  */
 function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
     // If maxbytes == 1 it means no attachments at all.
-    if (empty($moodleoverflow->maxattachments) || $moodleoverflow->maxbytes == 1 ||
+    if (
+        empty($moodleoverflow->maxattachments) || $moodleoverflow->maxbytes == 1 ||
         !has_capability('mod/moodleoverflow:createattachment', $context)
     ) {
         return false;
@@ -650,7 +644,7 @@ function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
  *
  * @return array array of grades
  */
-function moodleoverflow_get_user_grades($moodleoverflow, $userid=0) {
+function moodleoverflow_get_user_grades($moodleoverflow, $userid = 0) {
     global $CFG, $DB;
 
     $params = ["moodleoverflowid" => $moodleoverflow->id];
@@ -677,25 +671,20 @@ function moodleoverflow_get_user_grades($moodleoverflow, $userid=0) {
  */
 function moodleoverflow_update_grades($moodleoverflow, $userid, $nullifnone = null) {
     global $CFG;
-    require_once($CFG->libdir.'/gradelib.php');
+    require_once($CFG->libdir . '/gradelib.php');
 
     // Try to get the grades to update.
     if ($grades = moodleoverflow_get_user_grades($moodleoverflow, $userid)) {
-
         moodleoverflow_grade_item_update($moodleoverflow, $grades);
-
     } else if ($userid && $nullifnone) {
-
         // Insert a grade with rawgrade = null. As described in Gradebook API.
         $grade = new stdClass();
         $grade->userid = $userid;
         $grade->rawgrade = null;
         moodleoverflow_grade_item_update($moodleoverflow, $grade);
-
     } else {
         moodleoverflow_grade_item_update($moodleoverflow);
     }
-
 }
 
 /**
@@ -706,23 +695,21 @@ function moodleoverflow_update_grades($moodleoverflow, $userid, $nullifnone = nu
  *
  * @return int grade_update function success code
  */
-function moodleoverflow_grade_item_update($moodleoverflow, $grades=null) {
+function moodleoverflow_grade_item_update($moodleoverflow, $grades = null) {
     global $CFG, $DB;
 
     if (!function_exists('grade_update')) { // Workaround for buggy PHP versions.
-        require_once($CFG->libdir.'/gradelib.php');
+        require_once($CFG->libdir . '/gradelib.php');
     }
 
     $params = ['itemname' => $moodleoverflow->name, 'idnumber' => $moodleoverflow->id];
 
     if ($moodleoverflow->grademaxgrade <= 0) {
         $params['gradetype'] = GRADE_TYPE_NONE;
-
     } else if ($moodleoverflow->grademaxgrade > 0) {
         $params['gradetype'] = GRADE_TYPE_VALUE;
         $params['grademax'] = $moodleoverflow->grademaxgrade;
         $params['grademin'] = 0;
-
     }
 
     if ($grades === 'reset') {
@@ -730,8 +717,16 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades=null) {
         $grades = null;
     }
 
-    $gradeupdate = grade_update('mod/moodleoverflow', $moodleoverflow->course, 'mod', 'moodleoverflow',
-            $moodleoverflow->id, 0, $grades, $params);
+    $gradeupdate = grade_update(
+        'mod/moodleoverflow',
+        $moodleoverflow->course,
+        'mod',
+        'moodleoverflow',
+        $moodleoverflow->id,
+        0,
+        $grades,
+        $params
+    );
 
     // Modify grade item category id.
     if (!is_null($moodleoverflow->gradecat) && $moodleoverflow->gradecat > 0) {

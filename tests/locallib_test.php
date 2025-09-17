@@ -37,7 +37,6 @@ require_once(__DIR__ . '/../locallib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class locallib_test extends advanced_testcase {
-
     public function setUp(): void {
         parent::setUp();
         \mod_moodleoverflow\subscriptions::reset_moodleoverflow_cache();
@@ -174,5 +173,4 @@ final class locallib_test extends advanced_testcase {
             $this->assertFalse(\mod_moodleoverflow\subscriptions::is_subscribed($user->id, $mo, $context));
         }
     }
-
 }

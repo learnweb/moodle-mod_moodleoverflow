@@ -39,14 +39,21 @@ $returnurl = new moodle_url('/admin/settings.php?section=modsettingmoodleoverflo
 
 if ($confirmed !== 1) {
     $a = new stdClass();
-    $a->fullanoncount = $DB->count_records('moodleoverflow',
-        ['anonymous' => anonymous::EVERYTHING_ANONYMOUS]);
-    $a->questionanoncount = $DB->count_records('moodleoverflow',
-        ['anonymous' => anonymous::QUESTION_ANONYMOUS]);
+    $a->fullanoncount = $DB->count_records(
+        'moodleoverflow',
+        ['anonymous' => anonymous::EVERYTHING_ANONYMOUS]
+    );
+    $a->questionanoncount = $DB->count_records(
+        'moodleoverflow',
+        ['anonymous' => anonymous::QUESTION_ANONYMOUS]
+    );
     echo $OUTPUT->header();
     echo html_writer::div(
-        $OUTPUT->confirm(get_string('resetanonymous_warning', 'moodleoverflow', $a),
-            new moodle_url($PAGE->url, ['confirmed' => true, 'sesskey' => sesskey()]), $returnurl),
+        $OUTPUT->confirm(
+            get_string('resetanonymous_warning', 'moodleoverflow', $a),
+            new moodle_url($PAGE->url, ['confirmed' => true, 'sesskey' => sesskey()]),
+            $returnurl
+        ),
         'mod_moodleoverflow-hack-primary-to-danger-btn'
     );
     echo $OUTPUT->footer();

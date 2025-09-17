@@ -90,12 +90,10 @@ if ($istracked) {
 
         // Redirect the user back to where he is coming from.
         redirect($returnpageurl, get_string('nownottracking', 'moodleoverflow', $info), 1);
-
     } else {
         // The insertion failed. Print an error message.
         throw new moodle_exception('cannottrack', 'moodleoverflow', get_local_referer(false));
     }
-
 } else {
     // The moodleoverflow instance is not tracked. The next step is to track.
 
@@ -109,7 +107,6 @@ if ($istracked) {
 
         // Redirect the user back to where he is coming from.
         redirect($returnto, get_string('nowtracking', 'moodleoverflow', $info), 1);
-
     } else {
         // The deletion failed. Print an error message.
         throw new moodle_exception('cannottrack', 'moodleoverflow', get_local_referer(false));

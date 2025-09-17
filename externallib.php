@@ -39,7 +39,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_moodleoverflow_external extends external_api {
-
     // LEARNWEB-TODO: Adapt the functions to the new way of working with posts.
     /**
      * Returns description of method parameters
@@ -90,12 +89,18 @@ class mod_moodleoverflow_external extends external_api {
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $params['postid']], '*', MUST_EXIST);
 
         // Check if the discussion is valid.
-        $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $post->discussion],
-                                                             'invaliddiscussionid');
+        $discussion = moodleoverflow_get_record_or_exception(
+            'moodleoverflow_discussions',
+            ['id' => $post->discussion],
+            'invaliddiscussionid'
+        );
 
         // Check if the related moodleoverflow instance is valid.
-        $moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $discussion->moodleoverflow],
-                                                                 'invalidmoodleoverflowid');
+        $moodleoverflow = moodleoverflow_get_record_or_exception(
+            'moodleoverflow',
+            ['id' => $discussion->moodleoverflow],
+            'invalidmoodleoverflowid'
+        );
 
         // Check if the related moodleoverflow instance is valid.
         $course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->course], 'invalidcourseid', '*', true);
@@ -111,15 +116,24 @@ class mod_moodleoverflow_external extends external_api {
         require_capability('mod/moodleoverflow:ratepost', $context);
 
         // Rate the post.
-        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow,
-            $params['postid'], $params['ratingid'], $cm, $USER->id)) {
+        if (
+            !\mod_moodleoverflow\ratings::moodleoverflow_add_rating(
+                $moodleoverflow,
+                $params['postid'],
+                $params['ratingid'],
+                $cm,
+                $USER->id
+            )
+        ) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
         $post = moodleoverflow_get_post_full($params['postid']);
         $postownerid = $post->userid;
-        $rating = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($discussion->id,
-            $params['postid']);
+        $rating = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion(
+            $discussion->id,
+            $params['postid']
+        );
         $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
 
@@ -259,14 +273,14 @@ class mod_moodleoverflow_external extends external_api {
         $userto->anonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid);
 
         $maildata = new moodleoverflow_email(
-                $course,
-                $cm,
-                $moodleoverflow,
-                $discussion,
-                $post,
-                $userto,
-                $userto,
-                false
+            $course,
+            $cm,
+            $moodleoverflow,
+            $discussion,
+            $post,
+            $userto,
+            $userto,
+            false
         );
 
         $textcontext = $maildata->export_for_template($renderertext, true);
@@ -278,11 +292,11 @@ class mod_moodleoverflow_external extends external_api {
         }
 
         email_to_user(
-                $userto,
-                \core_user::get_noreply_user(),
-                get_string('email_rejected_subject', 'moodleoverflow', $textcontext),
-                $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_text', $textcontext),
-                $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_html', $htmlcontext)
+            $userto,
+            \core_user::get_noreply_user(),
+            get_string('email_rejected_subject', 'moodleoverflow', $textcontext),
+            $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_text', $textcontext),
+            $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_html', $htmlcontext)
         );
 
         $url = review::get_first_review_post($moodleoverflow->id, $post->id);

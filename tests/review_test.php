@@ -45,7 +45,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow_external::review_reject_post
  */
 final class review_test extends \advanced_testcase {
-
     /** @var \mod_moodleoverflow_generator $generator */
     private $generator;
     /**
@@ -280,8 +279,8 @@ final class review_test extends \advanced_testcase {
     private function create_post($options) {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
-        list(, $teacherpost) = $this->generator->post_to_forum($moodleoverflow, $this->teacher);
-        list(, $studentpost) = $this->generator->post_to_forum($moodleoverflow, $this->student);
+        [, $teacherpost] = $this->generator->post_to_forum($moodleoverflow, $this->teacher);
+        [, $studentpost] = $this->generator->post_to_forum($moodleoverflow, $this->student);
 
         return ['teacherpost' => $teacherpost, 'studentpost' => $studentpost];
     }
@@ -299,20 +298,28 @@ final class review_test extends \advanced_testcase {
     private function check_mail_records($teacherpost, $studentpost, $review1, $review2, $mailed) {
         global $DB;
 
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
+        $this->assert_matches_properties(
+            ['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
                                           'reviewed' => $review1, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id])
+        );
+        $this->assert_matches_properties(
+            ['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
                                           'reviewed' => $review2, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id])
+        );
 
         $this->run_send_notification_mails();
         $this->run_send_review_mails();
 
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS,
+        $this->assert_matches_properties(
+            ['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS,
                                           'reviewed' => $review1, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id]));
-        $this->assert_matches_properties(['mailed' => $mailed, 'reviewed' => $review2, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id]));
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id])
+        );
+        $this->assert_matches_properties(
+            ['mailed' => $mailed, 'reviewed' => $review2, 'timereviewed' => null],
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id])
+        );
     }
 }

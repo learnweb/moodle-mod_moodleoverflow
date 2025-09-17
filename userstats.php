@@ -26,7 +26,7 @@
  */
 
 // Include config and locallib.
-require_once(__DIR__.'/../../config.php');
+require_once(__DIR__ . '/../../config.php');
 global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
@@ -64,10 +64,9 @@ if (has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('
     // Output starts here.
     echo $OUTPUT->header();
     echo $OUTPUT->heading('');
-    $table = new userstats_table('statisticstable' , $course->id, $moodleoverflow->id, $PAGE->url);
+    $table = new userstats_table('statisticstable', $course->id, $moodleoverflow->id, $PAGE->url);
     $table->out();
     echo $OUTPUT->footer();
 } else {
     redirect(new moodle_url('/'));
 }
-

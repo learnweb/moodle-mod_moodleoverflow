@@ -37,7 +37,6 @@ require_once($CFG->libdir . '/filelib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class renderer extends \mod_moodleoverflow_renderer {
-
     /**
      * The template name for this renderer.
      *
@@ -58,9 +57,13 @@ class renderer extends \mod_moodleoverflow_renderer {
     public function format_message_text($cm, $post) {
         // Convert the message.
         $message = file_rewrite_pluginfile_urls(
-            $post->message, 'pluginfile.php',
+            $post->message,
+            'pluginfile.php',
             \context_module::instance($cm->id)->id,
-            'mod_moodleoverflow', 'post', $post->id);
+            'mod_moodleoverflow',
+            'post',
+            $post->id
+        );
 
         // Initiate some options.
         $options = new \stdClass();

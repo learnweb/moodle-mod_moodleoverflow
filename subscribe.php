@@ -52,8 +52,11 @@ if (!is_null($sesskey)) {
 }
 if (!is_null($discussionid)) {
     $url->param('d', $discussionid);
-    $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions',
-                                                          ['id' => $discussionid, 'moodleoverflow' => $id], 'invaliddiscussionid');
+    $discussion = moodleoverflow_get_record_or_exception(
+        'moodleoverflow_discussions',
+        ['id' => $discussionid, 'moodleoverflow' => $id],
+        'invaliddiscussionid'
+    );
 }
 
 // Set the pages URL.
@@ -90,9 +93,7 @@ if ($user) {
 
     // Retrieve the user from the database.
     $user = $DB->get_record('user', ['id' => $user], '*', MUST_EXIST);
-
 } else {
-
     // The user requested the subscription himself.
     $user = $USER;
 }
@@ -106,7 +107,6 @@ require_login($course, false, $cm);
 // Guests, visitors and not enrolled people cannot subscribe.
 $isenrolled = is_enrolled($context, $USER, '', true);
 if (is_null($mode) && !$isenrolled) {
-
     // Prepare the output.
     $PAGE->set_title($course->shortname);
     $PAGE->set_heading($course->fullname);
@@ -140,7 +140,6 @@ if (!is_null($mode) && has_capability('mod/moodleoverflow:managesubscriptions', 
 
     // Set the new mode.
     switch ($mode) {
-
         // Everyone can choose what he wants.
         case MOODLEOVERFLOW_CHOOSESUBSCRIBE:
             \mod_moodleoverflow\subscriptions::set_subscription_mode($moodleoverflow->id, MOODLEOVERFLOW_CHOOSESUBSCRIBE);
@@ -198,10 +197,8 @@ $info->moodleoverflow = format_string($moodleoverflow->name);
 // Check if the user is subscribed to the moodleoverflow.
 // The action is to unsubscribe the user.
 if ($issubscribed) {
-
     // Check if there is a sesskey.
     if (is_null($sesskey)) {
-
         // Perpare the output.
         $PAGE->set_title($course->shortname);
         $PAGE->set_heading($course->fullname);
@@ -212,7 +209,6 @@ if ($issubscribed) {
 
         // Was a discussion id submitted?
         if ($discussionid) {
-
             // Create a new info object.
             $info2 = new stdClass();
             $info2->moodleoverflow = format_string($moodleoverflow->name);
@@ -221,7 +217,6 @@ if ($issubscribed) {
             // Create a confirm statement.
             $string = get_string('confirmunsubscribediscussion', 'moodleoverflow', $info2);
             echo $OUTPUT->confirm($string, $PAGE->url, $viewurl);
-
         } else {
             // The discussion is not involved.
 
@@ -240,16 +235,13 @@ if ($issubscribed) {
 
     // Check if a discussion id is submitted.
     if ($discussionid === null) {
-
         // Unsubscribe the user and redirect him back to where he is coming from.
         if (\mod_moodleoverflow\subscriptions::unsubscribe_user($user->id, $moodleoverflow, $context, true)) {
             redirect($returnto, get_string('nownotsubscribed', 'moodleoverflow', $info), null, $notify['success']);
         } else {
             throw new moodle_exception('cannotunsubscribe', 'moodleoverflow', get_local_referer(false));
         }
-
     } else {
-
         // Unsubscribe the user from the discussion.
         if (\mod_moodleoverflow\subscriptions::unsubscribe_user_from_discussion($user->id, $discussion, $context)) {
             $info->discussion = $discussion->name;
@@ -258,7 +250,6 @@ if ($issubscribed) {
             throw new moodle_exception('cannotunsubscribe', 'moodleoverflow', get_local_referer(false));
         }
     }
-
 } else {
     // The user needs to be subscribed.
 
@@ -281,7 +272,6 @@ if ($issubscribed) {
 
     // Check the session key.
     if (is_null($sesskey)) {
-
         // Prepare the output.
         $PAGE->set_title($course->shortname);
         $PAGE->set_heading($course->fullname);
@@ -292,7 +282,6 @@ if ($issubscribed) {
 
         // Check whether a discussion is referenced.
         if ($discussionid) {
-
             // Create a new info object.
             $info2 = new stdClass();
             $info2->moodleoverflow = format_string($moodleoverflow->name);
@@ -301,7 +290,6 @@ if ($issubscribed) {
             // Create a confirm dialog.
             $string = get_string('confirmsubscribediscussion', 'moodleoverflow', $info2);
             echo $OUTPUT->confirm($string, $PAGE->url, $viewurl);
-
         } else {
             // No discussion is referenced.
 
@@ -320,12 +308,10 @@ if ($issubscribed) {
 
     // Check if the subscription is refered to a discussion.
     if ($discussionid == null) {
-
         // Subscribe the user to the moodleoverflow instance.
         \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $context, true);
         redirect($returnto, get_string('nowsubscribed', 'moodleoverflow', $info), null, $notify['success']);
         exit;
-
     } else {
         $info->discussion = $discussion->name;
 

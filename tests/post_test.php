@@ -42,7 +42,6 @@ require_once(__DIR__ . '/../locallib.php');
  * @covers \mod_moodleoverflow\post\post
  */
 final class post_test extends \advanced_testcase {
-
     /** @var stdClass test course */
     private $course;
 
@@ -92,8 +91,19 @@ final class post_test extends \advanced_testcase {
         // Build a new post object.
         $time = time();
         $message = 'a unique message';
-        $post = post::construct_without_id($this->discussion->get_id(), $this->post->get_id(), $this->teacher->id, $time,
-                                           $time, $message, 0, '', 0, 1, null);
+        $post = post::construct_without_id(
+            $this->discussion->get_id(),
+            $this->post->get_id(),
+            $this->teacher->id,
+            $time,
+            $time,
+            $message,
+            0,
+            '',
+            0,
+            1,
+            null
+        );
         $post->moodleoverflow_add_new_post();
 
         // The post should be in the database.
@@ -126,7 +136,7 @@ final class post_test extends \advanced_testcase {
 
         // The message and modified time should be changed.
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $this->post->get_id()]);
-        $this->assertEquals($message,  $post->message);
+        $this->assertEquals($message, $post->message);
         $this->assertEquals($time, $post->modified);
     }
 
@@ -203,12 +213,12 @@ final class post_test extends \advanced_testcase {
     private function add_new_attachment($object, $modulecontext, $filename, $filecontent) {
         global $DB;
         $fileinfo = [
-            'contextid' => $modulecontext->id,           // ID of the context.
-            'component' => 'mod_moodleoverflow',               // Your component name.
-            'filearea'  => 'attachment',                       // Usually = table name.
-            'itemid'    => $object->id,                      // Usually = ID of the item (e.g. the post.
-            'filepath'  => '/',                                // Any path beginning and ending in /.
-            'filename'  => $filename,                      // Any filename.
+            'contextid' => $modulecontext->id, // ID of the context.
+            'component' => 'mod_moodleoverflow', // Your component name.
+            'filearea'  => 'attachment', // Usually = table name.
+            'itemid'    => $object->id, // Usually = ID of the item (e.g. the post.
+            'filepath'  => '/', // Any path beginning and ending in /.
+            'filename'  => $filename, // Any filename.
         ];
         $fs = get_file_storage();
         $fs->create_file_from_string($fileinfo, $filecontent); // Creates a new file containing the text 'hello world'.

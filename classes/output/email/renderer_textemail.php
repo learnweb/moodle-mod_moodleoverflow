@@ -36,7 +36,6 @@ require_once($CFG->libdir . '/filelib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class renderer_textemail extends renderer {
-
     /**
      * The template name for this renderer.
      *
@@ -56,9 +55,14 @@ class renderer_textemail extends renderer {
      */
     public function format_message_text($cm, $post) {
         // Format the text.
-        $message = file_rewrite_pluginfile_urls($post->message, 'pluginfile.php',
+        $message = file_rewrite_pluginfile_urls(
+            $post->message,
+            'pluginfile.php',
             \context_module::instance($cm->id)->id,
-            'mod_moodleoverflow', 'post', $post->id);
+            'mod_moodleoverflow',
+            'post',
+            $post->id
+        );
 
         // Print the message.
         return format_text_email($message, $post->messageformat);

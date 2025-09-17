@@ -69,8 +69,11 @@ if (!isloggedin() || isguestuser()) {
     // The guest needs to login.
     $strlogin = get_string('noguestpost', 'forum') . '<br /><br />' . get_string('liketologin');
     echo $OUTPUT->header();
-    echo $OUTPUT->confirm($strlogin, get_login_url(),
-                          $CFG->wwwroot . '/mod/moodleoverflow/view.php?m= ' . $information->moodleoverflow->id);
+    echo $OUTPUT->confirm(
+        $strlogin,
+        get_login_url(),
+        $CFG->wwwroot . '/mod/moodleoverflow/view.php?m= ' . $information->moodleoverflow->id
+    );
     echo $OUTPUT->footer();
     exit;
 }
@@ -106,15 +109,19 @@ if ($postcontrol->get_interaction() == 'delete') {
         $information = $postcontrol->get_information();
         echo $OUTPUT->header();
         if ($information->deletetype == 'plural') {
-            echo $OUTPUT->confirm(get_string('deletesureplural', 'moodleoverflow', $information->replycount + 1),
-                                  'post.php?delete='.$delete.'&confirm='.$delete,
-                                  $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $information->discussion->get_id() .
-                                   '#p' . $information->relatedpost->get_id());
+            echo $OUTPUT->confirm(
+                get_string('deletesureplural', 'moodleoverflow', $information->replycount + 1),
+                'post.php?delete=' . $delete . '&confirm=' . $delete,
+                $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $information->discussion->get_id() .
+                '#p' . $information->relatedpost->get_id()
+            );
         } else {
-            echo $OUTPUT->confirm(get_string('deletesure', 'moodleoverflow', $information->replycount),
+            echo $OUTPUT->confirm(
+                get_string('deletesure', 'moodleoverflow', $information->replycount),
                 "post.php?delete=$delete&confirm=$delete",
                 $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $information->discussion->get_id() .
-                 '#p' . $information->relatedpost->get_id());
+                '#p' . $information->relatedpost->get_id()
+            );
         }
         echo $OUTPUT->footer();
     }
