@@ -65,7 +65,7 @@ class anonymous {
         }
 
         if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
-            return $discussion->userid == $postinguserid;
+            return $discussion->get_userid() == $postinguserid;
         }
 
         return false;
