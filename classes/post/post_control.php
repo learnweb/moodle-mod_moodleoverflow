@@ -464,8 +464,8 @@ class post_control {
         $event->trigger();
 
         // Subscribe to this thread.
-        // Please be aware that in future the use of build_db_object() should be replaced with only $this->info->discussion,
-        // as the subscription class should be refactored with the new way of working with posts.
+        // LEARNWEB-TODO: Please be aware that in future the use of build_db_object() should be replaced with only
+        // $this->info->discussion, as the subscription class should be refactored with the new way of working with posts.
         subscriptions::moodleoverflow_post_subscription(
             $form,
             $this->info->moodleoverflow,
@@ -611,9 +611,11 @@ class post_control {
         );
 
         // If the post is anonymous, attachments should have an anonymous author when editing the attachment.
+        // LEARNWEB-TODO: Please be aware that in future the use of build_db_object() should be replaced with only
+        // $this->info->discussion, when the new way of working with posts is fully implemented.
         if (
             $draftitemid && $this->interaction == 'edit' && anonymous::is_post_anonymous(
-                $this->info->discussion,
+                $this->info->discussion->get_db_object(),
                 $this->info->moodleoverflow,
                 $this->prepost->userid
             )
