@@ -58,8 +58,8 @@ if (has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('
     // Print the page header.
     $PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
     'courseid' => $course->id, 'mid' => $moodleoverflow->id, ]);
-    $PAGE->set_title(format_string('User statistics'));
-    $PAGE->set_heading(format_string('User statistics of course: ' . $course->fullname));
+    $PAGE->set_title(get_string('userstats', 'moodleoverflow'));
+    $PAGE->set_heading(get_string('userstatscourse', 'moodleoverflow', $course->fullname));
 
     // Output starts here.
     echo $OUTPUT->header();
