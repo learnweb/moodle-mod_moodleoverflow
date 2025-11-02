@@ -15,10 +15,10 @@
   along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-  @template mod_moodleoverflow/discussion_list
+  @template mod_moodleoverflow/forum_list
 
-  Moodleoverflow discussion_list template.
-  The purpose of this template is to render a list of discussions for the view.php.
+  Moodleoverflow forum_list template.
+  The purpose of this template is to render a list of forums for the view.php.
 
   Example context (json):
   {
@@ -29,7 +29,7 @@
         <thead>
             <th class ="header topic" scope="col">
                 {{#currentdiscussion}}
-                    Where do you want to move the topic "{{currentdiscussion}}" ?
+                    {{#str}} wheremovetopic, mod_moodleoverflow, {{currentdiscussion}} {{/str}}
                 {{/currentdiscussion}}          
             </th>
         </thead>
@@ -52,7 +52,7 @@
 {{/hasforums}}
 {{^hasforums}}
     <div class="alert alert-info">
-        Unfortunately, there is no other Moodleoverflow where you can move it.
+        {{#str}} nootherforums, mod_moodleoverflow {{/str}}
     </div>
 {{/hasforums}}
 <br>
