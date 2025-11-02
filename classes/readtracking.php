@@ -130,7 +130,7 @@ class readtracking {
         $discussions = moodleoverflow_get_discussions_unread($cm);
 
         // Iterate through all of this discussions.
-        foreach ($discussions as $discussionid) {
+        foreach ($discussions as $discussionid => $unread) {
             // Mark the discussion as read.
             $markedcheck = self::moodleoverflow_mark_discussion_read($discussionid, context_module::instance($cm->id), $userid);
             moodleoverflow_throw_exception_with_check($markedcheck !== true, 'markreadfailed');
