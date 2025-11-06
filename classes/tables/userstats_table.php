@@ -263,7 +263,7 @@ class userstats_table extends \flexible_table {
      */
     private function get_rating_data() {
         global $DB;
-        $sqlquery = 'SELECT (ROW_NUMBER() OVER (ORDER BY ratings.id)) AS row_num,
+        $sqlquery = 'SELECT ROW_NUMBER() OVER (ORDER BY ratings.id) AS row_num,
                             discuss.id AS discussid,
                             discuss.userid AS discussuserid,
                             posts.id AS postid,
