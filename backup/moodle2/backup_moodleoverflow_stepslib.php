@@ -130,6 +130,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $read->annotate_ids('user', 'userid');
         $rating->annotate_ids('user', 'userid');
         $track->annotate_ids('user', 'userid');
+        $moodleoverflow->annotate_ids('grade_category', 'gradecat');
 
         // Define file annotations (we do not use itemid in this example).
         $moodleoverflow->annotate_files('mod_moodleoverflow', 'intro', null);

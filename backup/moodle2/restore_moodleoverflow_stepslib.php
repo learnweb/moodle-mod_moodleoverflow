@@ -97,6 +97,11 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
             $data->timemodified = time();
         }
 
+        if (!empty($data->gradecat)) {
+            // Map grade category.
+            $data->gradecat = $this->get_mappingid('grade_category', $data->gradecat);
+        }
+
         // Create the moodleoverflow instance.
         $newitemid = $DB->insert_record('moodleoverflow', $data);
         $this->apply_activity_instance($newitemid);
