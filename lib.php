@@ -31,6 +31,7 @@
 
 // LEARNWEB-TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
 use core\context\course;
+use core_completion\api;
 use mod_moodleoverflow\anonymous;
 
 defined('MOODLE_INTERNAL') || die();
@@ -95,7 +96,7 @@ define('RATING_REMOVE_HELPFUL', 40);
  *
  * @return mixed true if the feature is supported, null if unknown
  */
-function moodleoverflow_supports($feature) {
+function moodleoverflow_supports(string $feature): mixed {
 
     if (defined('FEATURE_MOD_PURPOSE')) {
         if ($feature == FEATURE_MOD_PURPOSE) {
@@ -105,14 +106,10 @@ function moodleoverflow_supports($feature) {
 
     switch ($feature) {
         case FEATURE_MOD_INTRO:
-            return true;
         case FEATURE_SHOW_DESCRIPTION:
-            return true;
         case FEATURE_BACKUP_MOODLE2:
-            return true;
         case FEATURE_GRADE_HAS_GRADE:
             return true;
-
         default:
             return null;
     }
@@ -126,21 +123,24 @@ function moodleoverflow_supports($feature) {
  * will create a new instance and return the id number
  * of the new instance.
  *
- * @param stdClass                    $moodleoverflow Submitted data from the form in mod_form.php
+ * @param stdClass                    $data Submitted data from the form in mod_form.php
  * @param ?mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
  *
  * @return int The id of the newly inserted moodleoverflow record
  */
-function moodleoverflow_add_instance(stdClass $moodleoverflow, ?mod_moodleoverflow_mod_form $mform = null) {
+function moodleoverflow_add_instance(stdClass $data, ?mod_moodleoverflow_mod_form $mform = null) {
     global $DB;
 
     // Set the current time.
-    $moodleoverflow->timecreated = time();
+    $data->timecreated = time();
 
     // You may have to add extra stuff in here.
-    $moodleoverflow->id = $DB->insert_record('moodleoverflow', $moodleoverflow);
+    $mid = $DB->insert_record('moodleoverflow', $data);
 
-    return $moodleoverflow->id;
+    $completiontime = !empty($data->completionexpected) ? $data->completionexpected : null;
+    api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $mid, $completiontime);
+
+    return $mid;
 }
 
 /**
@@ -171,46 +171,51 @@ function moodleoverflow_instance_created($context, $moodleoverflow) {
  * (defined by the form in mod_form.php) this function
  * will update an existing instance with new data.
  *
- * @param stdClass                         $moodleoverflow An object from the form in mod_form.php
+ * @param stdClass                         $data           The data from the form in mod_form.php
  * @param mod_moodleoverflow_mod_form|null $mform          The form instance itself (if needed)
  *
  * @return boolean Success/Fail
  */
-function moodleoverflow_update_instance(stdClass $moodleoverflow, ?mod_moodleoverflow_mod_form $mform = null) {
+function moodleoverflow_update_instance(stdClass $data, ?mod_moodleoverflow_mod_form $mform = null) {
     global $DB;
 
-    $moodleoverflow->timemodified = time();
-    $moodleoverflow->id = $moodleoverflow->instance;
+    $data->timemodified = time();
+
+    // Get the moodleoverflow id.
+    $data->id = $data->instance;
 
     // Get the old record.
-    $oldmoodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
+    $oldmoodleoverflow = $DB->get_record('moodleoverflow', ['id' => $data->id]);
 
     // Find the context of the module.
-    $modulecontext = context_module::instance($moodleoverflow->coursemodule);
+    $modulecontext = context_module::instance($data->coursemodule);
 
     // Check if the subscription state has changed.
-    if ($moodleoverflow->forcesubscribe != $oldmoodleoverflow->forcesubscribe) {
-        if ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
+    if ($data->forcesubscribe != $oldmoodleoverflow->forcesubscribe) {
+        if ($data->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
             // Get a list of potential subscribers.
             $users = \mod_moodleoverflow\subscriptions::get_potential_subscribers($modulecontext, 'u.id, u.email', '');
 
             // Subscribe all those users to the moodleoverflow instance.
             foreach ($users as $user) {
-                \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $modulecontext);
+                \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $data, $modulecontext);
             }
-        } else if ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_CHOOSESUBSCRIBE) {
+        } else if ($data->forcesubscribe == MOODLEOVERFLOW_CHOOSESUBSCRIBE) {
             // Delete all current subscribers.
-            $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $moodleoverflow->id]);
+            $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $data->id]);
         }
     }
 
     // Update the moodleoverflow instance in the database.
-    $result = $DB->update_record('moodleoverflow', $moodleoverflow);
+    $result = $DB->update_record('moodleoverflow', $data);
 
-    moodleoverflow_grade_item_update($moodleoverflow);
+    moodleoverflow_grade_item_update($data);
 
     // Update all grades.
-    moodleoverflow_update_all_grades_for_cm($moodleoverflow->id);
+    moodleoverflow_update_all_grades_for_cm($data->id);
+
+    $completiontime = !empty($data->completionexpected) ? $data->completionexpected : null;
+    api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $data->id, $completiontime);
 
     return $result;
 }
