@@ -5,70 +5,39 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
   I need to distinct the unread posts from the read ones
 
   Background:
-    Given the following "users" exist:
-      | username | firstname | lastname | email |
-      | student1 | Student | 1 | student1@example.com |
-    And the following "courses" exist:
-      | fullname | shortname | category |
-      | Course 1 | C1 | 0 |
-    And the following "course enrolments" exist:
-      | user | course | role |
-      | student1 | C1 | student |
-    And I log in as "admin"
-    And I am on "Course 1" course homepage with editing mode on
+    Given I prepare a moodleoverflow feature background with users:
+      | username | firstname | lastname | email             | idnumber | role           |
+      | student1 | Student   | 1        | student1@mail.com | 10       | student        |
 
   Scenario: Tracking moodleoverflow posts off
-    Given the following "activities" exist:
-      | activity       | name                     | intro                            | course  | idnumber       | trackingtype |
-      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 0            |
-    And I am on "Course 1" course homepage
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Test post subject |
-      | Message | Test post message |
-    And I log out
-    When I log in as "student1"
+    When The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "0"
+    And I log in as "student1"
     And I am on "Course 1" course homepage
     Then I should not see "1 unread post"
     And I follow "Test moodleoverflow name"
     And I should not see "Track unread posts"
 
   Scenario: Tracking moodleoverflow posts optional
-    Given the following "activities" exist:
-      | activity       | name                     | intro                            | course  | idnumber       | trackingtype |
-      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 1            |
-    And I am on "Course 1" course homepage
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Test post subject |
-      | Message | Test post message |
-    And I log out
-    When I log in as "student1"
+    When The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "1"
+    And I log in as "student1"
     And I am on "Course 1" course homepage
     Then I should see "1 unread post"
-    And I follow "Test moodleoverflow name"
-    And I follow "Don't track unread posts"
+    And I click in moodleoverflow on "link" type:
+      | Test moodleoverflow name | Don't track unread posts |
     And I wait to be redirected
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
-    And I follow "Test moodleoverflow name"
-    And I follow "Track unread posts"
+    And I click in moodleoverflow on "link" type:
+      | Test moodleoverflow name | Track unread posts |
     And I wait to be redirected
     And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
 
-  @javascript
   Scenario: Tracking moodleoverflow posts forced
     Given the following config values are set as admin:
       | allowforcedreadtracking | 1 | moodleoverflow |
-    And I am on "Course 1" course homepage
-    Given the following "activities" exist:
-      | activity       | name                     | intro                            | course  | idnumber       | trackingtype |
-      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 2            |
-    And I am on "Course 1" course homepage
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Test post subject |
-      | Message | Test post message |
-    And I log out
+    And The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "2"
     When I log in as "student1"
     And I am on "Course 1" course homepage
     Then I should see "1 unread post"
@@ -81,27 +50,19 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
   Scenario: Tracking moodleoverflow posts forced (with force disabled)
     Given the following config values are set as admin:
       | allowforcedreadtracking | 1 | moodleoverflow |
-    And I am on "Course 1" course homepage
-    Given the following "activities" exist:
-      | activity       | name                     | intro                            | course  | idnumber       | trackingtype |
-      | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 2            |
-    And I am on "Course 1" course homepage
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Test post subject |
-      | Message | Test post message |
+    And The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "2"
     And the following config values are set as admin:
       | allowforcedreadtracking | 0 | moodleoverflow |
-    And I log out
     When I log in as "student1"
     And I am on "Course 1" course homepage
     Then I should see "1 unread post"
-    And I follow "Test moodleoverflow name"
-    And I follow "Don't track unread posts"
+    And I click in moodleoverflow on "link" type:
+      | Test moodleoverflow name | Don't track unread posts |
     And I wait to be redirected
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
-    And I follow "Test moodleoverflow name"
-    And I follow "Track unread posts"
+    And I click in moodleoverflow on "link" type:
+      | Test moodleoverflow name | Track unread posts |
     And I wait to be redirected
     And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage

@@ -41,7 +41,39 @@ use Behat\Mink\Exception\ExpectationException;
  */
 class behat_mod_moodleoverflow extends behat_base {
     /**
-     * Build basic background for moodleoverflow tests.
+     * Prepares a basic background for moodleoverflow features.
+     *
+     * @Given /^I prepare a moodleoverflow feature background with users:$/
+     * @return void
+     */
+    #[\core\attribute\example('I prepare a moodleoverflow feature background with users:
+        | username | firstname | lastname | email             | idnumber | role    |
+        | student1 | Student   | One      | student1@mail.com | 10       | student |
+        | teacher  | Teacher   | One      | teacher@mail.com  | 50       | teacher |')]
+    public function i_prepare_a_moodleoverflow_background(TableNode $data): void {
+        $rows = $data->getHash();
+
+        // Create one course.
+        $this->execute('behat_data_generators::the_following_entities_exist', ['courses', new TableNode([
+            ['fullname', 'shortname', 'category'],
+            ['Course 1', 'C1', '0'],
+        ])]);
+
+        // Create and enrol user in course.
+        foreach ($rows as $row) {
+            $this->execute('behat_data_generators::the_following_entities_exist', ['users', new TableNode([
+                ['username', 'firstname', 'lastname', 'email', 'idnumber'],
+                [$row['username'], $row['firstname'], $row['lastname'], $row['email'], $row['idnumber']],
+            ])]);
+            $this->execute('behat_data_generators::the_following_entities_exist', ['course enrolments', new TableNode([
+                ['user', 'course', 'role'],
+                [$row['username'], 'C1', $row['role']],
+            ])]);
+        }
+    }
+
+    /**
+     * Build a background for moodleoverflow tests.
      * Builds:
      * - A course
      * - One teacher and one student, both enrolled in the course
@@ -54,33 +86,16 @@ class behat_mod_moodleoverflow extends behat_base {
      */
     public function i_add_a_moodleoverflow_discussion_with_posts_from_different_users(): void {
         global $DB;
-        $time = time();
-        $starttime = $time - 31556926;
-        $endtime = $time + 31556926;
+        $this->i_prepare_a_moodleoverflow_background(new TableNode([
+            ['username', 'firstname', 'lastname', 'email', 'idnumber', 'role'],
+            ['teacher1', 'Tamaro', 'Walter', 'tamaro@mail.com', '10', 'teacher'],
+            ['student1', 'John', 'Smith', 'john@mail.com', '11', 'student'],
+        ]));
 
-        // Create users.
-        $this->execute('behat_data_generators::the_following_entities_exist', ['users', new TableNode([
-            ['username', 'firstname', 'lastname'],
-            ['teacher1', 'Tamaro', 'Walter'],
-            ['student1', 'John', 'Smith'],
-        ])]);
-
+        $course = $DB->get_record('course', ['shortname' => 'C1']);
         $teacher = $DB->get_record('user', ['username' => 'teacher1']);
         $student = $DB->get_record('user', ['username' => 'student1']);
-
-        // Create course.
-        $this->execute('behat_data_generators::the_following_entities_exist', ['courses', new TableNode([
-            ['fullname', 'shortname', 'category', 'startdate', 'enddate'],
-            ['Course 1', 'C1', '0', $starttime, $endtime],
-        ])]);
-        $course = $DB->get_record('course', ['shortname' => 'C1']);
-
-        // Enroll users.
-        $this->execute('behat_data_generators::the_following_entities_exist', ['course enrolments', new TableNode([
-            ['user', 'course', 'role'],
-            ['teacher1', 'C1', 'teacher'],
-            ['student1', 'C1', 'student'],
-        ])]);
+        $time = time();
 
         // Create activity.
         $this->execute('behat_data_generators::the_following_entities_exist', ['activities', new TableNode([
@@ -116,27 +131,49 @@ class behat_mod_moodleoverflow extends behat_base {
     }
 
     /**
+     * The admins adds a moodleoverflow discussions with a tracking type. Used in the track_read_posts_feature.
+     *
+     * @Given /^The admin posts "(?P<subject>[^"]*)" in "(?P<name>[^"]*)" with tracking type "(?P<trackingtype>[^"]*)"$/
+     *
+     * @param string $subject
+     * @param string $name
+     * @param string $trackingtype
+     * @return void
+     */
+    public function admin_adds_moodleoverflow_with_tracking_type(string $subject, string $name, string $trackingtype): void {
+        $this->execute('behat_data_generators::the_following_entities_exist', ['activities', new TableNode([
+            ['activity', 'course', 'name', 'intro', 'trackingtype'],
+            ['moodleoverflow', 'C1', $name, 'Test moodleoverflow description', $trackingtype],
+        ])]);
+        $this->execute('behat_auth::i_log_in_as', 'admin');
+        $this->execute('behat_navigation::i_am_on_course_homepage', 'Course 1');
+        $this->i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($name, new TableNode([
+            ['Subject', $subject],
+            ['Message', 'Test post message'],
+        ]));
+    }
+
+    /**
      * Logs in as a user and navigates in a course to dedicated moodleoverflow discussion.
      *
-     * @Given /^I navigate as "(?P<user>[^"]*)" to "(?P<course>[^"]*)" "(?P<moodleoverflow>[^"]*)" "(?P<discussion>[^"]*)"$/
+     * @Given /^I navigate as "(?P<user>[^"]*)" to "(?P<course>[^"]*)" "(?P<modflow>[^"]*)" "(?P<discussion>[^"]*)"$/
      *
      * @param string $user The username to log in as
      * @param string $course The full name of the course
-     * @param string $moodleoverflow The name of the moodleoverflow activity
+     * @param string $modflow The name of the moodleoverflow activity
      * @param string $discussion The name of the discussion
      * @return void
      * @throws Exception
      */
-    public function i_navigate_as_user_to_the_discussion(
-        string $user,
-        string $course,
-        string $moodleoverflow,
-        string $discussion
-    ): void {
+    public function i_navigate_as_user_to_the_discussion(string $user, string $course, string $modflow, string $discussion): void {
         $this->execute('behat_auth::i_log_in_as', $user);
         $this->execute('behat_navigation::i_am_on_course_homepage', $course);
-        $this->execute('behat_general::click_link', $this->escape($moodleoverflow));
-        $this->execute('behat_general::click_link', $this->escape($discussion));
+        $this->execute('behat_general::click_link', $this->escape($modflow));
+
+        // Make the navigation to the discussion optional.
+        if ($discussion != "") {
+            $this->execute('behat_general::click_link', $this->escape($discussion));
+        }
     }
 
     /**
@@ -187,11 +224,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param string $sectionnumber
      * @param TableNode $data
      */
-    public function i_add_a_moodleoverflow_to_course_section_and_fill_form(
-        string $courseshortname,
-        string $sectionnumber,
-        TableNode $data
-    ) {
+    public function i_add_moodleoverflow_to_course_and_fill_form(string $courseshortname, string $sectionnumber, TableNode $data) {
         global $CFG;
 
         if ($CFG->branch >= 404) {
@@ -219,17 +252,6 @@ class behat_mod_moodleoverflow extends behat_base {
     }
 
     /**
-     * Adds a topic to the moodleoverflow specified by it's name. Useful for the Announcements and blog-style moodleoverflow.
-     *
-     * @Given /^I add a new topic to "(?P<moodleoverflow_name_string>(?:[^"]|\\")*)" moodleoverflow with:$/
-     * @param string    $moodleoverflowname
-     * @param TableNode $table
-     */
-    public function i_add_a_new_topic_to_moodleoverflow_with($moodleoverflowname, TableNode $table) {
-        $this->add_new_discussion($moodleoverflowname, $table, get_string('addanewtopic', 'moodleoverflow'));
-    }
-
-    /**
      * Adds a discussion to the moodleoverflow specified by it's name with the provided table data
      * (usually Subject and Message). The step begins from the moodleoverflow's course page.
      *
@@ -253,7 +275,6 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param TableNode $table
      */
     public function i_reply_post_from_moodleoverflow_with($postsubject, $moodleoverflowname, TableNode $table) {
-
         // Navigate to moodleoverflow.
         $this->execute('behat_general::click_link', $this->escape($moodleoverflowname));
         $this->execute('behat_general::click_link', $this->escape($postsubject));
@@ -261,47 +282,8 @@ class behat_mod_moodleoverflow extends behat_base {
 
         // Fill form and post.
         $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
-
         $this->execute('behat_forms::press_button', get_string('posttomoodleoverflow', 'moodleoverflow'));
         $this->execute('behat_general::i_wait_to_be_redirected');
-    }
-
-    /**
-     * Returns the steps list to add a new discussion to a moodleoverflow.
-     *
-     * Abstracts add a new topic and add a new discussion, as depending
-     * on the moodleoverflow type the button string changes.
-     *
-     * @param string    $moodleoverflowname
-     * @param TableNode $table
-     * @param string    $buttonstr
-     */
-    protected function add_new_discussion($moodleoverflowname, TableNode $table, $buttonstr) {
-
-        // Navigate to moodleoverflow.
-        $this->execute('behat_navigation::i_am_on_page_instance', [$this->escape($moodleoverflowname),
-            'moodleoverflow activity', ]);
-        $this->execute('behat_forms::press_button', $buttonstr);
-
-        // Fill form and post.
-        $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
-        $this->execute('behat_forms::press_button', get_string(
-            'posttomoodleoverflow',
-            'moodleoverflow'
-        ));
-        $this->execute('behat_general::i_wait_to_be_redirected');
-    }
-
-    /**
-     * Gets the container node.
-     * @param string $discussiontitle
-     */
-    protected function find_moodleoverflow_discussion_card(string $discussiontitle): \Behat\Mink\Element\Element {
-        return $this->find(
-            'xpath',
-            '//*[contains(concat(" ",normalize-space(@class)," ")," moodleoverflowdiscussion ")][.//*[text()="' .
-            $discussiontitle . '"]]'
-        );
     }
 
     // phpcs:disable moodle.Files.LineLength.TooLong
@@ -310,18 +292,30 @@ class behat_mod_moodleoverflow extends behat_base {
      *
      * This step is for advanced users, use it if you don't find anything else suitable for what you need.
      *
-     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should exist in the "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
-     * @throws ElementNotFoundException Thrown by behat_base::find
+     * @Given :element :selectortype should :text exist in the :discussiontitle and :optdiscussion moodleoverflow discussion card
+     *
      * @param string $element The locator of the specified selector
      * @param string $selectortype The selector type
+     * @param string $text Type not if the element should not exist, "" if it should
      * @param string $discussiontitle The discussion title
+     * @param string $optdiscussion An optional second discussion to check
      */
-    public function should_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
+    public function should_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $text, $discussiontitle, string $optdiscussion) {
         // phpcs:enable
-        // Get the container node.
         $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
 
-        // Specific exception giving info about where can't we find the element.
+        if ($text === "not") {
+            try {
+                $this->find($selectortype, $element, false, $containernode, behat_base::get_reduced_timeout());
+            } catch (ElementNotFoundException $e) {
+                return; // Element not found as expected.
+            }
+            throw new ExpectationException(
+                "The '{$element}' '{$selectortype}' exists in the '{$discussiontitle}' moodleoverflow discussion card",
+                $this->getSession()
+            );
+        }
+
         $exception = new ElementNotFoundException(
             $this->getSession(),
             $selectortype,
@@ -329,8 +323,12 @@ class behat_mod_moodleoverflow extends behat_base {
             "$element in the moodleoverflow discussion card."
         );
 
-        // Looks for the requested node inside the container node.
         $this->find($selectortype, $element, $exception, $containernode);
+
+        // Search for a second discussion if provided.
+        if ($optdiscussion !== "") {
+            $this->find_moodleoverflow_discussion_card($optdiscussion);
+        }
     }
 
     // phpcs:disable moodle.Files.LineLength.TooLong
@@ -361,40 +359,6 @@ class behat_mod_moodleoverflow extends behat_base {
         $node->click();
     }
 
-    // phpcs:disable moodle.Files.LineLength.TooLong
-    /**
-     * Checks that an element and selector type does not exist in another element and selector type on the current page.
-     *
-     * This step is for advanced users, use it if you don't find anything else suitable for what you need.
-     *
-     * @Then /^"(?P<element_string>(?:[^"]|\\")*)" "(?P<selector_string>[^"]*)" should not exist in the "(?P<element2_string>(?:[^"]|\\")*)" moodleoverflow discussion card$/
-     * @throws ExpectationException
-     * @param string $element The locator of the specified selector
-     * @param string $selectortype The selector type
-     * @param string $discussiontitle The discussion title
-     */
-    public function should_not_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $discussiontitle) {
-        // phpcs:enable
-        // Get the container node.
-        $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
-
-        // Will throw an ElementNotFoundException if it does not exist, but, actually it should not exist, so we try &
-        // catch it.
-        try {
-            // Looks for the requested node inside the container node.
-            $this->find($selectortype, $element, false, $containernode, behat_base::get_reduced_timeout());
-        } catch (ElementNotFoundException $e) {
-            // We expect the element to not be found.
-            return;
-        }
-
-        // The element was found and should not have been. Throw an exception.
-        throw new ExpectationException(
-            "The '{$element}' '{$selectortype}' exists in the '{$discussiontitle}' moodleoverflow discussion card",
-            $this->getSession()
-        );
-    }
-
     /**
      * Sets the limited answer starttime attribute of a moodleoverflow to the current time.
      *
@@ -411,5 +375,83 @@ class behat_mod_moodleoverflow extends behat_base {
         // Update the specified field.
         $activityrecord->la_starttime = time();
         $DB->update_record('moodleoverflow', $activityrecord);
+    }
+
+    /**
+     * Follows a sequence of clicks elements.
+     *
+     * @Given /^I click in moodleoverflow on "(?P<text_string>(?:[^"]|\\")*)" type:$/
+     * @param string $type Type of element like "text", "checkbox" or "button".
+     * @param TableNode $data
+     * @return void
+     * @throws DriverException
+     */
+    #[\core\attribute\example('I click in moodleoverflow on:
+        | Test moodleoverflow | Topic 1 |')]
+    public function i_click_in_moodleoverflow_on(string $type, TableNode $data): void {
+        $elements = $data->getRow(0);
+        foreach ($elements as $element) {
+            $this->execute('behat_general::i_click_on', [$element, $type]);
+        }
+    }
+
+    /**
+     * Checks if a group of elements can be seen.
+     *
+     * @Given /^I should "(?P<text_string>(?:[^"]|\\")*)" see the elements:$/
+     * @param string $text Type "not" when elements should not be visible, "" if they should be visible
+     * @param TableNode $data
+     * @return void
+     */
+    #[\core\attribute\example('I should see the elements:
+        | Element 1 | Element 2 |')]
+    public function i_see_elements_in_moodleoverflow(string $text, TableNode $data): void {
+        $elements = $data->getRow(0);
+        foreach ($elements as $element) {
+            if ($text == "not") {
+                $this->execute('behat_general::assert_page_not_contains_text', [$element]);
+            } else {
+                $this->execute('behat_general::assert_page_contains_text', [$element]);
+            }
+        }
+    }
+
+    // Internal helper functions.
+
+    /**
+     * Returns the steps list to add a new discussion to a moodleoverflow.
+     *
+     * Abstracts add a new topic and add a new discussion, as depending
+     * on the moodleoverflow type the button string changes.
+     *
+     * @param string    $moodleoverflowname
+     * @param TableNode $table
+     * @param string    $buttonstr
+     */
+    protected function add_new_discussion($moodleoverflowname, TableNode $table, $buttonstr) {
+        // Navigate to moodleoverflow.
+        $this->execute('behat_navigation::i_am_on_page_instance', [$this->escape($moodleoverflowname),
+            'moodleoverflow activity', ]);
+        $this->execute('behat_forms::press_button', $buttonstr);
+
+        // Fill form and post.
+        $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
+        $this->execute('behat_forms::press_button', get_string(
+            'posttomoodleoverflow',
+            'moodleoverflow'
+        ));
+        $this->execute('behat_general::i_wait_to_be_redirected');
+    }
+
+    /**
+     * Gets the container node.
+     * @param string $discussiontitle
+     */
+    protected function find_moodleoverflow_discussion_card(string $discussiontitle): \Behat\Mink\Element\Element {
+        return $this->find(
+            'xpath',
+            '//*[contains(concat(" ",normalize-space(@class)," ")," moodleoverflowdiscussion ")][.//*[text()="' .
+            $discussiontitle . '"]]'
+        );
     }
 }

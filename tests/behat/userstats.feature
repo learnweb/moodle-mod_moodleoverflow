@@ -2,17 +2,10 @@
 Feature: If the admin enabled user statistics, the teacher can see the activity of students in the course
 
   Background:
-    Given the following "users" exist:
-      | username | firstname | lastname | email                |
-      | teacher1 | Teacher   | 1        | teacher1@example.com |
-      | student1 | Student   | 1        | student1@example.com |
-    And the following "courses" exist:
-      | fullname | shortname | category |
-      | Course 1 | C1        | 0        |
-    And the following "course enrolments" exist:
-      | user     | course | role           |
-      | teacher1 | C1     | editingteacher |
-      | student1 | C1     | student        |
+    Given I prepare a moodleoverflow feature background with users:
+      | username | firstname | lastname | email                | idnumber | role            |
+      | student1 | Student   | 1        | student1@example.com | 10       | student         |
+      | teacher1 | Teacher   | 1        | teacher1@example.com | 11       | editingteacher |
     And the following "activities" exist:
       | activity       | name                      | intro                            | course  |  idnumber |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        |
@@ -41,19 +34,13 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
   Scenario: Test if reputation appears in the user statistics
     Given the following config values are set as admin:
       | showuserstats | 1 | moodleoverflow |
-    And I log in as "student1"
-    And I am on "Course 1" course homepage
-    And I follow "Test Moodleoverflow"
-    And I follow "Topic question"
+    And I navigate as "student1" to "Course 1" "Test Moodleoverflow" "Topic question"
     And I click on "Answer" "link"
     And I set the following fields to these values:
       | Message | This is an answer |
     And I press "Post to forum"
     And I log out
-    And I log in as "teacher1"
-    And I am on "Course 1" course homepage
-    And I follow "Test Moodleoverflow"
-    And I follow "Topic question"
+    And I navigate as "teacher1" to "Course 1" "Test Moodleoverflow" "Topic question"
     And I click on "Mark as solution" "text"
     And I follow "Test Moodleoverflow"
     And I press "View user statistics"
