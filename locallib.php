@@ -465,6 +465,8 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
     $forumarray = [[]];
     $currentforum = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'moodleoverflow');
     $currentdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'name');
+    $modinfo = get_fast_modinfo($course->id);
+    $instances = $modinfo->get_instances_of('moodleoverflow');
 
     // If the currentforum is anonymous, only show forums that have a higher anonymous setting.
     $anonymoussetting = $DB->get_field('moodleoverflow', 'anonymous', ['id' => $currentforum->moodleoverflow]);
@@ -485,17 +487,20 @@ function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
 
     if ($amountforums >= 1) {
         // Write the moodleoverflow-names in an array.
-        $i = 0;
         foreach ($forums as $forum) {
             if ($forum->id == $currentforum->moodleoverflow) {
                 continue;
-            } else {
-                $forumarray[$i]['name'] = $forum->name;
-                $movetoforum = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup='
-                                             . $movetopopup . '&movetoforum=' . $forum->id;
-                $forumarray[$i]['movetoforum'] = $movetoforum;
+            } else if (empty($instances[$forum->id]->deletioninprogress)) {
+                $movetourl = new moodle_url('/mod/moodleoverflow/view.php', [
+                    'id' => $cm->id,
+                    'movetopopup' => $movetopopup,
+                    'movetoforum' => $forum->id,
+                ]);
+                $forumarray[] = [
+                    'name' => $forum->name,
+                    'movetoforum' => $movetourl->out(false),
+                ];
             }
-            $i++;
         }
         $amountforums = true;
     } else {
