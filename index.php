@@ -31,6 +31,7 @@ require_once($CFG->dirroot . '/course/lib.php');
 
 // Require needed files.
 use core\context\course;
+use core\output\pix_icon;
 
 // Fetch submitted parameters.
 $id = required_param('id', PARAM_INT);
@@ -255,7 +256,7 @@ if ($generalmoodleoverflows) {
                     $unreadlink .= '<a title="' . $string['markallread'] . '" href="markposts.php?m=' . $moodleoverflow->id .
                         '&amp;mark=read&amp;sesskey=' . sesskey() . '">';
                     $unreadlink .= '<img src="' . $OUTPUT->image_url('t/markasread') . '" alt="' .
-                        $string['markallread'] . '" class="iconsmall" />';
+                        $string['markallread'] . '" class="icon iconsmall" />';
                     $unreadlink .= '</a>';
                     $unreadlink .= '</span>';
                 } else {
