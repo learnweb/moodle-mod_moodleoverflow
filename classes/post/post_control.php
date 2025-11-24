@@ -299,18 +299,10 @@ class post_control {
         // as the review class should be refactored with the new way of working with posts.
         $alreadyreviewed = review::should_post_be_reviewed($this->info->relatedpost->get_db_object(), $this->info->moodleoverflow)
                            && $this->info->relatedpost->reviewed;
-        if (
-            ($beyondtime || $alreadyreviewed) && !has_capability(
-                'mod/moodleoverflow:editanypost',
-                $this->info->modulecontext
-            )
-        ) {
-            throw new moodle_exception(
-                'maxtimehaspassed',
-                'moodleoverflow',
-                '',
-                format_time(get_config('moodleoverflow', 'maxeditingtime'))
-            );
+        $capability = has_capability('mod/moodleoverflow:editanypost', $this->info->modulecontext);
+        if (($beyondtime || $alreadyreviewed) && !$capability) {
+            $formattime = format_time(get_config('moodleoverflow', 'maxeditingtime'));
+            throw new moodle_exception('maxtimehaspassed', 'moodleoverflow', '', $formattime);
         }
 
         // If the current user is not the one who posted this post.
@@ -593,9 +585,10 @@ class post_control {
      * @param array $pageparams An object that the post.php created.
      * @return mod_moodleoverflow_post_form a mod_moodleoverflow_post_form object.
      * @throws coding_exception
+     * @throws \core\exception\moodle_exception
      */
-    public function build_postform(array $pageparams) {
-        global $USER, $CFG;
+    public function build_postform(array $pageparams): mod_moodleoverflow_post_form {
+        global $USER;
         // Require that the user is logged in properly and enrolled to the course.
         require_login($this->info->course, false, $this->info->cm);
 
@@ -644,13 +637,12 @@ class post_control {
             $data->date = userdate(time());
             $this->prepost->messageformat = editors_get_preferred_format();
             if ($this->prepost->messageformat == FORMAT_HTML) {
-                $data->name = html_writer::tag('a', $CFG->wwwroot . '/user/view.php?id' . $USER->id .
-                                                '&course=' . $this->prepost->courseid . '">' . fullname($USER));
-                $this->prepost->message .= html_writer::tag('p', html_writer::tag(
-                    'span',
-                    get_string('editedby', 'moodleoverflow', $data),
-                    ["class" => "edited"]
-                ));
+                $profileurl = new moodle_url('/user/view.php', ['id' => $USER->id, 'course' => $this->prepost->courseid]);
+                $data->name = html_writer::link($profileurl, fullname($USER));
+                $this->prepost->message .= html_writer::tag(
+                    'p',
+                    html_writer::tag('span', get_string('editedby', 'moodleoverflow', $data), ['class' => 'edited'])
+                );
             } else {
                 $data->name = fullname($USER);
                 $this->prepost->message .= "\n\n(" . get_string('editedby', 'moodleoverflow', $data) . ')';
