@@ -64,28 +64,15 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * @return stdClass
      */
     public function create_instance($record = null, ?array $options = null) {
-
-        // Transform the record.
-        $record = (object) (array) $record;
-
-        if (!isset($record->name)) {
-            $record->name = 'Test MO Instance';
-        }
-        if (!isset($record->intro)) {
-            $record->intro = 'Test Intro';
-        }
-        if (!isset($record->introformat)) {
-            $record->introformat = 1;
-        }
-        if (!isset($record->timecreated)) {
-            $record->timecreated = time();
-        }
-        if (!isset($record->timemodified)) {
-            $record->timemodified = time();
-        }
-        if (!isset($record->forcesubscribe)) {
-            $record->forcesubscribe = MOODLEOVERFLOW_CHOOSESUBSCRIBE;
-        }
+        // Transform the record and set default values if not provided.
+        $record = (object) array_merge([
+            'name' => 'Test MO Instance',
+            'intro' => 'Test Intro',
+            'introformat' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+            'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE,
+        ], (array) $record);
 
         return parent::create_instance($record, (array) $options);
     }
@@ -104,49 +91,31 @@ class mod_moodleoverflow_generator extends testing_module_generator {
 
         // Increment the discussion count.
         $this->discussioncount++;
-
-        // Create the record.
         $record = (array) $record;
-
-        // Check needed submitted values.
-        if (!isset($record['course'])) {
-            throw new coding_exception('course must be present in phpunit_util:create_discussion() $record');
-        }
-        if (!isset($record['moodleoverflow'])) {
-            throw new coding_exception('moodleoverflow must be present in phpunit_util:create_discussion() $record');
-        }
-        if (!isset($record['userid'])) {
-            throw new coding_exception('userid must be present in phpunit_util:create_discussion() $record');
+        // Ensure required fields are set.
+        foreach (['course', 'moodleoverflow', 'userid'] as $field) {
+            if (empty($record[$field])) {
+                throw new coding_exception("$field must be present in phpunit_util:create_discussion() $record");
+            }
         }
 
         // Set default values.
-        if (!isset($record['name'])) {
-            $record['name'] = 'Discussion ' . $this->discussioncount;
-        }
-        if (!isset($record['message'])) {
-            $record['message'] = html_writer::tag('p', 'Message for discussion ' . $this->discussioncount);
-        }
-        if (!isset($record['messageformat'])) {
-            $record['messageformat'] = editors_get_preferred_format();
-        }
-        if (!isset($record['timestart'])) {
-            $record['timestart'] = "0";
-        }
-        if (!isset($record['timeend'])) {
-            $record['timeend'] = "0";
-        }
-        if (isset($record['mailed'])) {
-            $mailed = $record['mailed'];
-        }
-        if (isset($record['timemodified'])) {
-            $timemodified = $record['timemodified'];
-        }
-        $record['attachments'] = null;
+        $record = array_merge([
+            'name' => 'Discussion ' . $this->discussioncount,
+            'message' => html_writer::tag('p', 'Message for discussion ' . $this->discussioncount),
+            'messageformat' => editors_get_preferred_format(),
+            'timestart' => "0",
+            'timeend' => "0",
+            'attachments' => null,
+            'draftideditor' => -1,
+        ], (array) $record);
 
-        // Transform the array into an object.
+        // Extract optional fields.
+        $mailed = $record['mailed'] ?? null;
+        $timemodified = $record['timemodified'] ?? null;
+
+        // Convert the record to an object.
         $record = (object) $record;
-
-        $record->draftideditor = -1;
 
         // Get the module context.
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
@@ -188,40 +157,29 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      */
     public function create_post($record = null, $straighttodb = true) {
         global $DB;
-        // Increment the forum post count.
+
+        // Increment the forum post count and set the current time.
         $this->postcount++;
-        // Variable to store time.
         $time = time() + $this->postcount;
-        $record = (array) $record;
-        if (!isset($record['discussion'])) {
+
+        // Ensure required fields are set and provide default values.
+        $record = (object) array_merge([
+            'parent' => 0,
+            'message' => html_writer::tag('p', 'Forum message post ' . $this->postcount),
+            'created' => $time,
+            'modified' => $time,
+            'mailed' => 0,
+            'messageformat' => 0,
+            'attachment' => "",
+        ], (array) $record);
+
+        if (empty($record->discussion)) {
             throw new coding_exception('discussion must be present in phpunit_util::create_post() $record');
         }
-        if (!isset($record['userid'])) {
+        if (empty($record->userid)) {
             throw new coding_exception('userid must be present in phpunit_util::create_post() $record');
         }
-        if (!isset($record['parent'])) {
-            $record['parent'] = 0;
-        }
-        if (!isset($record['message'])) {
-            $record['message'] = html_writer::tag('p', 'Forum message post ' . $this->postcount);
-        }
-        if (!isset($record['created'])) {
-            $record['created'] = $time;
-        }
-        if (!isset($record['modified'])) {
-            $record['modified'] = $time;
-        }
-        if (!isset($record['mailed'])) {
-            $record['mailed'] = 0;
-        }
-        if (!isset($record['messageformat'])) {
-            $record['messageformat'] = 0;
-        }
-        if (!isset($record['attachment'])) {
-            $record['attachment'] = "";
-        }
 
-        $record = (object) $record;
         // Add the post.
         if ($straighttodb) {
             $record->id = $DB->insert_record('moodleoverflow_posts', $record);
@@ -229,6 +187,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $record->draftideditor = -1;
             $record->id = moodleoverflow_add_new_post($record);
         }
+
         // Update the last post.
         moodleoverflow_discussion_update_last_post($record->discussion);
 
@@ -246,31 +205,21 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         global $DB;
 
         $time = time();
-        $record = (array) $record;
-        if (!isset($record['moodleoverflowid'])) {
-            throw new coding_exception('moodleoverflowid must be present in phpunit_util::create_rating() $record');
-        }
-        if (!isset($record['discussionid'])) {
-            throw new coding_exception('discussionid must be present in phpunit_util::create_rating() $record');
-        }
-        if (!isset($record['userid'])) {
-            throw new coding_exception('userid must be present in phpunit_util::create_rating() $record');
-        }
-        if (!isset($record['postid'])) {
-            throw new coding_exception('postid must be present in phpunit_util::create_rating() $record');
-        }
-        if (!isset($record['rating'])) {
-            $record['rating'] = 1;
-        }
-        if (!isset($record['firstrated'])) {
-            $record['firstrated'] = $time;
-        }
-        if (!isset($record['lastchanged'])) {
-            $record['lastchanged'] = $time;
+        $record = array_merge([
+            'rating' => 1,
+            'firstrated' => $time,
+            'lastchanged' => $time,
+        ], (array) $record);
+
+        // Ensure required fields are set.
+        foreach (['moodleoverflowid', 'discussionid', 'userid', 'postid'] as $field) {
+            if (empty($record[$field])) {
+                throw new coding_exception("$field must be present in phpunit_util::create_rating() \$record");
+            }
         }
 
         $record = (object) $record;
-        // Add the post.
+        // Add the rating.
         $record->id = $DB->insert_record('moodleoverflow_ratings', $record);
 
         return $record;

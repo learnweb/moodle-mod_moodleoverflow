@@ -402,7 +402,6 @@ class post_control {
         // Please be aware that in future the use of get_db_object() should be replaced with only $this->info->discussion,
         // as the subscription class should be refactored with the new way of working with posts.
         subscriptions::moodleoverflow_post_subscription(
-            $form,
             $this->info->moodleoverflow,
             $discussion->get_db_object(),
             $this->info->modulecontext
@@ -459,7 +458,6 @@ class post_control {
         // LEARNWEB-TODO: Please be aware that in future the use of build_db_object() should be replaced with only
         // $this->info->discussion, as the subscription class should be refactored with the new way of working with posts.
         subscriptions::moodleoverflow_post_subscription(
-            $form,
             $this->info->moodleoverflow,
             $this->info->discussion->get_db_object(),
             $this->info->modulecontext

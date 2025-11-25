@@ -36,12 +36,12 @@ class data_export_helper {
     /**
      * Store all information about all discussions that we have detected this user to have access to.
      *
-     * @param   int   $userid   The userid of the user whose data is to be exported.
-     * @param   array $mappings A list of mappings from forumid => contextid.
+     * @param int $userid   The userid of the user whose data is to be exported.
+     * @param array $mappings A list of mappings from forumid => contextid.
      *
-     * @return  array       Which forums had data written for them.
+     * @return array       Which forums had data written for them.
      */
-    public static function export_discussion_data($userid, array $mappings) {
+    public static function export_discussion_data(int $userid, array $mappings): array {
         global $DB;
         // Find all of the discussions, and discussion subscriptions for this forum.
         [$foruminsql, $forumparams] = $DB->get_in_or_equal(array_keys($mappings), SQL_PARAMS_NAMED);

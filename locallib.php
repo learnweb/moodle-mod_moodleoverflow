@@ -48,7 +48,7 @@ require_once(dirname(__FILE__) . '/lib.php');
  * @return array
  */
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
-    global $DB, $CFG, $USER;
+    global $DB, $USER;
 
     // LEARNWEB-TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
 
@@ -214,11 +214,11 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $canmovetopic = false;
     if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:movetopic', $context)) {
         $modinfo = get_fast_modinfo($moodleoverflow->course);
-        $coursemoodleoverflows = $modinfo->get_instances_of('moodleoverflow');
-        $coursemoodleoverflows = array_filter($coursemoodleoverflows, function ($cm) {
+        $coursemodules = $modinfo->get_instances_of('moodleoverflow');
+        $coursemodules = array_filter($coursemodules, function ($cm) {
             return $cm->deletioninprogress == 0;
         });
-        $canmovetopic = count($coursemoodleoverflows) > 1;
+        $canmovetopic = count($coursemodules) > 1;
     }
 
     // Iterate through every visible discussion.
@@ -954,7 +954,7 @@ function moodleoverflow_print_discussion(
     $multiplemarks = false,
     ?stdClass $limitedanswersetting = null
 ) {
-    global $USER, $DB;
+    global $USER;
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() && ($USER->id == $post->userid));
 
@@ -1060,10 +1060,9 @@ function moodleoverflow_print_discussion(
  * @return array
  */
 function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modcontext) {
-    global $DB, $USER, $CFG;
+    global $DB, $USER;
 
     // Initiate tracking settings.
-    $params = [];
     $trackingselector = "";
     $trackingjoin = "";
     $params = [];
@@ -1196,7 +1195,7 @@ function moodleoverflow_print_post(
     $multiplemarks = false,
     ?stdClass $limitedanswersetting = null
 ) {
-    global $USER, $CFG, $OUTPUT, $PAGE, $DB;
+    global $USER, $CFG, $OUTPUT, $PAGE;
 
     // Require the filelib.
     require_once($CFG->libdir . '/filelib.php');
@@ -1918,13 +1917,12 @@ function moodleoverflow_add_new_post($post) {
  * Deletes a discussion and handles all associated cleanups.
  *
  * @param object $discussion     The discussion object
- * @param object $course         The course object
  * @param object $cm
  * @param object $moodleoverflow The moodleoverflow object
  *
  * @return bool Whether the deletion was successful.
  */
-function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleoverflow) {
+function moodleoverflow_delete_discussion($discussion, $cm, $moodleoverflow) {
     global $DB;
 
     // Initiate a pointer.

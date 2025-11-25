@@ -24,20 +24,13 @@
 
 namespace mod_moodleoverflow\manager;
 
-use context_course;
 use context_module;
-use core\context\course;
-use core\cron;
-use core\message\message;
-use core_php_time_limit;
 use core_user;
 use dml_exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\subscriptions;
 use moodle_exception;
-use moodle_url;
-use renderer_base;
 use stdClass;
 
 /**

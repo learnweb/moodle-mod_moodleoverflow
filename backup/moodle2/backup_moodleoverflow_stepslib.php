@@ -74,9 +74,6 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         $read = new backup_nested_element('read', ['id'], [
             'userid', 'discussionid', 'postid', 'firstread', 'lastread', ]);
 
-        $grades = new backup_nested_element('grades');
-        $grade = new backup_nested_element('grade', ['id'], ['userid', 'grade']);
-
         $tracking = new backup_nested_element('tracking');
         $track = new backup_nested_element('track', ['id'], ['userid']);
 

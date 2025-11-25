@@ -24,7 +24,6 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_review_mails;
 
@@ -258,7 +257,6 @@ final class review_test extends \advanced_testcase {
      * @param object|array $actual
      */
     private function assert_matches_properties($expected, $actual) {
-        global $CFG;
         $expected = (array)$expected;
         $actual = (object)$actual;
         foreach ($expected as $key => $value) {

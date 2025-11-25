@@ -30,9 +30,8 @@
  */
 
 // LEARNWEB-TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
-use core\context\course;
 use core_completion\api;
-use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/locallib.php');
@@ -124,11 +123,10 @@ function moodleoverflow_supports(string $feature): mixed {
  * of the new instance.
  *
  * @param stdClass                    $data Submitted data from the form in mod_form.php
- * @param ?mod_moodleoverflow_mod_form $mform          The form instance itself (if needed)
  *
  * @return int The id of the newly inserted moodleoverflow record
  */
-function moodleoverflow_add_instance(stdClass $data, ?mod_moodleoverflow_mod_form $mform = null) {
+function moodleoverflow_add_instance(stdClass $data) {
     global $DB;
 
     // Set the current time.
@@ -147,7 +145,7 @@ function moodleoverflow_add_instance(stdClass $data, ?mod_moodleoverflow_mod_for
  * Handle changes following the creation of a moodleoverflow instance.
  * This function is typically called by the course_module_created observer.
  *
- * @param object   $context        The context of the moodleoverflow
+ * @param context_module   $context        The context of the moodleoverflow
  * @param stdClass $moodleoverflow The moodleoverflow object
  */
 function moodleoverflow_instance_created($context, $moodleoverflow) {
@@ -155,11 +153,11 @@ function moodleoverflow_instance_created($context, $moodleoverflow) {
     // Check if users are forced to be subscribed to the moodleoverflow instance.
     if ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
         // Get a list of all potential subscribers.
-        $users = \mod_moodleoverflow\subscriptions::get_potential_subscribers($context, 'u.id, u.email');
+        $users = subscriptions::get_potential_subscribers($context, 'u.id, u.email');
 
         // Subscribe all potential subscribers to this moodleoverflow.
         foreach ($users as $user) {
-            \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $moodleoverflow, $context);
+            subscriptions::subscribe_user($user->id, $moodleoverflow, $context);
         }
     }
 }
@@ -172,11 +170,10 @@ function moodleoverflow_instance_created($context, $moodleoverflow) {
  * will update an existing instance with new data.
  *
  * @param stdClass                         $data           The data from the form in mod_form.php
- * @param mod_moodleoverflow_mod_form|null $mform          The form instance itself (if needed)
  *
  * @return boolean Success/Fail
  */
-function moodleoverflow_update_instance(stdClass $data, ?mod_moodleoverflow_mod_form $mform = null) {
+function moodleoverflow_update_instance(stdClass $data): bool {
     global $DB;
 
     $data->timemodified = time();
@@ -194,11 +191,11 @@ function moodleoverflow_update_instance(stdClass $data, ?mod_moodleoverflow_mod_
     if ($data->forcesubscribe != $oldmoodleoverflow->forcesubscribe) {
         if ($data->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
             // Get a list of potential subscribers.
-            $users = \mod_moodleoverflow\subscriptions::get_potential_subscribers($modulecontext, 'u.id, u.email', '');
+            $users = subscriptions::get_potential_subscribers($modulecontext, 'u.id, u.email', '');
 
             // Subscribe all those users to the moodleoverflow instance.
             foreach ($users as $user) {
-                \mod_moodleoverflow\subscriptions::subscribe_user($user->id, $data, $modulecontext);
+                subscriptions::subscribe_user($user->id, $data, $modulecontext);
             }
         } else if ($data->forcesubscribe == MOODLEOVERFLOW_CHOOSESUBSCRIBE) {
             // Delete all current subscribers.
@@ -291,7 +288,7 @@ function moodleoverflow_delete_instance($id) {
     if ($discussions = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $moodleoverflow->id])) {
         require_once('locallib.php');
         foreach ($discussions as $discussion) {
-            if (!moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleoverflow)) {
+            if (!moodleoverflow_delete_discussion($discussion, $cm, $moodleoverflow)) {
                 $result = false;
             }
         }
@@ -416,7 +413,7 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
  * @param array    $options       additional options affecting the file serving
  */
 function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
-    global $DB, $CFG;
+    global $DB;
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
     }
@@ -490,8 +487,8 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $enrolled = is_enrolled($context, $USER, '', false);
     $activeenrolled = is_enrolled($context, $USER, '', true);
     $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $context);
-    $forcesubscribed = \mod_moodleoverflow\subscriptions::is_forcesubscribed($moodleoverflow);
-    $subscdisabled = \mod_moodleoverflow\subscriptions::subscription_disabled($moodleoverflow);
+    $forcesubscribed = subscriptions::is_forcesubscribed($moodleoverflow);
+    $subscdisabled = subscriptions::subscription_disabled($moodleoverflow);
     $cansubscribe = $activeenrolled && (!$subscdisabled || $canmanage) &&
         !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $context));
     $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
@@ -513,7 +510,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     // Display a link to subscribe or unsubscribe.
     if ($cansubscribe) {
         // Choose the linktext depending on the current state of subscription.
-        $issubscribed = \mod_moodleoverflow\subscriptions::is_subscribed($USER->id, $moodleoverflow, $context);
+        $issubscribed = subscriptions::is_subscribed($USER->id, $moodleoverflow, $context);
         if ($issubscribed) {
             $linktext = get_string('unsubscribe', 'moodleoverflow');
         } else {
@@ -650,7 +647,7 @@ function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
  * @return array array of grades
  */
 function moodleoverflow_get_user_grades($moodleoverflow, $userid = 0) {
-    global $CFG, $DB;
+    global $DB;
 
     $params = ["moodleoverflowid" => $moodleoverflow->id];
 

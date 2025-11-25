@@ -27,7 +27,6 @@ namespace mod_moodleoverflow\task;
 use core\cron;
 use core\session\exception;
 use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\output\moodleoverflow_email;
 
 defined('MOODLE_INTERNAL') || die();
@@ -65,7 +64,7 @@ class send_review_mails extends \core\task\scheduled_task {
      * Sends initial notifications for needed reviews to all users with review capability.
      */
     public function send_review_notifications() {
-        global $DB, $OUTPUT, $PAGE, $CFG;
+        global $DB, $OUTPUT, $PAGE;
 
         $rendererhtml = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
         $renderertext = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');

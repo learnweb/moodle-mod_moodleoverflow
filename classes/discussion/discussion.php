@@ -24,14 +24,15 @@
 
 namespace mod_moodleoverflow\discussion;
 
-
-// Import namespace from the locallib, needs a check later which namespaces are really needed.
-use mod_moodleoverflow\anonymous;
 // Important namespaces.
+use coding_exception;
+use dml_exception;
+use Exception;
+use mod_moodleoverflow\event\discussion_viewed;
+use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\review;
 use mod_moodleoverflow\post\post;
-use mod_moodleoverflow\capabilities;
+use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -50,71 +51,71 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * Accessing these functions directly without the checks from the post control could lead to serious errors.
  */
 class discussion {
-    /** @var int The discussion ID */
-    private $id;
+    /** @var ?int The discussion ID */
+    private ?int $id;
 
     /** @var int The course ID where the discussion is located */
-    private $course;
+    private int $course;
 
     /** @var int The moodleoverflow ID where the discussion is located*/
-    private $moodleoverflow;
+    private int $moodleoverflow;
 
     /** @var string The title of the discussion, the titel of the parent post*/
-    public $name;
+    public string $name;
 
     /** @var int The id of the parent/first post*/
-    private $firstpost;
+    private int $firstpost;
 
     /** @var int The user ID who started the discussion */
-    private $userid;
+    private int $userid;
 
     /** @var int Unix-timestamp of modification */
-    public $timemodified;
+    public int $timemodified;
 
     /** @var int Unix-timestamp of discussion creation */
-    public $timestart;
+    public int $timestart;
 
     /** @var int the user ID who modified the discussion */
-    public $usermodified;
+    public int $usermodified;
 
     // Not Database-related attributes.
 
     /** @var post[] an Array of posts that belong to this discussion */
-    public $posts;
+    public array $posts;
 
     /** @var bool  a variable for checking if this instance has all its posts */
-    public $postsbuild;
+    public bool $postsbuild;
 
     /** @var object The moodleoverflow object where the discussion is located */
-    public $moodleoverflowobject;
+    public object $moodleoverflowobject;
 
     /** @var object The course module object */
-    public $cmobject;
+    public object $cmobject;
 
     // Constructors and other builders.
 
     /**
      * Constructor to build a new discussion.
-     * @param int   $id                 The Discussion ID.
-     * @param int   $course             The course ID.
-     * @param int   $moodleoverflow     The moodleoverflow ID.
-     * @param char  $name               Discussion Title.
-     * @param int   $firstpost          .
-     * @param int   $userid  The course ID.
-     * @param int   $timemodified   The course ID.
-     * @param int   $timestart   The course ID.
-     * @param int   $usermodified   The course ID.
+     * @param ?int  $id                 The Discussion ID.
+     * @param int       $course             The course ID.
+     * @param int       $moodleoverflow     The moodleoverflow ID.
+     * @param string    $name               Discussion Title.
+     * @param int       $firstpost          .
+     * @param int       $userid  The course ID.
+     * @param int       $timemodified   The course ID.
+     * @param int       $timestart   The course ID.
+     * @param int       $usermodified   The course ID.
      */
     public function __construct(
-        $id,
-        $course,
-        $moodleoverflow,
-        $name,
-        $firstpost,
-        $userid,
-        $timemodified,
-        $timestart,
-        $usermodified
+        ?int $id,
+        int $course,
+        int $moodleoverflow,
+        string $name,
+        int $firstpost,
+        int $userid,
+        int $timemodified,
+        int $timestart,
+        int $usermodified
     ) {
         $this->id = $id;
         $this->course = $course;
@@ -132,54 +133,19 @@ class discussion {
     /**
      * Builds a Discussion from a DB record.
      *
-     * @param object   $record Data object.
+     * @param object $record Data object.
      * @return discussion discussion instance
      */
-    public static function from_record($record) {
-        $id = null;
-        if (object_property_exists($record, 'id') && $record->id) {
-            $id = $record->id;
-        }
-
-        $course = 0;
-        if (object_property_exists($record, 'course') && $record->course) {
-            $course = $record->course;
-        }
-
-        $moodleoverflow = 0;
-        if (object_property_exists($record, 'moodleoverflow') && $record->moodleoverflow) {
-            $moodleoverflow = $record->moodleoverflow;
-        }
-
-        $name = '';
-        if (object_property_exists($record, 'name') && $record->name) {
-            $name = $record->name;
-        }
-
-        $firstpost = 0;
-        if (object_property_exists($record, 'firstpost') && $record->firstpost) {
-            $firstpost = $record->firstpost;
-        }
-
-        $userid = 0;
-        if (object_property_exists($record, 'userid') && $record->userid) {
-            $userid = $record->userid;
-        }
-
-        $timemodified = 0;
-        if (object_property_exists($record, 'timemodified') && $record->timemodified) {
-            $timemodified = $record->timemodified;
-        }
-
-        $timestart = 0;
-        if (object_property_exists($record, 'timestart') && $record->timestart) {
-            $timestart = $record->timestart;
-        }
-
-        $usermodified = 0;
-        if (object_property_exists($record, 'usermodified') && $record->usermodified) {
-            $usermodified = $record->usermodified;
-        }
+    public static function from_record(object $record): discussion {
+        $id = !empty($record->id) ? $record->id : null;
+        $course = !empty($record->course) ? $record->course : 0;
+        $moodleoverflow = !empty($record->moodleoverflow) ? $record->moodleoverflow : 0;
+        $name = !empty($record->name) ? $record->name : '';
+        $firstpost = !empty($record->firstpost) ? $record->firstpost : 0;
+        $userid = !empty($record->userid) ? $record->userid : 0;
+        $timemodified = !empty($record->timemodified) ? $record->timemodified : 0;
+        $timestart = !empty($record->timestart) ? $record->timestart : 0;
+        $usermodified = !empty($record->usermodified) ? $record->usermodified : 0;
 
         $instance = new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
 
@@ -191,30 +157,29 @@ class discussion {
 
     /**
      * Function to build a new discussion without specifying the Discussion ID.
-     * @param int   $course             The course ID.
-     * @param int   $moodleoverflow     The moodleoverflow ID.
-     * @param char  $name               Discussion Title.
-     * @param int   $firstpost          .
-     * @param int   $userid  The course ID.
-     * @param int   $timemodified   The course ID.
-     * @param int   $timestart   The course ID.
-     * @param int   $usermodified   The course ID.
+     * @param int $course             The course ID.
+     * @param int $moodleoverflow     The moodleoverflow ID.
+     * @param string $name               Discussion Title.
+     * @param int $firstpost          .
+     * @param int $userid  The course ID.
+     * @param int $timemodified   The course ID.
+     * @param int $timestart   The course ID.
+     * @param int $usermodified   The course ID.
      *
      * @return object discussion object without id.
      */
     public static function construct_without_id(
-        $course,
-        $moodleoverflow,
-        $name,
-        $firstpost,
-        $userid,
-        $timemodified,
-        $timestart,
-        $usermodified
-    ) {
+        int $course,
+        int $moodleoverflow,
+        string $name,
+        int $firstpost,
+        int $userid,
+        int $timemodified,
+        int $timestart,
+        int $usermodified
+    ): object {
         $id = null;
-        $instance = new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
-        return $instance;
+        return new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
     }
 
     // Discussion Functions.
@@ -223,8 +188,11 @@ class discussion {
      * Adds a new Discussion with a post.
      *
      * @param object $prepost The prepost object from the post_control. Has information about the post and other important stuff.
+     * @return bool|?int
+     * @throws dml_exception
+     * @throws coding_exception
      */
-    public function moodleoverflow_add_discussion($prepost) {
+    public function moodleoverflow_add_discussion(object $prepost): bool|int|null {
         global $DB;
 
         // Add the discussion to the Database.
@@ -261,7 +229,7 @@ class discussion {
             'objectid' => $this->id,
         ];
         // LEARNWEB-TODO: check if the event functions.
-        $event = \mod_moodleoverflow\event\discussion_viewed::create($params);
+        $event = discussion_viewed::create($params);
         $event->trigger();
 
         // Return the id of the discussion.
@@ -272,8 +240,9 @@ class discussion {
      * Delete a discussion with all of it's posts
      * @param object $prepost Information about the post from the post_control
      * @return bool Wether deletion was successful of not
+     * @throws moodle_exception
      */
-    public function moodleoverflow_delete_discussion($prepost) {
+    public function moodleoverflow_delete_discussion(object $prepost): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -324,8 +293,9 @@ class discussion {
      * Adds a new post to this discussion and the DB.
      *
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
+     * @throws dml_exception|moodle_exception
      */
-    public function moodleoverflow_add_post_to_discussion($prepost) {
+    public function moodleoverflow_add_post_to_discussion(object $prepost) {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -361,10 +331,10 @@ class discussion {
     /**
      * Deletes a post that is in this discussion from the DB.
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
-     * @return bool Wether the deletion was possible
-     * @throws moodle_exception if post is not in this discussion or something failed.
+     * @return bool If the deletion was possible
+     * @throws moodle_exception
      */
-    public function moodleoverflow_delete_post_from_discussion($prepost) {
+    public function moodleoverflow_delete_post_from_discussion(object $prepost): bool {
         $this->existence_check();
         $this->posts_check();
 
@@ -390,8 +360,9 @@ class discussion {
     /**
      * Edits the message of a post from this discussion.
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
+     * @throws dml_exception|moodle_exception
      */
-    public function moodleoverflow_edit_post_from_discussion($prepost) {
+    public function moodleoverflow_edit_post_from_discussion(object $prepost): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -420,8 +391,9 @@ class discussion {
      * the timemodified and the usermodified need to be adapted to the last added or edited post.
      *
      * @return bool true if the DB needed to be adapted. false if it didn't change.
+     * @throws dml_exception|moodle_exception
      */
-    public function moodleoverflow_discussion_adapt_to_last_post() {
+    public function moodleoverflow_discussion_adapt_to_last_post(): bool {
         global $DB;
         $this->existence_check();
 
@@ -454,9 +426,10 @@ class discussion {
 
     /**
      * Getter for the post ID
-     * @return int $this->id    The post ID.
+     * @return ?int $this->id    The post ID.
+     * @throws moodle_exception
      */
-    public function get_id() {
+    public function get_id(): ?int {
         $this->existence_check();
         return $this->id;
     }
@@ -464,8 +437,9 @@ class discussion {
     /**
      * Getter for the courseid
      * @return int $this->course    The ID of the course where the discussion is located.
+     * @throws moodle_exception
      */
-    public function get_courseid() {
+    public function get_courseid(): int {
         $this->existence_check();
         return $this->course;
     }
@@ -473,8 +447,9 @@ class discussion {
     /**
      * Getter for the moodleoverflowid
      * @return int $this->moodleoverflow    The ID of the moodleoverflow where the discussion is located.
+     * @throws moodle_exception
      */
-    public function get_moodleoverflowid() {
+    public function get_moodleoverflowid(): int {
         $this->existence_check();
         return $this->moodleoverflow;
     }
@@ -482,8 +457,9 @@ class discussion {
     /**
      * Getter for the firstpostid
      * @return int $this->firstpost   The ID of the first post.
+     * @throws moodle_exception
      */
-    public function get_firstpostid() {
+    public function get_firstpostid(): int {
         $this->existence_check();
         return $this->firstpost;
     }
@@ -491,8 +467,9 @@ class discussion {
     /**
      * Getter for the userid
      * @return int $this->userid    The ID of the user who wrote the first post.
+     * @throws moodle_exception
      */
-    public function get_userid() {
+    public function get_userid(): int {
         $this->existence_check();
         return $this->userid;
     }
@@ -500,13 +477,13 @@ class discussion {
     /**
      * Returns the ratings from this discussion.
      * @return array of votings
+     * @throws moodle_exception
      */
-    public function moodleoverflow_get_discussion_ratings() {
+    public function moodleoverflow_get_discussion_ratings(): array {
         $this->existence_check();
         $this->posts_check();
 
-        $discussionratings = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion($this->id);
-        return $discussionratings;
+        return ratings::moodleoverflow_get_ratings_by_discussion($this->id);
     }
 
     /**
@@ -514,8 +491,9 @@ class discussion {
      * The first/parent post is on the first position in the array.
      *
      * @return array $posts     Array ob posts objects
+     * @throws moodle_exception
      */
-    public function moodleoverflow_get_discussion_posts() {
+    public function moodleoverflow_get_discussion_posts(): array {
         global $DB;
         $this->existence_check();
 
@@ -551,13 +529,14 @@ class discussion {
      * Returns the moodleoverflowobject
      *
      * @return object $moodleoverflowobject
+     * @throws dml_exception|moodle_exception
      */
-    public function get_moodleoverflow() {
+    public function get_moodleoverflow(): object {
         global $DB;
         $this->existence_check();
 
         if (empty($this->moodleoverflowobject)) {
-            $this->moodleoverflowobject = $DB->get_records('moodleoverflow', ['id' => $this->moodleoverflow]);
+            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $this->moodleoverflow]);
         }
 
         return $this->moodleoverflowobject;
@@ -567,20 +546,21 @@ class discussion {
      * Returns the coursemodule
      *
      * @return object $cmobject
+     * @throws dml_exception
+     * @throws moodle_exception
      */
-    public function get_coursemodule() {
-        global $DB;
+    public function get_coursemodule(): object {
         $this->existence_check();
 
         if (empty($this->cmobject)) {
             if (
-                !$this->cmobject = $DB->get_coursemodule_from_instance(
+                !$this->cmobject = get_coursemodule_from_instance(
                     'moodleoverflow',
                     $this->get_moodleoverflow()->id,
                     $this->get_moodleoverflow()->course
                 )
             ) {
-                throw new \moodle_exception('invalidcoursemodule');
+                throw new moodle_exception('invalidcoursemodule');
             }
         }
 
@@ -591,8 +571,9 @@ class discussion {
      * This getter works as an help function in case another file/function needs the db-object of this instance (as the function
      * is not adapted/refactored to the new way of working with discussion).
      * @return object
+     * @throws moodle_exception
      */
-    public function get_db_object() {
+    public function get_db_object(): object {
         $this->existence_check();
         return $this->build_db_object();
     }
@@ -604,7 +585,7 @@ class discussion {
      * As this is an private function, it doesn't need an existence check.
      * @return object $dbobject
      */
-    private function build_db_object() {
+    private function build_db_object(): object {
         $dbobject = new \stdClass();
         $dbobject->id = $this->id;
         $dbobject->course = $this->course;
@@ -625,41 +606,37 @@ class discussion {
      * Makes sure that the instance exists in the database. Every function in this class requires this check
      * (except the function that adds the discussion to the database)
      *
-     * @return true
+     * @return void
      * @throws moodle_exception
      */
-    private function existence_check() {
-        if (empty($this->id) || $this->id == false || $this->id == null) {
-            throw new \moodle_exception('noexistingdiscussion', 'moodleoverflow');
+    private function existence_check(): void {
+        if (empty($this->id)) {
+            throw new moodle_exception('noexistingdiscussion', 'moodleoverflow');
         }
-        return true;
     }
 
     /**
      * Makes sure that the instance knows all of its posts (That all posts of the db are in the local array).
      * Not all functions need this check.
-     * @return true
+     * @return void
      * @throws moodle_exception
      */
-    private function posts_check() {
+    private function posts_check(): void {
         if (!$this->postsbuild) {
-            throw new \moodle_exception('notallpostsavailable', 'moodleoverflow');
+            throw new moodle_exception('notallpostsavailable', 'moodleoverflow');
         }
-        return true;
     }
 
     /**
      * Check, if certain posts really exists in this discussion.
      *
      * @param int $postid   The ID of the post that is being checked.
-     * @return true
+     * @return void
      * @throws moodle_exception;
      */
-    private function post_exists_check($postid) {
+    private function post_exists_check(int $postid): void {
         if (!$this->posts[$postid]) {
-            throw new \moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
+            throw new moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
         }
-
-        return true;
     }
 }

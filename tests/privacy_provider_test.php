@@ -23,10 +23,6 @@
  */
 namespace mod_moodleoverflow;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
