@@ -228,7 +228,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:movetopic', $context)) {
         $modinfo = get_fast_modinfo($moodleoverflow->course);
         $coursemoodleoverflows = $modinfo->get_instances_of('moodleoverflow');
-        $coursemoodleoverflows = array_filter($coursemoodleoverflows, function($cm) {
+        $coursemoodleoverflows = array_filter($coursemoodleoverflows, function ($cm) {
             return $cm->deletioninprogress == 0;
         });
         $canmovetopic = count($coursemoodleoverflows) > 1;
