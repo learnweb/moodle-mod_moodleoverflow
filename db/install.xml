@@ -57,6 +57,7 @@
       <INDEXES>
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
         <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+        <INDEX NAME="moodleoverflow" UNIQUE="false" FIELDS="moodleoverflow"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="moodleoverflow_posts" COMMENT="All posts are stored in this table">
@@ -82,6 +83,8 @@
       <INDEXES>
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
         <INDEX NAME="created" UNIQUE="false" FIELDS="created"/>
+        <INDEX NAME="parent" UNIQUE="false" FIELDS="parent"/>
+        <INDEX NAME="discussion" UNIQUE="false" FIELDS="discussion"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="moodleoverflow_read" COMMENT="Tracks each users read posts">
@@ -115,6 +118,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="moodleoverflow" UNIQUE="false" FIELDS="moodleoverflow"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="moodleoverflow_discuss_subs" COMMENT="Users may choose to subscribe and unsubscribe from specific discussions.">
@@ -132,6 +136,11 @@
         <KEY NAME="discussion" TYPE="foreign" FIELDS="discussion" REFTABLE="moodleoverflow_discussions" REFFIELDS="id"/>
         <KEY NAME="user_discussions" TYPE="unique" FIELDS="userid, discussion" COMMENT="Users may only have one discussion preferences per discussion."/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="moodleoverflow" UNIQUE="false" FIELDS="moodleoverflow"/>
+        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="discussion" UNIQUE="false" FIELDS="discussion"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="moodleoverflow_ratings" COMMENT="Moodleoverflow post can be rated.">
       <FIELDS>
@@ -177,6 +186,10 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="moodleoverflowid" TYPE="foreign" FIELDS="moodleoverflowid" REFTABLE="moodleoverflow" REFFIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="moodleoverflowid" UNIQUE="false" FIELDS="moodleoverflowid"/>
+        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="moodleoverflow_mail_info" COMMENT="represent the content of the digest mail">
       <FIELDS>
@@ -194,6 +207,12 @@
        <KEY NAME="forumid" TYPE="foreign" FIELDS="forumid" REFTABLE="moodleoverflow" REFFIELDS="id"/>
        <KEY NAME="forumdiscussionid" TYPE="foreign" FIELDS="forumdiscussionid" REFTABLE="moodleoverflow_discussions" REFFIELDS="id"/>
       </KEYS>
-    </TABLE> 
+      <INDEXES>
+        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="courseid" UNIQUE="false" FIELDS="courseid"/>
+        <INDEX NAME="forumid" UNIQUE="false" FIELDS="forumid"/>
+        <INDEX NAME="forumdiscussionid" UNIQUE="false" FIELDS="forumdiscussionid"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>
