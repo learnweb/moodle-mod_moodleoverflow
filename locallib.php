@@ -24,6 +24,8 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use core_user\fields;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
@@ -69,28 +71,13 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     }
 
     // Get all name fields as sql string snippet.
-    if ($CFG->branch >= 311) {
-        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-    } else {
-        $allnames = get_all_user_name_fields(true, 'u');
-    }
+    $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
     $postdata = 'p.id, p.modified, p.discussion, p.userid, p.reviewed';
     $discussiondata = 'd.name, d.timemodified, d.timestart, d.usermodified, d.firstpost';
     $userdata = 'u.email, u.picture, u.imagealt';
 
-    if ($CFG->branch >= 311) {
-        $usermodifiedfields = \core_user\fields::for_name()->get_sql(
-            'um',
-            false,
-            'um',
-            '',
-            false
-        )->selects .
+    $usermodifiedfields = fields::for_name()->get_sql('um', false, 'um', '', false)->selects .
             ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
-    } else {
-        $usermodifiedfields = get_all_user_name_fields(true, 'um', null, 'um') .
-            ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
-    }
 
     $params = [$cm->instance];
     $whereconditions = ['d.moodleoverflow = ?', 'p.parent = 0'];
@@ -313,11 +300,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Get information about the user who started the discussion.
         $startuser = new stdClass();
-        if ($CFG->branch >= 311) {
-            $startuserfields = \core_user\fields::get_picture_fields();
-        } else {
-            $startuserfields = explode(',', user_picture::fields());
-        }
+        $startuserfields = fields::get_picture_fields();
 
         $startuser = username_load_fields_from_object($startuser, $discussion, null, $startuserfields);
         $startuser->id = $discussion->userid;
@@ -676,7 +659,7 @@ function moodleoverflow_get_discussions_unread($cm) {
  */
 function moodleoverflow_get_post_full($postid) {
     global $DB;
-    $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+    $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
     $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
               FROM {moodleoverflow_posts} p
                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
@@ -1093,11 +1076,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
     }
 
     // Get all username fields.
-    if ($CFG->branch >= 311) {
-        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-    } else {
-        $allnames = get_all_user_name_fields(true, 'u');
-    }
+    $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
 
     $additionalwhere = '';
 
@@ -1284,11 +1263,7 @@ function moodleoverflow_print_post(
 
     // Build the object that represents the posting user.
     $postinguser = new stdClass();
-    if ($CFG->branch >= 311) {
-        $postinguserfields = \core_user\fields::get_picture_fields();
-    } else {
-        $postinguserfields = explode(',', user_picture::fields());
-    }
+    $postinguserfields = fields::get_picture_fields();
     $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
 
     // Post was anonymized.

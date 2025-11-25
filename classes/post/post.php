@@ -494,11 +494,7 @@ class post {
         global $DB, $CFG;
         $this->existence_check();
 
-        if ($CFG->branch >= 311) {
-            $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-        } else {
-            $allnames = implode(', ', fields::get_name_fields());
-        }
+        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
         $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
                 FROM {moodleoverflow_posts} p
                     JOIN {moodleoverflow_discussions} d ON p.discussion = d.id

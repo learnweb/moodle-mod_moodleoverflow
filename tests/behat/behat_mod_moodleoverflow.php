@@ -225,30 +225,10 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param TableNode $data
      */
     public function i_add_moodleoverflow_to_course_and_fill_form(string $courseshortname, string $sectionnumber, TableNode $data) {
-        global $CFG;
-
-        if ($CFG->branch >= 404) {
-            $this->execute(
-                "behat_course::i_add_to_course_section_and_i_fill_the_form_with",
-                [$this->escape('moodleoverflow'), $this->escape($courseshortname), $this->escape($sectionnumber), $data]
-            );
-        } else {
-            // This is the code from the deprecated behat function "i_add_to_section_and_i_fill_the_form_with".
-            // Add activity to section.
-            $this->execute(
-                "behat_course::i_add_to_section",
-                [$this->escape('moodleoverflow'), $this->escape($sectionnumber)]
-            );
-
-            // Wait to be redirected.
-            $this->execute('behat_general::wait_until_the_page_is_ready');
-
-            // Set form fields.
-            $this->execute("behat_forms::i_set_the_following_fields_to_these_values", $data);
-
-            // Save course settings.
-            $this->execute("behat_forms::press_button", get_string('savechangesandreturntocourse'));
-        }
+        $this->execute(
+            "behat_course::i_add_to_course_section_and_i_fill_the_form_with",
+            [$this->escape('moodleoverflow'), $this->escape($courseshortname), $this->escape($sectionnumber), $data]
+        );
     }
 
     /**

@@ -24,6 +24,7 @@
 
 namespace mod_moodleoverflow\task;
 
+use core\cron;
 use core\session\exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\manager\mail_manager;
@@ -123,12 +124,7 @@ class send_review_mails extends \core\task\scheduled_task {
 
             foreach ($usersto as $userto) {
                 try {
-                    // Check for moodle version. Version 401 supported until 8 December 2025.
-                    if ($CFG->branch >= 402) {
-                        \core\cron::setup_user($userto, $course);
-                    } else {
-                        cron_setup_user($userto, $course);
-                    }
+                    cron::setup_user($userto, $course);
 
                     $maildata = new moodleoverflow_email(
                         $course,

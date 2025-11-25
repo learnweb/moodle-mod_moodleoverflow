@@ -262,11 +262,7 @@ final class review_test extends \advanced_testcase {
         $expected = (array)$expected;
         $actual = (object)$actual;
         foreach ($expected as $key => $value) {
-            if ($CFG->branch >= 404) {
-                $this->assertObjectHasProperty($key, $actual, "Failed asserting that attribute '$key' exists.");
-            } else {
-                $this->assertObjectHasAttribute($key, $actual, "Failed asserting that attribute '$key' exists.");
-            }
+            $this->assertObjectHasProperty($key, $actual, "Failed asserting that attribute '$key' exists.");
             $this->assertEquals($value, $actual->$key, "Failed asserting that \$obj->$key '" . $actual->$key . "' equals '$value'");
         }
     }
