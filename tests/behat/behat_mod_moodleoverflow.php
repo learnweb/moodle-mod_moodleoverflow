@@ -131,7 +131,7 @@ class behat_mod_moodleoverflow extends behat_base {
     }
 
     /**
-     * The admins adds a moodleoverflow discussions with a tracking type. Used in the track_read_posts_feature.
+     * The admin adds a moodleoverflow discussions with a tracking type. Used in the track_read_posts_feature.
      *
      * @Given /^The admin posts "(?P<subject>[^"]*)" in "(?P<name>[^"]*)" with tracking type "(?P<trackingtype>[^"]*)"$/
      *
@@ -145,6 +145,24 @@ class behat_mod_moodleoverflow extends behat_base {
             ['activity', 'course', 'name', 'intro', 'trackingtype'],
             ['moodleoverflow', 'C1', $name, 'Test moodleoverflow description', $trackingtype],
         ])]);
+        $this->execute('behat_auth::i_log_in_as', 'admin');
+        $this->execute('behat_navigation::i_am_on_course_homepage', 'Course 1');
+        $this->i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($name, new TableNode([
+            ['Subject', $subject],
+            ['Message', 'Test post message'],
+        ]));
+    }
+
+    /**
+     * The admin adds a moodleoverflow discussion.
+     *
+     * @Given /^The admin posts "(?P<subject>[^"]*)" in "(?P<name>[^"]*)"$/
+     *
+     * @param string $subject
+     * @param string $name
+     * @return void
+     */
+    public function admin_adds_discussion(string $subject, string $name): void {
         $this->execute('behat_auth::i_log_in_as', 'admin');
         $this->execute('behat_navigation::i_am_on_course_homepage', 'Course 1');
         $this->i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($name, new TableNode([

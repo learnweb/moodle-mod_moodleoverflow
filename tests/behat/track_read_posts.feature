@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow
+@mod @mod_moodleoverflow @javascript
 Feature: A teacher can set one of 3 possible options for tracking read moodleoverflow posts
   In order to ease the moodleoverflow posts follow up
   As a user
@@ -67,3 +67,17 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
+
+  Scenario: Marking all unread posts as read.
+    Given the following config values are set as admin:
+      | allowforcedreadtracking | 1 | moodleoverflow |
+    And The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "2"
+    And The admin posts "Test post subject 2" in "Test moodleoverflow name"
+    And I log in as "student1"
+    And I am on "Course 1" course homepage
+    And I should see "2 unread post"
+    And I follow "Test moodleoverflow name"
+    When I click on "Mark all posts as read" "link"
+    And I am on "Course 1" course homepage
+    Then I should not see "2 unread post"
+
