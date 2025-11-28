@@ -1,74 +1,61 @@
 # ![moodle-mod_groupmembers](pix/icon.png) Activity Module: Moodleoverflow
 
-[![Coverage Status](https://coveralls.io/repos/github/learnweb/moodle-mod_moodleoverflow/badge.svg?branch=master)](https://coveralls.io/github/learnweb/moodle-mod_moodleoverflow?branch=master)
-
-This plugin enables Moodle users to create a non-linear, non-chronologic discussion forum.
-The plugin has similar features as the Moodle forum, but is not intended for general discussions, but rather for straightforward question-and-answer discussions.
-Additionally, users can rate posts and gain a rating score ("reputation") by being rated by other users.
-Users who have started a discussion can mark a post as helpful, and teachers can mark a post as a (correct) solution to the posed question.
-
-This plugin is developed by Kennet Winter, [Tamara Gunkel](https://github.com/TamaraGunkel), and [Jan Dageförde](https://github.com/Dagefoerde) 
-and is maintained by Learnweb (University of Münster).
+The Moodleoverflow activity provides users the ability to create discussion forums that are not strictly linear or chronological.
+It has similarities to the Moodle _forum_, but it is more intended for question-and-answer style discussions and provides additional features that support meaningful interaction. Moodleoverflow features
+are highly customizable to ensure that it fits the needs of all users. A Moodleoverflow instance represents a forum that contains multiple discussions with posts.
 
 ## Installation
-This plugin should go into `mod/mooodleoverflow`. Upon installation, several default settings need to be defined that pre-configure future instances of this activity (see [Settings](#settings)).
+Clone the content into `{your/moodle/dirroot}/mod/moodleoverflow` and complete the installation in 
+_Site administration > Notifications_ or run  `$ php admin/cli/upgrade.php` in your cli.
 
-## Rating
-If a post is rated up or down, the post owner's rating score increases or decreases. The rating score of a user is always shown after the user name.
-In the settings, you can define what amount of reputation a downvote or upvote gives. 
-Posts with a high score are displayed further up than posts with a lower score. 
-If a post is marked as helpful or solved, the post owner's rating score also increases. By default, a mark gives a higher amount of reputation than an upvote.
-A marked post is always displayed first, but you can choose which mark (solved or helpful) is more important.
+## Core features
+The main features of Moodleoverflow are the *rating and reputation system*, *subscription and read tracking*, the *anonymous mode* and *other forms of moderation*.
 
-## Screenshots
-Moodleoverflow activity:<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946828-26b0b968-b8d3-11e7-9f99-e1434d7a60d8.png" width="500">
-<br><br>
+### Rating and reputation system
+Like in _Stackoverflow_, users can rate posts with up- and downvotes, which rank the posts in a discussion. Additionally, the user that started the
+discussion can mark posts as _"helpful"_(orange) and course teachers can mark a post as _"solution"_(green).
 
-Every user can see the discussions and the posts. 
-The discussion overview shows the status, among other things. Thus users can see if a discussion is already solved (green tick) or if a post is marked as helpful (orange tick).
-<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946826-26981d72-b8d3-11e7-9773-b6547ea9276f.png" width="500">
-<br><br>
-Posts can be marked as helpful (orange) by the question owner or as solved (green) by a teacher. The current post is marked blue.
-Additionally, everybody can vote posts up or down. The posts are ordered by the number of upvotes. The post owner's reputation increases if the post is upvoted and decreases if it is downvoted.
-Post owners can edit their posts until 30 minutes after posting. Teachers can edit and delete posts from everybody without time restrictions.
-<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946825-267c07d6-b8d3-11e7-8ae1-4f86ea375fd5.png" width="500">
-<br><br>
-Users can attach files. If a picture is attached, it will be displayed as an image. If another file type is attached, the file will be shown but not the content.
-<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946824-2660a64e-b8d3-11e7-879f-70fc5cd2fc98.png" width="500">
-<br><br>
-A discussion can be deleted by deleting the first post.
+If enabled, Moodleoverflow tracks the users activity within a single course with a *reputation* score. Activities like voting or getting upvotes and helpful/solution marks
+increase the reputation, while downvotes decrease it. A user's reputation is displayed when they write a post. Detailed explanation as well as instructions on how
+to tailor the reputation system to your own needs can be found [here](https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators).
 
-### Students' view
-Unlike teachers, students can't edit or delete a post or mark it as solved.
-<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946823-2646aece-b8d3-11e7-92d0-49745ada27e3.png" width="500">
-<br><br>
+What a typical discussion looks like:
 
+<img width="811" height="740" alt="lively_discussion" src="https://github.com/user-attachments/assets/11d2ab6a-e12a-470e-8666-dfcd5b3408e9" />
+
+Moodleoverflow offers the ability for teachers to show the user statistics for a single course. Teachers can then see which students are particularly active in Moodleoverflow forums:
+
+<img width="1510" height="398" alt="userstats" src="https://github.com/user-attachments/assets/528bd76b-9967-43d7-b597-fc7f6107bb9e" />
+
+<br>
+
+### Subscription and read tracking
+Users can subscribe to individual discussions or entire forums to receive notifications via email. Teachers have the ability to enforce subscriptions for important forums.
+Moodleoverflow can track unread discussions and display a visual hint. All users can control their personal moodleoverflow settings in the overview:
+
+<img width="843" height="269" alt="overview" src="https://github.com/user-attachments/assets/7eb3ee9f-5227-4922-96dd-0d2b37176c67" />
+
+A forum with unread posts:
+
+<img width="796" height="318" alt="unread_posts" src="https://github.com/user-attachments/assets/25d459d1-62ec-413c-950b-0931d9b938d7" />
+
+<br>
+
+### Moderation options
+Teachers can restrict certain features in a forum. With the *anonymous mode* certain users (the discussion starter or all users) are anonymous within a forum. This can motivate users
+to interact with other students and increase their activity in discussions. Especially in Q&A this can be an ice breaker.
+
+<img width="817" height="587" alt="anonymous_forum" src="https://github.com/user-attachments/assets/bd5c273b-c371-4a10-b9b8-694f32ddfb79" />
+
+
+If teachers want to limit the time users can post replies, the *limited answer mode* can be activated when creating a moodleoverflow. The teacher sets a time frame in which
+the students can write posts. This can be used to collect questions before answers are allowed, or to enforce a posting deadline.
+
+---
 ## Settings
-### Global
-In the global settings, you can set e.g. the number of discussions per page, the maximum attachment size, or read tracking.
-In addition to these settings which are the same as in the forum, you can define the amount of reputation a vote or mark gives.
-<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946822-262bb664-b8d3-11e7-88fd-1a400864f8aa.png" width="500">
-<br><br>
 
-### Course wide
-In the course settings you can override a few settings like maximum attachment size or read tracking.
-Moreover, you can decide if helpful or solved posts are displayed first and how the reputation is calculated.
-<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946820-260d778a-b8d3-11e7-9425-2af44f00e716.png" width="500">
-<br><br>
-If read tracking is set to "optional" and turned on by the students, the unread posts are highlighted. 
-<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946819-25f2e5b4-b8d3-11e7-88b7-97b80f159a2d.png" width="500">
-<br><br>
+The global settings allow administrators to enable or disable core features or to set the boundaries of what the teachers can customize in the local settings.
+With the local settings in each moodleoverflow teachers can specify the use case of a forum and make use of the core features A detailed explanation of the settings can be found [here](https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators)
 
-### Students
-Depending on the global and course settings students can choose if they want to track posts and receive email notifications.
-<br><br>
-<img src="https://user-images.githubusercontent.com/432117/31946818-25c4c3aa-b8d3-11e7-88f6-891f1db51618.png" width="500">
-<br><br>
+---
+This plugin was initially implemented by Kennet Winter and is further developed and maintained by the [Learnweb development team](https://github.com/learnweb) (University of Münster)

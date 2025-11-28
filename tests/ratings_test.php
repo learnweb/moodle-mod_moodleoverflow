@@ -22,7 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_moodleoverflow;
-use mod_moodleoverflow\ratings;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -39,27 +38,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class ratings_test extends \advanced_testcase {
-    /** @var stdClass test course */
-    private $course;
-
-    /** @var stdClass coursemodule */
-    private $coursemodule;
-
-    /** @var stdClass test moodleoverflow */
-    private $moodleoverflow;
-
-    /** @var stdClass test teacher */
-    private $teacher;
-
-    /** @var stdClass test user */
-    private $user1;
-
-    /** @var stdClass another test user */
-    private $user2;
-
-    /** @var stdClass a discussion */
-    private $discussion;
-
     /** @var stdClass a post from the teacher*/
     private $post;
 
@@ -80,9 +58,6 @@ final class ratings_test extends \advanced_testcase {
 
     /** @var stdClass answer from user 2 */
     private $answer6;
-
-    /** @var \mod_moodleoverflow_generator $generator */
-    private $generator;
 
     /**
      * Test setUp.

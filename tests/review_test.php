@@ -24,7 +24,6 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\manager\mail_manager;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_review_mails;
 
@@ -258,15 +257,10 @@ final class review_test extends \advanced_testcase {
      * @param object|array $actual
      */
     private function assert_matches_properties($expected, $actual) {
-        global $CFG;
         $expected = (array)$expected;
         $actual = (object)$actual;
         foreach ($expected as $key => $value) {
-            if ($CFG->branch >= 404) {
-                $this->assertObjectHasProperty($key, $actual, "Failed asserting that attribute '$key' exists.");
-            } else {
-                $this->assertObjectHasAttribute($key, $actual, "Failed asserting that attribute '$key' exists.");
-            }
+            $this->assertObjectHasProperty($key, $actual, "Failed asserting that attribute '$key' exists.");
             $this->assertEquals($value, $actual->$key, "Failed asserting that \$obj->$key '" . $actual->$key . "' equals '$value'");
         }
     }

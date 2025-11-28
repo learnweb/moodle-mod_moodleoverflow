@@ -222,16 +222,6 @@ class userstats_table extends \flexible_table {
         }
     }
 
-    /**
-     * error handling
-     * @param object $colname
-     * @param int    $attempt
-     * @return null
-     */
-    public function other_cols($colname, $attempt) {
-        return null;
-    }
-
     // Helper functions.
 
     /**

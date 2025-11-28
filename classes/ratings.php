@@ -310,8 +310,6 @@ class ratings {
      * @return array
      */
     public static function moodleoverflow_get_rating($postid) {
-        global $DB;
-
         // Retrieve the full post.
         $post = moodleoverflow_get_record_or_exception('moodleoverflow_posts', ['id' => $postid], 'postnotexist');
 

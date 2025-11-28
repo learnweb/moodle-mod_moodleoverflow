@@ -71,11 +71,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
         // Adding the standard "intro" and "introformat" fields.
-        if ($CFG->branch >= 29) {
-            $this->standard_intro_elements();
-        } else {
-            $this->add_intro_editor();
-        }
+        $this->standard_intro_elements();
 
         $currentsetting = $this->current && property_exists($this->current, 'anonymous') ? $this->current->anonymous : 0;
         $possiblesettings = [
@@ -174,7 +170,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement(
             'header',
             'gradeheading',
-            $CFG->branch >= 311 ? get_string('gradenoun') : get_string('grade')
+            get_string('gradenoun')
         );
 
         $mform->addElement('text', 'grademaxgrade', get_string('modgrademaxgrade', 'grades'));

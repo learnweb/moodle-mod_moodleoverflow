@@ -24,6 +24,8 @@
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use core_user\fields;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
@@ -46,7 +48,7 @@ require_once(dirname(__FILE__) . '/lib.php');
  * @return array
  */
 function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
-    global $DB, $CFG, $USER;
+    global $DB, $USER;
 
     // LEARNWEB-TODO Refactor variable naming. $discussion->id is first post and $discussion->discussion is discussion id?
 
@@ -69,28 +71,13 @@ function moodleoverflow_get_discussions($cm, $page = -1, $perpage = 0) {
     }
 
     // Get all name fields as sql string snippet.
-    if ($CFG->branch >= 311) {
-        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-    } else {
-        $allnames = get_all_user_name_fields(true, 'u');
-    }
+    $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
     $postdata = 'p.id, p.modified, p.discussion, p.userid, p.reviewed';
     $discussiondata = 'd.name, d.timemodified, d.timestart, d.usermodified, d.firstpost';
     $userdata = 'u.email, u.picture, u.imagealt';
 
-    if ($CFG->branch >= 311) {
-        $usermodifiedfields = \core_user\fields::for_name()->get_sql(
-            'um',
-            false,
-            'um',
-            '',
-            false
-        )->selects .
+    $usermodifiedfields = fields::for_name()->get_sql('um', false, 'um', '', false)->selects .
             ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
-    } else {
-        $usermodifiedfields = get_all_user_name_fields(true, 'um', null, 'um') .
-            ', um.email AS umemail, um.picture AS umpicture, um.imagealt AS umimagealt';
-    }
 
     $params = [$cm->instance];
     $whereconditions = ['d.moodleoverflow = ?', 'p.parent = 0'];
@@ -227,11 +214,11 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $canmovetopic = false;
     if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:movetopic', $context)) {
         $modinfo = get_fast_modinfo($moodleoverflow->course);
-        $coursemoodleoverflows = $modinfo->get_instances_of('moodleoverflow');
-        $coursemoodleoverflows = array_filter($coursemoodleoverflows, function ($cm) {
+        $coursemodules = $modinfo->get_instances_of('moodleoverflow');
+        $coursemodules = array_filter($coursemodules, function ($cm) {
             return $cm->deletioninprogress == 0;
         });
-        $canmovetopic = count($coursemoodleoverflows) > 1;
+        $canmovetopic = count($coursemodules) > 1;
     }
 
     // Iterate through every visible discussion.
@@ -313,11 +300,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Get information about the user who started the discussion.
         $startuser = new stdClass();
-        if ($CFG->branch >= 311) {
-            $startuserfields = \core_user\fields::get_picture_fields();
-        } else {
-            $startuserfields = explode(',', user_picture::fields());
-        }
+        $startuserfields = fields::get_picture_fields();
 
         $startuser = username_load_fields_from_object($startuser, $discussion, null, $startuserfields);
         $startuser->id = $discussion->userid;
@@ -676,7 +659,7 @@ function moodleoverflow_get_discussions_unread($cm) {
  */
 function moodleoverflow_get_post_full($postid) {
     global $DB;
-    $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+    $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
     $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
               FROM {moodleoverflow_posts} p
                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
@@ -971,7 +954,7 @@ function moodleoverflow_print_discussion(
     $multiplemarks = false,
     ?stdClass $limitedanswersetting = null
 ) {
-    global $USER, $DB;
+    global $USER;
     // Check if the current is the starter of the discussion.
     $ownpost = (isloggedin() && ($USER->id == $post->userid));
 
@@ -1077,10 +1060,9 @@ function moodleoverflow_print_discussion(
  * @return array
  */
 function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modcontext) {
-    global $DB, $USER, $CFG;
+    global $DB, $USER;
 
     // Initiate tracking settings.
-    $params = [];
     $trackingselector = "";
     $trackingjoin = "";
     $params = [];
@@ -1093,11 +1075,7 @@ function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modc
     }
 
     // Get all username fields.
-    if ($CFG->branch >= 311) {
-        $allnames = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-    } else {
-        $allnames = get_all_user_name_fields(true, 'u');
-    }
+    $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
 
     $additionalwhere = '';
 
@@ -1217,7 +1195,7 @@ function moodleoverflow_print_post(
     $multiplemarks = false,
     ?stdClass $limitedanswersetting = null
 ) {
-    global $USER, $CFG, $OUTPUT, $PAGE, $DB;
+    global $USER, $CFG, $OUTPUT, $PAGE;
 
     // Require the filelib.
     require_once($CFG->libdir . '/filelib.php');
@@ -1284,11 +1262,7 @@ function moodleoverflow_print_post(
 
     // Build the object that represents the posting user.
     $postinguser = new stdClass();
-    if ($CFG->branch >= 311) {
-        $postinguserfields = \core_user\fields::get_picture_fields();
-    } else {
-        $postinguserfields = explode(',', user_picture::fields());
-    }
+    $postinguserfields = fields::get_picture_fields();
     $postinguser = username_load_fields_from_object($postinguser, $post, null, $postinguserfields);
 
     // Post was anonymized.
@@ -1943,13 +1917,12 @@ function moodleoverflow_add_new_post($post) {
  * Deletes a discussion and handles all associated cleanups.
  *
  * @param object $discussion     The discussion object
- * @param object $course         The course object
  * @param object $cm
  * @param object $moodleoverflow The moodleoverflow object
  *
  * @return bool Whether the deletion was successful.
  */
-function moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleoverflow) {
+function moodleoverflow_delete_discussion($discussion, $cm, $moodleoverflow) {
     global $DB;
 
     // Initiate a pointer.

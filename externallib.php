@@ -303,7 +303,7 @@ class mod_moodleoverflow_external extends external_api {
 
         if (!$post->parent) {
             // Delete discussion, if this is the question.
-            moodleoverflow_delete_discussion($discussion, $course, $cm, $moodleoverflow);
+            moodleoverflow_delete_discussion($discussion, $cm, $moodleoverflow);
         } else {
             moodleoverflow_delete_post($post, true, $cm, $moodleoverflow);
         }

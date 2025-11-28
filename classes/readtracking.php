@@ -24,7 +24,9 @@
 
 namespace mod_moodleoverflow;
 
+use coding_exception;
 use context_module;
+use dml_exception;
 use moodle_exception;
 
 /**
@@ -76,18 +78,18 @@ class readtracking {
     /**
      * Tells whether a specific moodleoverflow is tracked by the user.
      *
-     * @param object      $moodleoverflow
-     * @param object|null $user
+     * @param object $moodleoverflow
+     * @param ?object $user
      *
      * @return bool
+     * @throws dml_exception
+     * @throws coding_exception
      */
-    public static function moodleoverflow_is_tracked($moodleoverflow, $user = null) {
+    public static function moodleoverflow_is_tracked(object $moodleoverflow, ?object $user = null): bool {
         global $USER, $DB;
 
         // Get the user.
-        if (is_null($user)) {
-            $user = $USER;
-        }
+        $user = $user ?? $USER;
 
         // Guests cannot track a moodleoverflow. The moodleoverflow should be generally trackable.
         if (isguestuser($USER) || empty($USER->id) || !self::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {

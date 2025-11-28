@@ -107,72 +107,17 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
     public static function define_restore_log_rules() {
         $rules = [];
 
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'add',
-            'view.php?id={course_module}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'update',
-            'view.php?id={course_module}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'view',
-            'view.php?id={course_module}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'view moodleoverflow',
-            'view.php?id={course_module}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'mark read',
-            'view.php?f={moodleoverflow}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'start tracking',
-            'view.php?f={moodleoverflow}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'stop tracking',
-            'view.php?f={moodloeoverflow}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'subscribe',
-            'view.php?f={moodleoverflow}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'unsubscribe',
-            'view.php?f={moodleoverflow}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'subscriber',
-            'subscribers.php?id={moodleoverflow}',
-            '{moodleoverflow}'
-        );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'subscribers',
-            'subscribers.php?id={moodleoverflow}',
-            '{moodleoverflow}'
-        );
+        $rules[] = new restore_log_rule('moodleoverflow', 'add', 'view.php?id={course_module}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'update', 'view.php?id={course_module}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'view', 'view.php?id={course_module}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'view moodleoverflow', 'view.php?id={course_module}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'mark read', 'view.php?f={moodleoverflow}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'start tracking', 'view.php?f={moodleoverflow}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'stop tracking', 'view.php?f={moodloeoverflow}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'subscribe', 'view.php?f={moodleoverflow}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'unsubscribe', 'view.php?f={moodleoverflow}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'subscriber', 'subscribers.php?id={moodleoverflow}', '{moodleoverflow}');
+        $rules[] = new restore_log_rule('moodleoverflow', 'subscribers', 'subscribers.php?id={moodleoverflow}', '{moodleoverflow}');
         $rules[] = new restore_log_rule(
             'moodleoverflow',
             'view subscribers',
@@ -205,12 +150,7 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
             null,
             'delete discussion'
         );
-        $rules[] = new restore_log_rule(
-            'moodleoverflow',
-            'delete discussion',
-            'view.php?id={course_module}',
-            '{moodleoverflow}'
-        );
+        $rules[] = new restore_log_rule('moodleoverflow', 'delete discussion', 'view.php?id={course_module}', '{moodleoverflow}');
         $rules[] = new restore_log_rule(
             'moodleoverflow',
             'add post',
@@ -235,7 +175,6 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
             'discussion.php?d={moodleoverflow_discussion}',
             '[post]'
         );
-
         return $rules;
     }
 
@@ -250,10 +189,6 @@ class restore_moodleoverflow_activity_task extends restore_activity_task {
      * activity level. All them are rules not linked to any module instance (cmid = 0)
      */
     public static function define_restore_log_rules_for_course() {
-        $rules = [];
-
-        $rules[] = new restore_log_rule('moodleoverflow', 'view all', 'index.php?id={course}', null);
-
-        return $rules;
+        return [new restore_log_rule('moodleoverflow', 'view all', 'index.php?id={course}', null)];
     }
 }

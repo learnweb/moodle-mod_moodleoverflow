@@ -37,7 +37,7 @@
 
     {{#discussions}}
         <div class="moodleoverflowdiscussion d-flex border p-2 mb-3" data-moodleoverflow-postid="{{postid}}">
-            <div class="leftbox text-center mr-2">
+            <div class="leftbox text-center me-2">
                 <div class="votes text-center mb-1">
                     {{> mod_moodleoverflow/postvoting }}
                 </div>
@@ -77,9 +77,9 @@
             </div>
             <div class="w-100 d-flex flex-column justify-content-between">
                 <div class="d-flex justify-content-between">
-                    <a class="subject mb-3 mr-3" href="{{{subjectlink}}}">{{{ subjecttext }}}</a>
+                    <a class="subject mb-3 me-3" href="{{{subjectlink}}}">{{{ subjecttext }}}</a>
 
-                    <div class="pt-2 text-right">
+                    <div class="pt-2 text-end">
                         {{#cansubtodiscussion}}
                             <div class="discussionsubscription">{{{discussionsubicon}}}</div>
                         {{/cansubtodiscussion}}
@@ -95,7 +95,7 @@
                                 </a>
                                 <a class="d-inline-block mt-3" href="{{ unreadlink }}"
                                    title="{{#str}}amount_unread_posts_in_discussion, mod_moodleoverflow, {{unreadamount}} {{/str}}">
-                                    <span class="fa fa-envelope icon mr-0 moodleoverflow-icon-1_5x text-muted">
+                                    <span class="fa fa-envelope icon me-0 moodleoverflow-icon-1_5x text-muted">
                                     </span><span class="unread-bubble">
                                         {{ unreadamount }}
                                     </span>

@@ -24,7 +24,6 @@
 
 namespace mod_moodleoverflow\output;
 
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\subscriptions;
 
 /**

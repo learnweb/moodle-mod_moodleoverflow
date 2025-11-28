@@ -87,7 +87,7 @@ final class discussion_test extends \advanced_testcase {
         $prepost->message = 'a message';
         $prepost->messageformat = 1;
         $prepost->reviewed = 0;
-        $prepost->formattachments = '';
+        $prepost->formattachments = null;
         $prepost->modulecontext = $this->modulecontext;
 
         // Log in as the teacher.

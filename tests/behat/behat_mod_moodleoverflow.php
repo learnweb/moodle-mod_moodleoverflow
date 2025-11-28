@@ -131,7 +131,7 @@ class behat_mod_moodleoverflow extends behat_base {
     }
 
     /**
-     * The admins adds a moodleoverflow discussions with a tracking type. Used in the track_read_posts_feature.
+     * The admin adds a moodleoverflow discussions with a tracking type. Used in the track_read_posts_feature.
      *
      * @Given /^The admin posts "(?P<subject>[^"]*)" in "(?P<name>[^"]*)" with tracking type "(?P<trackingtype>[^"]*)"$/
      *
@@ -145,6 +145,24 @@ class behat_mod_moodleoverflow extends behat_base {
             ['activity', 'course', 'name', 'intro', 'trackingtype'],
             ['moodleoverflow', 'C1', $name, 'Test moodleoverflow description', $trackingtype],
         ])]);
+        $this->execute('behat_auth::i_log_in_as', 'admin');
+        $this->execute('behat_navigation::i_am_on_course_homepage', 'Course 1');
+        $this->i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($name, new TableNode([
+            ['Subject', $subject],
+            ['Message', 'Test post message'],
+        ]));
+    }
+
+    /**
+     * The admin adds a moodleoverflow discussion.
+     *
+     * @Given /^The admin posts "(?P<subject>[^"]*)" in "(?P<name>[^"]*)"$/
+     *
+     * @param string $subject
+     * @param string $name
+     * @return void
+     */
+    public function admin_adds_discussion(string $subject, string $name): void {
         $this->execute('behat_auth::i_log_in_as', 'admin');
         $this->execute('behat_navigation::i_am_on_course_homepage', 'Course 1');
         $this->i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($name, new TableNode([
@@ -225,30 +243,10 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param TableNode $data
      */
     public function i_add_moodleoverflow_to_course_and_fill_form(string $courseshortname, string $sectionnumber, TableNode $data) {
-        global $CFG;
-
-        if ($CFG->branch >= 404) {
-            $this->execute(
-                "behat_course::i_add_to_course_section_and_i_fill_the_form_with",
-                [$this->escape('moodleoverflow'), $this->escape($courseshortname), $this->escape($sectionnumber), $data]
-            );
-        } else {
-            // This is the code from the deprecated behat function "i_add_to_section_and_i_fill_the_form_with".
-            // Add activity to section.
-            $this->execute(
-                "behat_course::i_add_to_section",
-                [$this->escape('moodleoverflow'), $this->escape($sectionnumber)]
-            );
-
-            // Wait to be redirected.
-            $this->execute('behat_general::wait_until_the_page_is_ready');
-
-            // Set form fields.
-            $this->execute("behat_forms::i_set_the_following_fields_to_these_values", $data);
-
-            // Save course settings.
-            $this->execute("behat_forms::press_button", get_string('savechangesandreturntocourse'));
-        }
+        $this->execute(
+            "behat_course::i_add_to_course_section_and_i_fill_the_form_with",
+            [$this->escape('moodleoverflow'), $this->escape($courseshortname), $this->escape($sectionnumber), $data]
+        );
     }
 
     /**

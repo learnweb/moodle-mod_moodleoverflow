@@ -53,7 +53,7 @@ class subscriptions {
      *
      * @var array[] An array of arrays.
      */
-    protected static $moodleoverflowcache = [];
+    protected static array $moodleoverflowcache = [];
 
     /**
      * The list of moodleoverflows which have been wholly retrieved for the subscription cache.
@@ -63,7 +63,7 @@ class subscriptions {
      *
      * @var bool[]
      */
-    protected static $fetchedmoodleoverflows = [];
+    protected static array $fetchedinstances = [];
 
     /**
      * The subscription cache for moodleoverflow discussions.
@@ -75,7 +75,7 @@ class subscriptions {
      *
      * @var array[]
      */
-    protected static $discussioncache = [];
+    protected static array $discussioncache = [];
 
     /**
      * The list of moodleoverflows which have been wholly retrieved for the discussion subscription cache.
@@ -85,7 +85,7 @@ class subscriptions {
      *
      * @var bool[]
      */
-    protected static $fetcheddiscussions = [];
+    protected static array $fetcheddiscussions = [];
 
     /**
      * Returns whether a user is subscribed to this moodleoverflow or a specific discussion within the moodleoverflow.
@@ -191,7 +191,7 @@ class subscriptions {
         global $DB;
 
         // Check if the moodleoverflow has not been fetched as a whole.
-        if (!isset(self::$fetchedmoodleoverflows[$moodleoverflowid])) {
+        if (!isset(self::$fetchedinstances[$moodleoverflowid])) {
             // Is a specified user requested?
             if (isset($userid)) {
                 // Create the cache for the user.
@@ -226,7 +226,7 @@ class subscriptions {
                 }
 
                 // Mark the moodleoverflow as fetched.
-                self::$fetchedmoodleoverflows[$moodleoverflowid] = true;
+                self::$fetchedinstances[$moodleoverflowid] = true;
                 $subscriptions->close();
             }
         }
@@ -444,15 +444,15 @@ class subscriptions {
         $mergedparams = array_merge($courseparams, $params);
         $moodleoverflows = $DB->get_recordset_sql($sql, $mergedparams);
 
-        // Loop through all of the results and add them to an array.
-        $unsubscribablemoodleoverflows = [];
+        // Loop through all results and add them to an array.
+        $unsubscribableinstances = [];
         foreach ($moodleoverflows as $moodleoverflow) {
-            $unsubscribablemoodleoverflows[] = $moodleoverflow;
+            $unsubscribableinstances[] = $moodleoverflow;
         }
         $moodleoverflows->close();
 
         // Return the array.
-        return $unsubscribablemoodleoverflows;
+        return $unsubscribableinstances;
     }
 
     /**
@@ -630,7 +630,7 @@ class subscriptions {
         self::$moodleoverflowcache = [];
 
         // Reset the fetched moodleoverflows.
-        self::$fetchedmoodleoverflows = [];
+        self::$fetchedinstances = [];
     }
 
     /**
@@ -967,14 +967,13 @@ class subscriptions {
      * Given a new post, subscribes the user to the thread the post was posted in.
      *
      * LEARNWEB-TODO: Refactor this function to the new way of working with discussion and posts.
-     * @param object $fromform       The submitted form
      * @param stdClass       $moodleoverflow The moodleoverflow record
      * @param stdClass       $discussion     The discussion record
      * @param context_module $modulecontext  The context of the module
      *
      * @return bool
      */
-    public static function moodleoverflow_post_subscription($fromform, $moodleoverflow, $discussion, $modulecontext) {
+    public static function moodleoverflow_post_subscription($moodleoverflow, $discussion, $modulecontext) {
         global $USER;
 
         // Check for some basic information.

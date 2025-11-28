@@ -81,8 +81,7 @@ final class notification_mail_test extends \advanced_testcase {
      * @covers \mod_moodleoverflow\task\send_mails
      */
     public function test_sortorder(): void {
-        global $DB;
-        $result = $this->helper_run_task();
+        $this->helper_run_task();
         $this->assertTrue(true);
         /* LEARNWEB-TODO: Add tests. A simple test coverage of the notification mails are in review_test.php for now.
                           They need to be removed from there and added here (+extending test cases). */
@@ -99,7 +98,6 @@ final class notification_mail_test extends \advanced_testcase {
      * - a student in each course.
      */
     private function helper_course_set_up(): void {
-        global $DB;
         $datagenerator = $this->getDataGenerator();
         $plugingenerator = $datagenerator->get_plugin_generator('mod_moodleoverflow');
         $this->testdata->mailsink = $this->redirectEmails();
