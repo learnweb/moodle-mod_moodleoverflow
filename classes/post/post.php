@@ -763,14 +763,13 @@ class post {
         $discussionid = $this->get_discussion()->get_id();
         $postratings = ratings::moodleoverflow_get_ratings_by_discussion($discussionid, $this->id);
 
-        $ratingsobject = new stdClass();
-        $ratingsobject->upvotes = $postratings->upvotes;
-        $ratingsobject->downvotes = $postratings->downvotes;
-        $ratingsobject->votesdifference = $postratings->upvotes - $postratings->downvotes;
-        $ratingsobject->markedhelpful = $postratings->ishelpful;
-        $ratingsobject->markedsolution = $postratings->issolved;
-
-        return $ratingsobject;
+        return (object) [
+            'upvotes' => $postratings->upvotes,
+            'downvotes' => $postratings->downvotes,
+            'votesdifference' => $postratings->upvotes - $postratings->downvotes,
+            'markedhelpful' => $postratings->ishelpful,
+            'markedsolution' => $postratings->issolved,
+        ];
     }
 
     /**
