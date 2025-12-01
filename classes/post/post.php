@@ -26,8 +26,12 @@
 namespace mod_moodleoverflow\post;
 
 use coding_exception;
+use context_module;
+use core\output\html_writer;
 use core_user\fields;
 use dml_exception;
+use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
@@ -548,6 +552,58 @@ class post {
             }
         }
         return $attachments;
+    }
+
+    /**
+     * Get a link to the users profile.
+     * Returns a html link embedded in the users name.
+     * @return moodle_url
+     * @throws moodle_exception
+     */
+    public function get_userlink(): string {
+        global $USER, $DB;
+        $this->existence_check();
+
+        $courseid = $this->get_discussion()->get_courseid();
+        $modulecontext = context_module::instance($this->get_coursemodule()->id);
+        $userid = $this->get_userid();
+
+        if (anonymous::is_post_anonymous($this->get_discussion()->get_db_object(), $this->get_moodleoverflow(), $userid)) {
+            if ($userid == $USER->id) {
+                $fullname = get_string('anonym_you', 'mod_moodleoverflow');
+                $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
+                return html_writer::link($profilelink, $fullname);
+            } else {
+                $usermapping = anonymous::get_userid_mapping($this->get_moodleoverflow(), $this->get_discussionid());
+                return $usermapping[$userid];
+            }
+        }
+        $user = $DB->get_record('user', ['id' => $userid]);
+        $fullname = fullname($user, capabilities::has('moodle/site:viewfullnames', $modulecontext));
+        $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
+        return html_writer::link($profilelink, $fullname);
+    }
+
+    /**
+     * Returns the post message in a formatted way ready to display.
+     * @return string
+     * @throws moodle_exception
+     */
+    public function get_message_formatted(): string {
+        $context = context_module::instance($this->get_coursemodule()->id);
+        $message = file_rewrite_pluginfile_urls(
+            $this->message,
+            'pluginfile.php',
+            $context->id,
+            'mod_moodleoverflow',
+            'post',
+            $this->get_id(),
+            ['includetoken' => true]
+        );
+        $options = new stdClass();
+        $options->para = true;
+        $options->context = $context;
+        return format_text($message, $this->messageformat, $options);
     }
 
     // Getter.
