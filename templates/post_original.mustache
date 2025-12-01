@@ -1,0 +1,62 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/post_original
+
+  Moodleoverflow post original template.
+  In the post.php this template is used to show the post that a new answer post is referring to.
+  It's a simpler version of the post template.
+
+  Example context (json):
+  {
+  }
+}}
+
+{{! Start the post. Mark it read or unread. }}
+<h2>Reply to discussion</h2>
+<div id="p{{postid}}" class="moodleoverflowpost bg-light moodleoverflowcomment
+    border" role="region" data-moodleoverflow-postid="{{postid}}">
+    <div class="d-flex p-2 w-100">
+        <div class="answercell d-flex flex-column">
+            <div class="post-text">
+                {{{ postcontent }}}
+            </div>
+            <div class="attachments flex-grow-1">
+                {{#attachments}}
+                    {{#image}}
+                        <img src="{{filepath}}" alt=""/>
+                        <br>
+                    {{/image}}
+                    {{^image}}
+                        <a class="icon-size-6" href="{{filepath}}">
+                            {{{icon}}}
+                        </a>
+                        <a href="{{filepath}}">
+                            {{filename}}
+                        </a>
+                    {{/image}}
+                    <br>
+                {{/attachments}}
+            </div>
+            <div class="post-info">
+                <div class="leftbox {{questioner}}">
+                    <span class="text-muted">{{{ byname }}} - {{ byshortdate }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -168,5 +168,6 @@ $PAGE->add_body_class('limitedwidth');
 
 // Display all.
 echo $OUTPUT->header();
+echo $postcontrol->display_original_post();
 $mformpost->display();
 echo $OUTPUT->footer();

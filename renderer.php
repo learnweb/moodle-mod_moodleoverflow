@@ -80,6 +80,17 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Renders a simplified version of any post. Used to display the post a reply is referring to.
+     *
+     * @param object $data The submitted variables.
+     *
+     * @return bool|string
+     */
+    public function render_post_original(object $data): bool|string {
+        return $this->render_from_template('mod_moodleoverflow/post_original', $data);
+    }
+
+    /**
      * Display a moodleoverflow post in the relevant context.
      *
      * @param \mod_moodleoverflow\output\moodleoverflow_email $post The post to display.

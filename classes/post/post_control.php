@@ -27,6 +27,7 @@ namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use coding_exception;
+use context_module;
 use core\notification;
 use dml_exception;
 use html_writer;
@@ -669,6 +670,27 @@ class post_control {
             + $pageparams);
 
         return $mformpost;
+    }
+
+    /**
+     * Display the original post when a user replies to it.
+     *
+     * @throws moodle_exception|dml_exception
+     */
+    public function display_original_post(): string {
+        global $PAGE, $DB;
+        if ($this->interaction == 'reply') {
+            $post = post::from_record($DB->get_record('moodleoverflow_posts', ['id' => $this->info->relatedpost->get_id()]));
+            $data = (object) [
+                'postid' => $post->get_id(),
+                'postcontent' => $post->get_message_formatted(),
+                'attachments' => $post->moodleoverflow_get_attachments(),
+                'byname' => $post->get_userlink(),
+                'byshortdate' => userdate($post->modified, get_string('strftimedatetimeshort', 'core_langconfig')),
+            ];
+            return $PAGE->get_renderer('mod_moodleoverflow')->render_post_original($data);
+        }
+        return '';
     }
 
     // Helper functions.
