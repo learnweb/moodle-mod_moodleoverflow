@@ -681,16 +681,14 @@ class post_control {
      * @throws moodle_exception|dml_exception
      */
     public function display_original_post(): string {
-        global $PAGE, $DB;
+        global $PAGE;
         if ($this->interaction == 'reply') {
             $PAGE->requires->js_call_amd('mod_moodleoverflow/show_post', 'init');
-            $post = post::from_record($DB->get_record('moodleoverflow_posts', ['id' => $this->info->relatedpost->get_id()]));
             $data = (object) [
-                'postid' => $post->get_id(),
-                'postcontent' => $post->get_message_formatted(),
-                'attachments' => $post->moodleoverflow_get_attachments(),
-                'byname' => $post->get_userlink(),
-                'byshortdate' => userdate($post->modified, get_string('strftimedatetimeshort', 'core_langconfig')),
+                'postid' => $this->info->relatedpost->get_id(),
+                'postcontent' => $this->info->relatedpost->get_message_formatted(),
+                'attachments' => $this->info->relatedpost->moodleoverflow_get_attachments(),
+                'byname' => $this->info->relatedpost->get_userlink(),
             ];
             return $PAGE->get_renderer('mod_moodleoverflow')->render_post_original($data);
         }
