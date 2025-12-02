@@ -22,7 +22,6 @@ Feature: Delete attachments
     And I follow "Forum post 1"
     And I click on "Answer" "link"
     And I set the following fields to these values:
-      | Subject | A reply post |
       | Message | This is the message of the answer post |
     And I upload "mod/moodleoverflow/tests/fixtures/NH.jpg" file to "Attachment" filemanager
     And I press "Post to forum"
