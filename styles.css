@@ -123,6 +123,25 @@
     white-space: nowrap;
 }
 
+#moodleoverflow_original_post {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.4s ease;
+}
+
+#moodleoverflow_showpost {
+    cursor: pointer;
+    background-color: #6a737b;
+    font-size: 0.8rem;
+}
+
+.original-post-text {
+    margin-bottom: 5px;
+    overflow-wrap: break-word;
+    width: 100%;
+    word-wrap: break-word;
+}
+
 /*
  * The Index Page.
  */

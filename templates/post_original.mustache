@@ -32,29 +32,39 @@
     border" role="region" data-moodleoverflow-postid="{{postid}}">
     <div class="d-flex p-2 w-100">
         <div class="answercell d-flex flex-column">
-            <div class="post-text">
-                {{{ postcontent }}}
+            <div class="post-info mb-2">
+                <div class="leftbox">
+                    <span class="text-muted">{{#str}} original_post_reply, moodleoverflow, {{{ byname }}} {{/str}}</span>
+                </div>
+                <div class="rightbox">
+                    <div class="post-menu">
+                        <span class="badge rounded-pill" id="moodleoverflow_showpost"
+                              data-action="mod_moodleoverflow/showpost_button">
+                            {{#str}} showpost_expand, moodleoverflow {{/str}}
+                        </span>
+                    </div>
+                </div>
             </div>
-            <div class="attachments flex-grow-1">
-                {{#attachments}}
-                    {{#image}}
-                        <img src="{{filepath}}" alt=""/>
+            <div id="moodleoverflow_original_post">
+                <div class="original-post-text">
+                    {{{ postcontent }}}
+                </div>
+                <div class="attachments flex-grow-1">
+                    {{#attachments}}
+                        {{#image}}
+                            <img src="{{filepath}}" alt=""/>
+                            <br>
+                        {{/image}}
+                        {{^image}}
+                            <a class="icon-size-6" href="{{filepath}}">
+                                {{{icon}}}
+                            </a>
+                            <a href="{{filepath}}">
+                                {{filename}}
+                            </a>
+                        {{/image}}
                         <br>
-                    {{/image}}
-                    {{^image}}
-                        <a class="icon-size-6" href="{{filepath}}">
-                            {{{icon}}}
-                        </a>
-                        <a href="{{filepath}}">
-                            {{filename}}
-                        </a>
-                    {{/image}}
-                    <br>
-                {{/attachments}}
-            </div>
-            <div class="post-info">
-                <div class="leftbox {{questioner}}">
-                    <span class="text-muted">{{{ byname }}} - {{ byshortdate }}</span>
+                    {{/attachments}}
                 </div>
             </div>
         </div>

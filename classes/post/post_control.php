@@ -680,6 +680,7 @@ class post_control {
     public function display_original_post(): string {
         global $PAGE, $DB;
         if ($this->interaction == 'reply') {
+            $PAGE->requires->js_call_amd('mod_moodleoverflow/show_post', 'init');
             $post = post::from_record($DB->get_record('moodleoverflow_posts', ['id' => $this->info->relatedpost->get_id()]));
             $data = (object) [
                 'postid' => $post->get_id(),
