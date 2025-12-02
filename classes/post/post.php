@@ -474,7 +474,7 @@ class post {
     /**
      * If successful, this function returns the name of the file
      *
-     * @return bool
+     * @return void
      * @throws moodle_exception
      */
     public function moodleoverflow_add_attachment(): void {
@@ -506,7 +506,7 @@ class post {
      * @throws moodle_exception
      */
     public function moodleoverflow_get_attachments(): array {
-        global $CFG, $OUTPUT;
+        global $OUTPUT;
         $this->existence_check();
 
         if (empty($this->attachment) || (!$context = \context_module::instance($this->get_coursemodule()->id))) {
@@ -708,15 +708,14 @@ class post {
         global $DB;
         $this->existence_check();
 
-        if ($this->parent == 0) {
-            // This post is the parent post.
-            $this->parentpost = null;
-            return null;
+        if ($this->parent === 0) {
+            return $this->parentpost = null;
         }
 
-        if (empty($this->parentpost)) {
-            $parentpostrecord = $DB->get_record('moodleoverflow_post', ['id' => $this->parent]);
-            $this->parentpost = $this->from_record($parentpostrecord);
+        if (!isset($this->parentpost)) {
+            $this->parentpost = $this->from_record(
+                $DB->get_record('moodleoverflow_post', ['id' => $this->parent])
+            );
         }
         return $this->parentpost;
     }
@@ -730,12 +729,7 @@ class post {
     public function moodleoverflow_get_childposts(): array {
         global $DB;
         $this->existence_check();
-
-        if ($childposts = $DB->get_records('moodleoverflow_posts', ['parent' => $this->id])) {
-            return $childposts;
-        }
-
-        return [];
+        return $DB->get_records('moodleoverflow_posts', ['parent' => $this->id]);
     }
 
     /**
@@ -759,10 +753,7 @@ class post {
      */
     public function moodleoverflow_get_post_ratings(): object {
         $this->existence_check();
-
-        $discussionid = $this->get_discussion()->get_id();
-        $postratings = ratings::moodleoverflow_get_ratings_by_discussion($discussionid, $this->id);
-
+        $postratings = ratings::moodleoverflow_get_ratings_by_discussion($this->get_discussion()->get_id(), $this->id);
         return (object) [
             'upvotes' => $postratings->upvotes,
             'downvotes' => $postratings->downvotes,
@@ -794,21 +785,20 @@ class post {
      * @return object $dbobject
      */
     private function build_db_object(): object {
-        $dbobject = new stdClass();
-        $dbobject->id = $this->id;
-        $dbobject->discussion = $this->discussion;
-        $dbobject->parent = $this->parent;
-        $dbobject->userid = $this->userid;
-        $dbobject->created = $this->created;
-        $dbobject->modified = $this->modified;
-        $dbobject->message = $this->message;
-        $dbobject->messageformat = $this->messageformat;
-        $dbobject->attachment = $this->attachment;
-        $dbobject->mailed = $this->mailed;
-        $dbobject->reviewed = $this->reviewed;
-        $dbobject->timereviewed = $this->timereviewed;
-
-        return $dbobject;
+        return (object) [
+            'id' => $this->id,
+            'discussion' => $this->discussion,
+            'parent' => $this->parent,
+            'userid' => $this->userid,
+            'created' => $this->created,
+            'modified' => $this->modified,
+            'message' => $this->message,
+            'messageformat' => $this->messageformat,
+            'attachment' => $this->attachment,
+            'mailed' => $this->mailed,
+            'reviewed' => $this->reviewed,
+            'timereviewed' => $this->timereviewed,
+        ];
     }
 
     /**
@@ -820,11 +810,8 @@ class post {
      */
     public function moodleoverflow_count_replies(bool $onlyreviewed): int {
         global $DB;
-
-        $conditions = ['parent' => $this->id] + ($onlyreviewed ? ['reviewed' => '1'] : []);
-
         // Return the amount of replies.
-        return $DB->count_records('moodleoverflow_posts', $conditions);
+        return $DB->count_records('moodleoverflow_posts', ['parent' => $this->id] + ($onlyreviewed ? ['reviewed' => '1'] : []));
     }
 
     // Security.
