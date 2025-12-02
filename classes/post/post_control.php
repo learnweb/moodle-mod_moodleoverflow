@@ -318,6 +318,9 @@ class post_control {
         // Load the $post variable.
         $this->assemble_prepost();
 
+        // Format the message.
+        $this->prepost->message = $this->info->relatedpost->get_message_formatted();
+
         // Unset where the user is coming from. This allows to calculate the correct return url later.
         unset($SESSION->fromdiscussion);
     }
