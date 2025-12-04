@@ -265,12 +265,6 @@ class post_control {
             throw new moodle_exception('activityiscurrentlyhidden');
         }
 
-        // Append 'RE: ' to the discussions subject.
-        $strre = get_string('re', 'moodleoverflow');
-        if (!(str_starts_with($this->prepost->subject, $strre))) {
-            $this->prepost->subject = $strre . ' ' . $this->prepost->subject;
-        }
-
         // Unset where the user is coming from.
         // Allows to calculate the correct return url later.
         unset($SESSION->fromdiscussion);

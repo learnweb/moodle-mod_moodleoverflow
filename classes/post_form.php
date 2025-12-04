@@ -51,11 +51,13 @@ class mod_moodleoverflow_post_form extends moodleform {
         // Fill in the data depending on page params later using set_data.
         $modform->addElement('header', 'general', '');
 
-        // The subject.
-        $modform->addElement('text', 'subject', get_string('subject', 'moodleoverflow'), 'size="48"');
-        $modform->setType('subject', PARAM_TEXT);
-        $modform->addRule('subject', get_string('required'), 'required', null, 'client');
-        $modform->addRule('subject', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
+        // Show the subject only when this is a new post.
+        if (empty($post->parentid)) {
+            $modform->addElement('text', 'subject', get_string('subject', 'moodleoverflow'), 'size="48"');
+            $modform->setType('subject', PARAM_TEXT);
+            $modform->addRule('subject', get_string('required'), 'required', null, 'client');
+            $modform->addRule('subject', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
+        }
 
         // The message.
         $modform->addElement(
@@ -125,7 +127,8 @@ class mod_moodleoverflow_post_form extends moodleform {
         if (empty($data['message']['text'])) {
             $errors['message'] = get_string('erroremptymessage', 'moodleoverflow');
         }
-        if (empty($data['subject'])) {
+        // Subject must not be empty when creating a new discussion only.
+        if (empty($data['subject']) && empty($this->_customdata['post']->parentid)) {
             $errors['subject'] = get_string('erroremptysubject', 'moodleoverflow');
         }
 

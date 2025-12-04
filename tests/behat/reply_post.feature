@@ -10,3 +10,5 @@ Feature: Replying to posts in a moodleoverflow
     Then I should see "Message from teacher"
     When I click on "#moodleoverflow_showpost" "css_element"
     Then I should not see "Message from teacher"
+    And I should not see "Subject"
+    And I should see "Message"

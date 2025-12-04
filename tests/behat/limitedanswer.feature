@@ -27,7 +27,6 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
     And I click on "Answer" "text"
     Then I should see "Your reply"
     And I set the following fields to these values:
-      | Subject | Re: Forum post 1 |
       | Message | This is the answer message |
     And I press "Post to forum"
     Then I should "" see the elements:

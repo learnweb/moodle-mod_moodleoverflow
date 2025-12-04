@@ -80,4 +80,3 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     When I click on "Mark all posts as read" "link"
     And I am on "Course 1" course homepage
     Then I should not see "2 unread post"
-
