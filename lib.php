@@ -639,7 +639,7 @@ function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
 }
 
 /**
- * Obtain grades from plugin's database tab
+ * Get the grades of a moodleoverflow instance for all users or a single user.
  *
  * @param stdClass $moodleoverflow moodleoverflow object
  * @param int $userid optional userid, 0 means all users.
@@ -652,8 +652,9 @@ function moodleoverflow_get_user_grades($moodleoverflow, $userid = 0) {
     $params = ["moodleoverflowid" => $moodleoverflow->id];
 
     $sql = "SELECT u.id AS userid, g.grade AS rawgrade
-              FROM {user} u, {moodleoverflow_grades} g
-             WHERE u.id = g.userid AND g.moodleoverflowid = :moodleoverflowid";
+              FROM {user} u
+              JOIN {moodleoverflow_grades} g ON u.id = g.userid
+             WHERE g.moodleoverflowid = :moodleoverflowid";
 
     if ($userid) {
         $sql .= ' AND u.id = :userid ';
