@@ -175,12 +175,29 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         $mform->addElement('text', 'grademaxgrade', get_string('modgrademaxgrade', 'grades'));
         $mform->setType('grademaxgrade', PARAM_INT);
-        $mform->addRule('grademaxgrade', get_string('grademaxgradeerror', 'moodleoverflow'), 'regex', '/^[0-9]+$/', 'client');
+        $mform->addRule(
+            'grademaxgrade',
+            get_string('grademaxgradeerror', 'moodleoverflow'),
+            'regex',
+            '/^(0|[1-9][0-9]*)$/',
+            'client'
+        );
 
         $mform->addElement('text', 'gradescalefactor', get_string('scalefactor', 'moodleoverflow'));
         $mform->addHelpButton('gradescalefactor', 'scalefactor', 'moodleoverflow');
         $mform->setType('gradescalefactor', PARAM_INT);
-        $mform->addRule('gradescalefactor', get_string('scalefactorerror', 'moodleoverflow'), 'regex', '/^[0-9]+$/', 'client');
+        $mform->addRule(
+            'gradescalefactor',
+            get_string('scalefactorerror', 'moodleoverflow'),
+            'regex',
+            '/^(0|[1-9][0-9]*)$/',
+            'client'
+        );
+
+        $mform->addElement('text', 'gradepass', get_string('gradepass', 'grades'));
+        $mform->addHelpButton('gradepass', 'gradepass', 'grades');
+        $mform->setType('gradepass', PARAM_INT);
+        $mform->addRule('gradepass', get_string('gradepasserror', 'moodleoverflow'), 'regex', '/^(0|[1-9][0-9]*)$/', 'client');
 
         if ($this->_features->gradecat) {
             $mform->addElement(
@@ -300,6 +317,18 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
     }
 
     /**
+     * Handles data preprocessing.
+     * @param array $defaultvalues
+     * @return void
+     */
+    public function data_preprocessing(&$defaultvalues) {
+        parent::data_preprocessing($defaultvalues);
+        if (isset($defaultvalues['gradepass'])) {
+            $defaultvalues['gradepass'] = (int)$defaultvalues['gradepass'];
+        }
+    }
+
+    /**
      * Validates set data in mod_form
      * @param array $data
      * @param array $files
@@ -308,6 +337,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      */
     public function validation($data, $files): array {
         $errors = parent::validation($data, $files);
+
+        // Validate the grade settings.
+        if (isset($data['gradepass']) && isset($data['grademaxgrade']) && $data['gradepass'] > $data['grademaxgrade']) {
+            $errors['gradepass'] = get_string('gradepassvalidationerror', 'moodleoverflow');
+        }
 
         // Validate that the limited answer settings.
         $currenttime = time();
