@@ -314,5 +314,17 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025031200, 'moodleoverflow');
     }
 
+    if ($oldversion < 2025112701) {
+        // Define table moodleoverflow to be edited.
+        $table = new xmldb_table('moodleoverflow');
+
+        // Create the field for the passing grade.
+        $field = new xmldb_field('gradepass', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, 'gradescalefactor');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2025112701, 'moodleoverflow');
+    }
     return true;
 }
