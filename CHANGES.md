@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+[v5.1-r2 (2025-12-22)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.1-r2)
+---------------------
+A new set of updates are waiting for a new release! And there is no better christmas gift than a new
+moodleoverflow version. Here's a list of the recent changes:
+- Completions with passing grades are now possible ([#253](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/253))
+- Discussion title is no more editable in the reply form ([#250](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/250))
+- Reply form displays the post it is referring to ([#249](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/249))
+
 [v5.1-r1 (2025-11-27)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.1-r1)
 ---------------------
 Moodleoverflow had a lot of bug fixes as well as code improving changes.
@@ -24,7 +32,6 @@ Here a list of the most important changes:
 [v4.5-r1 (2025-05-06)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v4.5-r1)
 ------------------
 * Moodle 4.5 compatible version
-
 
 [v4.2-r2](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v4.2-r2)
 ------------------
