@@ -31,4 +31,4 @@ $plugin->requires = 2024100700.00; // Require Moodle 4.5.
 $plugin->supported = [405, 501];
 $plugin->component = 'mod_moodleoverflow';
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = 'v5.1-r1';
+$plugin->release = 'v5.1-r2';
