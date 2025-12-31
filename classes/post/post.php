@@ -272,7 +272,7 @@ class post {
 
         // Save draft files to permanent file area.
         $context = \context_module::instance($this->get_coursemodule()->id);
-        $draftid = file_get_submitted_draft_itemid('introeditor');
+        $draftid = file_get_submitted_draft_itemid('message');
         $this->message = file_save_draft_area_files(
             $draftid,
             $context->id,
@@ -420,7 +420,7 @@ class post {
 
         // Update the message and save draft files to permanent file area.
         $context = \context_module::instance($this->get_coursemodule()->id);
-        $draftid = file_get_submitted_draft_itemid('introeditor');
+        $draftid = file_get_submitted_draft_itemid('message');
         $this->message = file_save_draft_area_files(
             $draftid,
             $context->id,
