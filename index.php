@@ -37,6 +37,10 @@ use core\output\pix_icon;
 $id = required_param('id', PARAM_INT);
 $subscribe = optional_param('subscribe', null, PARAM_INT);
 
+if ($CFG->version > 2025041400) {
+    \core_courseformat\activityoverviewbase::redirect_to_overview_page($id, 'moodleoverflow');
+}
+
 // Set an url to go back to the page.
 $url = new moodle_url('/mod/moodleoverflow/index.php', ['id' => $id]);
 
