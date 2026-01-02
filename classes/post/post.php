@@ -271,18 +271,7 @@ class post {
         $this->id = $DB->insert_record('moodleoverflow_posts', $this->build_db_object());
 
         // Save draft files to permanent file area.
-        $context = \context_module::instance($this->get_coursemodule()->id);
-        $draftid = file_get_submitted_draft_itemid('message');
-        $this->message = file_save_draft_area_files(
-            $draftid,
-            $context->id,
-            'mod_moodleoverflow',
-            'post',
-            $this->id,
-            mod_moodleoverflow_post_form::editor_options($context, $this->id),
-            $this->message
-        );
-        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
+        $this->save_draft_files();
 
         // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
         $this->moodleoverflow_add_attachment();
@@ -344,7 +333,7 @@ class post {
 
                 // Delete the attachments.
                 $fs = get_file_storage();
-                $context = \context_module::instance($coursemoduleid);
+                $context = context_module::instance($coursemoduleid);
                 $attachments = $fs->get_area_files(
                     $context->id,
                     'mod_moodleoverflow',
@@ -410,29 +399,16 @@ class post {
      * @throws moodle_exception
      */
     public function moodleoverflow_edit_post(int $time, string $postmessage, int $messageformat, ?int $formattachments): bool {
-        global $DB;
         $this->existence_check();
 
         // Update the attributes.
         $this->modified = $time;
+        $this->message = $postmessage;
         $this->messageformat = $messageformat;
         $this->formattachments = $formattachments;
 
         // Update the message and save draft files to permanent file area.
-        $context = \context_module::instance($this->get_coursemodule()->id);
-        $draftid = file_get_submitted_draft_itemid('message');
-        $this->message = file_save_draft_area_files(
-            $draftid,
-            $context->id,
-            'mod_moodleoverflow',
-            'post',
-            $this->id,
-            mod_moodleoverflow_post_form::editor_options($context, $this->id),
-            $postmessage
-        );
-
-        // Update the record in the database.
-        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
+        $this->save_draft_files();
 
         // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
         $this->moodleoverflow_add_attachment();
@@ -485,7 +461,7 @@ class post {
             return;    // Nothing to do.
         }
 
-        $context = \context_module::instance($this->get_coursemodule()->id);
+        $context = context_module::instance($this->get_coursemodule()->id);
         $info = file_get_draft_area_info($this->formattachments);
         $present = ($info['filecount'] > 0) ? '1' : '';
         file_save_draft_area_files(
@@ -509,7 +485,7 @@ class post {
         global $OUTPUT;
         $this->existence_check();
 
-        if (empty($this->attachment) || (!$context = \context_module::instance($this->get_coursemodule()->id))) {
+        if (empty($this->attachment) || (!$context = context_module::instance($this->get_coursemodule()->id))) {
             return [];
         }
 
@@ -552,6 +528,27 @@ class post {
             }
         }
         return $attachments;
+    }
+
+    /**
+     * Saves draft files from the message form permanently and updates the post message.
+     * @return void
+     * @throws moodle_exception
+     */
+    public function save_draft_files(): void {
+        global $DB;
+        $this->existence_check();
+        $context = context_module::instance($this->get_coursemodule()->id);
+        $this->message = file_save_draft_area_files(
+            file_get_submitted_draft_itemid('message'),
+            $context->id,
+            'mod_moodleoverflow',
+            'post',
+            $this->id,
+            mod_moodleoverflow_post_form::editor_options($context, $this->id),
+            $this->message
+        );
+        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
     }
 
     /**
