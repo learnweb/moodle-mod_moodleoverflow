@@ -221,7 +221,20 @@ $string['maxtimehaspassed'] = 'The time to edit the post has passed. You can not
 $string['message'] = 'Message';
 $string['messageprovider:posts'] = 'Notification of new posts';
 $string['modulename'] = 'Moodleoverflow';
-$string['modulename_help'] = 'The Moodleoverflow module enables participants to use a question-answer forum structure. The forum display is non-chronological as the ordering depends on collaborative voting instead of on time.';
+$string['modulename_help'] = '###### Key features
+- Provides a non-linear, non-chronological question-and-answer forum structure
+- Posts are ordered by collaborative voting rather than time
+- Users can rate posts and earn reputation scores based on ratings
+- Discussion starters can mark answers as helpful; teachers can mark correct solutions
+- Highly customizable to fit different course needs
+
+###### Ways to use it
+- Facilitate Q&A discussions for assignments, projects, or exams
+- Encourage peer support and collaborative problem-solving
+- Highlight the most helpful answers through voting and teacher validation
+- Use reputation scores to motivate quality contributions
+- Create dynamic, interactive forums for large classes or complex topics';
+$string['modulename_summary'] = 'Provides a question-and-answer forum where posts are ranked by votes instead of time, with reputation scores, helpful answer marking, and teacher validation for correct solutions.';
 $string['modulenameplural'] = 'Moodleoverflows';
 $string['moodleoverflow'] = 'Moodleoverflow';
 $string['moodleoverflow:addinstance'] = 'Add a new Moodleoverflow instance';
