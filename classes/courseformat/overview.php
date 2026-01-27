@@ -16,46 +16,38 @@
 
 namespace mod_moodleoverflow\courseformat;
 
+
+use cm_info;
 use core\output\action_link;
 use core\output\local\properties\button;
 use core\output\local\properties\text_align;
+use core\output\renderer_helper;
 use core\url;
+use core_courseformat\activityoverviewbase;
 use core_courseformat\local\overview\overviewitem;
-use mod_moodleoverflow\manager;
+use mod_moodleoverflow\readtracking;
 
 /**
- * Checklist overview integration (for Moodle 5.1+)
+ * Checklist overview integration (for Moodle 5.0+)
  *
  * @package   mod_moodleoverflow
  * @copyright 2025 Luca Bösch <luca.boesch@bfh.ch>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class overview extends \core_courseformat\activityoverviewbase {
-    /**
-     * @var manager the ratingallocate manager.
-     */
-    private manager $manager;
-
+class overview extends activityoverviewbase {
     /**
      * Constructor.
      *
-     * @param \cm_info $cm the course module instance.
-     * @param \core\output\renderer_helper $rendererhelper the renderer helper.
+     * @param cm_info $cm the course module instance.
+     * @param renderer_helper $rendererhelper the renderer helper.
      */
-    public function __construct(
-        \cm_info $cm,
-        \core\output\renderer_helper $rendererhelper
-    ) {
+    public function __construct(cm_info $cm, renderer_helper $rendererhelper) {
         parent::__construct($cm);
-        $this->manager = manager::create_from_coursemodule($cm);
     }
 
     #[\Override]
     public function get_actions_overview(): ?overviewitem {
-        $url = new url(
-            '/mod/moodleoverflow/view.php',
-            ['id' => $this->cm->id],
-        );
+        $url = new url('/mod/moodleoverflow/view.php', ['id' => $this->cm->id]);
 
         $text = get_string('view');
 
@@ -77,6 +69,8 @@ class overview extends \core_courseformat\activityoverviewbase {
     public function get_extra_overview_items(): array {
         return [
             'unread_posts' => $this->get_extra_unread_posts_overview(),
+            'readtracking' => $this->get_extra_subscriptions_overview(),
+            'subscriptions' => $this->get_extra_readtracking_overview(),
         ];
     }
 
@@ -86,7 +80,7 @@ class overview extends \core_courseformat\activityoverviewbase {
      * @return overviewitem|null
      */
     private function get_extra_unread_posts_overview(): ?overviewitem {
-        $unreadcount = $this->manager->count_unread_posts_for_user();
+        $unreadcount = readtracking::moodleoverflow_count_unread_posts_moodleoverflow($this->cm);
         if ($unreadcount === 0) {
             return null;
         }
@@ -103,5 +97,21 @@ class overview extends \core_courseformat\activityoverviewbase {
             content: $content,
             textalign: text_align::CENTER,
         );
+    }
+
+   /**
+    * Get overview item for subscriptions. A user can choose to (un)subscribe to a moodleoverflow if possible.
+    * @return overviewitem|null
+    */
+    private function get_extra_subscriptions_overview(): ?overviewitem {
+        return null;
+    }
+
+    /**
+    * Get overview item for readtracking. A user can choose to enable/disable readtracking for a moodleoverflow if possible.
+    * @return overviewitem|null
+     */
+    private function get_extra_readtracking_overview(): ?overviewitem {
+        return null;
     }
 }

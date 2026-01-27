@@ -41,6 +41,8 @@ if ($CFG->version > 2025041400) {
     \core_courseformat\activityoverviewbase::redirect_to_overview_page($id, 'moodleoverflow');
 }
 
+// LEARNWEB-TODO: Remove everything but the overviewbase when moodle 4.5 is no longer supported.
+
 // Set an url to go back to the page.
 $url = new moodle_url('/mod/moodleoverflow/index.php', ['id' => $id]);
 
