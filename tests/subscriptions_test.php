@@ -365,14 +365,6 @@ final class subscriptions_test extends advanced_testcase {
         [$author] = $this->helper_create_users($course, 1);
 
         // Enrol the user in the moodleoverflow.
-        // If a subscription was added, we get the record ID.
-        $this->assertIsInt(subscriptions::subscribe_user(
-            $author->id,
-            $moodleoverflow,
-            $modulecontext
-        ));
-
-        // If we already have a subscription when subscribing the user, we get a boolean (true).
         $this->assertTrue(subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext));
 
         // Check that the user is currently subscribed to the moodleoverflow.
@@ -383,12 +375,7 @@ final class subscriptions_test extends advanced_testcase {
         unset($post);
 
         // Check that the user is subscribed to the discussion too.
-        $this->assertTrue(subscriptions::is_subscribed(
-            $author->id,
-            $moodleoverflow,
-            $modulecontext,
-            $discussion
-        ));
+        $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion));
     }
 
     /**
