@@ -50,4 +50,12 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
     ],
+    'mod_moodleoverflow_change_subscription_mode' => [
+        'classname' => 'mod_moodleoverflow_external',
+        'methodname' => 'change_subscription_mode',
+        'classpath' => 'mod/moodleoverflow/externallib.php',
+        'description' => 'Rejects a post',
+        'type' => 'write',
+        'ajax' => true,
+    ],
 ];

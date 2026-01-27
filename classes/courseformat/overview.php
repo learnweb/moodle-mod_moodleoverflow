@@ -18,6 +18,7 @@ namespace mod_moodleoverflow\courseformat;
 
 
 use cm_info;
+use context_module;
 use core\output\action_link;
 use core\output\local\properties\button;
 use core\output\local\properties\text_align;
@@ -26,6 +27,7 @@ use core\url;
 use core_courseformat\activityoverviewbase;
 use core_courseformat\local\overview\overviewitem;
 use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\subscriptions;
 
 /**
  * Checklist overview integration (for Moodle 5.0+)
@@ -99,17 +101,52 @@ class overview extends activityoverviewbase {
         );
     }
 
-   /**
-    * Get overview item for subscriptions. A user can choose to (un)subscribe to a moodleoverflow if possible.
-    * @return overviewitem|null
-    */
+    /**
+     * Get overview item for subscriptions. A user can choose to (un)subscribe to a moodleoverflow if possible.
+     * @return overviewitem|null
+     */
     private function get_extra_subscriptions_overview(): ?overviewitem {
-        return null;
+        global $USER, $DB, $PAGE;
+        // Get important objects.
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $this->cm->instance], '*', MUST_EXIST);
+        $modulecontext = context_module::instance($this->cm->id);
+        $itemid = 'moodleoverflow-subscription-toggle-' . $moodleoverflow->id;
+
+        // Check the subscription status of the user and if it's changable.
+        $subscribed = subscriptions::is_subscribed($USER->id, $moodleoverflow, $modulecontext);
+        $changable = subscriptions::is_subscribable($moodleoverflow, $modulecontext);
+
+        // Build the content.
+        $renderer = $PAGE->get_renderer('core_reportbuilder');
+        $content = $renderer->render_from_template(
+            'core/toggle',
+            [
+                'id' => $itemid,
+                'checked' => $subscribed,
+                'disabled' => !$changable,
+                'extraattributes' => [
+                    ['name' => 'data-type', 'value' => 'moodleoverflow-subscription-toggle'],
+                    ['name' => 'data-action', 'value' => 'toggle'],
+                    ['name' => 'data-cmid', 'value' => $this->cm->id],
+                    ['name' => 'data-userid', 'value' => $USER->id],
+                    ['name' => 'data-subscribed', 'value' => $subscribed ? 'true' : 'false'],
+                ],
+            ],
+        );
+
+        // Add js to change subscription.
+        $PAGE->requires->js_call_amd('mod_moodleoverflow/toggle_subscription', 'init', [$itemid]);
+
+        return new overviewitem(
+            name: get_string('subscribed', 'mod_moodleoverflow'),
+            value: 'hallo',
+            content: $content,
+        );
     }
 
     /**
-    * Get overview item for readtracking. A user can choose to enable/disable readtracking for a moodleoverflow if possible.
-    * @return overviewitem|null
+     * Get overview item for readtracking. A user can choose to enable/disable readtracking for a moodleoverflow if possible.
+     * @return overviewitem|null
      */
     private function get_extra_readtracking_overview(): ?overviewitem {
         return null;

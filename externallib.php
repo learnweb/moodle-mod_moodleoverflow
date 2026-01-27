@@ -25,6 +25,7 @@
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\review;
+use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -309,5 +310,48 @@ class mod_moodleoverflow_external extends external_api {
         }
 
         return $url;
+    }
+
+    /**
+     * Returns description of method parameters for change_subscription_mode
+     * @return external_function_parameters
+     */
+    public static function change_subscription_mode_parameters(): external_function_parameters {
+        return new external_function_parameters(
+            [
+                'userid' => new external_value(PARAM_INT, 'the user id'),
+                'subscribed' => new external_value(PARAM_BOOL, 'current subscription status'),
+                'cmid' => new external_value(PARAM_INT, 'course module id that is targeted'),
+            ]
+        );
+    }
+
+    /**
+     * Return the result of the change_subscription_mode function
+     * @return external_value
+     */
+    public static function change_subscription_mode_returns(): external_value {
+        return new external_value(PARAM_BOOL, 'true if successful');
+    }
+
+    /**
+     * Changes the subscription mode on a moodleoverflow
+     * @param int $userid The user the setting will be changed for.
+     * @param bool $subscribed current subscription status. True if user is subscribed, false it user is not subscribed.
+     * @param int $cmid The moodleoverflow that is being targeted.
+     * @return bool
+     */
+    public static function change_subscription_mode(int $userid, bool $subscribed, int $cmid): bool {
+        global $DB;
+        // Get the moodleoverflow from the cmid.
+        $cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance], '*', MUST_EXIST);
+        $modulecontext = context_module::instance($cmid);
+
+        if ($subscribed) {
+            return subscriptions::unsubscribe_user($userid, $moodleoverflow, $modulecontext, true);
+        } else {
+            return subscriptions::subscribe_user($userid, $moodleoverflow, $modulecontext, true);
+        }
     }
 }
