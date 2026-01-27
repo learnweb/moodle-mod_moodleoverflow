@@ -59,7 +59,10 @@ class overview extends \core_courseformat\activityoverviewbase {
 
         $text = get_string('view');
 
-        if (defined('button::BODY_OUTLINE')) {
+        if (
+            class_exists(button::class) &&
+            (new \ReflectionClass(button::class))->hasConstant('BODY_OUTLINE')
+        ) {
             $bodyoutline = button::BODY_OUTLINE;
             $buttonclass = $bodyoutline->classes();
         } else {
