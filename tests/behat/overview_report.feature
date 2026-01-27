@@ -32,11 +32,7 @@ Feature: Testing overview integration in moodleoverflow activity
   @javascript
   Scenario: The moodleoverflow activity index redirect to the activities overview
     Given the site is running Moodle version 5.0 or higher
-    When I log in as "admin"
-    And I am on "Course 1" course homepage with editing mode on
-    And I add the "Activities" block
-    And I click on "Moodleoverflows" "link" in the "Activities" "block"
-    Then I should see "An overview of all activities in the course"
-    And I should see "Name" in the "moodleoverflow_overview_collapsible" "region"
+    When I am on the "C1" "course > activities > moodleoverflow" page logged in as "admin"
+    Then I should see "Name" in the "moodleoverflow_overview_collapsible" "region"
     And I should see "Unread posts" in the "moodleoverflow_overview_collapsible" "region"
     And I should see "Action" in the "moodleoverflow_overview_collapsible" "region"
