@@ -235,6 +235,7 @@ $string['modulename_help'] = '###### Key features
 - Use reputation scores to motivate quality contributions
 - Create dynamic, interactive forums for large classes or complex topics';
 $string['modulename_summary'] = 'Provides a question-and-answer forum where posts are ranked by votes instead of time, with reputation scores, helpful answer marking, and teacher validation for correct solutions.';
+$string['modulename_tip'] = "Explore the official <a href='https://github.com/learnweb/moodle-mod_moodleoverflow/wiki'>wiki</a> for more details and customization options!";
 $string['modulenameplural'] = 'Moodleoverflows';
 $string['moodleoverflow'] = 'Moodleoverflow';
 $string['moodleoverflow:addinstance'] = 'Add a new Moodleoverflow instance';
