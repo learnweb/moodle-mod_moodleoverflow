@@ -37,11 +37,13 @@ use core\output\pix_icon;
 $id = required_param('id', PARAM_INT);
 $subscribe = optional_param('subscribe', null, PARAM_INT);
 
+// Redirect to the new overview page if Moodle version is at least 5.0.
 if ($CFG->version > 2025041400) {
     \core_courseformat\activityoverviewbase::redirect_to_overview_page($id, 'moodleoverflow');
 }
 
 // LEARNWEB-TODO: Remove everything but the overviewbase when moodle 4.5 is no longer supported.
+// LEARNWEB-TODO: The code below is deprecated vor versions > 4.5 and will no longer be maintained.
 
 // Set an url to go back to the page.
 $url = new moodle_url('/mod/moodleoverflow/index.php', ['id' => $id]);
