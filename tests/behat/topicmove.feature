@@ -14,10 +14,8 @@ Feature: Teachers can move a discussion in one moodleoverflow forum to another m
     And I log in as "admin"
 
   Scenario: Move topic from public forum
-    Given I am on "Course 1" course homepage
-    And I add a new discussion to "public moodleoverflow one" moodleoverflow with:
-      | Subject | Public Message |
-      | Message | This is the public message  |
+    Given User "admin" adds to "public moodleoverflow one" a discussion with topic "Public Message" and message "This is the public message" automatically
+    And I am on "Course 1" course homepage
     And I click in moodleoverflow on "link" type:
       | public moodleoverflow one | Move this discussion to another moodleoverflow |
     Then I should "" see the elements:
@@ -29,10 +27,8 @@ Feature: Teachers can move a discussion in one moodleoverflow forum to another m
     Then I should see "Public Message"
 
   Scenario: Move topic from question anonymous forum
-    Given I am on "Course 1" course homepage
-    And I add a new discussion to "question anonymous" moodleoverflow with:
-      | Subject | Question Message |
-      | Message | This is the question anonymous message |
+    Given User "admin" adds to "question anonymous" a discussion with topic "Question Message" and message "This is the question anonymous message" automatically
+    And I am on "Course 1" course homepage
     And I click in moodleoverflow on "link" type:
       | question anonymous | Move this discussion to another moodleoverflow|
     And I should "not" see the elements:
@@ -45,10 +41,8 @@ Feature: Teachers can move a discussion in one moodleoverflow forum to another m
     Then I should see "Question Message"
 
   Scenario: Move topic from question anonymous forum
+    Given User "admin" adds to "everything anonymous" a discussion with topic "Everything Message" and message "This is the everything anonymous message" automatically
     Given I am on "Course 1" course homepage
-    And I add a new discussion to "everything anonymous" moodleoverflow with:
-      | Subject | Everything Message |
-      | Message | This is the everything anonymous message |
     And I follow "everything anonymous"
     And I click on "Move this discussion to another moodleoverflow" "link"
     And I should "not" see the elements:

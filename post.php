@@ -22,6 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\notification;
 use mod_moodleoverflow\post\post_control;
 // Include config and locallib.
 use mod_moodleoverflow\anonymous;
@@ -54,11 +55,7 @@ $systemcontext = context_system::instance();
 $postcontrol = new post_control();
 
 // Put all interaction parameters in one object for the post_control.
-$urlparameter = new stdClass();
-$urlparameter->create = $moodleoverflow;
-$urlparameter->reply = $reply;
-$urlparameter->edit = $edit;
-$urlparameter->delete = $delete;
+$urlparameter = (object) ['create' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit, 'delete' => $delete];
 
 // Catch guests.
 if (!isloggedin() || isguestuser()) {
@@ -97,7 +94,8 @@ if ($postcontrol->get_interaction() == 'delete') {
     // Has the user confirmed the deletion?
     if (!empty($confirm) && confirm_sesskey()) {
         try {
-            $postcontrol->execute_delete();
+            $redirect = $postcontrol->execute_delete();
+            redirect($redirect);
         } catch (moodle_exception $e) {
             $postcontrol->error_handling($e->getMessage());
         }
@@ -145,7 +143,8 @@ if ($mformpost->is_cancelled()) {
 // If the post_form is submitted, the post_control executes the right function.
 if ($fromform = $mformpost->get_data()) {
     try {
-        $postcontrol->execute_interaction($fromform);
+        $redirect = $postcontrol->execute_interaction($fromform);
+        redirect(moodleoverflow_go_back_to($redirect->redirectto), $redirect->redirectmessage, null, notification::NOTIFY_SUCCESS);
     } catch (moodle_exception $e) {
         $postcontrol->error_handling($e->getMessage());
     }

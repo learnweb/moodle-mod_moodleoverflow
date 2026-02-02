@@ -15,12 +15,8 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     Given the following "activities" exist:
       | activity       | name                     | intro                            | course  | idnumber       | forcesubscribe |
       | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 0              |
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Test post subject one |
-      | Message | Test post message one |
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Test post subject two |
-      | Message | Test post message two |
+    And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject one" and message "Test post message one" automatically
+    And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject two" and message "Test post message two" automatically
     And I log out
     When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
     Then I should see "Subscribe to this forum"
@@ -52,12 +48,8 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     Given the following "activities" exist:
       | activity       | name                     | intro                            | course  | idnumber       | forcesubscribe |
       | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 2              |
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Test post subject one |
-      | Message | Test post message one |
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Test post subject two |
-      | Message | Test post message two |
+    And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject one" and message "Test post message one" automatically
+    And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject two" and message "Test post message two" automatically
     And I log out
     When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
     Then I should see "Unsubscribe from this forum"

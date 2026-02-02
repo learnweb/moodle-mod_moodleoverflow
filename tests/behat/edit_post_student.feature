@@ -9,12 +9,10 @@ Feature: Students can edit or delete their moodleoverflow posts within a set tim
       | username | firstname | lastname | email             | idnumber | role           |
       | student1 | Student   | 1        | student1@mail.com | 10       | student        |
     And the following "activities" exist:
-      | activity       | name                     | intro                            | course  | idnumber       |
-      | moodleoverflow | Test moodleoverflow | Test moodleoverflow description  | C1      | moodleoverflow |
+      | activity       | name                | intro                            | course  | idnumber       |
+      | moodleoverflow | Test moodleoverflow | Test moodleoverflow description  | C1      | 1              |
+    And User "student1" adds to "Test moodleoverflow" a discussion with topic "Moodleoverflow post subject" and message "This is the body" automatically
     And I navigate as "student1" to "Course 1" "Test moodleoverflow" ""
-    And I add a new discussion to "Test moodleoverflow" moodleoverflow with:
-      | Subject | Moodleoverflow post subject |
-      | Message | This is the body |
 
   Scenario: Edit moodleoverflow post
     Given I click in moodleoverflow on "link" type:

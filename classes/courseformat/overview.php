@@ -172,6 +172,7 @@ class overview extends activityoverviewbase {
         return $renderer->render_from_template(
             'core/toggle',
             [
+                'extraclasses' => $templateparams['datatype'],
                 'id' => $templateparams['itemid'],
                 'checked' => $templateparams['checked'],
                 'disabled' => $templateparams['disabled'],

@@ -9,11 +9,9 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
     And the following "activities" exist:
       | activity       | name                      | intro                            | course  |  idnumber |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        |
+    And User "teacher1" adds to "Test Moodleoverflow" a discussion with topic "Topic question" and message "This is a question" automatically
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
-    And I add a new discussion to "Test Moodleoverflow" moodleoverflow with:
-      | Subject | Topic question |
-      | Message | This is a question  |
 
   Scenario: Userstats are not enabled per default. The teacher should not see the user statistics
     And I follow "Test Moodleoverflow"
