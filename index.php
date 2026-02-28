@@ -38,7 +38,7 @@ $id = required_param('id', PARAM_INT);
 $subscribe = optional_param('subscribe', null, PARAM_INT);
 
 // Redirect to the new overview page if Moodle version is at least 5.0.
-if ($CFG->version > 2025041400) {
+if ($CFG->version > 2025100600) {
     \core_courseformat\activityoverviewbase::redirect_to_overview_page($id, 'moodleoverflow');
 }
 

@@ -5,7 +5,7 @@ Feature: Testing overview integration in moodleoverflow activity
   I need to be able to see the moodleoverflow activity overview
 
   Background:
-    Given the site is running Moodle version 5.0 or higher
+    Given the site is running Moodle version 5.1 or higher
     And I prepare a moodleoverflow feature background with users:
       | username | firstname | lastname | email                | idnumber | role           |
       | student1 | Student   | 1        | student1@example.com | 10       | student        |
