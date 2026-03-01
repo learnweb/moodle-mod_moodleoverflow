@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Class that is important to interact with posts.
- *
- * @package     mod_moodleoverflow
- * @copyright   2023 Tamaro Walter
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-
 namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
@@ -52,7 +43,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 /**
  * This Class controls the manipulation of posts and acts as controller of interactions with the post.php
- *
+ * It is important to interact with posts.
  * This Class has 2 main Tasks:
  * 1. Before entering the post.php
  * - Detect the wanted interaction (new discussion, new answer in a discussion, editing or deleting a post)

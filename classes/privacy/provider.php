@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Privacy Subsystem implementation for mod_moodleoverflow.
- *
- * @package    mod_moodleoverflow
- * @copyright  2018 Tamara Gunkel/ Nina Herrmann
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_moodleoverflow\privacy;
 
 use core_privacy\local\request\approved_userlist;
@@ -36,13 +28,14 @@ use core_privacy\local\request\helper as request_helper;
 /**
  * Privacy Subsystem for mod_moodleoverflow implementing provider.
  *
+ * @package   mod_moodleoverflow
  * @copyright  2018 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
-    core_userlist_provider,
     \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\plugin\provider {
+    \core_privacy\local\request\plugin\provider,
+    core_userlist_provider {
     /**
      * Return the fields which contain personal data.
      *

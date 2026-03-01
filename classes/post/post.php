@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Class for working with posts
- *
- * @package     mod_moodleoverflow
- * @copyright   2023 Tamaro Walter
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-
 namespace mod_moodleoverflow\post;
 
 use coding_exception;

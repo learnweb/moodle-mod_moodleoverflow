@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Class needed in userstats.php
- *
- * @package   mod_moodleoverflow
- * @copyright 2023 Tamaro Walter
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 namespace mod_moodleoverflow\tables;
 
 defined('MOODLE_INTERNAL') || die();
@@ -32,7 +25,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 require_once($CFG->libdir . '/tablelib.php');
 
 /**
- * Table listing all user statistics of a course
+ * Table listing all user statistics of a course. Needed in userstats.php.
  *
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter

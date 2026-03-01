@@ -14,31 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Task schedule configuration for the plugintype_pluginname plugin.
- *
- * @package   mod_moodleoverflow
- * @copyright 2023, Tamaro Walter
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 namespace mod_moodleoverflow\task;
 
 /**
  * This task sends a daily mail of unread posts
+ *
+ * @package   mod_moodleoverflow
+ * @copyright 2023 Tamaro Walter
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class send_daily_mails extends \core\task\scheduled_task {
-    /**
-     * Return the task's name as shown in admin screens.
-     *
-     * @return string
-     */
+    #[\Override]
     public function get_name() {
         return get_string('tasksenddailymails', 'mod_moodleoverflow');
     }
 
-    /**
-     * Execute the task.
-     */
+    #[\Override]
     public function execute() {
         global $DB;
 

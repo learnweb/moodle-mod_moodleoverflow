@@ -14,39 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * A scheduled task for moodleoverflow cron.
- *
- * @package   mod_moodleoverflow
- * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_moodleoverflow\task;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
 
 /**
- * Class for cleaning up read records.
+ * A scheduled task for moodleoverflow cron to clean up read records.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class clean_readrecords extends \core\task\scheduled_task {
-    /**
-     * Get a descriptive name for this task (shown to admins).
-     *
-     * @return string
-     */
+    #[\Override]
     public function get_name() {
         return get_string('taskcleanreadrecords', 'mod_moodleoverflow');
     }
 
-    /**
-     * Run moodleoverflow cron.
-     */
+    #[\Override]
     public function execute() {
 
         // Delete the old read records.
