@@ -50,4 +50,28 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
     ],
+    'mod_moodleoverflow_change_subscription_mode' => [
+        'classname' => 'mod_moodleoverflow_external',
+        'methodname' => 'change_subscription_mode',
+        'classpath' => 'mod/moodleoverflow/externallib.php',
+        'description' => 'Changes subscription mode',
+        'type' => 'write',
+        'ajax' => true,
+    ],
+    'mod_moodleoverflow_change_readtracking_mode' => [
+        'classname' => 'mod_moodleoverflow_external',
+        'methodname' => 'change_readtracking_mode',
+        'classpath' => 'mod/moodleoverflow/externallib.php',
+        'description' => 'Changes readtracking mode',
+        'type' => 'write',
+        'ajax' => true,
+    ],
+    'mod_moodleoverflow_mark_post_read' => [
+        'classname' => 'mod_moodleoverflow_external',
+        'methodname' => 'mark_post_read',
+        'classpath' => 'mod/moodleoverflow/externallib.php',
+        'description' => 'Marks all posts in a discussion or moodleoverflow as read',
+        'type' => 'write',
+        'ajax' => true,
+    ],
 ];

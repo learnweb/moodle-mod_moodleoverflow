@@ -7,15 +7,10 @@ Feature: Delete attachments
       | username | firstname | lastname | email             | idnumber | role           |
       | student1 | Student   | 1        | student1@mail.com | 10       | student        |
       | teacher1 | Teacher   | 1        | teacher1@mail.com | 11       | editingteacher |
-    And I log in as "teacher1"
-    And I am on "Course 1" course homepage with editing mode "on"
-    And I add a moodleoverflow to course "C1" section "1" and I fill the form with:
-      | Moodleoverflow name | Test moodleoverflow name |
-      | Description | Test forum description |
-    And I add a new discussion to "Test moodleoverflow name" moodleoverflow with:
-      | Subject | Forum post 1 |
-      | Message | This is the body |
-    And I log out
+    And the following "activities" exist:
+      | activity       | name                      | intro                            | course  |  idnumber |
+      | moodleoverflow | Test moodleoverflow name  | Test moodleoverflow description  | C1      |  1        |
+    And User "teacher1" adds to "Test moodleoverflow name" a discussion with topic "Forum post 1" and message "This is the body" automatically
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Test moodleoverflow name"

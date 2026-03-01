@@ -12,10 +12,7 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
     Given the following "activities" exist:
       | activity       | name                      | intro                            | course  |  idnumber | la_starttime   |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        | ##now +1 day## |
-    And I navigate as "teacher1" to "Course 1" "Test Moodleoverflow" ""
-    And I add a new discussion to "Test Moodleoverflow" moodleoverflow with:
-      | Subject | Forum post 1 |
-      | Message | This is the question message |
+    And User "admin" adds to "Test Moodleoverflow" a discussion with topic "Forum post 1" and message "This is the question message" automatically
     And I log out
     When I navigate as "student1" to "Course 1" "Test Moodleoverflow" "Forum post 1"
     And I click on "Answer" "text"

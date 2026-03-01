@@ -80,7 +80,7 @@
     transform: translateY(1px);
 }
 
-.moodleoverflowdiscussion .unread-bubble {
+.unread-bubble {
     background: #c30909;
     padding: 3px 4px 4px 4px;
     color: white;

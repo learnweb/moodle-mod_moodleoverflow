@@ -24,7 +24,9 @@
 
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
+use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
+use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -309,5 +311,130 @@ class mod_moodleoverflow_external extends external_api {
         }
 
         return $url;
+    }
+
+    /**
+     * Returns description of method parameters for change_subscription_mode
+     * @return external_function_parameters
+     */
+    public static function change_subscription_mode_parameters(): external_function_parameters {
+        return new external_function_parameters(
+            [
+                'userid' => new external_value(PARAM_INT, 'the user id'),
+                'subscribed' => new external_value(PARAM_BOOL, 'current subscription status'),
+                'cmid' => new external_value(PARAM_INT, 'course module id that is targeted'),
+            ]
+        );
+    }
+
+    /**
+     * Return the result of the change_subscription_mode function
+     * @return external_value
+     */
+    public static function change_subscription_mode_returns(): external_value {
+        return new external_value(PARAM_BOOL, 'true if successful');
+    }
+
+    /**
+     * Changes the subscription mode on a moodleoverflow
+     * @param int $userid The user the setting will be changed for.
+     * @param bool $subscribed current subscription status. True if user is subscribed, false it user is not subscribed.
+     * @param int $cmid The course module id of the moodleoverflow that is being targeted.
+     * @return bool
+     */
+    public static function change_subscription_mode(int $userid, bool $subscribed, int $cmid): bool {
+        global $DB;
+        // Get the moodleoverflow from the cmid.
+        $cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance], '*', MUST_EXIST);
+        $modulecontext = context_module::instance($cmid);
+
+        if ($subscribed) {
+            return subscriptions::unsubscribe_user($userid, $moodleoverflow, $modulecontext, true);
+        } else {
+            return subscriptions::subscribe_user($userid, $moodleoverflow, $modulecontext, true);
+        }
+    }
+
+    /**
+     * Returns description of method parameters for change_subscription_mode
+     * @return external_function_parameters
+     */
+    public static function change_readtracking_mode_parameters(): external_function_parameters {
+        return new external_function_parameters(
+            [
+                'userid' => new external_value(PARAM_INT, 'the user id'),
+                'tracked' => new external_value(PARAM_BOOL, 'current tracking status'),
+                'moodleoverflowid' => new external_value(PARAM_INT, 'moodleoverflow that is targeted'),
+            ]
+        );
+    }
+
+    /**
+     * Return the result of the change_subscription_mode function
+     * @return external_value
+     */
+    public static function change_readtracking_mode_returns(): external_value {
+        return new external_value(PARAM_BOOL, 'true if successful');
+    }
+
+    /**
+     * Changes the subscription mode on a moodleoverflow
+     * @param int $userid The user the setting will be changed for.
+     * @param bool $tracked current readtracking status.
+     * @param int $moodleoverflowid The moodleoverflow that is being targeted.
+     * @return bool
+     */
+    public static function change_readtracking_mode(int $userid, bool $tracked, int $moodleoverflowid): bool {
+        if ($tracked) {
+            return readtracking::moodleoverflow_stop_tracking($moodleoverflowid, $userid);
+        } else {
+            return readtracking::moodleoverflow_start_tracking($moodleoverflowid, $userid);
+        }
+    }
+
+    /**
+     * Returns description of method parameters for change_subscription_mode
+     * @return external_function_parameters
+     */
+    public static function mark_post_read_parameters(): external_function_parameters {
+        return new external_function_parameters(
+            [
+                'instanceid' => new external_value(PARAM_INT, 'Id of the discussion or moodleoverflow'),
+                'domain' => new external_value(PARAM_TEXT, 'If a discussion or moodleoverflow is targeted'),
+                'userid' => new external_value(PARAM_INT, 'the user id'),
+            ]
+        );
+    }
+
+    /**
+     * Return the result of the change_subscription_mode function
+     * @return external_value
+     */
+    public static function mark_post_read_returns(): external_value {
+        return new external_value(PARAM_INT, 'Amount of unread posts after calling the function');
+    }
+
+    /**
+     * Marks all posts of a discussion/moodleoverflow as read
+     * @param int $instanceid id of the discussion/moodleoverflow.
+     * @param string $domain Can be "moodleoverflow" or "discussion"
+     * @param int $userid
+     * @return int Return how many unread posts the user has in the discussion/moodleoverflow. JS uses it to update the unread info.
+     *             (It should always be 0, otherwise an error ocurred. This is important for behat testing).
+     * @throws coding_exception|dml_exception
+     */
+    public static function mark_post_read(int $instanceid, string $domain, int $userid): int {
+        global $DB;
+        if ($domain == 'moodleoverflow') {
+            $cm = get_coursemodule_from_instance('moodleoverflow', $instanceid);
+            readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $userid);
+            return readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm);
+        } else {
+            $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $instanceid]);
+            $cm = get_coursemodule_from_instance('moodleoverflow', $discussion->moodleoverflow, $discussion->course);
+            readtracking::moodleoverflow_mark_discussion_read($instanceid, context_module::instance($cm->id), $userid);
+            return readtracking::moodleoverflow_count_unread_posts_discussion($instanceid);
+        }
     }
 }

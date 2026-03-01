@@ -452,29 +452,17 @@ class readtracking {
     /**
      * Get number of unread posts in a moodleoverflow instance.
      *
-     * @param object    $cm
+     * @param object $cm
      *
-     * @return int|mixed
+     * @return int
      */
-    public static function moodleoverflow_count_unread_posts_moodleoverflow($cm) {
+    public static function moodleoverflow_count_unread_posts_moodleoverflow(object $cm): int {
         global $DB, $USER;
-
-        $moodleoverflow = $DB->get_record_sql("SELECT m.*, tm.id as hasdisabledtracking " .
-                "FROM {moodleoverflow} m " .
-                "LEFT JOIN {moodleoverflow_tracking} tm ON m.id = tm.moodleoverflowid AND tm.userid = :userid " .
-                "WHERE m.id = :moodleoverflowid", ['userid' => $USER->id, 'moodleoverflowid' => $cm->instance]);
-
         // Return if tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
-        if (
-            $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OFF || (
-                        ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL || (
-                                        $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED &&
-                                        !get_config('moodleoverflow', 'allowforcedreadtracking')
-                                )
-                        ) && $moodleoverflow->hasdisabledtracking)
-        ) {
+        if (self::check_tracking_off($cm->instance, $USER->id)) {
             return 0;
         }
+
         // Get the current timestamp and the cutoffdate.
         $now = round(time(), -2);
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
@@ -489,5 +477,64 @@ class readtracking {
 
         // Return the number of unread posts per moodleoverflow.
         return $DB->get_field_sql($sql, $params);
+    }
+
+    /**
+     * Get amound of unread posts in a discussion
+     * @param int $discussionid
+     * @param int $userid
+     * @return int
+     */
+    public static function moodleoverflow_count_unread_posts_discussion(int $discussionid, int $userid = 0): int {
+        global $DB, $USER;
+        if ($userid == 0) {
+            $userid = $USER->id;
+        }
+        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid]);
+
+        if (self::check_tracking_off($discussion->moodleoverflow, $userid)) {
+            return 0;
+        }
+
+        // Get the current timestamp and the cutoffdate.
+        $now = round(time(), -2);
+        $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
+
+        // Define a sql-query.
+        $params = [$USER->id, $discussion->id, $cutoffdate];
+        $sql = "SELECT COUNT(p.id)
+                  FROM {moodleoverflow_posts} p
+                  JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
+             LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = ?)
+                 WHERE d.id = ? AND p.modified >= ? AND r.id IS NULL";
+
+        // Return the number of unread posts per discussion.
+        return $DB->get_field_sql($sql, $params);
+    }
+
+    /**
+     * Helper function, checks if:
+     * tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
+     * @param int $moodleoverflowid Object from DB.
+     * @param int $userid
+     * @return bool
+     */
+    private static function check_tracking_off(int $moodleoverflowid, int $userid): bool {
+        global $DB;
+        $moodleoverflow = $DB->get_record_sql("SELECT m.*, tm.id as hasdisabledtracking " .
+            "FROM {moodleoverflow} m " .
+            "LEFT JOIN {moodleoverflow_tracking} tm ON m.id = tm.moodleoverflowid AND tm.userid = :userid " .
+            "WHERE m.id = :moodleoverflowid", ['userid' => $userid, 'moodleoverflowid' => $moodleoverflowid]);
+
+        return (
+            $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OFF || (
+                $moodleoverflow->hasdisabledtracking && (
+                    $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL || (
+                        $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED &&
+                        !get_config('moodleoverflow', 'allowforcedreadtracking')
+                    )
+                )
+            )
+        );
     }
 }

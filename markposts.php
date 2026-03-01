@@ -16,7 +16,7 @@
 
 /**
  * File to mark posts as read.
- *
+ * LEARNWEB-TODO: this file is deprecated and should not longer be used, as it reloads the page. Use readtracking js.
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

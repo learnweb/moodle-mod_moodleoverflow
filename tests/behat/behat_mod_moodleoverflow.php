@@ -30,6 +30,9 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
+use mod_moodleoverflow\post\post_control;
+use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\subscriptions;
 
 /**
  * moodleoverflow-related steps definitions.
@@ -70,6 +73,9 @@ class behat_mod_moodleoverflow extends behat_base {
                 [$row['username'], 'C1', $row['role']],
             ])]);
         }
+
+        subscriptions::reset_moodleoverflow_cache();
+        subscriptions::reset_discussion_cache();
     }
 
     /**
@@ -145,12 +151,7 @@ class behat_mod_moodleoverflow extends behat_base {
             ['activity', 'course', 'name', 'intro', 'trackingtype'],
             ['moodleoverflow', 'C1', $name, 'Test moodleoverflow description', $trackingtype],
         ])]);
-        $this->execute('behat_auth::i_log_in_as', 'admin');
-        $this->execute('behat_navigation::i_am_on_course_homepage', 'Course 1');
-        $this->i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($name, new TableNode([
-            ['Subject', $subject],
-            ['Message', 'Test post message'],
-        ]));
+        $this->automatic_add_discussion('admin', $name, $subject, 'Test post message');
     }
 
     /**
@@ -163,12 +164,7 @@ class behat_mod_moodleoverflow extends behat_base {
      * @return void
      */
     public function admin_adds_discussion(string $subject, string $name): void {
-        $this->execute('behat_auth::i_log_in_as', 'admin');
-        $this->execute('behat_navigation::i_am_on_course_homepage', 'Course 1');
-        $this->i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($name, new TableNode([
-            ['Subject', $subject],
-            ['Message', 'Test post message'],
-        ]));
+        $this->automatic_add_discussion('admin', $name, $subject, 'Test post message');
     }
 
     /**
@@ -258,7 +254,18 @@ class behat_mod_moodleoverflow extends behat_base {
      * @param TableNode $table
      */
     public function i_add_a_moodleoverflow_discussion_to_moodleoverflow_with($moodleoverflowname, TableNode $table) {
-        $this->add_new_discussion($moodleoverflowname, $table, get_string('addanewdiscussion', 'moodleoverflow'));
+        // Navigate to moodleoverflow.
+        $this->execute('behat_navigation::i_am_on_page_instance', [$this->escape($moodleoverflowname),
+            'moodleoverflow activity', ]);
+        $this->execute('behat_forms::press_button', get_string('addanewdiscussion', 'moodleoverflow'));
+
+        // Fill form and post.
+        $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
+        $this->execute('behat_forms::press_button', get_string(
+            'posttomoodleoverflow',
+            'moodleoverflow'
+        ));
+        $this->execute('behat_general::i_wait_to_be_redirected');
     }
 
     /**
@@ -414,32 +421,155 @@ class behat_mod_moodleoverflow extends behat_base {
         }
     }
 
-    // Internal helper functions.
+    /**
+     * Automatically adds a discussion to the DB without clicking all over the behat site. Used to minimize test cases that test
+     * other things than the post.php itself.
+     *
+     * IMPORTANT!: Please note that this function is for testing purposes only, as the objects get searched by string values that
+     *             need to be unique in the testing scenario
+     * @Given User :username adds to :modflowname a discussion with topic :subject and message :message automatically
+     * @param string $username User that adds the discussin
+     * @param string $modflowname Name of the moodleoverflow
+     * @param string $subject Topic of the discussion
+     * @param string $message Message of the first post in the discussion
+     * @return void
+     * @throws dml_exception
+     */
+    public function automatic_add_discussion(string $username, string $modflowname, string $subject, string $message): void {
+        global $DB;
+        $user = $DB->get_record('user', ['username' => $username]);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
+        $this->set_user($user);
+
+        $postcontrol = new post_control();
+        $postcontrol->detect_interaction((object) ['create' => $moodleoverflow->id, 'reply' => 0, 'edit' => 0, 'delete' => 0]);
+
+        // Create the form the user filled in.
+        $form = (object) [
+            'attachments' => 0,
+            'subject' => $subject,
+            'message' => [
+                'text' => $message,
+                'format' => editors_get_preferred_format(),
+            ],
+            'moodleoverflow' => $moodleoverflow->id,
+        ];
+        $postcontrol->execute_interaction($form);
+    }
 
     /**
-     * Returns the steps list to add a new discussion to a moodleoverflow.
+     * Automatically adds a reply to a post the DB without clicking all over the behat site. Used to minimize test cases that test
+     * other things than the post.php itself.
      *
-     * Abstracts add a new topic and add a new discussion, as depending
-     * on the moodleoverflow type the button string changes.
-     *
-     * @param string    $moodleoverflowname
-     * @param TableNode $table
-     * @param string    $buttonstr
+     * IMPORTANT!: Please note that this function is for testing purposes only, as the objects get searched by string values that
+     *             need to be unique in the testing scenario
+     * @Given User :username replies :parentmessage with :message automatically
+     * @param string $username User that adds the discussin
+     * @param string $parentmessage Name of the moodleoverflow
+     * @param string $message Message of the first post in the discussion
+     * @return void
      */
-    protected function add_new_discussion($moodleoverflowname, TableNode $table, $buttonstr) {
-        // Navigate to moodleoverflow.
-        $this->execute('behat_navigation::i_am_on_page_instance', [$this->escape($moodleoverflowname),
-            'moodleoverflow activity', ]);
-        $this->execute('behat_forms::press_button', $buttonstr);
+    public function automatic_add_reply(string $username, string $parentmessage, string $message): void {
+        global $DB;
+        $user = $DB->get_record('user', ['username' => $username]);
+        $this->set_user($user);
+        $sql = "SELECT * FROM {moodleoverflow_posts} WHERE " .
+            $DB->sql_compare_text('message') . " = " .
+            $DB->sql_compare_text(':message');
+        $parentpost = $DB->get_record_sql($sql, ['message' => $parentmessage]);
+        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $parentpost->discussion]);
+        $postcontrol = new post_control();
+        $postcontrol->detect_interaction((object) ['create' => 0, 'reply' => $parentpost->id, 'edit' => 0, 'delete' => 0]);
 
-        // Fill form and post.
-        $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
-        $this->execute('behat_forms::press_button', get_string(
-            'posttomoodleoverflow',
-            'moodleoverflow'
-        ));
-        $this->execute('behat_general::i_wait_to_be_redirected');
+        $form = (object) [
+            'attachments' => 0,
+            'subject' => $discussion->name,
+            'message' => [
+                'text' => $message,
+                'format' => editors_get_preferred_format(),
+            ],
+            'reply' => $parentpost->id,
+            'parent' => $parentpost->id,
+            'discussion' => $discussion->id,
+        ];
+        $postcontrol->execute_interaction($form);
     }
+
+    /**
+     * Checks if the current user is subscribed to a moodleoverflow.
+     * @Given I should :type be subscribed to :modflowname
+     * @param string $type "not" is the user should not be subscribed, empty if user should be subscribed
+     * @param string $modflowname
+     * @return void
+     */
+    public function should_be_subscribed(string $type, string $modflowname) {
+        global $DB, $USER;
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
+        if ($type == 'not') {
+            if (subscriptions::is_subscribed($USER->id, $moodleoverflow, context_module::instance($cm->id))) {
+                throw new Exception("User should not be subscribed but is already subscribed");
+            }
+        } else {
+            $params = ['moodleoverflow' => $moodleoverflow->id, 'userid' => $USER->id];
+            if ($DB->count_records('moodleoverflow_subscriptions', $params) != 1) {
+                throw new Exception("User should be subscribed but is not");
+            }
+        }
+    }
+
+    /**
+     * Checks if the current user has the readtracking on in a moodleoverflow.
+     * @Given I should :type have readtracking on in :modflowname
+     * @param string $type "not" is the user should not, empty if user should have readtracking on
+     * @param string $modflowname
+     * @return void
+     */
+    public function should_be_tracking(string $type, string $modflowname) {
+        global $DB;
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
+        if ($type == 'not') {
+            if (readtracking::moodleoverflow_is_tracked($moodleoverflow)) {
+                throw new Exception("User should not have readtracking on but it is on");
+            }
+        } else {
+            if (!readtracking::moodleoverflow_is_tracked($moodleoverflow)) {
+                throw new Exception("User should have readtracking on but it is off");
+            }
+        }
+    }
+
+    /**
+     * Set subscription and readtracking for a user in a moodleoverflow.
+     * @Given User :username has in :modflowname subscription :substype and readtracking :readtype
+     * @param string $username
+     * @param string $modflowname
+     * @param string $substype "on" or "off"
+     * @param string $readtype "on" or "off"
+     * @return void
+     */
+    public function set_subscription_readtracking(string $username, string $modflowname, string $substype, string $readtype): void {
+        global $DB;
+        $substype = $substype == "on" ? true : false;
+        $readtype = $readtype == "on" ? true : false;
+        $modflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
+        $user = $DB->get_record('user', ['username' => $username]);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $modflow->id);
+        $modcontext = context_module::instance($cm->id);
+        if ($substype) {
+            subscriptions::subscribe_user($user->id, $modflow, $modcontext, true);
+        } else {
+            subscriptions::unsubscribe_user($user->id, $modflow, $modcontext, true);
+        }
+
+        if ($readtype) {
+            readtracking::moodleoverflow_start_tracking($modflow->id, $user->id);
+        } else {
+            readtracking::moodleoverflow_start_tracking($modflow->id, $user->id);
+        }
+    }
+
+    // Internal helper functions.
 
     /**
      * Gets the container node.

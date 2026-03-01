@@ -641,9 +641,9 @@ class subscriptions {
      * @param context_module $context        The module context
      * @param bool            $userrequest    Whether the user requested this change themselves.
      *
-     * @return bool|int Returns true if the user is already subscribed or the subscription id if successfully subscribed.
+     * @return bool
      */
-    public static function subscribe_user($userid, $moodleoverflow, $context, $userrequest = false) {
+    public static function subscribe_user($userid, $moodleoverflow, $context, $userrequest = false): bool {
         global $DB;
 
         // Check if the user is already subscribed.
@@ -693,8 +693,8 @@ class subscriptions {
         $event = event\subscription_created::create($params);
         $event->trigger();
 
-        // Return the subscription ID.
-        return $result;
+        // Return if the operation was successful. As insert_record returns true/false/id, a parse to a bool is made.
+        return (bool) $result;
     }
 
     /**
