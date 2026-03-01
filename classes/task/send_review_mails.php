@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * A scheduled task for moodleoverflow cron.
- *
- * @package   mod_moodleoverflow
- * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_moodleoverflow\task;
 
 use core\cron;
@@ -33,25 +25,19 @@ defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
 
 /**
- * Class for sending mails to users that need to review a moodleoverflow post.
+ * A scheduled task for moodleoverflow cron to send mails to users that need to review a moodleoverflow post.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class send_review_mails extends \core\task\scheduled_task {
-    /**
-     * Get a descriptive name for this task (shown to admins).
-     *
-     * @return string
-     */
+    #[\Override]
     public function get_name() {
         return get_string('tasksendreviewmails', 'mod_moodleoverflow');
     }
 
-    /**
-     * Runs moodleoverflow cron.
-     */
+    #[\Override]
     public function execute() {
         // Send review mails.
         $this->send_review_notifications();

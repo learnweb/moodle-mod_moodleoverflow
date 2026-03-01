@@ -14,21 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Privacy Subsystem implementation for mod_moodleoverflow.
- *
- * @package    mod_moodleoverflow
- * @copyright  2018 Tamara Gunkel
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 namespace mod_moodleoverflow\privacy;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\writer;
 use mod_moodleoverflow\ratings;
 
 /**
+ * Privacy Subsystem implementation for mod_moodleoverflow.
  * Subcontext helper class.
  *
+ * @package   mod_moodleoverflow
  * @copyright  2017 Tamara Gunkel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Moodleoverflow subscription manager.
- *
- * This file is created by borrowing code from the mod_forum module.
- *
- * @package   mod_moodleoverflow
- * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_moodleoverflow;
 
 use context_module;
@@ -31,6 +21,7 @@ use stdClass;
 
 /**
  * Moodleoverflow subscription manager.
+ * This file is created by borrowing code from the mod_forum module.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>

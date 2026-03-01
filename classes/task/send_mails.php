@@ -31,28 +31,19 @@ use lang_string;
 use mod_moodleoverflow\manager\mail_manager;
 
 /**
- * Class for sending mails to users that need to review a moodleoverflow post.
+ * A scheduled task for moodleoverflow cron to send mails to users that need to review a moodleoverflow post.
  *
  * @package   mod_moodleoverflow
  * @copyright 2025 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class send_mails extends \core\task\scheduled_task {
-    /**
-     * Get a descriptive name for this task (shwon to admins).
-     *
-     * @return lang_string|string
-     * @throws coding_exception
-     */
+    #[\Override]
     public function get_name(): lang_string|string {
         return get_string('tasksendmails', 'mod_moodleoverflow');
     }
 
-    /**
-     * Runs moodleoverflow cron.
-     *
-     * @return bool
-     */
+    #[\Override]
     public function execute(): bool {
         try {
             mail_manager::moodleoverflow_send_mails();
