@@ -24,6 +24,8 @@
 
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\external\review_approve_post;
+use mod_moodleoverflow\external\review_reject_post;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_review_mails;
 
@@ -40,8 +42,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  * @group mod_moodleoverflow
- * @covers \mod_moodleoverflow_external::review_approve_post
- * @covers \mod_moodleoverflow_external::review_reject_post
+ * @covers \mod_moodleoverflow\external\review_approve_post::execute
+ * @covers \mod_moodleoverflow\external\review_reject_post::execute
  */
 final class review_test extends \advanced_testcase {
     /** @var \mod_moodleoverflow_generator $generator */
@@ -103,8 +105,7 @@ final class review_test extends \advanced_testcase {
      * @runInSeparateProcess
      */
     public function test_forum_review_everything(): void {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
+        global $DB;
 
         $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
@@ -118,7 +119,7 @@ final class review_test extends \advanced_testcase {
 
         $this->mailsink->clear();
 
-        $this->assertNull(\mod_moodleoverflow_external::review_approve_post($posts['studentpost']->id));
+        $this->assertNull(review_approve_post::execute($posts['studentpost']->id));
 
         $this->run_send_notification_mails();
         $this->run_send_review_mails();
@@ -144,8 +145,8 @@ final class review_test extends \advanced_testcase {
 
         $this->mailsink->clear();
 
-        $this->assertNotNull(\mod_moodleoverflow_external::review_approve_post($studentanswer1->id));
-        $this->assertNull(\mod_moodleoverflow_external::review_reject_post($studentanswer2->id, 'This post was not good!'));
+        $this->assertNotNull(review_approve_post::execute($studentanswer1->id));
+        $this->assertNull(review_reject_post::execute($studentanswer2->id, 'This post was not good!'));
 
         $this->run_send_notification_mails();
         $this->run_send_review_mails();
@@ -169,8 +170,7 @@ final class review_test extends \advanced_testcase {
      * @runInSeparateProcess
      */
     public function test_forum_review_only_questions(): void {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/mod/moodleoverflow/externallib.php');
+        global $DB;
 
         $options = ['course' => $this->course->id, 'needsreview' => review::QUESTIONS,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
@@ -182,7 +182,7 @@ final class review_test extends \advanced_testcase {
 
         $this->mailsink->clear();
 
-        $this->assertNull(\mod_moodleoverflow_external::review_approve_post($posts['studentpost']->id));
+        $this->assertNull(review_approve_post::execute($posts['studentpost']->id));
 
         $this->run_send_notification_mails();
         $this->run_send_review_mails();
