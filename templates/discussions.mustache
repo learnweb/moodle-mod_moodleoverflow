@@ -32,9 +32,22 @@
     </div>
 {{/hasdiscussions}}
 
-{{! There are discussions. Start to print the table. }}
 {{#hasdiscussions}}
+    {{! Paging bar if needed}}
+    {{{paging_bar}}}
 
+    {{! Top action buttons}}
+    {{#startdiscussion}}
+        <a href="{{{link}}}" class="btn btn-secondary m-2">{{#str}} addanewdiscussion, moodleoverflow {{/str}}</a>
+    {{/startdiscussion}}
+    {{#stats}}
+        <a href="{{{link}}}" class="btn btn-secondary m-2">{{#str}} seeuserstats, moodleoverflow {{/str}}</a>
+    {{/stats}}
+    {{#markallread}}
+        <a href="{{{link}}}" class="btn btn-secondary m-2">{{#str}} markallread_forum, moodleoverflow {{/str}}</a>
+    {{/markallread}}
+
+    {{! Print the table of discussions. }}
     {{#discussions}}
         <div class="moodleoverflowdiscussion d-flex border p-2 mb-3" data-moodleoverflow-postid="{{postid}}">
             <div class="leftbox text-center me-2">
@@ -73,8 +86,8 @@
                         <span><span class="reply-correction">{{#pix}}i/reply, mod_moodleoverflow {{/pix}}</span>{{ replyamount }}</span>
                     </div>
                 </div>
-
             </div>
+
             <div class="w-100 d-flex flex-column justify-content-between">
                 <div class="d-flex justify-content-between">
                     <a class="subject mb-3 me-3" href="{{{subjectlink}}}">{{{ subjecttext }}}</a>
@@ -147,5 +160,5 @@
             </div>
         </div>
     {{/discussions}}
-
+    {{{paging_bar}}}
 {{/hasdiscussions}}
