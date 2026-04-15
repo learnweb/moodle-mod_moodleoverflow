@@ -151,9 +151,9 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
     // Iterate through every visible discussion.
     $i = 0;
-    $preparedarray = [];
+    $items = [];
     foreach ($discussions as $discussion) {
-        $preparedarray[$i] = [];
+        $items[$i] = [];
 
         // Get the discussion object.
         $dobject = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $discussion->discussion]));
@@ -167,30 +167,30 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $lastpostid = $dobject->moodleoverflow_get_newest_post()?->get_id() ?? 0;
 
         // Set the right text.
-        $preparedarray[$i]['answertext'] = ($replies == 1) ? 'answer' : 'answers';
+        $items[$i]['answertext'] = ($replies == 1) ? 'answer' : 'answers';
 
         // Check if the question owner marked a reply as helpful.
-        $preparedarray[$i]['starterlink'] = null;
+        $items[$i]['starterlink'] = null;
         if ($markedhelpful = ratings::moodleoverflow_discussion_is_solved($discussion->discussion)) {
             $postid = reset($markedhelpful)->postid;
-            $preparedarray[$i]['starterlink'] = new moodle_url($discussionpath, ['d' => $dobject->get_id()], "#p{$postid}");
+            $items[$i]['starterlink'] = new moodle_url($discussionpath, ['d' => $dobject->get_id()], "#p{$postid}");
         }
 
         // Check if a teacher marked a post as solved.
-        $preparedarray[$i]['teacherlink'] = null;
+        $items[$i]['teacherlink'] = null;
         if ($markedsolution = ratings::moodleoverflow_discussion_is_solved($discussion->discussion, true)) {
             $postid = reset($markedsolution)->postid;
-            $preparedarray[$i]['teacherlink'] = new moodle_url($discussionpath, ['d' => $dobject->get_id()], "#p{$postid}");
+            $items[$i]['teacherlink'] = new moodle_url($discussionpath, ['d' => $dobject->get_id()], "#p{$postid}");
         }
 
         // Get the amount of votes for the discussion.
         $votes = ratings::moodleoverflow_get_ratings_by_discussion($discussion->discussion, $discussion->firstpost);
         $votes = $votes->upvotes - $votes->downvotes;
-        $preparedarray[$i]['votetext'] = ($votes == 1) ? 'vote' : 'votes';
+        $items[$i]['votetext'] = ($votes == 1) ? 'vote' : 'votes';
 
         // Format the subjectname and the link to the topic.
-        $preparedarray[$i]['subjecttext'] = format_string($discussion->name);
-        $preparedarray[$i]['subjectlink'] = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion;
+        $items[$i]['subjecttext'] = format_string($discussion->name);
+        $items[$i]['subjectlink'] = $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion;
 
         // Get information about the user who started the discussion.
         $startuser = new stdClass();
@@ -203,53 +203,53 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         if ($startuser->id == 0 || $moodleoverflow->anonymous != anonymous::NOT_ANONYMOUS) {
             // Get his picture, his name and the link to his profile.
             if ($startuser->id == $USER->id) {
-                $preparedarray[$i]['username'] = get_string('anonym_you', 'mod_moodleoverflow');
+                $items[$i]['username'] = get_string('anonym_you', 'mod_moodleoverflow');
                 // Needs to be included for reputation to update properly.
-                $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
+                $items[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                     $discussion->userid . '&course=' . $moodleoverflow->course;
             } else {
-                $preparedarray[$i]['username'] = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
-                $preparedarray[$i]['userlink'] = null;
+                $items[$i]['username'] = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
+                $items[$i]['userlink'] = null;
             }
         } else {
             // Get his picture, his name and the link to his profile.
-            $preparedarray[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course,
+            $items[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course,
                                                                                     'link' => false, ]);
-            $preparedarray[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
-            $preparedarray[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
+            $items[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
+            $items[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
                 $discussion->userid . '&course=' . $moodleoverflow->course;
         }
 
         // Get the amount of replies and the link to the discussion.
-        $preparedarray[$i]['replyamount'] = $replies;
-        $preparedarray[$i]['questionunderreview'] = $discussion->reviewed == 0;
+        $items[$i]['replyamount'] = $replies;
+        $items[$i]['questionunderreview'] = $discussion->reviewed == 0;
 
         // Are there unread messages? Create a link to them.
-        $preparedarray[$i]['unreadamount'] = $unreads[$discussion->discussion] ?? 0;
-        $preparedarray[$i]['unread'] = $preparedarray[$i]['unreadamount'] > 0;
-        $preparedarray[$i]['unreadlink'] = $CFG->wwwroot .
+        $items[$i]['unreadamount'] = $unreads[$discussion->discussion] ?? 0;
+        $items[$i]['unread'] = $items[$i]['unreadamount'] > 0;
+        $items[$i]['unreadlink'] = $CFG->wwwroot .
             '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '#unread';
         $link = '/mod/moodleoverflow/markposts.php?m=';
-        $preparedarray[$i]['markreadlink'] = $CFG->wwwroot . $link . $moodleoverflow->id . '&d=' . $discussion->discussion;
+        $items[$i]['markreadlink'] = $CFG->wwwroot . $link . $moodleoverflow->id . '&d=' . $discussion->discussion;
 
         // Get the name and the link to the profile of the user, that is related to the latest post.
         if (($discussion->usermodified == 0 || $moodleoverflow->anonymous)) {
-            $preparedarray[$i]['lastpostusername'] = null;
+            $items[$i]['lastpostusername'] = null;
         } else {
             $usermodified = username_load_fields_from_object((object) ['id' => $discussion->usermodified], $discussion, 'um');
-            $preparedarray[$i]['lastpostusername'] = fullname($usermodified);
+            $items[$i]['lastpostusername'] = fullname($usermodified);
         }
 
         // Get the date of the latest post of the discussion.
-        $preparedarray[$i]['lastpostdate'] = userdate($discussion->timemodified, get_string('strftimerecentfull'));
-        $preparedarray[$i]['lastpostlink'] = $preparedarray[$i]['subjectlink'] . ($lastpostid ? '&parent=' . $lastpostid : '');
+        $items[$i]['lastpostdate'] = userdate($discussion->timemodified, get_string('strftimerecentfull'));
+        $items[$i]['lastpostlink'] = $items[$i]['subjectlink'] . ($lastpostid ? '&parent=' . $lastpostid : '');
 
         // Check whether the discussion is subscribed.
-        $preparedarray[$i]['discussionsubicon'] = false;
+        $items[$i]['discussionsubicon'] = false;
         if ((!is_guest($context, $USER) && isloggedin()) && has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
             // Discussion subscription.
             if (subscriptions::is_subscribable($moodleoverflow, $context)) {
-                $preparedarray[$i]['discussionsubicon'] = subscriptions::get_discussion_subscription_icon(
+                $items[$i]['discussionsubicon'] = subscriptions::get_discussion_subscription_icon(
                     $moodleoverflow,
                     $context,
                     $discussion->discussion
@@ -259,30 +259,30 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         if ($canreviewposts) {
             $reviewinfo = review::get_short_review_info_for_discussion($discussion->discussion);
-            $preparedarray[$i]['needreview'] = $reviewinfo->count;
-            $preparedarray[$i]['reviewlink'] = (new moodle_url('/mod/moodleoverflow/discussion.php', [
+            $items[$i]['needreview'] = $reviewinfo->count;
+            $items[$i]['reviewlink'] = (new moodle_url('/mod/moodleoverflow/discussion.php', [
                 'd' => $discussion->discussion,
             ], 'p' . $reviewinfo->first))->out(false);
         }
 
         // Build linktopopup to move a topic.
         $linktopopup = $CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id . '&movetopopup=' . $discussion->discussion;
-        $preparedarray[$i]['linktopopup'] = $linktopopup;
+        $items[$i]['linktopopup'] = $linktopopup;
 
         // Add all created data to an array.
-        $preparedarray[$i]['markedhelpful'] = $markedhelpful;
-        $preparedarray[$i]['markedsolution'] = $markedsolution;
-        $preparedarray[$i]['votes'] = $votes;
+        $items[$i]['markedhelpful'] = $markedhelpful;
+        $items[$i]['markedsolution'] = $markedsolution;
+        $items[$i]['votes'] = $votes;
 
         // Did the user rated this post?
         $rating = ratings::moodleoverflow_user_rated($discussion->firstpost);
 
         $firstpost = moodleoverflow_get_post_full($discussion->firstpost);
 
-        $preparedarray[$i]['userupvoted'] = $rating && $rating->rating == RATING_UPVOTE;
-        $preparedarray[$i]['userdownvoted'] = $rating && $rating->rating == RATING_DOWNVOTE;
-        $preparedarray[$i]['canchange'] = ratings::moodleoverflow_user_can_rate($firstpost, $context) && $startuser->id != $USER->id;
-        $preparedarray[$i]['postid'] = $discussion->firstpost;
+        $items[$i]['userupvoted'] = $rating && $rating->rating == RATING_UPVOTE;
+        $items[$i]['userdownvoted'] = $rating && $rating->rating == RATING_DOWNVOTE;
+        $items[$i]['canchange'] = ratings::moodleoverflow_user_can_rate($firstpost, $context) && $startuser->id != $USER->id;
+        $items[$i]['postid'] = $discussion->firstpost;
 
         // Go to the next discussion.
         $i++;
@@ -293,7 +293,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         'cantrack' => $cantrack,
         'canviewdiscussions' => $canviewdiscussions,
         'canreview' => $canreviewposts,
-        'discussions' => $preparedarray,
+        'discussions' => $items,
         'hasdiscussions' => count($discussions) >= 0,
         'istracked' => $istracked,
         'startdiscussion' => $canstartdiscussion ? ['link' => $startdiscussion->out()] : [],
