@@ -157,10 +157,6 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Get the discussion object.
         $dobject = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $discussion->discussion]));
-        // Handle anonymized discussions. LEARNWEB-TODO: this is an old implementation of the anonymous mode.
-        if ($discussion->userid == 0) {
-            $discussion->name = get_string('privacy:anonym_discussion_name', 'mod_moodleoverflow');
-        }
 
         // Set the amount of replies for every discussion.
         $replies = count($dobject->moodleoverflow_get_discussion_posts());
@@ -185,8 +181,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
 
         // Get the amount of votes for the discussion.
         $votes = ratings::moodleoverflow_get_ratings_by_discussion($discussion->discussion, $discussion->firstpost);
-        $votes = $votes->upvotes - $votes->downvotes;
-        $items[$i]['votetext'] = ($votes == 1) ? 'vote' : 'votes';
+        $items[$i]['votetext'] = ($votes->upvotes - $votes->downvotes == 1) ? 'vote' : 'votes';
 
         // Format the subjectname and the link to the topic.
         $items[$i]['subjecttext'] = format_string($discussion->name);
@@ -200,24 +195,24 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         $startuser->id = $discussion->userid;
 
         // Discussion was anonymized.
-        if ($startuser->id == 0 || $moodleoverflow->anonymous != anonymous::NOT_ANONYMOUS) {
+        $ulink = (new moodle_url('/user/view.php', ['id' => $discussion->userid, 'course' => $moodleoverflow->course]))->out();
+        if ($moodleoverflow->anonymous != anonymous::NOT_ANONYMOUS) {
             // Get his picture, his name and the link to his profile.
             if ($startuser->id == $USER->id) {
                 $items[$i]['username'] = get_string('anonym_you', 'mod_moodleoverflow');
-                // Needs to be included for reputation to update properly.
-                $items[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
-                    $discussion->userid . '&course=' . $moodleoverflow->course;
+                $items[$i]['userlink'] = $ulink;
             } else {
                 $items[$i]['username'] = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
                 $items[$i]['userlink'] = null;
             }
+            $items[$i]['lastpostusername'] = null;
         } else {
             // Get his picture, his name and the link to his profile.
-            $items[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course,
-                                                                                    'link' => false, ]);
+            $items[$i]['picture'] = $OUTPUT->user_picture($startuser, ['courseid' => $moodleoverflow->course, 'link' => false]);
             $items[$i]['username'] = fullname($startuser, has_capability('moodle/site:viewfullnames', $context));
-            $items[$i]['userlink'] = $CFG->wwwroot . '/user/view.php?id=' .
-                $discussion->userid . '&course=' . $moodleoverflow->course;
+            $items[$i]['userlink'] = $ulink;
+            $usermodified = username_load_fields_from_object((object) ['id' => $discussion->usermodified], $discussion, 'um');
+            $items[$i]['lastpostusername'] = fullname($usermodified);
         }
 
         // Get the amount of replies and the link to the discussion.
@@ -227,18 +222,9 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         // Are there unread messages? Create a link to them.
         $items[$i]['unreadamount'] = $unreads[$discussion->discussion] ?? 0;
         $items[$i]['unread'] = $items[$i]['unreadamount'] > 0;
-        $items[$i]['unreadlink'] = $CFG->wwwroot .
-            '/mod/moodleoverflow/discussion.php?d=' . $discussion->discussion . '#unread';
-        $link = '/mod/moodleoverflow/markposts.php?m=';
-        $items[$i]['markreadlink'] = $CFG->wwwroot . $link . $moodleoverflow->id . '&d=' . $discussion->discussion;
-
-        // Get the name and the link to the profile of the user, that is related to the latest post.
-        if (($discussion->usermodified == 0 || $moodleoverflow->anonymous)) {
-            $items[$i]['lastpostusername'] = null;
-        } else {
-            $usermodified = username_load_fields_from_object((object) ['id' => $discussion->usermodified], $discussion, 'um');
-            $items[$i]['lastpostusername'] = fullname($usermodified);
-        }
+        $items[$i]['unreadlink'] = (new moodle_url($discussionpath, ['d' => $discussion->discussion], '#unread'))->out();
+        $link = '/mod/moodleoverflow/markposts.php';
+        $items[$i]['markreadlink'] = (new moodle_url($link, ['m' => $moodleoverflow->id, 'd' => $discussion->discussion]))->out();
 
         // Get the date of the latest post of the discussion.
         $items[$i]['lastpostdate'] = userdate($discussion->timemodified, get_string('strftimerecentfull'));
@@ -272,7 +258,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         // Add all created data to an array.
         $items[$i]['markedhelpful'] = $markedhelpful;
         $items[$i]['markedsolution'] = $markedsolution;
-        $items[$i]['votes'] = $votes;
+        $items[$i]['votes'] = $votes->upvotes - $votes->downvotes;
 
         // Did the user rated this post?
         $rating = ratings::moodleoverflow_user_rated($discussion->firstpost);
