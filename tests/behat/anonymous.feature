@@ -15,7 +15,7 @@ Feature: Use moodleoverflow anonymously
   @_file_upload
   Scenario: Other people should not see the questioners name in anonymous mode, not even as file author.
     Given I navigate as "student1" to "Course 1" "Test moodleoverflow" ""
-    And I press "Add a new discussion topic"
+    And I click on "Add a new discussion topic" "text"
     And I set the following fields to these values:
       | Subject | This is Nina |
       | Message | She is nice. |

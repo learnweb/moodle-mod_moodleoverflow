@@ -23,7 +23,7 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
       | showuserstats | 1 | moodleoverflow |
     And I follow "Test Moodleoverflow"
     Then I should see "View user statistics"
-    When I press "View user statistics"
+    When I click on "View user statistics" "text"
     Then the following should exist in the "statisticstable" table:
       | User full name | Received upvotes | Received downvotes | Activity (this forum) | Activity (coursewide) |
       | Teacher 1      | 0                | 0                  | 1                     | 1                     |
@@ -41,7 +41,7 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
     And I navigate as "teacher1" to "Course 1" "Test Moodleoverflow" "Topic question"
     And I click on "Mark as solution" "text"
     And I follow "Test Moodleoverflow"
-    And I press "View user statistics"
+    And I click on "View user statistics" "text"
     Then the following should exist in the "statisticstable" table:
       | User full name | Received upvotes | Received downvotes | Activity (this forum) | Activity (coursewide) | Reputation (this forum) |
       | Teacher 1      | 0                | 0                  | 2                     | 2                     | 0                       |
