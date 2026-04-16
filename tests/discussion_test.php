@@ -23,8 +23,8 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\post\post;
-use mod_moodleoverflow\discussion\discussion;
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\models\post;
 
 /**
  * Tests if the functions from the discussion class are working correctly.
@@ -33,7 +33,7 @@ use mod_moodleoverflow\discussion\discussion;
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_moodleoverflow\discussion\discussion
+ * @covers \mod_moodleoverflow\models\discussion
  */
 final class discussion_test extends \advanced_testcase {
     /** @var \stdClass test course */

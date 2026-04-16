@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\post;
+namespace mod_moodleoverflow\models;
 
 use coding_exception;
 use context_module;
@@ -26,7 +26,6 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\discussion\discussion;
 use mod_moodleoverflow_post_form;
 use moodle_exception;
 use moodle_url;

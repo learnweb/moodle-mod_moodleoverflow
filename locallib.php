@@ -28,8 +28,8 @@
 use core_user\fields;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
-use mod_moodleoverflow\discussion\discussion;
 use mod_moodleoverflow\event\post_deleted;
+use mod_moodleoverflow\models\discussion;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;

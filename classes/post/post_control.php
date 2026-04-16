@@ -18,7 +18,6 @@ namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use coding_exception;
-use context_module;
 use core\notification;
 use dml_exception;
 use html_writer;
@@ -27,8 +26,9 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_updated;
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\models\post;
 use mod_moodleoverflow\review;
-use mod_moodleoverflow\discussion\discussion;
 use mod_moodleoverflow\subscriptions;
 use mod_moodleoverflow_post_form;
 use moodle_exception;

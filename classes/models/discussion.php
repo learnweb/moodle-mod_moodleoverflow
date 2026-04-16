@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\discussion;
+namespace mod_moodleoverflow\models;
 
 // Important namespaces.
 use coding_exception;
@@ -23,7 +23,6 @@ use Exception;
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\post\post;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
