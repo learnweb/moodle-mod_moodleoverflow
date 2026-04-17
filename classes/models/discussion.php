@@ -512,20 +512,27 @@ class discussion {
     /**
      * Return the newest post in a discussion.
      *
-     * @return post|null
+     * @return post
      * @throws moodle_exception
      */
-    public function moodleoverflow_get_newest_post(): ?post {
+    public function get_newest_post(): post {
         $this->existence_check();
         $this->posts_check();
-        if ($this->posts == []) {
-            return null;
-        }
         $posts = $this->posts;
         usort($posts, function ($a, $b) {
             return $b->modified <=> $a->modified;
         });
         return reset($posts);
+    }
+
+    /**
+     * Return the first post of the discussion.
+     * @throws moodle_exception
+     */
+    public function get_first_post(): post {
+        $this->existence_check();
+        $this->posts_check();
+        return array_values(array_filter($this->posts, fn($post) => $post->get_id() == $this->firstpost))[0];
     }
 
     /**

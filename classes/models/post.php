@@ -572,6 +572,25 @@ class post {
     }
 
     /**
+     * Return the profile picture of the post author.
+     * @throws dml_exception|moodle_exception
+     */
+    public function get_userpicture(): string {
+        global $DB, $OUTPUT;
+        $userid = $this->get_userid();
+        if (!anonymous::is_post_anonymous($this->get_discussion()->get_db_object(), $this->get_moodleoverflow(), $userid)) {
+            $user = username_load_fields_from_object(
+                (new stdClass()),
+                $DB->get_record('user', ['id' => $this->userid]),
+                null,
+                fields::get_picture_fields()
+            );
+            return $OUTPUT->user_picture($user, ['courseid' => $this->moodleoverflowobject->course, 'link' => false]);
+        }
+        return '';
+    }
+
+    /**
      * Returns the post message in a formatted way ready to display.
      * @return string
      * @throws moodle_exception
