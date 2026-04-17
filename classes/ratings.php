@@ -357,13 +357,8 @@ class ratings {
      */
     public static function moodleoverflow_discussion_is_solved(int $discussionid, bool $teacher = false): array {
         global $DB;
-        // Is the teachers solved-status requested?
-        if ($teacher) {
-            return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => RATING_SOLVED]);
-        } else {
-            // Check if the topic starter marked a solution as helpful.
-            return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => RATING_HELPFUL]);
-        }
+        $rating = $teacher ? RATING_SOLVED : RATING_HELPFUL;
+        return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => $rating]);
     }
 
     /**

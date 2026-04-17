@@ -544,6 +544,7 @@ class post {
     /**
      * Get a link to the users profile.
      * Returns a html link embedded in the users name.
+     * LEARNWEB-TODO: its a handy function but think about how to make it more accessible for different cases (no html writing).
      * @return moodle_url
      * @throws moodle_exception
      */
