@@ -23,7 +23,7 @@
     {
     }
 }}
-<div class="moodleoverflowdiscussion d-flex border p-2 mb-3" data-moodleoverflow-postid="{{postid}}">
+<div class="moodleoverflowdiscussion discussioncard d-flex border p-2 mb-3" data-moodleoverflow-postid="{{postid}}">
     <div class="leftbox text-center me-2">
         <div class="votes text-center mb-1">
             {{> mod_moodleoverflow/postvoting }}
@@ -71,7 +71,13 @@
                     <div class="discussionsubscription">{{{discussionsubicon}}}</div>
                 {{/cansubtodiscussion}}
                 {{#canmovetopic}}
-                    <div class="discussionmove"><a href='{{{ linktopopup }}}'>{{#pix}} i/arrow-right, core, {{#str}}movetopicicon, moodleoverflow{{/str}} {{/pix}}</a></div>
+                    <button type="button"
+                            class="discussionmove btn btn-link p-0 pe-auto"
+                            data-action="moodleoverflow/movetopic-select"
+                            data-discussionname="{{name}}"
+                            data-discussionid="{{id}}">
+                        {{#pix}} i/arrow-right, core, {{#str}}movetopicicon, moodleoverflow{{/str}} {{/pix}}
+                    </button>
                 {{/canmovetopic}}
 
                 {{#unread}}

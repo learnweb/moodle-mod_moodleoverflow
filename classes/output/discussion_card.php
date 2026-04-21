@@ -52,6 +52,9 @@ class discussion_card implements named_templatable, renderable {
     /** @var post The most recently modified post */
     public post $lastpost;
 
+    /** @var bool If discussion can be moved */
+    public bool $movepossible;
+
     /** @var array All important base links*/
     private array $l = [
         'view' => '/mod/moodleoverflow/view.php',
@@ -64,15 +67,17 @@ class discussion_card implements named_templatable, renderable {
      * Constructor
      * @param discussion $discussion
      * @param \context_module $context
+     * @param bool $movepossible If the discussion can be moved to another moodleoverflow
      * @throws \dml_exception
      * @throws moodle_exception
      */
-    public function __construct(discussion $discussion, \context_module $context) {
+    public function __construct(discussion $discussion, \context_module $context, bool $movepossible) {
         $this->context = $context;
         $this->discussion = $discussion;
         $this->firstpost = $this->discussion->get_first_post();
         $this->lastpost = $this->discussion->get_newest_post();
         $this->modflow = $this->discussion->get_moodleoverflow();
+        $this->movepossible = $movepossible;
     }
 
     #[\Override]
@@ -144,9 +149,7 @@ class discussion_card implements named_templatable, renderable {
         $reviewlink = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], 'p' . $reviewinfo->first);
 
         // Miscellaneous data.
-        $coursemodules = get_fast_modinfo($this->modflow->course)->get_instances_of('moodleoverflow');
-        $movepossible = count(array_filter($coursemodules, fn($cm) => !$cm->deletioninprogress)) > 1;
-        $movelink = new moodle_url($this->l['view'], ['m' => $this->modflow->id, 'movetopopup' => $this->discussion->get_id()]);
+        $topicmove = ['name' => $this->discussion->name, 'id' => $this->discussion->get_id()];
         $subicon = subscriptions::get_discussion_subscription_icon($this->modflow, $this->context, $this->discussion->get_id());
 
         return (object) [
@@ -167,7 +170,7 @@ class discussion_card implements named_templatable, renderable {
             'needreview' => $reviewinfo->count > 0,
             'reviewlink' => $reviewlink->out(),
             'questionunderreview' => $this->firstpost->reviewed == 0,
-            'canmovetopic' => ($isloggedin && $canmovetopic && $movepossible) ? ['linktopopup' => $movelink->out()] : [],
+            'canmovetopic' => ($isloggedin && $canmovetopic && $this->movepossible) ? $topicmove : [],
             'cansubtodiscussion' => ($isloggedin && $viewdiscussion && $issubcribable) ? ['discussionsubicon' => $subicon] : [],
         ];
     }

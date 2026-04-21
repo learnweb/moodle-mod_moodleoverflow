@@ -74,4 +74,12 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
     ],
+    'mod_moodleoverflow_move_discussion' => [
+        'classname' => 'mod_moodleoverflow\external\move_discussion',
+        'methodname' => 'execute',
+        'classpath' => 'mod/moodleoverflow/classes/external/move_discussion.php',
+        'description' => 'Moves a discussion to another moodleoverflow',
+        'type' => 'write',
+        'ajax' => true,
+    ],
 ];

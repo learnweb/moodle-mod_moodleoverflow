@@ -33,7 +33,10 @@
 {{/hasdiscussions}}
 
 {{#hasdiscussions}}
-{{! Paging bar if needed}}
+    {{! List of moodleoverflow where discussion can be moved to}}
+    {{> mod_moodleoverflow/view/topicmove_list}}
+
+    {{! Paging bar if needed}}
     {{{paging_bar}}}
 
     {{! Top action buttons}}

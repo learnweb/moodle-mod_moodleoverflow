@@ -78,6 +78,21 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
     $discussioncount = moodleoverflow_get_discussions_count($cm);
     $unreads = $istracked ? moodleoverflow_get_discussions_unread($cm) : [];
 
+    // Get moodleoverflow where discussions can be moved.
+    $destinations = [];
+    $instances = get_fast_modinfo($moodleoverflow->course)->get_instances_of('moodleoverflow');
+    $params = ['course' => $moodleoverflow->course, 'anonymous' => $moodleoverflow->anonymous, 'currentid' => $moodleoverflow->id];
+    $sql = "SELECT *
+            FROM {moodleoverflow}
+            WHERE course = :course
+                AND anonymous >= :anonymous
+                AND id != :currentid";
+    foreach ($DB->get_records_sql($sql, $params) as $modflow) {
+        if (empty($instances[$modflow->id]->deletioninprogress)) {
+            $destinations[] = ['name' => $modflow->name, 'modflowid' => $modflow->id];
+        }
+    }
+
     // Iterate through every visible discussion.
     $canreview = capabilities::has(capabilities::REVIEW_POST, $context) ? 1 : 0;
     $items = [];
@@ -90,7 +105,7 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
             ORDER BY d.timestart DESC, d.id DESC";
     $discussions = $DB->get_records_sql($sql, [$moodleoverflow->id, $canreview, $USER->id], $limitfrom, $limitamount);
     foreach ($discussions as $discussion) {
-        $items[] = $OUTPUT->render(new discussion_card(discussion::from_record($discussion), $context));
+        $items[] = $OUTPUT->render(new discussion_card(discussion::from_record($discussion), $context, !empty($destinations)));
     }
 
     // Collect the needed data being submitted to the template.
@@ -101,76 +116,13 @@ function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -
         'markallread' => $unreads ? ['link' => $markallreadlink->out()] : [],
         'stats' => $canseestats ? ['link' => (new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id]))->out()] : [],
         'paging_bar' => ($page != -1) ? $OUTPUT->paging_bar($discussioncount, $page, $perpage, "view.php?id=$cm->id") : false,
+        'destinations' => $destinations,
     ];
 
     // Print the template.
+    $PAGE->requires->js_call_amd('mod_moodleoverflow/topicmove', 'init');
     echo $PAGE->get_renderer('mod_moodleoverflow')->render_discussion_list($mustachedata);
 }
-
-/**
- * Prints a popup with a menu of other moodleoverflow in the course.
- * Menu to move a topic to another moodleoverflow forum.
- *
- * @param object $course
- * @param object $cm
- * @param int $movetopopup forum where forum list is being printed.
- */
-function moodleoverflow_print_forum_list($course, $cm, $movetopopup) {
-    global $CFG, $DB, $PAGE;
-    $forumarray = [[]];
-    $currentforum = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'moodleoverflow');
-    $currentdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup], 'name');
-    $modinfo = get_fast_modinfo($course->id);
-    $instances = $modinfo->get_instances_of('moodleoverflow');
-
-    // If the currentforum is anonymous, only show forums that have a higher anonymous setting.
-    $anonymoussetting = $DB->get_field('moodleoverflow', 'anonymous', ['id' => $currentforum->moodleoverflow]);
-    if ($anonymoussetting == anonymous::QUESTION_ANONYMOUS || $anonymoussetting == anonymous::EVERYTHING_ANONYMOUS) {
-        $params = ['course' => $course->id, 'anonymous' => $anonymoussetting,
-                   'currentforumid' => $currentforum->moodleoverflow, ];
-        $sql = "SELECT *
-               FROM {moodleoverflow}
-               WHERE course = :course
-                 AND anonymous >= :anonymous
-                 AND id != :currentforumid";
-        $forums = $DB->get_records_sql($sql, $params);
-    } else {
-        $forums = $DB->get_records('moodleoverflow', ['course' => $course->id]);
-    }
-
-    $amountforums = count($forums);
-
-    if ($amountforums >= 1) {
-        // Write the moodleoverflow-names in an array.
-        foreach ($forums as $forum) {
-            if ($forum->id == $currentforum->moodleoverflow) {
-                continue;
-            } else if (empty($instances[$forum->id]->deletioninprogress)) {
-                $movetourl = new moodle_url('/mod/moodleoverflow/view.php', [
-                    'id' => $cm->id,
-                    'movetopopup' => $movetopopup,
-                    'movetoforum' => $forum->id,
-                ]);
-                $forumarray[] = [
-                    'name' => $forum->name,
-                    'movetoforum' => $movetourl->out(false),
-                ];
-            }
-        }
-        $amountforums = true;
-    } else {
-        $amountforums = false;
-    }
-
-    // Build popup.
-    $renderer = $PAGE->get_renderer('mod_moodleoverflow');
-    $mustachedata = new stdClass();
-    $mustachedata->hasforums = $amountforums;
-    $mustachedata->forums = $forumarray;
-    $mustachedata->currentdiscussion = $currentdiscussion->name;
-    echo $renderer->render_forum_list($mustachedata);
-}
-
 
 /**
  * Returns an array of counts of replies for each discussion.

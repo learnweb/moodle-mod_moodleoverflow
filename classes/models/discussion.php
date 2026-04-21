@@ -414,6 +414,24 @@ class discussion {
         return false;
     }
 
+    /**
+     * Moves discussion from one moodleoverflow to another.
+     *
+     * @param int $moodleoverflowid The moodleoverflow where the discussion is moved to.
+     * @return bool
+     * @throws coding_exception|dml_exception
+     */
+    public function move_dicussion(int $moodleoverflowid): bool {
+        global $DB;
+        if (has_capability('mod/moodleoverflow:movetopic', \context_module::instance($this->get_coursemodule()->id))) {
+            $this->moodleoverflow = $moodleoverflowid;
+            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $this->moodleoverflow]);
+            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+            return true;
+        }
+        return false;
+    }
+
     // Getter.
 
     /**
