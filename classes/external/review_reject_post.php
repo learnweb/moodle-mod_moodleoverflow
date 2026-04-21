@@ -20,6 +20,7 @@ use coding_exception;
 use context_module;
 use core_user;
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\models\discussion;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\review;
 use external_function_parameters;
@@ -131,9 +132,10 @@ class review_reject_post extends external_api {
 
         if (!$post->parent) {
             // Delete discussion, if this is the question.
-            moodleoverflow_delete_discussion($discussion, $cm, $moodleoverflow);
+            discussion::from_record($discussion)->delete_discussion((object) ['modulecontext' => $context]);
         } else {
-            moodleoverflow_delete_post($post, true, $cm, $moodleoverflow);
+            $prepost = (object) ['postid' => $post->id, 'deletechildren' => true];
+            discussion::from_record($discussion)->delete_post_from_discussion($prepost);
         }
 
         return $url;

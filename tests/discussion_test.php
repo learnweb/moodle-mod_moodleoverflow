@@ -121,7 +121,7 @@ final class discussion_test extends \advanced_testcase {
 
     /**
      * Test, if a post and its attachment are deleted successfully.
-     * @covers ::moodleoverflow_delete_post
+     * @covers \mod_moodleoverflow\models\discussion::delete_post_from_discussion
      */
     public function test_delete_discussion(): void {
         global $DB;
@@ -132,7 +132,7 @@ final class discussion_test extends \advanced_testcase {
         // Delete the discussion, but save the IDs first.
         $discussionid = $this->discussion->get_id();
         $postid = $this->discussion->get_firstpostid();
-        $this->discussion->moodleoverflow_delete_discussion($prepost);
+        $this->discussion->delete_discussion($prepost);
 
         // The discussion and the post should not be in the DB anymore.
         $discussion = count($DB->get_records('moodleoverflow_discussions', ['id' => $discussionid]));

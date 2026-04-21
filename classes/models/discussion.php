@@ -234,7 +234,7 @@ class discussion {
      * @return bool Wether deletion was successful of not
      * @throws moodle_exception
      */
-    public function moodleoverflow_delete_discussion(object $prepost): bool {
+    public function delete_discussion(object $prepost): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -326,7 +326,7 @@ class discussion {
      * @return bool If the deletion was possible
      * @throws moodle_exception
      */
-    public function moodleoverflow_delete_post_from_discussion(object $prepost): bool {
+    public function delete_post_from_discussion(object $prepost): bool {
         $this->existence_check();
         $this->posts_check();
 

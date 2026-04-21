@@ -538,12 +538,12 @@ class post_control {
         if ($this->prepost->parentid == 0) {
             // Save the moodleoverflowid. Then delete the discussion.
             $moodleoverflowid = $this->info->discussion->get_moodleoverflowid();
-            $this->info->discussion->moodleoverflow_delete_discussion($this->prepost);
+            $this->info->discussion->delete_discussion($this->prepost);
 
             // Redirect the user back to the start page of the moodleoverflow instance.
             return 'view.php?m=' . $moodleoverflowid;
         } else {
-            $this->info->discussion->moodleoverflow_delete_post_from_discussion($this->prepost);
+            $this->info->discussion->delete_post_from_discussion($this->prepost);
             $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
             return moodleoverflow_go_back_to($discussionurl);
         }
@@ -556,9 +556,15 @@ class post_control {
      * @throws moodle_exception
      */
     public function confirm_delete(): void {
+        global $CFG, $SESSION, $PAGE;
         $this->check_interaction('delete');
-        global $PAGE;
-        moodleoverflow_set_return();
+        // Save the referer for later redirection.
+        if (!isset($SESSION->fromdiscussion)) {
+            // If the referer is not a login screen, save it.
+            if (!strncasecmp("$CFG->wwwroot/login", get_local_referer(false), 300)) {
+                $SESSION->fromdiscussion = get_local_referer(false);
+            }
+        }
         $PAGE->navbar->add(get_string('delete', 'moodleoverflow'));
         $PAGE->set_title($this->info->course->shortname);
         $PAGE->set_heading($this->info->course->fullname);

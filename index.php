@@ -100,7 +100,7 @@ $generaltable->head = [$string['moodleoverflow'], $string['description'], $strin
 $generaltable->align = ['left', 'left', 'center'];
 
 // Check whether moodleoverflows can be tracked.
-$cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows();
+$cantrack = \mod_moodleoverflow\readtracking::can_track_moodleoverflows();
 if ($cantrack) {
     $untracked = \mod_moodleoverflow\readtracking::get_untracked_moodleoverflows($USER->id, $course->id);
 
@@ -239,7 +239,7 @@ if ($generalmoodleoverflows) {
         $modulecontext = context_module::instance($cm->id);
 
         // Count the discussions within the moodleoverflow.
-        $count = moodleoverflow_count_discussions($moodleoverflow, $course);
+        $count = $DB->count_records('moodleoverflow_discussions', ['moodleoverflow' => $moodleoverflow->id]);
 
         // Check whether the user can track the moodleoverflow.
         if ($cantrack) {

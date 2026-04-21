@@ -40,9 +40,9 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  */
 final class readtracking_test extends advanced_testcase {
     /**
-     * Test the logic in the moodleoverflow_can_track_moodleoverflows() function.
+     * Test the logic in the can_track_moodleoverflows() function.
      */
-    public function test_moodleoverflow_can_track_moodleoverflows(): void {
+    public function test_can_track_moodleoverflows(): void {
 
         // Reset after testing.
         $this->resetAfterTest();
@@ -61,30 +61,30 @@ final class readtracking_test extends advanced_testcase {
         set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
         // Modleoverflow off, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooff);
+        $result = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($mooff);
         $this->assertEquals(false, $result);
 
         // Moodleoverflow on, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moforce);
+        $result = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($moforce);
         $this->assertEquals(false, $result);
 
         // Moodleoverflow optional, should be false.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooptional);
+        $result = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($mooptional);
         $this->assertEquals(false, $result);
 
         // Don't allow force.
         set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooff);
+        $result = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($mooff);
         $this->assertEquals(false, $result);
 
         // Moodleoverflow on, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moforce);
+        $result = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($moforce);
         $this->assertEquals(false, $result);
 
         // Moodleoverflow optional, should be off.
-        $result = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($mooptional);
+        $result = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($mooptional);
         $this->assertEquals(false, $result);
     }
 

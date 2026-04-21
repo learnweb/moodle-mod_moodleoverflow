@@ -37,7 +37,7 @@ class readtracking {
      *
      * @return boolean
      * */
-    public static function moodleoverflow_can_track_moodleoverflows($moodleoverflow = null) {
+    public static function can_track_moodleoverflows($moodleoverflow = null) {
         global $USER;
 
         // Check if readtracking is disabled for the module.
@@ -84,7 +84,7 @@ class readtracking {
         $user = $user ?? $USER;
 
         // Guests cannot track a moodleoverflow. The moodleoverflow should be generally trackable.
-        if (isguestuser($USER) || empty($USER->id) || !self::moodleoverflow_can_track_moodleoverflows($moodleoverflow)) {
+        if (isguestuser($USER) || empty($USER->id) || !self::can_track_moodleoverflows($moodleoverflow)) {
             return false;
         }
 

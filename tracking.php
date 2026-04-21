@@ -55,7 +55,7 @@ $returnpageurl = new moodle_url($url, $params);
 $returnto = moodleoverflow_go_back_to($returnpageurl);
 
 // Check whether the user can track the moodleoverflow instance.
-$cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+$cantrack = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($moodleoverflow);
 
 // Do not continue if the user is not allowed to track the moodleoverflow. Redirect the user back.
 if (!$cantrack) {

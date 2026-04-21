@@ -142,7 +142,7 @@ final class post_test extends \advanced_testcase {
 
     /**
      * Test, if a post and its attachment are deleted successfully.
-     * @covers ::moodleoverflow_delete_post
+     * @covers \mod_moodleoverflow\models\post::moodleoverflow_delete_post
      */
     public function test_moodleoverflow_delete_post(): void {
         global $DB;
