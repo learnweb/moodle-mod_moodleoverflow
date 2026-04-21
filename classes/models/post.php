@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\post;
+namespace mod_moodleoverflow\models;
 
 use coding_exception;
 use context_module;
@@ -26,7 +26,6 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\discussion\discussion;
 use mod_moodleoverflow_post_form;
 use moodle_exception;
 use moodle_url;
@@ -545,6 +544,7 @@ class post {
     /**
      * Get a link to the users profile.
      * Returns a html link embedded in the users name.
+     * LEARNWEB-TODO: its a handy function but think about how to make it more accessible for different cases (no html writing).
      * @return moodle_url
      * @throws moodle_exception
      */
@@ -570,6 +570,25 @@ class post {
         $fullname = fullname($user, capabilities::has('moodle/site:viewfullnames', $modulecontext));
         $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
         return html_writer::link($profilelink, $fullname);
+    }
+
+    /**
+     * Return the profile picture of the post author.
+     * @throws dml_exception|moodle_exception
+     */
+    public function get_userpicture(): string {
+        global $DB, $OUTPUT;
+        $userid = $this->get_userid();
+        if (!anonymous::is_post_anonymous($this->get_discussion()->get_db_object(), $this->get_moodleoverflow(), $userid)) {
+            $user = username_load_fields_from_object(
+                (new stdClass()),
+                $DB->get_record('user', ['id' => $this->userid]),
+                null,
+                fields::get_picture_fields()
+            );
+            return $OUTPUT->user_picture($user, ['courseid' => $this->moodleoverflowobject->course, 'link' => false]);
+        }
+        return '';
     }
 
     /**

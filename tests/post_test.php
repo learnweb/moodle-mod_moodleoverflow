@@ -25,8 +25,8 @@ namespace mod_moodleoverflow;
 
 // Use the post class.
 use context;
-use mod_moodleoverflow\post\post;
-use mod_moodleoverflow\discussion\discussion;
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\models\post;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -39,7 +39,7 @@ require_once(__DIR__ . '/../locallib.php');
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_moodleoverflow\post\post
+ * @covers \mod_moodleoverflow\models\post
  */
 final class post_test extends \advanced_testcase {
     /** @var stdClass test course */
