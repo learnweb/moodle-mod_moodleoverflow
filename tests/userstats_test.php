@@ -322,9 +322,7 @@ final class userstats_test extends \advanced_testcase {
      * Create a usertable and return it.
      */
     private function create_statstable() {
-        $url = new \moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->coursemodule->id,
-                                                                     'courseid' => $this->course->id,
-                                                                     'mid' => $this->moodleoverflow->id, ]);
+        $url = new \moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->coursemodule->id]);
         $userstatstable = new userstats_table('testtable', $this->course->id, $this->moodleoverflow->id, $url);
         $userstatstable->get_table_data();
         return $userstatstable->get_usertable();

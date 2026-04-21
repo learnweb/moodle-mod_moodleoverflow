@@ -117,12 +117,6 @@
     margin-bottom: 20px;
 }
 
-#newdiscussionform {
-    float: left;
-    text-align: left;
-    white-space: nowrap;
-}
-
 #moodleoverflow_original_post {
     overflow: hidden;
     max-height: 0;
