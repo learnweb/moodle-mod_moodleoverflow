@@ -529,4 +529,63 @@ class readtracking {
             )
         );
     }
+
+    /**
+     * Checks whether a specific post has been read by a user.
+     * Posts older than the configured cutoff date are always considered read.
+     *
+     * @param object $moodleoverflow
+     * @param int $postid
+     * @param int $userid
+     * @return bool True if read (or old), false if unread.
+     */
+    public static function is_post_read(object $moodleoverflow, int $postid, int $userid): bool {
+        global $DB;
+
+        if (!self::moodleoverflow_is_tracked($moodleoverflow)) {
+            return true;
+        }
+
+        $cutoffdate = time() - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600);
+
+        $sql = "SELECT p.id
+                  FROM {moodleoverflow_posts} p
+             LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = :userid)
+                 WHERE p.id = :postid
+                   AND p.modified >= :cutoffdate
+                   AND r.id IS NULL";
+
+        return !$DB->record_exists_sql($sql, ['userid' => $userid, 'postid' => $postid, 'cutoffdate' => $cutoffdate]);
+    }
+
+    /**
+     * Returns the id of the first unread post in a discussion. Useful to point to the post in a discussion that is unread.
+     * @param int $discussionid
+     * @param int $userid
+     * @param context_module $context
+     * @return int
+     * @throws coding_exception|dml_exception
+     */
+    public static function get_first_unread_post_id(int $discussionid, int $userid, context_module $context): int {
+        global $DB;
+        $cutoffdate = time() - (get_config('moodleoverflow', 'oldpostdays') * 86400);
+
+        $reviewfilter = '';
+        $params = ['userid' => $userid, 'discussion' => $discussionid, 'cutoffdate' => $cutoffdate];
+
+        if (!has_capability('mod/moodleoverflow:reviewpost', $context)) {
+            $reviewfilter = 'AND (p.reviewed = 1 OR p.userid = :userid2)';
+            $params['userid2'] = $userid;
+        }
+        $sql = "SELECT p.id
+             FROM {moodleoverflow_posts} p
+        LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = :userid)
+            WHERE p.discussion = :discussion
+              AND p.modified >= :cutoffdate
+              AND r.id IS NULL
+              $reviewfilter
+            ORDER BY p.created ASC
+            LIMIT 1";
+        return $DB->get_field_sql($sql, $params) ?: -1;
+    }
 }

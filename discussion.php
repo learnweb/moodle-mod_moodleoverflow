@@ -23,6 +23,10 @@
  */
 
 // Include config and locallib.
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\output\pages\discussion\discussion_page;
+use mod_moodleoverflow\readtracking;
+
 require_once('../../config.php');
 global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
@@ -52,15 +56,6 @@ $moodleoverflow = moodleoverflow_get_record_or_exception(
 // Check if the related moodleoverflow instance is valid.
 $course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->course], 'invalidcourseid', '*', true);
 
-// Save the allowmultiplemarks setting.
-$marksetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'allowmultiplemarks');
-$multiplemarks = false;
-if ($marksetting->allowmultiplemarks == 1) {
-    $multiplemarks = true;
-}
-// Setting of limitedanswer. Limitedanswertime saves the timestamp, until the limitedanswer is on (0 if off).
-$limitedanswersetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'la_starttime, la_endtime');
-
 // Get the related coursemodule and its context.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
     throw new moodle_exception('invalidcoursemodule');
@@ -73,8 +68,7 @@ $modulecontext = context_module::instance($cm->id);
 require_course_login($course, true, $cm);
 
 // Check if the user has the capability to view discussions.
-$canviewdiscussion = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext);
-if (!$canviewdiscussion) {
+if (!$canviewdiscussion = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext)) {
     notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
 }
 
@@ -129,10 +123,6 @@ if (empty($forumnode)) {
     $forumnode->make_active();
 }
 
-if ($discussion->userid === '0') {
-    $discussion->name = get_string('privacy:anonym_discussion_name', 'mod_moodleoverflow');
-}
-
 $node = $forumnode->add(
     format_string($discussion->name),
     new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id])
@@ -144,7 +134,7 @@ if ($node && ($post->id != $discussion->firstpost)) {
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $multiplemarks]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $moodleoverflow->allowmultiplemarks]);
 
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
@@ -153,20 +143,15 @@ $PAGE->set_heading($course->fullname);
 // Include the renderer.
 $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 
+// Mark the discussion as read as the user entered the discussion.
+if (readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER)) {
+    readtracking::moodleoverflow_mark_discussion_read($discussion->id, $modulecontext, $USER->id);
+}
+
 // Start the side-output.
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
 
 // Guests and users can not subscribe to a discussion.
-if ((!is_guest($modulecontext, $USER) && isloggedin() && $canviewdiscussion)) {
-    echo '';
-}
-
-echo "<br>";
-
-echo '<div id="moodleoverflow-posts"><div id="moodleoverflow-root">';
-
-moodleoverflow_print_discussion($course, $cm, $moodleoverflow, $discussion, $post, $multiplemarks, $limitedanswersetting);
-echo '</div></div>';
-
+echo $OUTPUT->render(new discussion_page(discussion::from_record($discussion)));
 echo $OUTPUT->footer();
