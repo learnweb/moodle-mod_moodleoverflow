@@ -238,11 +238,15 @@ function moodleoverflow_get_post_full($postid) {
  * @param object $discussion
  * @param object $post
  * @param object $cm
+ * @param int $userid
  *
  * @return bool
  */
-function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm) {
+function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm, $userid = null) {
     global $USER, $DB;
+    if ($userid === null) {
+        $userid = $USER->id;
+    }
 
     // Retrieve the modulecontext.
     $modulecontext = context_module::instance($cm->id);
@@ -285,19 +289,19 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
     }
 
     // Check if the user can view the discussion.
-    if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modulecontext)) {
+    if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modulecontext, $userid)) {
         return false;
     }
 
     if (
-        !($post->reviewed == 1 || $post->userid == $USER->id ||
-        capabilities::has(capabilities::REVIEW_POST, $modulecontext))
+        !($post->reviewed == 1 || $post->userid == $userid ||
+        capabilities::has(capabilities::REVIEW_POST, $modulecontext, $userid))
     ) {
         return false;
     }
 
     // The user has the capability to see the discussion.
-    return \core_availability\info_module::is_user_visible($cm, $USER->id, false);
+    return \core_availability\info_module::is_user_visible($cm, $userid, false);
 }
 
 /**

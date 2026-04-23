@@ -32,7 +32,6 @@ class send_daily_mails extends \core\task\scheduled_task {
     #[\Override]
     public function execute() {
         global $DB;
-
         // Call your own api.
         $users = $DB->get_records_sql('SELECT DISTINCT userid FROM {moodleoverflow_mail_info}');
         if (empty($users)) {
