@@ -678,7 +678,7 @@ class post_control {
                 'postid' => $this->info->relatedpost->get_id(),
                 'postcontent' => $this->info->relatedpost->get_message_formatted(),
                 'attachments' => $this->info->relatedpost->moodleoverflow_get_attachments(),
-                'byname' => $this->info->relatedpost->get_userlink(),
+                'byname' => $this->info->relatedpost->get_userlink()['link'],
             ];
             return $PAGE->get_renderer('mod_moodleoverflow')->render_post_original($data);
         }

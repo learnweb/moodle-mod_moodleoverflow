@@ -522,13 +522,12 @@ class post {
     }
 
     /**
-     * Get a link to the users profile.
+     * Get a link to the users profile and the users fullname.
      * Returns a html link embedded in the users name.
-     * LEARNWEB-TODO: its a handy function but think about how to make it more accessible for different cases (no html writing).
-     * @return moodle_url
+     * @return array
      * @throws moodle_exception
      */
-    public function get_userlink(): string {
+    public function get_userlink(): array {
         global $USER, $DB;
         $this->existence_check();
 
@@ -540,16 +539,16 @@ class post {
             if ($userid == $USER->id) {
                 $fullname = get_string('anonym_you', 'mod_moodleoverflow');
                 $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
-                return html_writer::link($profilelink, $fullname);
+                return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
             } else {
                 $usermapping = anonymous::get_userid_mapping($this->get_moodleoverflow(), $this->get_discussionid());
-                return $usermapping[$userid];
+                return ['link' => $usermapping[$userid], 'fullname' => $usermapping[$userid]];
             }
         }
         $user = $DB->get_record('user', ['id' => $userid]);
         $fullname = fullname($user, capabilities::has('moodle/site:viewfullnames', $modulecontext));
         $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
-        return html_writer::link($profilelink, $fullname);
+        return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
     }
 
     /**
@@ -690,7 +689,7 @@ class post {
         $this->existence_check();
         // Return the parentpost, which is null if there is no parent or a post.
         return $this->parentpost ??= $this->parent === 0 ? null : $this->from_record(
-            $DB->get_record('moodleoverflow_post', ['id' => $this->parent])
+            $DB->get_record('moodleoverflow_posts', ['id' => $this->parent])
         );
     }
 

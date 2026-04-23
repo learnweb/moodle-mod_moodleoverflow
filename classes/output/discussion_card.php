@@ -43,7 +43,7 @@ class discussion_card implements named_templatable, renderable {
     /** @var object The moodleoverflow database object */
     public object $modflow;
 
-    /** @var discussion The discussion where the post is located */
+    /** @var discussion The discussion that gets printed */
     public discussion $discussion;
 
     /** @var post The first post in the discussion */

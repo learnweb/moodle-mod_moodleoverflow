@@ -498,9 +498,8 @@ class discussion {
 
     /**
      * Get all posts from this Discussion.
-     * The first/parent post is on the first position in the array.
      *
-     * @return array $posts     Array ob posts objects
+     * @return post[] $posts     Array ob posts objects
      * @throws moodle_exception
      */
     public function moodleoverflow_get_discussion_posts(): array {
@@ -551,6 +550,17 @@ class discussion {
         $this->existence_check();
         $this->posts_check();
         return array_values(array_filter($this->posts, fn($post) => $post->get_id() == $this->firstpost))[0];
+    }
+
+    /**
+     * Returns all posts except the first post.
+     * @return post[]
+     * @throws moodle_exception
+     */
+    public function get_answerposts(): array {
+        $this->existence_check();
+        $this->posts_check();
+        return array_filter($this->posts, fn($post) => $post->get_id() != $this->firstpost);
     }
 
     /**
