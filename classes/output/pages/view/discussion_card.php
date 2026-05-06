@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\output;
+namespace mod_moodleoverflow\output\pages\view;
 
+use core\output\named_templatable;
+use core\output\renderable;
+use core\output\renderer_base;
+use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 use moodle_exception;
-use core\output\renderable;
-use core\output\named_templatable;
-use core\output\renderer_base;
-use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\ratings;
-use mod_moodleoverflow\models\discussion;
-use mod_moodleoverflow\models\post;
 use moodle_url;
 
 /**
@@ -82,7 +82,7 @@ class discussion_card implements named_templatable, renderable {
 
     #[\Override]
     public function get_template_name(renderer_base $renderer): string {
-        return 'mod_moodleoverflow/view/discussion_card';
+        return 'mod_moodleoverflow/pages/view/discussion_card';
     }
 
     #[\Override]

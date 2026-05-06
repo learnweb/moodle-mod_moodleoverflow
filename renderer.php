@@ -43,7 +43,7 @@ class mod_moodleoverflow_renderer extends plugin_renderer_base {
      * @return string
      */
     public function render_discussion_list($data) {
-        return $this->render_from_template('mod_moodleoverflow/discussions', $data);
+        return $this->render_from_template('mod_moodleoverflow/pages/view/discussions', $data);
     }
 
     /**
