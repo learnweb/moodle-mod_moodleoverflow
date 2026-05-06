@@ -18,7 +18,6 @@ namespace mod_moodleoverflow\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use coding_exception;
-use context_module;
 use core\notification;
 use dml_exception;
 use html_writer;
@@ -27,8 +26,9 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_updated;
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\models\post;
 use mod_moodleoverflow\review;
-use mod_moodleoverflow\discussion\discussion;
 use mod_moodleoverflow\subscriptions;
 use mod_moodleoverflow_post_form;
 use moodle_exception;
@@ -538,12 +538,12 @@ class post_control {
         if ($this->prepost->parentid == 0) {
             // Save the moodleoverflowid. Then delete the discussion.
             $moodleoverflowid = $this->info->discussion->get_moodleoverflowid();
-            $this->info->discussion->moodleoverflow_delete_discussion($this->prepost);
+            $this->info->discussion->delete_discussion($this->prepost);
 
             // Redirect the user back to the start page of the moodleoverflow instance.
             return 'view.php?m=' . $moodleoverflowid;
         } else {
-            $this->info->discussion->moodleoverflow_delete_post_from_discussion($this->prepost);
+            $this->info->discussion->delete_post_from_discussion($this->prepost);
             $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
             return moodleoverflow_go_back_to($discussionurl);
         }
@@ -556,9 +556,15 @@ class post_control {
      * @throws moodle_exception
      */
     public function confirm_delete(): void {
+        global $CFG, $SESSION, $PAGE;
         $this->check_interaction('delete');
-        global $PAGE;
-        moodleoverflow_set_return();
+        // Save the referer for later redirection.
+        if (!isset($SESSION->fromdiscussion)) {
+            // If the referer is not a login screen, save it.
+            if (!strncasecmp("$CFG->wwwroot/login", get_local_referer(false), 300)) {
+                $SESSION->fromdiscussion = get_local_referer(false);
+            }
+        }
         $PAGE->navbar->add(get_string('delete', 'moodleoverflow'));
         $PAGE->set_title($this->info->course->shortname);
         $PAGE->set_heading($this->info->course->fullname);
@@ -672,7 +678,7 @@ class post_control {
                 'postid' => $this->info->relatedpost->get_id(),
                 'postcontent' => $this->info->relatedpost->get_message_formatted(),
                 'attachments' => $this->info->relatedpost->moodleoverflow_get_attachments(),
-                'byname' => $this->info->relatedpost->get_userlink(),
+                'byname' => $this->info->relatedpost->get_userlink()['link'],
             ];
             return $PAGE->get_renderer('mod_moodleoverflow')->render_post_original($data);
         }

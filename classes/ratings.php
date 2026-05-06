@@ -353,31 +353,12 @@ class ratings {
      * @param int  $discussionid
      * @param bool $teacher
      *
-     * @return bool|mixed
+     * @return array
      */
-    public static function moodleoverflow_discussion_is_solved($discussionid, $teacher = false) {
+    public static function moodleoverflow_discussion_is_solved(int $discussionid, bool $teacher = false): array {
         global $DB;
-
-        // Is the teachers solved-status requested?
-        if ($teacher) {
-            // Check if a teacher marked a solution as solved.
-            if ($DB->record_exists('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => 3])) {
-                // Return the rating records.
-                return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => 3]);
-            }
-
-            // The teacher has not marked the discussion as solved.
-            return false;
-        }
-
-        // Check if the topic starter marked a solution as helpful.
-        if ($DB->record_exists('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => 4])) {
-            // Return the rating records.
-            return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => 4]);
-        }
-
-        // The topic starter has not marked a solution as helpful.
-        return false;
+        $rating = $teacher ? RATING_SOLVED : RATING_HELPFUL;
+        return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => $rating]);
     }
 
     /**
@@ -682,8 +663,7 @@ class ratings {
         }
 
         // Check the capability.
-        return capabilities::has(capabilities::RATE_POST, $modulecontext, $userid)
-            && $post->reviewed == 1;
+        return capabilities::has(capabilities::RATE_POST, $modulecontext, $userid) && $post->reviewed == 1;
     }
 
     /**

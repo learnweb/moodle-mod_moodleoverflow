@@ -117,12 +117,6 @@
     margin-bottom: 20px;
 }
 
-#newdiscussionform {
-    float: left;
-    text-align: left;
-    white-space: nowrap;
-}
-
 #moodleoverflow_original_post {
     overflow: hidden;
     max-height: 0;
@@ -571,4 +565,13 @@
 
 #moodleoverflow-root .vote.icon[data-moodleoverflow-action] {
     cursor: pointer;
+}
+
+.topicmove-root {
+    transition: opacity 0.4s ease, max-height 0.4s ease;
+}
+
+.topicmove-root.d-none {
+    opacity: 0;
+    pointer-events: none;
 }

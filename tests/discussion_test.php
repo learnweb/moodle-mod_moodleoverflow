@@ -23,8 +23,8 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\post\post;
-use mod_moodleoverflow\discussion\discussion;
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\models\post;
 
 /**
  * Tests if the functions from the discussion class are working correctly.
@@ -33,7 +33,7 @@ use mod_moodleoverflow\discussion\discussion;
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_moodleoverflow\discussion\discussion
+ * @covers \mod_moodleoverflow\models\discussion
  */
 final class discussion_test extends \advanced_testcase {
     /** @var \stdClass test course */
@@ -121,7 +121,7 @@ final class discussion_test extends \advanced_testcase {
 
     /**
      * Test, if a post and its attachment are deleted successfully.
-     * @covers ::moodleoverflow_delete_post
+     * @covers \mod_moodleoverflow\models\discussion::delete_post_from_discussion
      */
     public function test_delete_discussion(): void {
         global $DB;
@@ -132,7 +132,7 @@ final class discussion_test extends \advanced_testcase {
         // Delete the discussion, but save the IDs first.
         $discussionid = $this->discussion->get_id();
         $postid = $this->discussion->get_firstpostid();
-        $this->discussion->moodleoverflow_delete_discussion($prepost);
+        $this->discussion->delete_discussion($prepost);
 
         // The discussion and the post should not be in the DB anymore.
         $discussion = count($DB->get_records('moodleoverflow_discussions', ['id' => $discussionid]));

@@ -26,6 +26,9 @@
  */
 
 // Include config and locallib.
+use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\review;
+
 require_once(__DIR__ . '/../../config.php');
 global $CFG, $PAGE, $DB, $OUTPUT, $SESSION, $USER;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
@@ -34,8 +37,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 $id = optional_param('id', 0, PARAM_INT);       // Course Module ID.
 $m = optional_param('m', 0, PARAM_INT);        // MoodleOverflow ID.
 $page = optional_param('page', 0, PARAM_INT);     // Which page to show.
-$movetopopup = optional_param('movetopopup', 0, PARAM_INT);     // Which Topic to move.
-$linktoforum = optional_param('movetoforum', 0, PARAM_INT);     // Forum to which it is moved.
 
 // Set the parameters.
 $params = [];
@@ -94,31 +95,22 @@ $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $m
 // The page should not be large, only pages containing broad tables are usually.
 $PAGE->add_body_class('limitedwidth');
 
-// If a topic is to be moved, do it.
-if ($linktoforum && $movetopopup && has_capability('mod/moodleoverflow:movetopic', $context)) {
-    // Take the $movetopopup-id and the $linktoforum-id and move the discussion to the forum.
-    $topic = $DB->get_record('moodleoverflow_discussions', ['id' => $movetopopup]);
-    $topic->moodleoverflow = $linktoforum;
-    $DB->update_record('moodleoverflow_discussions', $topic);
-    redirect($CFG->wwwroot . '/mod/moodleoverflow/view.php?id=' . $cm->id);
-}
-
 // Output starts here.
 echo $OUTPUT->header();
 
 if ($moodleoverflow->anonymous > 0) {
     $strkeys = [
-            \mod_moodleoverflow\anonymous::QUESTION_ANONYMOUS => 'desc:only_questions',
-            \mod_moodleoverflow\anonymous::EVERYTHING_ANONYMOUS => 'desc:anonymous',
+            anonymous::QUESTION_ANONYMOUS => 'desc:only_questions',
+            anonymous::EVERYTHING_ANONYMOUS => 'desc:anonymous',
     ];
     echo html_writer::tag('p', get_string($strkeys[$moodleoverflow->anonymous], 'moodleoverflow'));
 }
 
-$reviewlevel = \mod_moodleoverflow\review::get_review_level($moodleoverflow);
+$reviewlevel = review::get_review_level($moodleoverflow);
 if ($reviewlevel > 0) {
     $strkeys = [
-        \mod_moodleoverflow\review::QUESTIONS => 'desc:review_questions',
-        \mod_moodleoverflow\review::EVERYTHING => 'desc:review_everything',
+        review::QUESTIONS => 'desc:review_questions',
+        review::EVERYTHING => 'desc:review_everything',
     ];
     echo html_writer::tag('p', get_string($strkeys[$reviewlevel], 'moodleoverflow'));
 }
@@ -126,7 +118,7 @@ if ($reviewlevel > 0) {
 echo '<div id="moodleoverflow-root">';
 
 if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
-    $reviewpost = \mod_moodleoverflow\review::get_first_review_post($moodleoverflow->id);
+    $reviewpost = review::get_first_review_post($moodleoverflow->id);
 
     if ($reviewpost) {
         echo html_writer::link(
@@ -135,10 +127,6 @@ if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
             ['class' => 'btn btn-danger my-2']
         );
     }
-}
-
-if ($movetopopup && has_capability('mod/moodleoverflow:movetopic', $context)) {
-    moodleoverflow_print_forum_list($course, $cm, $movetopopup);
 }
 
 // Return here after posting, etc.

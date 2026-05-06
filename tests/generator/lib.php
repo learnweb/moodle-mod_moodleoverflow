@@ -22,6 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\review;
+
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
 
@@ -98,7 +104,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
                 throw new coding_exception("$field must be present in phpunit_util:create_discussion() $record");
             }
         }
-
+        $this->set_user($DB->get_record('user', ['id' => $record['userid']]));
         // Set default values.
         $record = array_merge([
             'name' => 'Discussion ' . $this->discussioncount,
@@ -119,11 +125,43 @@ class mod_moodleoverflow_generator extends testing_module_generator {
 
         // Get the module context.
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
-
         $modulecontext = \context_module::instance($cm->id);
 
+        // Use current time for post creation; timestart is only the discussion availability period.
+        $timenow = time();
+
+        // Determine reviewed status based on the user's review capability.
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $record->moodleoverflow]);
+        if (
+            review::get_review_level($moodleoverflow) >= review::QUESTIONS &&
+            !capabilities::has(capabilities::REVIEW_POST, $modulecontext, $record->userid)
+        ) {
+            $reviewed = 0;
+        } else {
+            $reviewed = 1;
+        }
+
         // Add the discussion.
-        $record->id = moodleoverflow_add_discussion($record, $modulecontext, $record->userid);
+        $discussion = discussion::construct_without_id(
+            $record->course,
+            $record->moodleoverflow,
+            $record->name,
+            0,
+            $record->userid,
+            $timenow,
+            (int)$record->timestart,
+            $record->userid
+        );
+        $prepost = (object) [
+            'userid' => $record->userid,
+            'timenow' => $timenow,
+            'message' => $record->message,
+            'messageformat' => $record->messageformat,
+            'reviewed' => $reviewed,
+            'formattachments' => null,
+            'modulecontext' => $modulecontext,
+        ];
+        $record->id = $discussion->moodleoverflow_add_discussion($prepost);
 
         if (isset($timemodified) || isset($mailed)) {
             $post = $DB->get_record('moodleoverflow_posts', ['discussion' => $record->id]);
@@ -135,14 +173,13 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             if (isset($timemodified)) {
                 $record->timemodified = $timemodified;
                 $post->modified = $post->created = $timemodified;
-                $DB->update_record('moodleoverflow_discussions', $record);
             }
 
+            $DB->update_record('moodleoverflow_posts', $post);
             $DB->update_record('moodleoverflow_discussions', $record);
         }
 
         $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $record->id]);
-
         // Return the discussion object.
         return $discussion;
     }
@@ -156,41 +193,57 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * @return stdClass the post object
      */
     public function create_post($record = null, $straighttodb = true) {
-        global $DB;
+        global $DB, $USER;
 
         // Increment the forum post count and set the current time.
         $this->postcount++;
         $time = time() + $this->postcount;
-
+        $this->set_user($USER);
         // Ensure required fields are set and provide default values.
         $record = (object) array_merge([
             'parent' => 0,
+            'userid' => $USER->id,
             'message' => html_writer::tag('p', 'Forum message post ' . $this->postcount),
             'created' => $time,
             'modified' => $time,
             'mailed' => 0,
             'messageformat' => 0,
             'attachment' => "",
+            'draftideditor' => -1,
         ], (array) $record);
 
         if (empty($record->discussion)) {
             throw new coding_exception('discussion must be present in phpunit_util::create_post() $record');
         }
-        if (empty($record->userid)) {
-            throw new coding_exception('userid must be present in phpunit_util::create_post() $record');
-        }
+        $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $record->discussion]));
+        $moodleoverflow = $discussion->get_moodleoverflow();
+        $context = context_module::instance($discussion->get_coursemodule()->id);
 
-        // Add the post.
-        if ($straighttodb) {
-            $record->id = $DB->insert_record('moodleoverflow_posts', $record);
+        if (
+            review::get_review_level($discussion->get_moodleoverflow()) == review::EVERYTHING &&
+            !has_capability('mod/moodleoverflow:reviewpost', $context)
+        ) {
+            $record->reviewed = 0;
         } else {
-            $record->draftideditor = -1;
-            $record->id = moodleoverflow_add_new_post($record);
+            $record->reviewed = 1;
         }
 
-        // Update the last post.
-        moodleoverflow_discussion_update_last_post($record->discussion);
+        $post = post::construct_without_id(
+            $record->discussion,
+            $record->parent ?? $discussion->get_firstpostid(),
+            $record->userid,
+            $record->created,
+            $record->modified,
+            $record->message,
+            $record->messageformat,
+            $record->attachment ?? '',
+            $record->mailed,
+            $record->reviewed,
+            null
+        );
 
+        // Add the post to the database.
+        $record->id = $post->moodleoverflow_add_new_post();
         return $record;
     }
 

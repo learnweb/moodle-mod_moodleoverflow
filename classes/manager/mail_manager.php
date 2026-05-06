@@ -93,7 +93,6 @@ class mail_manager {
         $moodleoverflows = [];
         $discussions = [];
         $coursemodules = [];
-
         // Loop through each records.
         foreach ($records as $record) {
             // Terminate if the process takes more time then two minutes.
@@ -118,7 +117,8 @@ class mail_manager {
                     $moodleoverflows[$record->moodleoverflowid],
                     $discussions[$record->discussionid],
                     $posts[$record->postid],
-                    $coursemodules[$record->cmid]
+                    $coursemodules[$record->cmid],
+                    $record->usertoid
                 )
             ) {
                 continue;
@@ -192,9 +192,7 @@ class mail_manager {
             $userto = $recipients[$record->usertoid];
             $htmlmessage = $htmlout->render($email);
             $textmessage = $textout->render($email);
-
             $mailsent = email_to_user($userto, core_user::get_noreply_user(), $subject, $textmessage, $htmlmessage);
-
             // Check if an error occurred and mark the post as mailed_error.
             if (!$mailsent) {
                 // A mail does not get resend if it was not sent successfully.
@@ -252,7 +250,7 @@ class mail_manager {
                     . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields . ", " . $authorfields . ", " . $usertofields;
 
         // Set params for the sql query.
-        $timenow = round(time(), -2);
+        $timenow = time();
         $params = [
             'unsubscribed' => subscriptions::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED,
             'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE,
@@ -301,12 +299,11 @@ class mail_manager {
                             WHERE m.forcesubscribe = :forcesubscribe
                             AND ue.status = :active
                             AND e.status = :enabled
-                            AND ue.timestart < :now1
+                            AND ue.timestart <= :now1
                             AND (ue.timeend = 0 OR ue.timeend > :now2)
                         ) as forcedsubs
                     ) as subscriptions
                     LEFT JOIN {user} u ON u.id = subscriptions.userid
-                    ORDER BY u.email ASC
                 ) userto ON ((d.moodleoverflow = userto.moodleoverflow) AND
                                       ((p.discussion = userto.discussion) OR
                                       (userto.discussion = -1))
