@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\post;
+namespace mod_moodleoverflow\models;
 
 use coding_exception;
 use context_module;
@@ -26,7 +26,6 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\discussion\discussion;
 use mod_moodleoverflow_post_form;
 use moodle_exception;
 use moodle_url;
@@ -263,26 +262,19 @@ class post {
 
         // Save draft files to permanent file area.
         $this->save_draft_files();
-
-        // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
         $this->moodleoverflow_add_attachment();
 
         if ($this->reviewed) {
-            // Update the discussion.
             $DB->set_field('moodleoverflow_discussions', 'timemodified', $this->modified, ['id' => $this->discussion]);
             $DB->set_field('moodleoverflow_discussions', 'usermodified', $this->userid, ['id' => $this->discussion]);
         }
 
         // Mark the created post as read if the user is tracking the discussion.
-        $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($this->get_moodleoverflow());
+        $cantrack = readtracking::can_track_moodleoverflows($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
-            // Please be aware that in future the use of get_db_object() should be replaced with only $this,
-            // as the readtracking class should be refactored with the new way of working with posts.
             readtracking::moodleoverflow_mark_post_read($this->userid, $this->get_db_object());
         }
-
-        // Return the id of the created post.
         return $this->id;
     }
 
@@ -299,8 +291,6 @@ class post {
         $this->existence_check();
 
         // Iterate through all children and delete them.
-        // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
-        // All DB transactions are rolled back.
         try {
             $transaction = $DB->start_delegated_transaction();
 
@@ -319,7 +309,6 @@ class post {
 
             // Delete the post.
             if ($DB->delete_records('moodleoverflow_posts', ['id' => $this->id])) {
-                // Delete the read records.
                 readtracking::moodleoverflow_delete_read_records(-1, $this->id);
 
                 // Delete the attachments.
@@ -353,10 +342,7 @@ class post {
                 $params = [
                     'context' => $context,
                     'objectid' => $this->id,
-                    'other' => [
-                        'discussionid' => $this->discussion,
-                        'moodleoverflowid' => $this->get_moodleoverflow()->id,
-                    ],
+                    'other' => ['discussionid' => $this->discussion, 'moodleoverflowid' => $this->get_moodleoverflow()->id],
                 ];
                 if ($this->userid !== $USER->id) {
                     $params['relateduserid'] = $this->userid;
@@ -371,7 +357,7 @@ class post {
                 $transaction->allow_commit();
                 return true;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $transaction->rollback($e);
         }
 
@@ -397,14 +383,8 @@ class post {
         $this->message = $postmessage;
         $this->messageformat = $messageformat;
         $this->formattachments = $formattachments;
-
-        // Update the message and save draft files to permanent file area.
         $this->save_draft_files();
-
-        // Update the attachments. This happens after the DB update call, as this function changes the DB record as well.
         $this->moodleoverflow_add_attachment();
-
-        // Mark the edited post as read.
         $this->mark_post_read();
 
         // The post has been edited successfully.
@@ -449,7 +429,7 @@ class post {
         $this->existence_check();
 
         if (empty($this->formattachments)) {
-            return;    // Nothing to do.
+            return;
         }
 
         $context = context_module::instance($this->get_coursemodule()->id);
@@ -510,7 +490,6 @@ class post {
                 $attachments[$i]['filepath'] = $path;
 
                 if (in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png'])) {
-                    // Image attachments don't get printed as links.
                     $attachments[$i]['image'] = true;
                 } else {
                     $attachments[$i]['image'] = false;
@@ -543,12 +522,12 @@ class post {
     }
 
     /**
-     * Get a link to the users profile.
+     * Get a link to the users profile and the users fullname.
      * Returns a html link embedded in the users name.
-     * @return moodle_url
+     * @return array
      * @throws moodle_exception
      */
-    public function get_userlink(): string {
+    public function get_userlink(): array {
         global $USER, $DB;
         $this->existence_check();
 
@@ -560,16 +539,35 @@ class post {
             if ($userid == $USER->id) {
                 $fullname = get_string('anonym_you', 'mod_moodleoverflow');
                 $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
-                return html_writer::link($profilelink, $fullname);
+                return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
             } else {
                 $usermapping = anonymous::get_userid_mapping($this->get_moodleoverflow(), $this->get_discussionid());
-                return $usermapping[$userid];
+                return ['link' => $usermapping[$userid], 'fullname' => $usermapping[$userid]];
             }
         }
         $user = $DB->get_record('user', ['id' => $userid]);
         $fullname = fullname($user, capabilities::has('moodle/site:viewfullnames', $modulecontext));
         $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
-        return html_writer::link($profilelink, $fullname);
+        return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
+    }
+
+    /**
+     * Return the profile picture of the post author.
+     * @throws dml_exception|moodle_exception
+     */
+    public function get_userpicture(): string {
+        global $DB, $OUTPUT;
+        $userid = $this->get_userid();
+        if (!anonymous::is_post_anonymous($this->get_discussion()->get_db_object(), $this->get_moodleoverflow(), $userid)) {
+            $user = username_load_fields_from_object(
+                (new stdClass()),
+                $DB->get_record('user', ['id' => $this->userid]),
+                null,
+                fields::get_picture_fields()
+            );
+            return $OUTPUT->user_picture($user, ['courseid' => $this->moodleoverflowobject->course, 'link' => false]);
+        }
+        return '';
     }
 
     /**
@@ -662,7 +660,6 @@ class post {
     public function get_discussion(): discussion {
         global $DB;
         $this->existence_check();
-
         if (empty($this->discussionobject)) {
             $record = $DB->get_record('moodleoverflow_discussions', ['id' => $this->discussion]);
             $this->discussionobject = discussion::from_record($record);
@@ -678,12 +675,7 @@ class post {
      */
     public function get_coursemodule(): object {
         $this->existence_check();
-
-        if (empty($this->cmobject)) {
-            $this->cmobject = \get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id);
-        }
-
-        return $this->cmobject;
+        return $this->cmobject ??= \get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id);
     }
 
     /**
@@ -695,17 +687,10 @@ class post {
     public function moodleoverflow_get_parentpost(): post|null {
         global $DB;
         $this->existence_check();
-
-        if ($this->parent === 0) {
-            return $this->parentpost = null;
-        }
-
-        if (!isset($this->parentpost)) {
-            $this->parentpost = $this->from_record(
-                $DB->get_record('moodleoverflow_post', ['id' => $this->parent])
-            );
-        }
-        return $this->parentpost;
+        // Return the parentpost, which is null if there is no parent or a post.
+        return $this->parentpost ??= $this->parent === 0 ? null : $this->from_record(
+            $DB->get_record('moodleoverflow_posts', ['id' => $this->parent])
+        );
     }
 
     /**
@@ -759,11 +744,9 @@ class post {
      */
     public function mark_post_read(): void {
         global $USER;
-        $cantrack = readtracking::moodleoverflow_can_track_moodleoverflows($this->get_moodleoverflow());
+        $cantrack = readtracking::can_track_moodleoverflows($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
-            // Please be aware that in future the use of get_db_object() should be replaced with only $this,
-            // as the readtracking class should be refactored with the new way of working with posts.
             readtracking::moodleoverflow_mark_post_read($USER->id, $this->get_db_object());
         }
     }
@@ -798,7 +781,6 @@ class post {
      */
     public function moodleoverflow_count_replies(bool $onlyreviewed): int {
         global $DB;
-        // Return the amount of replies.
         return $DB->count_records('moodleoverflow_posts', ['parent' => $this->id] + ($onlyreviewed ? ['reviewed' => '1'] : []));
     }
 

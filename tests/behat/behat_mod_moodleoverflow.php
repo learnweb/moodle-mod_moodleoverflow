@@ -257,7 +257,7 @@ class behat_mod_moodleoverflow extends behat_base {
         // Navigate to moodleoverflow.
         $this->execute('behat_navigation::i_am_on_page_instance', [$this->escape($moodleoverflowname),
             'moodleoverflow activity', ]);
-        $this->execute('behat_forms::press_button', get_string('addanewdiscussion', 'moodleoverflow'));
+        $this->execute('behat_general::i_click_on', [get_string('addanewdiscussion', 'moodleoverflow'), 'text']);
 
         // Fill form and post.
         $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);

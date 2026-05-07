@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\discussion;
+namespace mod_moodleoverflow\models;
 
 // Important namespaces.
 use coding_exception;
@@ -23,7 +23,6 @@ use Exception;
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\post\post;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -235,7 +234,7 @@ class discussion {
      * @return bool Wether deletion was successful of not
      * @throws moodle_exception
      */
-    public function moodleoverflow_delete_discussion(object $prepost): bool {
+    public function delete_discussion(object $prepost): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -327,7 +326,7 @@ class discussion {
      * @return bool If the deletion was possible
      * @throws moodle_exception
      */
-    public function moodleoverflow_delete_post_from_discussion(object $prepost): bool {
+    public function delete_post_from_discussion(object $prepost): bool {
         $this->existence_check();
         $this->posts_check();
 
@@ -415,6 +414,24 @@ class discussion {
         return false;
     }
 
+    /**
+     * Moves discussion from one moodleoverflow to another.
+     *
+     * @param int $moodleoverflowid The moodleoverflow where the discussion is moved to.
+     * @return bool
+     * @throws coding_exception|dml_exception
+     */
+    public function move_dicussion(int $moodleoverflowid): bool {
+        global $DB;
+        if (has_capability('mod/moodleoverflow:movetopic', \context_module::instance($this->get_coursemodule()->id))) {
+            $this->moodleoverflow = $moodleoverflowid;
+            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $this->moodleoverflow]);
+            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+            return true;
+        }
+        return false;
+    }
+
     // Getter.
 
     /**
@@ -481,9 +498,8 @@ class discussion {
 
     /**
      * Get all posts from this Discussion.
-     * The first/parent post is on the first position in the array.
      *
-     * @return array $posts     Array ob posts objects
+     * @return post[] $posts     Array ob posts objects
      * @throws moodle_exception
      */
     public function moodleoverflow_get_discussion_posts(): array {
@@ -493,18 +509,11 @@ class discussion {
         // Check if the posts array are build yet. If not, build it.
         if (!$this->postsbuild) {
             // Get the posts from the DB. Get the parent post first.
-            $firstpostsql = 'SELECT * FROM {moodleoverflow_posts} posts
-                            WHERE discussion = ' . $this->id . ' AND parent = 0;';
-            $otherpostssql = 'SELECT * FROM {moodleoverflow_posts} posts
-                            WHERE discussion = ' . $this->id . ' AND parent != 0;';
-            $firstpostrecord = $DB->get_record_sql($firstpostsql);
-            $otherpostsrecord = $DB->get_records_sql($otherpostssql);
-
-            // Add the first/parent post to the array, then add the other posts.
-            $firstpost = post::from_record($firstpostrecord);
-            $this->posts[$firstpost->get_id()] = $firstpost;
-
-            foreach ($otherpostsrecord as $postrecord) {
+            $sql = 'SELECT *
+                    FROM {moodleoverflow_posts} posts
+                    WHERE discussion = ' . $this->id . ';';
+            $posts = $DB->get_records_sql($sql);
+            foreach ($posts as $postrecord) {
                 $post = post::from_record($postrecord);
                 $this->posts[$post->get_id()] = $post;
             }
@@ -517,6 +526,42 @@ class discussion {
         return $this->posts;
     }
 
+    /**
+     * Return the newest post in a discussion.
+     *
+     * @return post
+     * @throws moodle_exception
+     */
+    public function get_newest_post(): post {
+        $this->existence_check();
+        $this->posts_check();
+        $posts = $this->posts;
+        usort($posts, function ($a, $b) {
+            return $b->modified <=> $a->modified;
+        });
+        return reset($posts);
+    }
+
+    /**
+     * Return the first post of the discussion.
+     * @throws moodle_exception
+     */
+    public function get_first_post(): post {
+        $this->existence_check();
+        $this->posts_check();
+        return array_values(array_filter($this->posts, fn($post) => $post->get_id() == $this->firstpost))[0];
+    }
+
+    /**
+     * Returns all posts except the first post.
+     * @return post[]
+     * @throws moodle_exception
+     */
+    public function get_answerposts(): array {
+        $this->existence_check();
+        $this->posts_check();
+        return array_filter($this->posts, fn($post) => $post->get_id() != $this->firstpost);
+    }
 
     /**
      * Returns the moodleoverflowobject
@@ -579,18 +624,17 @@ class discussion {
      * @return object $dbobject
      */
     private function build_db_object(): object {
-        $dbobject = new \stdClass();
-        $dbobject->id = $this->id;
-        $dbobject->course = $this->course;
-        $dbobject->moodleoverflow = $this->moodleoverflow;
-        $dbobject->name = $this->name;
-        $dbobject->firstpost = $this->firstpost;
-        $dbobject->userid = $this->userid;
-        $dbobject->timemodified = $this->timemodified;
-        $dbobject->timestart = $this->timestart;
-        $dbobject->usermodified = $this->usermodified;
-
-        return $dbobject;
+        return (object) [
+            'id' => $this->id,
+            'course' => $this->course,
+            'moodleoverflow' => $this->moodleoverflow,
+            'name' => $this->name,
+            'firstpost' => $this->firstpost,
+            'userid' => $this->userid,
+            'timemodified' => $this->timemodified,
+            'timestart' => $this->timestart,
+            'usermodified' => $this->usermodified,
+        ];
     }
 
     // Security.

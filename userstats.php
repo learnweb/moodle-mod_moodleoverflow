@@ -33,19 +33,13 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 use mod_moodleoverflow\tables\userstats_table;
 // Declare optional parameters.
 $cmid = required_param('id', PARAM_INT);             // Course Module ID.
-$courseid = required_param('courseid', PARAM_INT);   // Course ID.
-$mid = required_param('mid', PARAM_INT);             // Moodleoveflow ID, Moodleoverflow that started the statistics.
 
 // Define important variables.
-if ($courseid) {
-    $course = $DB->get_record('course', ['id' => $courseid], '*');
-}
-if ($cmid) {
-    $cm = get_coursemodule_from_id('moodleoverflow', $cmid, $course->id, false, MUST_EXIST);
-}
-if ($mid) {
-    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $mid], '*');
-}
+
+$cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $cm->course]);
+$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
+
 // Require a login.
 require_login($course, true, $cm);
 
@@ -56,8 +50,7 @@ $PAGE->set_context($context);
 // Do a capability check, in case a user iserts the userstats-url manually.
 if (has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('moodleoverflow', 'showuserstats')) {
     // Print the page header.
-    $PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id,
-    'courseid' => $course->id, 'mid' => $moodleoverflow->id, ]);
+    $PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id, 'courseid' => $course->id, 'mid' => $moodleoverflow->id]);
     $PAGE->set_title(get_string('userstats', 'moodleoverflow'));
     $PAGE->set_heading(get_string('userstatscourse', 'moodleoverflow', $course->fullname));
 

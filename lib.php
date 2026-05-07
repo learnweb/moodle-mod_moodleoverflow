@@ -31,6 +31,7 @@
 
 // LEARNWEB-TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
 use core_completion\api;
+use mod_moodleoverflow\models\discussion;
 use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();
@@ -284,11 +285,11 @@ function moodleoverflow_delete_instance($id) {
     $DB->delete_records('moodleoverflow_discuss_subs', ['moodleoverflow' => $moodleoverflow->id]);
     $DB->delete_records('moodleoverflow_grades', ['moodleoverflowid' => $moodleoverflow->id]);
 
-    // Delete the discussion recursivly.
+    // Delete the discussions.
     if ($discussions = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $moodleoverflow->id])) {
         require_once('locallib.php');
         foreach ($discussions as $discussion) {
-            if (!moodleoverflow_delete_discussion($discussion, $cm, $moodleoverflow)) {
+            if (!discussion::from_record($discussion)->delete_discussion((object) ['modulecontext' => $context])) {
                 $result = false;
             }
         }
@@ -491,7 +492,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $subscdisabled = subscriptions::subscription_disabled($moodleoverflow);
     $cansubscribe = $activeenrolled && (!$subscdisabled || $canmanage) &&
         !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $context));
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows($moodleoverflow);
+    $cantrack = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($moodleoverflow);
 
     // Display a link to the index.
     if ($enrolled && $activeenrolled) {
@@ -590,7 +591,7 @@ function moodleoverflow_get_context($moodleoverflowid, $context = null) {
  */
 function moodleoverflow_cm_info_view(cm_info $cm) {
 
-    $cantrack = \mod_moodleoverflow\readtracking::moodleoverflow_can_track_moodleoverflows();
+    $cantrack = \mod_moodleoverflow\readtracking::can_track_moodleoverflows();
     $out = "";
     if (has_capability('mod/moodleoverflow:reviewpost', $cm->context)) {
         $reviewcount = \mod_moodleoverflow\review::count_outstanding_reviews_in_moodleoverflow($cm->instance);
