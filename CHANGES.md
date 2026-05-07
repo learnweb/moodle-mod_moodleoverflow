@@ -1,5 +1,31 @@
 CHANGELOG
 =========
+[v5.2-r1 (2025-05-07)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.2-r1)
+---------------------
+Moodleoverflow had a lot of changes in the last months. Most of them were directly for developers, but they were
+improvements for users too like the course overview integration. This year's vision is to reduce the code debt
+that build up over the last few years. This is the first release towards that goal.
+
+A short summary:
+
+**New features**:
+
+- Course overview integration ([#257](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/257), [#261](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/261), [#264](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/264))
+  - Moodleoverflow now supports the course overview page, showing unread posts and give the user the ability to change readtracking/subscription setting.
+- Activity choose improvements ([#260](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/260), [#263](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/263))
+
+**Bug fixes**:
+
+- Fix video embedding in posts ([#255](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/255))
+- Fix missing SVG icon ([#270](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/270))
+
+**Refactoring**:
+
+- Major locallib reduction ([#271](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/271))
+  - Removed ~1,400 lines from locallib.php by replacing old procedural printing functions with output classes that represent single components
+- External functions moved to dedicated classes ([#267](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/267))
+
+Special thanks to [lucaboesch](https://github.com/lucaboesch) and [humanspaces](https://github.com/humanspaces) for contributing to this release!
 
 [v5.1-r2 (2025-12-22)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.1-r2)
 ---------------------
