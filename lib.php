@@ -32,6 +32,7 @@
 // LEARNWEB-TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
 use core_completion\api;
 use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\models\post;
 use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();
@@ -452,7 +453,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
     $file = $fs->get_file($context->id, 'mod_moodleoverflow', $filearea, $itemid, $filepath, $filename);
 
     // Make sure we're allowed to see it...
-    if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
+    if (!moodleoverflow_user_can_see_post(post::from_record($post), $cm)) {
         return false;
     }
 

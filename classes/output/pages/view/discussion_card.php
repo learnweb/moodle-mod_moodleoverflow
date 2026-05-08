@@ -57,9 +57,7 @@ class discussion_card implements named_templatable, renderable {
 
     /** @var array All important base links*/
     private array $l = [
-        'view' => '/mod/moodleoverflow/view.php',
         'disc' => '/mod/moodleoverflow/discussion.php',
-        'post' => '/mod/moodleoverflow/post.php',
         'user' => '/user/view.php',
     ];
 

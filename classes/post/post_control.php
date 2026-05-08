@@ -671,7 +671,7 @@ class post_control {
      * @throws moodle_exception|dml_exception
      */
     public function display_original_post(): string {
-        global $PAGE;
+        global $PAGE, $OUTPUT;
         if ($this->interaction == 'reply') {
             $PAGE->requires->js_call_amd('mod_moodleoverflow/show_post', 'init');
             $data = (object) [
@@ -680,7 +680,7 @@ class post_control {
                 'attachments' => $this->info->relatedpost->moodleoverflow_get_attachments(),
                 'byname' => $this->info->relatedpost->get_userlink()['link'],
             ];
-            return $PAGE->get_renderer('mod_moodleoverflow')->render_post_original($data);
+            return $OUTPUT->render_from_template('mod_moodleoverflow/post_original', $data);
         }
         return '';
     }

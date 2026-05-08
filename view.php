@@ -27,6 +27,8 @@
 
 // Include config and locallib.
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\event\course_module_viewed;
+use mod_moodleoverflow\output\pages\view\view_page;
 use mod_moodleoverflow\review;
 
 require_once(__DIR__ . '/../../config.php');
@@ -79,63 +81,22 @@ if (!has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
 }
 
 // Mark the activity completed (if required) and trigger the course_module_viewed event.
-$event = \mod_moodleoverflow\event\course_module_viewed::create([
-    'objectid' => $PAGE->cm->instance,
-    'context' => $PAGE->context,
-]);
+$event = course_module_viewed::create(['objectid' => $PAGE->cm->instance, 'context' => $PAGE->context]);
 $event->trigger();
 
 // Print the page header.
 $PAGE->set_url('/mod/moodleoverflow/view.php', ['id' => $cm->id]);
 $PAGE->set_title(format_string($moodleoverflow->name));
 $PAGE->set_heading(format_string($course->fullname));
-
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $marksetting->allowmultiplemarks]);
-
-// The page should not be large, only pages containing broad tables are usually.
 $PAGE->add_body_class('limitedwidth');
 
-// Output starts here.
-echo $OUTPUT->header();
-
-if ($moodleoverflow->anonymous > 0) {
-    $strkeys = [
-            anonymous::QUESTION_ANONYMOUS => 'desc:only_questions',
-            anonymous::EVERYTHING_ANONYMOUS => 'desc:anonymous',
-    ];
-    echo html_writer::tag('p', get_string($strkeys[$moodleoverflow->anonymous], 'moodleoverflow'));
-}
-
-$reviewlevel = review::get_review_level($moodleoverflow);
-if ($reviewlevel > 0) {
-    $strkeys = [
-        review::QUESTIONS => 'desc:review_questions',
-        review::EVERYTHING => 'desc:review_everything',
-    ];
-    echo html_writer::tag('p', get_string($strkeys[$reviewlevel], 'moodleoverflow'));
-}
-
-echo '<div id="moodleoverflow-root">';
-
-if (has_capability('mod/moodleoverflow:reviewpost', $context)) {
-    $reviewpost = review::get_first_review_post($moodleoverflow->id);
-
-    if ($reviewpost) {
-        echo html_writer::link(
-            $reviewpost,
-            get_string('review_needed', 'mod_moodleoverflow'),
-            ['class' => 'btn btn-danger my-2']
-        );
-    }
-}
+$PAGE->requires->js_call_amd('mod_moodleoverflow/topicmove', 'init');
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $marksetting->allowmultiplemarks]);
 
 // Return here after posting, etc.
 $SESSION->fromdiscussion = qualified_me();
 
-// Print the discussions.
-moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page, get_config('moodleoverflow', 'manydiscussions'));
-
-echo '</div>';
-
-// Finish the page.
+// Output starts here.
+echo $OUTPUT->header();
+echo $OUTPUT->render(new view_page($moodleoverflow, $page));
 echo $OUTPUT->footer();

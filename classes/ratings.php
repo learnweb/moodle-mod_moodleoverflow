@@ -283,9 +283,7 @@ class ratings {
         global $DB, $USER;
 
         // Is a user submitted?
-        if (!$userid) {
-            $userid = $USER->id;
-        }
+        $userid = $userid ?? $USER->id;
 
         // Get the rating.
         $sql = "SELECT firstrated, rating
@@ -373,9 +371,7 @@ class ratings {
         global $DB, $USER;
 
         // Get the user id.
-        if (!isset($userid)) {
-            $userid = $USER->id;
-        }
+        $userid = $userid ?? $USER->id;
 
         // Check the moodleoverflow instance.
         if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid])) {
@@ -450,9 +446,7 @@ class ratings {
         global $USER, $DB;
 
         // Get the userid.
-        if (!isset($userid)) {
-            $userid = $USER->id;
-        }
+        $userid = $userid ?? $USER->id;
 
         // Initiate a variable.
         $reputation = 0;

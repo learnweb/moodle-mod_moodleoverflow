@@ -36,61 +36,6 @@ require_once($CFG->libdir . '/weblib.php');
  */
 class mod_moodleoverflow_renderer extends plugin_renderer_base {
     /**
-     * Display the discussion list for the view.php.
-     *
-     * @param object $data The prepared variables.
-     *
-     * @return string
-     */
-    public function render_discussion_list($data) {
-        return $this->render_from_template('mod_moodleoverflow/pages/view/discussions', $data);
-    }
-
-    /**
-     * Display the forum list in the view.php if a discussion needs to be moved to another forum.
-     *
-     * @param object $data The prepared variables.
-     *
-     * @return string
-     */
-    public function render_forum_list($data) {
-        return $this->render_from_template('mod_moodleoverflow/forum_list', $data);
-    }
-
-    /**
-     * Renders a dummy post for users that cannot see the post.
-     *
-     * @param object $data The submitted variables.
-     *
-     * @return bool|string
-     */
-    public function render_post_dummy_cantsee($data) {
-        return $this->render_from_template('mod_moodleoverflow/post_dummy_cantsee', $data);
-    }
-
-    /**
-     * Renders any post.
-     *
-     * @param object $data The submitted variables.
-     *
-     * @return bool|string
-     */
-    public function render_post($data) {
-        return $this->render_from_template('mod_moodleoverflow/post', $data);
-    }
-
-    /**
-     * Renders a simplified version of any post. Used to display the post a reply is referring to.
-     *
-     * @param object $data The submitted variables.
-     *
-     * @return bool|string
-     */
-    public function render_post_original(object $data): bool|string {
-        return $this->render_from_template('mod_moodleoverflow/post_original', $data);
-    }
-
-    /**
      * Display a moodleoverflow post in the relevant context.
      *
      * @param \mod_moodleoverflow\output\moodleoverflow_email $post The post to display.
