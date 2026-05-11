@@ -501,9 +501,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
         $linktext = get_string('gotoindex', 'moodleoverflow');
 
         // Generate the link.
-        $url = '/mod/moodleoverflow/index.php';
-        $params = ['id' => $moodleoverflow->course];
-        $link = new moodle_url($url, $params);
+        $link = new moodle_url('/mod/moodleoverflow/index.php', ['id' => $moodleoverflow->course]);
 
         // Add the link to the menu.
         $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
@@ -542,9 +540,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
             }
 
             // Generate the link.
-            $url = '/mod/moodleoverflow/tracking.php';
-            $params = ['id' => $moodleoverflow->id, 'sesskey' => sesskey()];
-            $link = new moodle_url($url, $params);
+            $link = new moodle_url('/mod/moodleoverflow/tracking.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
 
             // Add the link to the menu.
             $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);

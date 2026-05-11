@@ -85,7 +85,7 @@ $event = course_module_viewed::create(['objectid' => $PAGE->cm->instance, 'conte
 $event->trigger();
 
 // Print the page header.
-$PAGE->set_url('/mod/moodleoverflow/view.php', ['id' => $cm->id]);
+$PAGE->set_url('/mod/moodleoverflow/view.php', ['m' => $moodleoverflow->id]);
 $PAGE->set_title(format_string($moodleoverflow->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->add_body_class('limitedwidth');

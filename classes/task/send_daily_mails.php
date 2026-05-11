@@ -58,7 +58,7 @@ class send_daily_mails extends \core\task\scheduled_task {
 
                 // Build url to the course, forum, and discussion.
                 $linktocourse = new \moodle_url('/course/view.php', ['id' => $currentcourse->id]);
-                $linktoforum = new \moodle_url('/mod/moodleoverflow/view.php', ['id' => $coursemoduleid->id]);
+                $linktoforum = new \moodle_url('/mod/moodleoverflow/view.php', ['m' => $currentforum->id]);
                 $linktodiscussion = new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id]);
 
                 // Now change the url to a clickable html link.

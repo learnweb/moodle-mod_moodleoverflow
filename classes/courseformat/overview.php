@@ -61,7 +61,7 @@ class overview extends activityoverviewbase {
 
     #[\Override]
     public function get_actions_overview(): ?overviewitem {
-        $url = new url('/mod/moodleoverflow/view.php', ['id' => $this->cm->id]);
+        $url = new url('/mod/moodleoverflow/view.php', ['m' => $this->moodleoverflow->id]);
 
         if (
             class_exists(button::class) &&
@@ -99,7 +99,7 @@ class overview extends activityoverviewbase {
             'domain' => 'moodleoverflow',
             'instanceid' => $this->moodleoverflow->id,
             'userid' => $USER->id,
-            'unreadlink' => new url('/mod/moodleoverflow/view.php', ['id' => $this->cm->id]),
+            'unreadlink' => new url('/mod/moodleoverflow/view.php', ['m' => $this->moodleoverflow->id]),
             'unreadamount' => readtracking::moodleoverflow_count_unread_posts_moodleoverflow($this->cm),
         ];
         $name = get_string('unreadposts', 'moodleoverflow');
