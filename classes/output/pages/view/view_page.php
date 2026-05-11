@@ -132,20 +132,20 @@ class view_page implements named_templatable, renderable {
 
         // Anonymous mode and Review mod description string identifier.
         $anonymousdesc = match ($this->modflow->anonymous) {
-            anonymous::QUESTION_ANONYMOUS => 'desc:only_questions',
-            anonymous::EVERYTHING_ANONYMOUS => 'desc:anonymous',
+            anonymous::QUESTION_ANONYMOUS => get_string('desc:only_questions', 'moodleoverflow'),
+            anonymous::EVERYTHING_ANONYMOUS => get_string('desc:anonymous', 'moodleoverflow'),
             default => ''
         };
         $reviewdesc = match (review::get_review_level($this->modflow)) {
-            review::QUESTIONS => 'desc:review_questions',
-            review::EVERYTHING => 'desc:review_everything',
+            review::QUESTIONS => get_string('desc:review_questions', 'moodleoverflow'),
+            review::EVERYTHING => get_string('desc:review_everything', 'moodleoverflow'),
             default => ''
         };
 
         // Collect the needed data being submitted to the template.
         return (object) [
             'discussions' => $items,
-            'hasdiscussions' => count($discussions) >= 0,
+            'hasdiscussions' => count($discussions) > 0,
             'startdiscussion' => $canstartdiscussion ? ['link' => $startdiscussion->out()] : [],
             'markallread' => $unreads ? ['link' => $markallreadlink->out()] : [],
             'stats' => $seestats ? ['link' => $userstatslink->out()] : [],

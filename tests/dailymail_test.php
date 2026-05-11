@@ -200,7 +200,7 @@ final class dailymail_test extends \advanced_testcase {
         // Text structure at get_string('digestunreadpost', moodleoverflow).
         $linktocourse = '<a href=3D"https://www.example.com/mood=le/course/view.php?id=3D' . $this->env->course->id;
         $linktoforum = '<a href=3D"https://www.=example.com/moodle/mod/moodleoverflow/view.php?m=3D' . $this->env->cm->instance;
-        $linktodiscussion = '<a href=3D"https://www.example.com/moodle/mod/moodleoverflow/=discussion.php?d=3D'
+        $linktodiscussion = '<a href=3D"https://www.example.com/moodle/mod/moodleoverflow/d=iscussion.php?d=3D'
                             . $this->env->discussions[0]->id;
 
         $this->assertStringContainsString($linktocourse, $message);
