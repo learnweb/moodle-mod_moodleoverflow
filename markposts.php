@@ -22,6 +22,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\readtracking;
+
 require_once('../../config.php');
 
 global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
@@ -92,15 +95,10 @@ if (isguestuser()) {
 if (!empty($discussionid)) {
     // Check if the discussion exists.
     $options = ['id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id];
-    $discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', $options, 'invaliddiscussionid');
-
+    $record = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', $options, 'invaliddiscussionid');
     // Mark all the discussions read.
     if (
-        !\mod_moodleoverflow\readtracking::moodleoverflow_mark_discussion_read(
-            $discussionid,
-            context_module::instance($cm->id),
-            $user->id
-        )
+        !readtracking::moodleoverflow_mark_discussion_read(discussion::from_record($record), $user->id)
     ) {
         // Display an error, if something failes.
         $message = get_string('markreadfailed', 'moodleoverflow');
@@ -116,7 +114,7 @@ if (!empty($discussionid)) {
     exit;
 } else {
     // Mark all message read in the current instance.
-    if (!\mod_moodleoverflow\readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $user->id)) {
+    if (!readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $user->id)) {
         // Display an error, if something fails.
         $message = get_string('markreadfailed', 'moodleoverflow');
         $status = \core\output\notification::NOTIFY_ERROR;

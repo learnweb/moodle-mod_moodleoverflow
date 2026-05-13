@@ -20,6 +20,7 @@ use context_module;
 use core_user;
 use dml_exception;
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\models\post;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\subscriptions;
 use moodle_exception;
@@ -114,9 +115,7 @@ class mail_manager {
             // Check if the user can see the post.
             if (
                 !moodleoverflow_user_can_see_post(
-                    $moodleoverflows[$record->moodleoverflowid],
-                    $discussions[$record->discussionid],
-                    $posts[$record->postid],
+                    post::from_record($posts[$record->postid]),
                     $coursemodules[$record->cmid],
                     $record->usertoid
                 )

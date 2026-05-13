@@ -22,6 +22,7 @@ use mod_moodleoverflow\anonymous;
 use external_function_parameters;
 use external_api;
 use external_value;
+use mod_moodleoverflow\ratings;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -79,14 +80,11 @@ class record_vote extends external_api {
         global $DB, $USER;
 
         // Parameter validation.
-        $params = self::validate_parameters(self::execute_parameters(), [
-            'postid' => $postid,
-            'ratingid' => $ratingid,
-        ]);
+        $params = self::validate_parameters(self::execute_parameters(), ['postid' => $postid, 'ratingid' => $ratingid]);
 
         $transaction = $DB->start_delegated_transaction();
 
-        $post = $DB->get_record('moodleoverflow_posts', ['id' => $params['postid']], '*', MUST_EXIST);
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
 
         // Check if the discussion is valid.
         $discussion = moodleoverflow_get_record_or_exception(
@@ -116,29 +114,16 @@ class record_vote extends external_api {
         require_capability('mod/moodleoverflow:ratepost', $context);
 
         // Rate the post.
-        if (
-            !\mod_moodleoverflow\ratings::moodleoverflow_add_rating(
-                $moodleoverflow,
-                $params['postid'],
-                $params['ratingid'],
-                $cm,
-                $USER->id
-            )
-        ) {
+        if (!ratings::moodleoverflow_add_rating($moodleoverflow, $postid, $ratingid, $cm, $USER->id)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
-        $post = moodleoverflow_get_post_full($params['postid']);
         $postownerid = $post->userid;
-        $rating = \mod_moodleoverflow\ratings::moodleoverflow_get_ratings_by_discussion(
-            $discussion->id,
-            $params['postid']
-        );
-        $ownerrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
-        $raterrating = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
+        $rating = ratings::moodleoverflow_get_ratings_by_discussion($discussion->id, $postid);
+        $ownerrating = ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
+        $raterrating = ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
 
-        $cannotseeowner = anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) &&
-            $USER->id != $postownerid;
+        $cannotseeowner = anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) && $USER->id != $postownerid;
 
         $params['postrating'] = $rating->upvotes - $rating->downvotes;
         $params['ownerreputation'] = $cannotseeowner ? null : $ownerrating;

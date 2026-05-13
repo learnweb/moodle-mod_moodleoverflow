@@ -23,6 +23,7 @@
  */
 
 // Include config and locallib.
+use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\models\discussion;
 use mod_moodleoverflow\output\pages\discussion\discussion_page;
 use mod_moodleoverflow\readtracking;
@@ -44,17 +45,17 @@ $PAGE->set_url('/mod/moodleoverflow/discussion.php', ['d' => $d]);
 $PAGE->add_body_class('limitedwidth');
 
 // Check if the discussion is valid.
-$discussion = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $d], 'invaliddiscussionid');
-
+$record = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $d], 'invaliddiscussionid');
+$discussion = discussion::from_record($record);
 // Check if the related moodleoverflow instance is valid.
 $moodleoverflow = moodleoverflow_get_record_or_exception(
     'moodleoverflow',
-    ['id' => $discussion->moodleoverflow],
+    ['id' => $discussion->get_moodleoverflowid()],
     'invalidmoodleoverflowid'
 );
 
 // Check if the related moodleoverflow instance is valid.
-$course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->course], 'invalidcourseid', '*', true);
+$course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->get_courseid()], 'invalidcourseid', '*', true);
 
 // Get the related coursemodule and its context.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
@@ -83,31 +84,21 @@ if ($ratingid) {
         }
 
         // Return to the discussion.
-        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->id);
+        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->get_id());
         redirect($returnto);
     }
 }
 
 // Trigger the discussion viewed event.
-$params = [
-    'context' => $modulecontext,
-    'objectid' => $discussion->id,
-];
-$event = \mod_moodleoverflow\event\discussion_viewed::create($params);
+$event = discussion_viewed::create(['context' => $modulecontext, 'objectid' => $discussion->get_id()]);
 $event->trigger();
 
 // Unset where the user is coming from.
 // Allows to calculate the correct return url later.
 unset($SESSION->fromdiscussion);
 
-// Get the parent post.
-$parent = $discussion->firstpost;
-if (!$post = moodleoverflow_get_post_full($parent)) {
-    throw new moodle_exception("notexists", 'moodleoverflow', "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id");
-}
-
 // Has the user the capability to view the post?
-if (!moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm)) {
+if (!moodleoverflow_user_can_see_post($discussion->get_first_post(), $cm)) {
     throw new moodle_exception(
         'noviewdiscussionspermission',
         'moodleoverflow',
@@ -123,13 +114,11 @@ if (empty($forumnode)) {
     $forumnode->make_active();
 }
 
-$node = $forumnode->add(
-    format_string($discussion->name),
-    new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id])
-);
+$url = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->get_id()]);
+$node = $forumnode->add(format_string($discussion->name), $url);
 $node->display = false;
-if ($node && ($post->id != $discussion->firstpost)) {
-    $node->add(format_string($post->subject), $PAGE->url);
+if ($node) {
+    $node->add(format_string($discussion->name), $PAGE->url);
 }
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
@@ -145,7 +134,7 @@ $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 
 // Mark the discussion as read as the user entered the discussion.
 if (readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER)) {
-    readtracking::moodleoverflow_mark_discussion_read($discussion->id, $modulecontext, $USER->id);
+    readtracking::moodleoverflow_mark_discussion_read($discussion, $USER->id);
 }
 
 // Start the side-output.
@@ -153,5 +142,5 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
 
 // Guests and users can not subscribe to a discussion.
-echo $OUTPUT->render(new discussion_page(discussion::from_record($discussion)));
+echo $OUTPUT->render(new discussion_page($discussion));
 echo $OUTPUT->footer();

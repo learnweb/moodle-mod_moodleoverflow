@@ -504,13 +504,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_moodleoverflowviewlink() {
-        $link = new \moodle_url(
-        // Posts are viewed on the topic.
-            '/mod/moodleoverflow/view.php',
-            [
-                'm' => $this->moodleoverflow->id,
-            ]
-        );
+        $link = new \moodle_url('/mod/moodleoverflow/view.php', ['m' => $this->moodleoverflow->id]);
 
         return $link->out(false);
     }

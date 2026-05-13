@@ -79,9 +79,7 @@ class capabilities {
      */
     public static function has(string $capability, context $context, $userid = null): bool {
         global $USER;
-        if (!$userid) {
-            $userid = $USER->id;
-        }
+        $userid = $userid ?? $USER->id;
 
         $key = "$userid:$context->id:$capability";
 

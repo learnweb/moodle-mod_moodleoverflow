@@ -32,46 +32,6 @@ use moodle_url;
  * Class that gathers data for the post card template used in the discussion.php.
  * This class represents a single post that in the discussion view.
  *
- * Attribute für die postcard:
- * - isfirstunread - bool CHECK
- * - postid - int CHECK
- * - postclass ? CHECK
- * - needsreview - bool
- *      - withinreviewperiod - bool
- *          - reviewdelay - string
- * - discussionby (maybe the discussionauthor?) - string
- * - showvotes - bool
- *      - postvoting template
- * - permalink - string (link)
- * - postcontent - string
- * - attachments - bool
- *      - image - bool
- *          - filepath - string
- *      - notimage (same attribute)
- *          - filepath - string
- *          - icon - string
- *          - filename - string
- * - questioner - string
- * - iscomment - bool
- *      - byname - string
- *      - byshortdate - string
- * - isnotcomment (same variable)
- *      - picture - html string
- *      - byname (post author name?) - string
- *      - showreputation - bool
- *          - showrating - bool
- *              - byuserid - int
- *              - byrating - int
- *      - bydate - string
- *      - byshortdate - string
- * - commands - string, an object??
- * - canreview - bool
- *      - needsreview - bool
- *          - withinreviewperiod - bool
- *              - review_buttons template
- *          -not withinreviewperiod
- *              - reviewdelay - int/string
- *
  * @package    mod_moodleoverflow
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -172,6 +132,7 @@ class post_card implements named_templatable, renderable {
 
     /**
      * Builds the HTML string of action commands shown below a post (mark helpful/solved, edit, delete, reply).
+     * LEARNWEB-TODO: refactor further. Do not render html tags directly here. Move it to mustache.
      */
     private function build_commands(): string {
         global $USER, $OUTPUT;
@@ -183,7 +144,6 @@ class post_card implements named_templatable, renderable {
 
         $isroot    = $this->post->get_id() == $firstpostid;
         $isanswer  = !$isroot && $parentpost !== null && $parentpost->get_id() == $firstpostid;
-        $iscomment = !$isroot && !$isanswer;
 
         $ownpost       = $this->post->get_userid() == $USER->id;
         $age           = time() - $this->post->created;

@@ -30,8 +30,8 @@
         {{! This is the place for the discussion starter post}}
         {{{firstpost}}}
         <br>
-        <h4>{{answeramount}}</h4>
-        <div id="moodleoverflow-posts">
+        {{#answeramount}}<h4>{{answeramount}}</h4>{{/answeramount}}
+        <div>
             {{! This is the place for the answer posts}}
             {{#answers}}{{{.}}}{{/answers}}
         </div>

@@ -25,10 +25,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_availability\info_module;
 use core_user\fields;
 use mod_moodleoverflow\capabilities;
-use mod_moodleoverflow\models\discussion;
-use mod_moodleoverflow\output\pages\view\discussion_card;
+use mod_moodleoverflow\models\post;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 
@@ -38,141 +38,45 @@ global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
 
 /**
- * Prints latest moodleoverflow discussions.
- *
- * @param object $moodleoverflow MoodleOverflow to be printed.
- * @param object $cm
- * @param int    $page           Page mode, page to display (optional).
- * @param int    $perpage        The maximum number of discussions per page (optional).
- */
-function moodleoverflow_print_latest_discussions($moodleoverflow, $cm, $page = -1, $perpage = 25) {
-    global $OUTPUT, $PAGE, $DB, $USER;
-
-    // Set the context.
-    $context = context_module::instance($cm->id);
-
-    // If the perpage value is invalid, deactivate paging.
-    if ($perpage <= 0) {
-        $perpage = 0;
-        $page = -1;
-    }
-    $usepaging = ($perpage > 0 && $page !== -1);
-    $limitfrom = $usepaging ? $page * $perpage : 0;
-    $limitamount = $usepaging ? $perpage : 0;
-
-    // Check some capabilities and create other check variables.
-    $canstartdiscussion = !(isguestuser() || !isloggedin()) && has_capability('mod/moodleoverflow:startdiscussion', $context);
-    $canseestats = has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('moodleoverflow', 'showuserstats');
-    $cantrack = readtracking::can_track_moodleoverflows($moodleoverflow);
-    $istracked = $cantrack && readtracking::moodleoverflow_is_tracked($moodleoverflow);
-
-    // Create links.
-    $startdiscussion = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverflow->id]);
-    $markallreadlink = new moodle_url("/mod/moodleoverflow/markposts.php?m=$moodleoverflow->id");
-
-    // Get information about the moodleoverflow. This includes: discussioncount, unread posts, discussions its replies .
-    $discussioncount = moodleoverflow_get_discussions_count($cm);
-    $unreads = $istracked ? moodleoverflow_get_discussions_unread($cm) : [];
-
-    // Get moodleoverflow where discussions can be moved.
-    $destinations = [];
-    $instances = get_fast_modinfo($moodleoverflow->course)->get_instances_of('moodleoverflow');
-    $params = ['course' => $moodleoverflow->course, 'anonymous' => $moodleoverflow->anonymous, 'currentid' => $moodleoverflow->id];
-    $sql = "SELECT *
-            FROM {moodleoverflow}
-            WHERE course = :course
-                AND anonymous >= :anonymous
-                AND id != :currentid";
-    foreach ($DB->get_records_sql($sql, $params) as $modflow) {
-        if (empty($instances[$modflow->id]->deletioninprogress)) {
-            $destinations[] = ['name' => $modflow->name, 'modflowid' => $modflow->id];
-        }
-    }
-
-    // Iterate through every visible discussion.
-    $canreview = capabilities::has(capabilities::REVIEW_POST, $context) ? 1 : 0;
-    $items = [];
-    $sql = "SELECT d.*
-            FROM {moodleoverflow_discussions} d
-            JOIN {moodleoverflow_posts} p ON p.discussion = d.id
-            WHERE d.moodleoverflow = ?
-                AND p.parent = 0
-                AND (? = 1 OR (p.reviewed = 1 OR p.userid = ?))
-            ORDER BY d.timestart DESC, d.id DESC";
-    $discussions = $DB->get_records_sql($sql, [$moodleoverflow->id, $canreview, $USER->id], $limitfrom, $limitamount);
-    foreach ($discussions as $discussion) {
-        $items[] = $OUTPUT->render(new discussion_card(discussion::from_record($discussion), $context, !empty($destinations)));
-    }
-
-    // Collect the needed data being submitted to the template.
-    $mustachedata = (object) [
-        'discussions' => $items,
-        'hasdiscussions' => count($discussions) >= 0,
-        'startdiscussion' => $canstartdiscussion ? ['link' => $startdiscussion->out()] : [],
-        'markallread' => $unreads ? ['link' => $markallreadlink->out()] : [],
-        'stats' => $canseestats ? ['link' => (new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id]))->out()] : [],
-        'paging_bar' => ($page != -1) ? $OUTPUT->paging_bar($discussioncount, $page, $perpage, "view.php?id=$cm->id") : false,
-        'destinations' => $destinations,
-    ];
-
-    // Print the template.
-    $PAGE->requires->js_call_amd('mod_moodleoverflow/topicmove', 'init');
-    echo $PAGE->get_renderer('mod_moodleoverflow')->render_discussion_list($mustachedata);
-}
-
-/**
  * Returns the amount of discussions of the given context module.
  *
  * @param object $cm
  *
- * @return array
+ * @return int
  */
-function moodleoverflow_get_discussions_count($cm) {
+function moodleoverflow_get_discussions_count(object $cm): int {
     global $DB, $USER;
 
-    $modcontext = context_module::instance($cm->id);
-    $params = [$cm->instance];
-    $whereconditions = ['d.moodleoverflow = ?', 'p.parent = 0'];
+    $params = ['instance' => $cm->instance];
+    $whereconditions = ['d.moodleoverflow = :instance', 'p.parent = 0'];
 
-    if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
-        $whereconditions[] = '(p.reviewed = 1 OR p.userid = ?)';
-        $params[] = $USER->id;
+    if (!has_capability('mod/moodleoverflow:reviewpost', context_module::instance($cm->id))) {
+        $whereconditions[] = '(p.reviewed = 1 OR p.userid = :userid)';
+        $params['userid'] = $USER->id;
     }
-
-    $wheresql = join(' AND ', $whereconditions);
-
     $sql = 'SELECT COUNT(d.id)
-              FROM {moodleoverflow_discussions} d
-                   JOIN {moodleoverflow_posts} p ON p.discussion = d.id
-             WHERE ' . $wheresql;
-
-    return $DB->get_field_sql($sql, $params);
+            FROM {moodleoverflow_discussions} d
+                JOIN {moodleoverflow_posts} p ON p.discussion = d.id
+            WHERE ' . implode(' AND ', $whereconditions);
+    return $DB->count_records_sql($sql, $params);
 }
-
 /**
- * Returns an array of unread messages for the current user.
+ * Returns if there are unread messages for the current user in a moodleoverflow.
  *
  * @param object $cm
  *
- * @return array
+ * @return bool
  */
 function moodleoverflow_get_discussions_unread($cm) {
     global $DB, $USER;
 
     // Get the current timestamp and the oldpost-timestamp.
-    $now = round(time(), -2);
-    $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
-
-    $modcontext = context_module::instance($cm->id);
+    $cutoffdate = round(time(), -2) - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
     $whereconditions = ['d.moodleoverflow = :instance', 'p.modified >= :cutoffdate', 'r.id is NULL'];
-    $params = [
-            'userid' => $USER->id,
-            'instance' => $cm->instance,
-            'cutoffdate' => $cutoffdate,
-    ];
+    $params = ['userid' => $USER->id, 'instance' => $cm->instance, 'cutoffdate' => $cutoffdate];
 
-    if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
+    if (!has_capability('mod/moodleoverflow:reviewpost', context_module::instance($cm->id))) {
         $whereconditions[] = '(p.reviewed = 1 OR p.userid = :userid2)';
         $params['userid2'] = $USER->id;
     }
@@ -187,117 +91,29 @@ function moodleoverflow_get_discussions_unread($cm) {
             WHERE $wheresql
             GROUP BY d.id";
 
-    // Return the unread messages as an array.
-    if ($unreads = $DB->get_records_sql($sql, $params)) {
-        $returnarray = [];
-        foreach ($unreads as $unread) {
-            $returnarray[$unread->id] = $unread->unread;
-        }
-        return $returnarray;
-    } else {
-        // If there are no unread messages, return an empty array.
-        return [];
-    }
-}
-
-/**
- * Gets a post with all info ready for moodleoverflow_print_post.
- * Most of these joins are just to get the forum id.
- *
- * @param int $postid
- *
- * @return mixed array of posts or false
- */
-function moodleoverflow_get_post_full($postid) {
-    global $DB;
-    $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
-    $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
-              FROM {moodleoverflow_posts} p
-                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
-              LEFT JOIN {user} u ON p.userid = u.id
-                  WHERE p.id = :postid";
-    $params = [];
-    $params['postid'] = $postid;
-
-    $post = $DB->get_record_sql($sql, $params);
-    if ($post->userid === 0) {
-        $post->message = get_string('privacy:anonym_post_message', 'mod_moodleoverflow');
-    }
-
-    return $post;
+    return !empty($DB->get_records_sql($sql, $params));
 }
 
 /**
  * Checks if a user can see a specific post.
  *
- * @param object $moodleoverflow
- * @param object $discussion
- * @param object $post
+ * @param post $post
  * @param object $cm
- * @param int $userid
+ * @param ?int $userid
  *
  * @return bool
  */
-function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $cm, $userid = null) {
-    global $USER, $DB;
-    if ($userid === null) {
-        $userid = $USER->id;
-    }
-
-    // Retrieve the modulecontext.
+function moodleoverflow_user_can_see_post(post $post, object $cm, ?int $userid = null) {
+    global $USER;
+    $userid = $userid ?? $USER->id;
     $modulecontext = context_module::instance($cm->id);
 
-    // Fetch the moodleoverflow instance object.
-    if (is_numeric($moodleoverflow)) {
-        debugging('missing full moodleoverflow', DEBUG_DEVELOPER);
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow])) {
-            return false;
-        }
-    }
+    // Get capabilites.
+    $canview = capabilities::has(capabilities::VIEW_DISCUSSION, $modulecontext, $userid);
+    $canreview = capabilities::has(capabilities::REVIEW_POST, $modulecontext, $userid);
+    $isvisible = info_module::is_user_visible($cm, $userid, false);
 
-    // Fetch the discussion object.
-    if (is_numeric($discussion)) {
-        debugging('missing full discussion', DEBUG_DEVELOPER);
-        if (!$discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion])) {
-            return false;
-        }
-    }
-
-    // Fetch the post object.
-    if (is_numeric($post)) {
-        debugging('missing full post', DEBUG_DEVELOPER);
-        if (!$post = $DB->get_record('moodleoverflow_posts', ['id' => $post])) {
-            return false;
-        }
-    }
-
-    // Get the postid if not set.
-    if (!isset($post->id) && isset($post->parent)) {
-        $post->id = $post->parent;
-    }
-
-    // Find the coursemodule.
-    if (!$cm) {
-        debugging('missing cm', DEBUG_DEVELOPER);
-        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course)) {
-            throw new moodle_exception('invalidcoursemodule');
-        }
-    }
-
-    // Check if the user can view the discussion.
-    if (!capabilities::has(capabilities::VIEW_DISCUSSION, $modulecontext, $userid)) {
-        return false;
-    }
-
-    if (
-        !($post->reviewed == 1 || $post->userid == $userid ||
-        capabilities::has(capabilities::REVIEW_POST, $modulecontext, $userid))
-    ) {
-        return false;
-    }
-
-    // The user has the capability to see the discussion.
-    return \core_availability\info_module::is_user_visible($cm, $userid, false);
+    return ($canview && ($post->reviewed == 1 || $post->get_userid() == $userid || $canreview)) && $isvisible;
 }
 
 /**
@@ -309,7 +125,6 @@ function moodleoverflow_user_can_see_post($moodleoverflow, $discussion, $post, $
  */
 function moodleoverflow_go_back_to($default) {
     global $SESSION;
-
     if (!empty($SESSION->fromdiscussion)) {
         $returnto = $SESSION->fromdiscussion;
         unset($SESSION->fromdiscussion);
@@ -332,119 +147,10 @@ function moodleoverflow_go_back_to($default) {
  */
 function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerreviewstatus = true, $userid = null) {
     global $USER;
-
-    // If not user is submitted, use the current one.
-    if (empty($userid)) {
-        $userid = $USER->id;
-    }
-
-    // Check the users capability.
-    if (!has_capability('mod/moodleoverflow:replypost', $modulecontext, $userid)) {
-        return false;
-    }
-    return !$considerreviewstatus || $posttoreplyto->reviewed == 1;
+    $userid = $userid ?? $USER->id;
+    $canpost = has_capability('mod/moodleoverflow:replypost', $modulecontext, $userid);
+    return  $canpost && (!$considerreviewstatus || $posttoreplyto->reviewed == 1);
 }
-
-/**
- * Get all posts in discussion including the starting post.
- *
- * @param int     $discussionid The ID of the discussion
- * @param boolean $tracking     Whether tracking is activated
- * @param context_module $modcontext Context of the module
- *
- * @return array
- */
-function moodleoverflow_get_all_discussion_posts($discussionid, $tracking, $modcontext) {
-    global $DB, $USER;
-
-    // Initiate tracking settings.
-    $trackingselector = "";
-    $trackingjoin = "";
-    $params = [];
-
-    // If tracking is enabled, another join is needed.
-    if ($tracking) {
-        $trackingselector = ", mr.id AS postread";
-        $trackingjoin = "LEFT JOIN {moodleoverflow_read} mr ON (mr.postid = p.id AND mr.userid = :userid)";
-        $params['userid'] = $USER->id;
-    }
-
-    // Get all username fields.
-    $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
-
-    $additionalwhere = '';
-
-    if (!has_capability('mod/moodleoverflow:reviewpost', $modcontext)) {
-        $additionalwhere = ' AND (p.reviewed = 1 OR p.userid = :userid2) ';
-        $params['userid2'] = $USER->id;
-    }
-
-    // Create the sql array.
-    $sql = "SELECT p.*, m.ratingpreference, $allnames, d.name as subject, u.email, u.picture, u.imagealt $trackingselector
-              FROM {moodleoverflow_posts} p
-                   LEFT JOIN {user} u ON p.userid = u.id
-                   LEFT JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-                   LEFT JOIN {moodleoverflow} m on m.id = d.moodleoverflow
-                   $trackingjoin
-             WHERE p.discussion = :discussion $additionalwhere
-          ORDER BY p.created ASC";
-    $params['discussion'] = $discussionid;
-
-    // Return an empty array, if there are no posts.
-    if (!$posts = $DB->get_records_sql($sql, $params)) {
-        return [];
-    }
-
-    // Load all ratings.
-    $discussionratings = ratings::moodleoverflow_get_ratings_by_discussion($discussionid);
-
-    // Assign ratings to the posts.
-    foreach ($posts as $postid => $post) {
-        // Assign the ratings to the matching posts.
-        $posts[$postid]->upvotes = $discussionratings[$post->id]->upvotes;
-        $posts[$postid]->downvotes = $discussionratings[$post->id]->downvotes;
-        $posts[$postid]->votesdifference = $posts[$postid]->upvotes - $posts[$postid]->downvotes;
-        $posts[$postid]->markedhelpful = $discussionratings[$post->id]->ishelpful;
-        $posts[$postid]->markedsolution = $discussionratings[$post->id]->issolved;
-    }
-
-    // Order the answers by their ratings.
-    $posts = ratings::moodleoverflow_sort_answers_by_ratings($posts);
-
-    // Find all children of this post.
-    foreach ($posts as $postid => $post) {
-        // Is it an old post?
-        if ($tracking) {
-            if (readtracking::moodleoverflow_is_old_post($post)) {
-                $posts[$postid]->postread = true;
-            }
-        }
-
-        // Don't iterate through the parent post.
-        if (!$post->parent) {
-            $posts[$postid]->level = 0;
-            continue;
-        }
-
-        // If the parent post does not exist.
-        if (!isset($posts[$post->parent])) {
-            continue;
-        }
-
-        // Create the children array.
-        if (!isset($posts[$post->parent]->children)) {
-            $posts[$post->parent]->children = [];
-        }
-
-        // Increase the level of the current post.
-        $posts[$post->parent]->children[$postid] =& $posts[$postid];
-    }
-
-    // Return the object.
-    return $posts;
-}
-
-
 
 /**
  * Updates user grade.
@@ -459,24 +165,15 @@ function moodleoverflow_update_user_grade(object $moodleoverflow, int $postuserr
     // Check whether moodleoverflow object has the added params.
     if ($moodleoverflow->grademaxgrade > 0 && $moodleoverflow->gradescalefactor > 0) {
         // Calculate the posting user's updated grade.
-        $grade = $postuserrating / $moodleoverflow->gradescalefactor;
-
-        if ($grade > $moodleoverflow->grademaxgrade) {
-            $grade = $moodleoverflow->grademaxgrade;
-        }
-
+        $grade = min($postuserrating / $moodleoverflow->gradescalefactor, $moodleoverflow->grademaxgrade);
         // Save updated grade on local table.
-        if ($DB->record_exists('moodleoverflow_grades', ['userid' => $postinguser, 'moodleoverflowid' => $moodleoverflow->id])) {
-            $DB->set_field('moodleoverflow_grades', 'grade', $grade, ['userid' => $postinguser,
-                'moodleoverflowid' => $moodleoverflow->id, ]);
+        $lookup = ['userid' => $postinguser, 'moodleoverflowid' => $moodleoverflow->id];
+        if ($existing = $DB->get_record('moodleoverflow_grades', $lookup)) {
+            $existing->grade = $grade;
+            $DB->update_record('moodleoverflow_grades', $existing);
         } else {
-            $gradedataobject = new stdClass();
-            $gradedataobject->moodleoverflowid = $moodleoverflow->id;
-            $gradedataobject->userid = $postinguser;
-            $gradedataobject->grade = $grade;
-            $DB->insert_record('moodleoverflow_grades', $gradedataobject, false);
+            $DB->insert_record('moodleoverflow_grades', (object) array_merge($lookup, ['grade' => $grade]));
         }
-
         // Update gradebook.
         moodleoverflow_update_grades($moodleoverflow, $postinguser);
     }
@@ -599,11 +296,7 @@ function moodleoverflow_quick_array_sort(&$array, $low, $high, $key, $order) {
 function moodleoverflow_get_record_or_exception($table, $options, $exceptionstring, $fields = '*', $coreexception = false) {
     global $DB;
     if (!$record = $DB->get_record($table, $options, $fields)) {
-        if ($coreexception) {
-            throw new moodle_exception($exceptionstring);
-        } else {
-            throw new moodle_exception($exceptionstring, 'moodleoverflow');
-        }
+        throw new moodle_exception($exceptionstring, $coreexception ? 0 : 'moodleoverflow');
     }
     return $record;
 }
@@ -632,11 +325,7 @@ function moodleoverflow_get_config_or_exception($plugin, $configname, $errorcode
  */
 function moodleoverflow_throw_exception_with_check($check, $errorcode, $coreexception = false) {
     if ($check) {
-        if ($coreexception) {
-            throw new moodle_exception($errorcode);
-        } else {
-            throw new moodle_exception($errorcode, 'moodleoverflow');
-        }
+        throw new moodle_exception($errorcode, $coreexception ? 0 : 'moodleoverflow');
     }
 }
 
@@ -653,10 +342,8 @@ function moodleoverflow_catch_unenrolled_user($coursecontext, $courseid, $return
         if (enrol_selfenrol_available($courseid)) {
             $SESSION->wantsurl = qualified_me();
             $SESSION->enrolcancel = get_local_referer(false);
-            redirect(new \moodle_url('/enrol/index.php', [
-                'id' => $courseid,
-                'returnurl' => $returnurl,
-            ]), get_string('youneedtoenrol'));
+            $url = new \moodle_url('/enrol/index.php', ['id' => $courseid, 'returnurl' => $returnurl]);
+            redirect($url, get_string('youneedtoenrol'));
         }
     }
 }

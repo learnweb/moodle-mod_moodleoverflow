@@ -53,7 +53,7 @@ const addEventListener = () => {
                 postElement.style.maxHeight = '0px';
                 postElement.setAttribute('expanded', 'false');
             } else {
-                showpostButton.textContent =  await getString('showpost_collapse', 'moodleoverflow');
+                showpostButton.textContent = await getString('showpost_collapse', 'moodleoverflow');
                 postElement.style.maxHeight = `${postElement.scrollHeight}px`;
                 postElement.setAttribute('expanded', 'true');
             }
