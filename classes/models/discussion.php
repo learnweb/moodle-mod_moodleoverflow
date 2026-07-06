@@ -186,46 +186,57 @@ class discussion {
      */
     public function moodleoverflow_add_discussion(object $prepost): bool|int|null {
         global $DB;
+        try {
+            $transaction = $DB->start_delegated_transaction();
 
-        // Add the discussion to the Database.
-        $this->id = $DB->insert_record('moodleoverflow_discussions', $this->build_db_object());
+            // Add the discussion to the Database.
+            $this->id = $DB->insert_record('moodleoverflow_discussions', $this->build_db_object());
 
-        // Create the first/parent post for the new discussion and add it do the DB.
-        $post = post::construct_without_id(
-            $this->id,
-            0,
-            $prepost->userid,
-            $prepost->timenow,
-            $prepost->timenow,
-            $prepost->message,
-            $prepost->messageformat,
-            "",
-            0,
-            $prepost->reviewed,
-            null,
-            $prepost->formattachments
-        );
-        // Add it to the DB and save the id of the first/parent post.
-        $this->firstpost = $post->moodleoverflow_add_new_post();
+            // Create the first/parent post for the new discussion and add it to the DB.
+            $post = post::construct_without_id(
+                $this->id,
+                0,
+                $prepost->userid,
+                $prepost->timenow,
+                $prepost->timenow,
+                $prepost->message,
+                $prepost->messageformat,
+                "",
+                0,
+                $prepost->reviewed,
+                null,
+                $prepost->formattachments
+            );
 
-        // Save the id of the first/parent post in the DB.
-        $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
+            // Add it to the DB and save the id of the first/parent post.
+            $this->firstpost = $post->moodleoverflow_add_new_post();
+            $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
 
-        // Add the parent post to the $posts array.
-        $this->posts[$this->firstpost] = $post;
-        $this->postsbuild = true;
+            // Add the parent post to the $posts array.
+            $this->posts[$this->firstpost] = $post;
+            $this->postsbuild = true;
 
-        // Trigger event.
-        $params = [
-            'context' => $prepost->modulecontext,
-            'objectid' => $this->id,
-        ];
-        // LEARNWEB-TODO: check if the event functions.
-        $event = discussion_viewed::create($params);
-        $event->trigger();
+            // Trigger event.
+            $params = [
+                'context' => $prepost->modulecontext,
+                'objectid' => $this->id,
+            ];
+            // LEARNWEB-TODO: check if the event functions.
+            $event = discussion_viewed::create($params);
+            $event->trigger();
 
-        // Return the id of the discussion.
-        return $this->id;
+            // Everything worked, commit the transaction.
+            $transaction->allow_commit();
+
+            // Return the id of the discussion.
+            return $this->id;
+        } catch (Exception $e) {
+            // Something went wrong, roll back every change so no half-created discussion remains.
+            $transaction->rollback($e);
+        }
+
+        // Adding the discussion has failed.
+        return false;
     }
 
     /**
