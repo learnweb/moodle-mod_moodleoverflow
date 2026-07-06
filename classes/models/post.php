@@ -177,7 +177,7 @@ class post {
         $messageformat = !empty($record->messageformat) ? $record->messageformat : 0;
         $attachment = !empty($record->attachment) ? $record->attachment : '';
         $mailed = !empty($record->mailed) ? $record->mailed : 0;
-        $reviewed = !empty($record->reviewed) ? $record->reviewed : 1;
+        $reviewed = $record->reviewed ?? 1;
         $timereviewed = !empty($record->timereviewed) ? $record->timereviewed : null;
 
         return new self(
