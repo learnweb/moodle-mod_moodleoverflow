@@ -35,9 +35,9 @@ $functions = [
         'capabilities' => 'mod/moodleoverflow:ratepost',
     ],
     'mod_moodleoverflow_review_approve_post' => [
-        'classname' => 'mod_moodleoverflow\external\approve_post',
+        'classname' => 'mod_moodleoverflow\external\review_approve_post',
         'methodname' => 'execute',
-        'classpath' => 'mod/moodleoverflow/classes/external/approve_post.php',
+        'classpath' => 'mod/moodleoverflow/classes/external/review_approve_post.php',
         'description' => 'Approves a post',
         'type' => 'write',
         'ajax' => true,
