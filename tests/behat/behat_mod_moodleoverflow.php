@@ -32,6 +32,7 @@ use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
 use mod_moodleoverflow\post\post_control;
 use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 
 /**
@@ -134,6 +135,88 @@ class behat_mod_moodleoverflow extends behat_base {
             'message' => 'Answer from student', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1, 'reviewed' => '1',
             'timereviewed' => null,
         ]);
+    }
+
+    /**
+     * Build a background to test the reviewing (approve/reject) feature.
+     * Builds:
+     * - A course with one teacher and one student, both enrolled.
+     * - A moodleoverflow that requires every new post to be reviewed.
+     * - A discussion started by the teacher whose first post is already reviewed.
+     * - A reply by the student that is still pending review.
+     *
+     * The student post is created in the past so that it is already past the review waiting
+     * period (reviewpossibleaftertime), which makes the approve/reject buttons show immediately.
+     *
+     * @Given /^I set up a moodleoverflow with a student post pending review$/
+     * @return void
+     */
+    public function i_set_up_a_moodleoverflow_with_a_student_post_pending_review(): void {
+        global $DB;
+
+        $this->i_prepare_a_moodleoverflow_background(new TableNode([
+            ['username', 'firstname', 'lastname', 'email', 'idnumber', 'role'],
+            ['teacher1', 'Tamaro', 'Walter', 'tamaro@mail.com', '10', 'teacher'],
+            ['student1', 'John', 'Smith', 'john@mail.com', '11', 'student'],
+        ]));
+
+        $course = $DB->get_record('course', ['shortname' => 'C1']);
+        $teacher = $DB->get_record('user', ['username' => 'teacher1']);
+        $student = $DB->get_record('user', ['username' => 'student1']);
+        $time = time();
+        // Age the pending post so it is past the review waiting period and the review buttons are shown.
+        $pasttime = $time - DAYSECS;
+
+        // Create a moodleoverflow that requires every post to be reviewed.
+        $this->execute('behat_data_generators::the_following_entities_exist', ['activities', new TableNode([
+            ['activity', 'course', 'name', 'needsreview'],
+            ['moodleoverflow', 'C1', 'Moodleoverflow 1', review::EVERYTHING],
+        ])]);
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => 'Moodleoverflow 1']);
+
+        // Create the discussion with the teacher's already reviewed first post.
+        $discussionid = $DB->insert_record('moodleoverflow_discussions', ['course' => $course->id,
+            'moodleoverflow' => $moodleoverflow->id, 'name' => 'Discussion 1', 'firstpost' => 1, 'userid' => $teacher->id,
+            'timemodified' => $time, 'timestart' => $time, 'usermodified' => $teacher->id,
+        ]);
+        $teacherpostid = $DB->insert_record('moodleoverflow_posts', ['discussion' => $discussionid,
+            'moodleoverflow' => $moodleoverflow->id, 'parent' => 0, 'userid' => $teacher->id, 'created' => $time,
+            'modified' => $time, 'message' => 'Message from teacher', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1,
+            'reviewed' => 1, 'timereviewed' => $time,
+        ]);
+
+        // Update firstpost field in discussion.
+        $record = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid]);
+        $record->firstpost = $teacherpostid;
+        $DB->update_record('moodleoverflow_discussions', $record);
+
+        // Create the student reply that is still pending review.
+        $DB->insert_record('moodleoverflow_posts', ['discussion' => $discussionid, 'moodleoverflow' => $moodleoverflow->id,
+            'parent' => $teacherpostid, 'userid' => $student->id, 'created' => $pasttime, 'modified' => $pasttime,
+            'message' => 'Answer from student', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1, 'reviewed' => 0,
+            'timereviewed' => null,
+        ]);
+    }
+
+    /**
+     * Clicks a moodleoverflow review action button (e.g. "approve", "reject", "reject-submit").
+     *
+     * The button is scrolled into the centre of the viewport first so that it is not covered by
+     * sticky page elements such as the course activity navigation footer, which would otherwise
+     * intercept the click.
+     *
+     * @When /^I click on the "(?P<action_string>[^"]*)" moodleoverflow review button$/
+     * @param string $action The value of the data-moodleoverflow-action attribute.
+     * @return void
+     */
+    public function i_click_on_the_moodleoverflow_review_button(string $action): void {
+        $selector = "[data-moodleoverflow-action='" . $action . "']";
+        $node = $this->find('css', $selector);
+        $this->getSession()->executeScript(
+            "document.querySelector(\"" . $selector . "\").scrollIntoView({block: 'center'});"
+        );
+        $this->ensure_node_is_visible($node);
+        $node->click();
     }
 
     /**
