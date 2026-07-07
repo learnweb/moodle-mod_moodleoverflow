@@ -1,5 +1,18 @@
 CHANGELOG
 =========
+[v5.2-r2 (2025-07-07)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.2-r2)
+---------------------
+This release contains fixes for bugs that were found as well as some code debt refactorings:
+
+**Bug fixes**:
+
+- Fix missing reference to first post after creating a new discussion ([#276](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/276))
+- Fix typo and wrong DB data read in review functionality ([#277](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/277))
+
+**Refactoring**:
+
+- Fix moodle.org checks and delete some more lines in the locallib ([#273](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/273))
+
 [v5.2-r1 (2025-05-07)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.2-r1)
 ---------------------
 Moodleoverflow had a lot of changes in the last months. Most of them were directly for developers, but they were
