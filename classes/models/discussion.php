@@ -43,32 +43,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * Accessing these functions directly without the checks from the post control could lead to serious errors.
  */
 class discussion {
-    /** @var ?int The discussion ID */
-    private ?int $id;
-
-    /** @var int The course ID where the discussion is located */
-    private int $course;
-
-    /** @var int The moodleoverflow ID where the discussion is located*/
-    private int $moodleoverflow;
-
-    /** @var string The title of the discussion, the titel of the parent post*/
-    public string $name;
-
-    /** @var int The id of the parent/first post*/
-    private int $firstpost;
-
-    /** @var int The user ID who started the discussion */
-    private int $userid;
-
-    /** @var int Unix-timestamp of modification */
-    public int $timemodified;
-
-    /** @var int Unix-timestamp of discussion creation */
-    public int $timestart;
-
-    /** @var int the user ID who modified the discussion */
-    public int $usermodified;
+    // The database related attributes are promoted in the constructor below.
 
     // Not Database-related attributes.
 
@@ -88,36 +63,36 @@ class discussion {
 
     /**
      * Constructor to build a new discussion.
-     * @param ?int  $id                 The Discussion ID.
-     * @param int       $course             The course ID.
-     * @param int       $moodleoverflow     The moodleoverflow ID.
-     * @param string    $name               Discussion Title.
-     * @param int       $firstpost          .
-     * @param int       $userid  The course ID.
-     * @param int       $timemodified   The course ID.
-     * @param int       $timestart   The course ID.
-     * @param int       $usermodified   The course ID.
+     * @param ?int $id The Discussion ID.
+     * @param int $course The course ID.
+     * @param int $moodleoverflow The moodleoverflow ID.
+     * @param string $name Discussion Title.
+     * @param int $firstpost ID of the first post.
+     * @param int $userid The course ID.
+     * @param int $timemodified The course ID.
+     * @param int $timestart The course ID.
+     * @param int $usermodified The course ID.
      */
     public function __construct(
-        ?int $id,
-        int $course,
-        int $moodleoverflow,
-        string $name,
-        int $firstpost,
-        int $userid,
-        int $timemodified,
-        int $timestart,
-        int $usermodified
+        /** @var ?int The discussion ID */
+        private ?int $id,
+        /** @var int The course ID where the discussion is located */
+        private int $course,
+        /** @var int The moodleoverflow ID where the discussion is located */
+        private int $moodleoverflow,
+        /** @var string The title of the discussion, the title of the parent post */
+        public string $name,
+        /** @var int The id of the parent/first post */
+        private int $firstpost,
+        /** @var int The user ID who started the discussion */
+        private int $userid,
+        /** @var int Unix-timestamp of modification */
+        public int $timemodified,
+        /** @var int Unix-timestamp of discussion creation */
+        public int $timestart,
+        /** @var int the user ID who modified the discussion */
+        public int $usermodified
     ) {
-        $this->id = $id;
-        $this->course = $course;
-        $this->moodleoverflow = $moodleoverflow;
-        $this->name = $name;
-        $this->firstpost = $firstpost;
-        $this->userid = $userid;
-        $this->timemodified = $timemodified;
-        $this->timestart = $timestart;
-        $this->usermodified = $usermodified;
         $this->posts = [];
         $this->postsbuild = false;
     }
@@ -149,14 +124,14 @@ class discussion {
 
     /**
      * Function to build a new discussion without specifying the Discussion ID.
-     * @param int $course             The course ID.
-     * @param int $moodleoverflow     The moodleoverflow ID.
-     * @param string $name               Discussion Title.
-     * @param int $firstpost          .
-     * @param int $userid  The course ID.
-     * @param int $timemodified   The course ID.
-     * @param int $timestart   The course ID.
-     * @param int $usermodified   The course ID.
+     * @param int $course The course ID.
+     * @param int $moodleoverflow The moodleoverflow ID.
+     * @param string $name Discussion Title.
+     * @param int $firstpost ID of the first post.
+     * @param int $userid The course ID.
+     * @param int $timemodified The course ID.
+     * @param int $timestart The course ID.
+     * @param int $usermodified The course ID.
      *
      * @return object discussion object without id.
      */

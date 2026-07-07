@@ -54,45 +54,9 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  */
 class post {
     // Attributes. The most important attributes are private and can only be changed by internal functions.
-    // Other attributes can be accessed directly.
+    // Other attributes can be accessed directly. The database related attributes are promoted in the constructor below.
 
-    /** @var ?int The post ID */
-    private ?int $id;
-
-    /** @var int The corresponding discussion ID */
-    private int $discussion;
-
-    /** @var int The parent post ID */
-    private int $parent;
-
-    /** @var int The ID of the User who wrote the post */
-    private int $userid;
-
-    /** @var int Creation timestamp */
-    public int $created;
-
-    /** @var int Modification timestamp */
-    public int $modified;
-
-    /** @var string The message (content) of the post */
-    public string $message;
-
-    /** @var int  The message format*/
-    public int $messageformat;
-
-    /** @var string Attachment of the post */
-    public string $attachment;
-
-    /** @var int Mailed status*/
-    public int $mailed;
-
-    /** @var int Review status */
-    public int $reviewed;
-
-    /** @var ?int The time when the post was reviewed*/
-    public ?int $timereviewed;
-
-    // Not database related functions.
+    // Not database related attributes.
 
     /** @var ?int This variable is optional, it contains important information for the add_attachment function */
     public ?int $formattachments;
@@ -131,32 +95,32 @@ class post {
      * @param ?int $formattachments Information about attachments of the post_form
      */
     public function __construct(
-        ?int $id,
-        int $discussion,
-        int $parent,
-        int $userid,
-        int $created,
-        int $modified,
-        string $message,
-        int $messageformat,
-        string $attachment,
-        int $mailed,
-        int $reviewed,
-        ?int $timereviewed,
+        /** @var ?int The post ID */
+        private ?int $id,
+        /** @var int The corresponding discussion ID */
+        private int $discussion,
+        /** @var int The parent post ID */
+        private int $parent,
+        /** @var int The ID of the User who wrote the post */
+        private int $userid,
+        /** @var int Creation timestamp */
+        public int $created,
+        /** @var int Modification timestamp */
+        public int $modified,
+        /** @var string The message (content) of the post */
+        public string $message,
+        /** @var int The message format */
+        public int $messageformat,
+        /** @var string Attachment of the post */
+        public string $attachment,
+        /** @var int Mailed status */
+        public int $mailed,
+        /** @var int Review status */
+        public int $reviewed,
+        /** @var ?int The time when the post was reviewed */
+        public ?int $timereviewed,
         ?int $formattachments = null
     ) {
-        $this->id = $id;
-        $this->discussion = $discussion;
-        $this->parent = $parent;
-        $this->userid = $userid;
-        $this->created = $created;
-        $this->modified = $modified;
-        $this->message = $message;
-        $this->messageformat = $messageformat;
-        $this->attachment = $attachment;
-        $this->mailed = $mailed;
-        $this->reviewed = $reviewed;
-        $this->timereviewed = $timereviewed;
         $this->formattachments = $formattachments;
     }
 
@@ -199,18 +163,18 @@ class post {
     /**
      * Function to make a new post without specifying the Post ID.
      *
-     * @param int $discussion         The discussion ID.
-     * @param int $parent             The parent post ID.
-     * @param int $userid             The user ID that created the post.
-     * @param int $created            Creation timestamp
-     * @param int $modified           Modification timestamp
-     * @param string $message            The message (content) of the post
-     * @param int $messageformat      The message format
-     * @param string $attachment         Attachment of the post
-     * @param int $mailed             Mailed status
-     * @param int $reviewed           Review status
-     * @param ?int $timereviewed       The time when the post was reviewed
-     * @param ?int $formattachments    Information about attachments from the post_form
+     * @param int $discussion The discussion ID.
+     * @param int $parent The parent post ID.
+     * @param int $userid The user ID that created the post.
+     * @param int $created Creation timestamp
+     * @param int $modified Modification timestamp
+     * @param string $message The message (content) of the post
+     * @param int $messageformat The message format
+     * @param string $attachment Attachment of the post
+     * @param int $mailed Mailed status
+     * @param int $reviewed Review status
+     * @param ?int $timereviewed The time when the post was reviewed
+     * @param ?int $formattachments Information about attachments from the post_form
      *
      * @return object post object without id
      */
