@@ -212,7 +212,7 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
             }
 
             // Get user reputation.
-            $userrating = ratings::moodleoverflow_get_reputation($moodleoverflow->id, $userid, true);
+            $userrating = ratings::get_reputation($moodleoverflow->id, $userid, true);
 
             // Calculate the posting user's updated grade.
             moodleoverflow_update_user_grade($moodleoverflow, $userrating, $userid);

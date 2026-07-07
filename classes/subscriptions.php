@@ -899,7 +899,7 @@ class subscriptions {
      *
      * @return string
      */
-    public static function moodleoverflow_get_subscribe_link($moodleoverflow, $context, $messages = []) {
+    public static function get_subscribe_link($moodleoverflow, $context, $messages = []) {
         global $USER, $OUTPUT;
 
         // Define strings.
@@ -964,7 +964,7 @@ class subscriptions {
      *
      * @return bool
      */
-    public static function moodleoverflow_post_subscription($moodleoverflow, $discussion, $modulecontext) {
+    public static function post_subscription($moodleoverflow, $discussion, $modulecontext) {
         global $USER;
 
         // Check for some basic information.

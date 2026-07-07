@@ -104,8 +104,8 @@ final class discussion_test extends \advanced_testcase {
             $time,
             $this->teacher->id
         );
-        $discussionid = $discussion->moodleoverflow_add_discussion($prepost);
-        $posts = $discussion->moodleoverflow_get_discussion_posts();
+        $discussionid = $discussion->add($prepost);
+        $posts = $discussion->get_posts();
         $post = $posts[$discussion->get_firstpostid()];
 
         // The discussion and the firstpost should be in the DB.
@@ -132,7 +132,7 @@ final class discussion_test extends \advanced_testcase {
         // Delete the discussion, but save the IDs first.
         $discussionid = $this->discussion->get_id();
         $postid = $this->discussion->get_firstpostid();
-        $this->discussion->delete_discussion($prepost);
+        $this->discussion->delete($prepost);
 
         // The discussion and the post should not be in the DB anymore.
         $discussion = count($DB->get_records('moodleoverflow_discussions', ['id' => $discussionid]));

@@ -69,9 +69,9 @@ class change_readtracking_mode extends external_api {
      */
     public static function execute(int $userid, bool $tracked, int $moodleoverflowid): bool {
         if ($tracked) {
-            return readtracking::moodleoverflow_stop_tracking($moodleoverflowid, $userid);
+            return readtracking::stop_tracking($moodleoverflowid, $userid);
         } else {
-            return readtracking::moodleoverflow_start_tracking($moodleoverflowid, $userid);
+            return readtracking::start_tracking($moodleoverflowid, $userid);
         }
     }
 }

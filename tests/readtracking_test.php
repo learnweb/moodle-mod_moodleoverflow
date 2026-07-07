@@ -137,8 +137,8 @@ final class readtracking_test extends advanced_testcase {
         $this->assertEquals(false, $result);
 
         // Stop tracking so we can test again.
-        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($moforce->id);
-        \mod_moodleoverflow\readtracking::moodleoverflow_stop_tracking($mooptional->id);
+        \mod_moodleoverflow\readtracking::stop_tracking($moforce->id);
+        \mod_moodleoverflow\readtracking::stop_tracking($mooptional->id);
 
         // Allow force.
         set_config('allowforcedreadtracking', 1, 'moodleoverflow');

@@ -161,7 +161,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             'formattachments' => null,
             'modulecontext' => $modulecontext,
         ];
-        $record->id = $discussion->moodleoverflow_add_discussion($prepost);
+        $record->id = $discussion->add($prepost);
 
         if (isset($timemodified) || isset($mailed)) {
             $post = $DB->get_record('moodleoverflow_posts', ['discussion' => $record->id]);
@@ -243,7 +243,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         );
 
         // Add the post to the database.
-        $record->id = $post->moodleoverflow_add_new_post();
+        $record->id = $post->add();
         return $record;
     }
 

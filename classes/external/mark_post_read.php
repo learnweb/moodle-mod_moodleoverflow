@@ -76,12 +76,12 @@ class mark_post_read extends external_api {
         global $DB;
         if ($domain == 'moodleoverflow') {
             $cm = get_coursemodule_from_instance('moodleoverflow', $instanceid);
-            readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $userid);
-            return readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm);
+            readtracking::mark_moodleoverflow_read($cm, $userid);
+            return readtracking::count_unread_posts_moodleoverflow($cm);
         } else {
             $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $instanceid]));
-            readtracking::moodleoverflow_mark_discussion_read($discussion, $userid);
-            return readtracking::moodleoverflow_count_unread_posts_discussion($instanceid);
+            readtracking::mark_discussion_read($discussion, $userid);
+            return readtracking::count_unread_posts_discussion($instanceid);
         }
     }
 }

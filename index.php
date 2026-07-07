@@ -254,7 +254,7 @@ if ($generalmoodleoverflows) {
                 if (isset($untracked[$moodleoverflow->id])) {
                     $unreadlink = '-';
                 } else if (
-                    $unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm)
+                    $unread = \mod_moodleoverflow\readtracking::count_unread_posts_moodleoverflow($cm)
                 ) {
                     // There are unread posts in the moodleoverflow instance.
 
@@ -341,7 +341,7 @@ if ($generalmoodleoverflows) {
             ];
 
             // Add the subscription link to the row.
-            $row[] = \mod_moodleoverflow\subscriptions::moodleoverflow_get_subscribe_link(
+            $row[] = \mod_moodleoverflow\subscriptions::get_subscribe_link(
                 $moodleoverflow,
                 $modulecontext,
                 $suboptions

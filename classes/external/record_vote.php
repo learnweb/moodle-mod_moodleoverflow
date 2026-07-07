@@ -114,14 +114,14 @@ class record_vote extends external_api {
         require_capability('mod/moodleoverflow:ratepost', $context);
 
         // Rate the post.
-        if (!ratings::moodleoverflow_add_rating($moodleoverflow, $postid, $ratingid, $cm, $USER->id)) {
+        if (!ratings::add_rating($moodleoverflow, $postid, $ratingid, $cm, $USER->id)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
         $postownerid = $post->userid;
-        $rating = ratings::moodleoverflow_get_ratings_by_discussion($discussion->id, $postid);
-        $ownerrating = ratings::moodleoverflow_get_reputation($moodleoverflow->id, $postownerid);
-        $raterrating = ratings::moodleoverflow_get_reputation($moodleoverflow->id, $USER->id);
+        $rating = ratings::get_ratings_by_discussion($discussion->id, $postid);
+        $ownerrating = ratings::get_reputation($moodleoverflow->id, $postownerid);
+        $raterrating = ratings::get_reputation($moodleoverflow->id, $USER->id);
 
         $cannotseeowner = anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) && $USER->id != $postownerid;
 

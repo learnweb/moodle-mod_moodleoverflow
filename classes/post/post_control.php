@@ -328,7 +328,7 @@ class post_control {
         $this->check_user_can_delete_post();
 
         // Count all replies of this post.
-        $this->info->replycount = $this->info->relatedpost->moodleoverflow_count_replies(false);
+        $this->info->replycount = $this->info->relatedpost->count_replies(false);
         if ($this->info->replycount >= 1) {
             $this->info->deletetype = 'plural';
         } else {
@@ -377,7 +377,7 @@ class post_control {
             $this->prepost->timenow,
             $this->prepost->userid
         );
-        if (!$discussion->moodleoverflow_add_discussion($this->prepost)) {
+        if (!$discussion->add($this->prepost)) {
             throw new moodle_exception('couldnotadd', 'moodleoverflow');
         }
 
@@ -389,7 +389,7 @@ class post_control {
         // Subscribe to this thread.
         // Please be aware that in future the use of get_db_object() should be replaced with only $this->info->discussion,
         // as the subscription class should be refactored with the new way of working with posts.
-        subscriptions::moodleoverflow_post_subscription(
+        subscriptions::post_subscription(
             $this->info->moodleoverflow,
             $discussion->get_db_object(),
             $this->info->modulecontext
@@ -422,7 +422,7 @@ class post_control {
         }
 
         // Create the new post.
-        if (!$newpostid = $this->info->discussion->moodleoverflow_add_post_to_discussion($this->prepost)) {
+        if (!$newpostid = $this->info->discussion->add_new_post($this->prepost)) {
             throw new moodle_exception('couldnotadd', 'moodleoverflow');
         }
 
@@ -438,7 +438,7 @@ class post_control {
         // Subscribe to this thread.
         // LEARNWEB-TODO: Please be aware that in future the use of build_db_object() should be replaced with only
         // $this->info->discussion, as the subscription class should be refactored with the new way of working with posts.
-        subscriptions::moodleoverflow_post_subscription(
+        subscriptions::post_subscription(
             $this->info->moodleoverflow,
             $this->info->discussion->get_db_object(),
             $this->info->modulecontext
@@ -475,7 +475,7 @@ class post_control {
         }
 
         // Update the post.
-        if (!$this->info->discussion->moodleoverflow_edit_post_from_discussion($this->prepost)) {
+        if (!$this->info->discussion->edit_post($this->prepost)) {
             throw new moodle_exception('couldnotupdate', 'moodleoverflow');
         }
 
@@ -538,7 +538,7 @@ class post_control {
         if ($this->prepost->parentid == 0) {
             // Save the moodleoverflowid. Then delete the discussion.
             $moodleoverflowid = $this->info->discussion->get_moodleoverflowid();
-            $this->info->discussion->delete_discussion($this->prepost);
+            $this->info->discussion->delete($this->prepost);
 
             // Redirect the user back to the start page of the moodleoverflow instance.
             return 'view.php?m=' . $moodleoverflowid;
@@ -677,7 +677,7 @@ class post_control {
             $data = (object) [
                 'postid' => $this->info->relatedpost->get_id(),
                 'postcontent' => $this->info->relatedpost->get_message_formatted(),
-                'attachments' => $this->info->relatedpost->moodleoverflow_get_attachments(),
+                'attachments' => $this->info->relatedpost->get_attachments(),
                 'byname' => $this->info->relatedpost->get_userlink()['link'],
             ];
             return $OUTPUT->render_from_template('mod_moodleoverflow/post_original', $data);

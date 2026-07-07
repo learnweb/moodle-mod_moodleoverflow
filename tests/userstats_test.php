@@ -156,7 +156,7 @@ final class userstats_test extends \advanced_testcase {
         $this->create_solution($this->teacher, $this->discussion1[1], $this->answer1);
 
         // Calculate the forum reputation of user2.
-        $reputation = \mod_moodleoverflow\ratings::moodleoverflow_get_reputation_instance(
+        $reputation = \mod_moodleoverflow\ratings::get_reputation_instance(
             $this->moodleoverflow->id,
             $this->user2->id
         );

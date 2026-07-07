@@ -142,7 +142,7 @@ class discussion {
         $instance = new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
 
         // Get all the posts so that the instance can work with it.
-        $instance->moodleoverflow_get_discussion_posts();
+        $instance->get_posts();
 
         return $instance;
     }
@@ -184,7 +184,7 @@ class discussion {
      * @throws dml_exception
      * @throws coding_exception
      */
-    public function moodleoverflow_add_discussion(object $prepost): bool|int|null {
+    public function add(object $prepost): bool|int|null {
         global $DB;
         try {
             $transaction = $DB->start_delegated_transaction();
@@ -209,7 +209,7 @@ class discussion {
             );
 
             // Add it to the DB and save the id of the first/parent post.
-            $this->firstpost = $post->moodleoverflow_add_new_post();
+            $this->firstpost = $post->add();
             $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
 
             // Add the parent post to the $posts array.
@@ -240,12 +240,12 @@ class discussion {
     }
 
     /**
-     * Delete a discussion with all of it's posts
+     * Deletes this discussion with all of it's posts
      * @param object $prepost Information about the post from the post_control
      * @return bool Wether deletion was successful of not
      * @throws moodle_exception
      */
-    public function delete_discussion(object $prepost): bool {
+    public function delete(object $prepost): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -258,10 +258,10 @@ class discussion {
 
             // Delete every post of this discussion.
             $firstpost = $this->posts[$this->firstpost];
-            $firstpost->moodleoverflow_delete_post(true);
+            $firstpost->delete(true);
 
             // Delete the read-records for the discussion.
-            readtracking::moodleoverflow_delete_read_records(-1, -1, $this->id);
+            readtracking::delete_read_records(-1, -1, $this->id);
 
             // Remove the subscriptions for the discussion.
             $DB->delete_records('moodleoverflow_discuss_subs', ['discussion' => $this->id]);
@@ -298,7 +298,7 @@ class discussion {
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
      * @throws dml_exception|moodle_exception
      */
-    public function moodleoverflow_add_post_to_discussion(object $prepost) {
+    public function add_new_post(object $prepost) {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -319,7 +319,7 @@ class discussion {
             $prepost->formattachments
         );
         // Add the post to the DB.
-        $postid = $post->moodleoverflow_add_new_post();
+        $postid = $post->add();
 
         // Add the post to the $posts array and update the timemodified in the DB.
         $this->posts[$postid] = $post;
@@ -346,13 +346,13 @@ class discussion {
 
         // Access the post and delete it.
         $post = $this->posts[$prepost->postid];
-        if (!$post->moodleoverflow_delete_post($prepost->deletechildren)) {
+        if (!$post->delete($prepost->deletechildren)) {
             // Deletion failed.
             return false;
         }
 
         // Check for the new last post of the discussion.
-        $this->moodleoverflow_discussion_adapt_to_last_post();
+        $this->adapt_to_last_post();
 
         // Delete the post from the post array.
         unset($this->posts[$prepost->postid]);
@@ -365,7 +365,7 @@ class discussion {
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
      * @throws dml_exception|moodle_exception
      */
-    public function moodleoverflow_edit_post_from_discussion(object $prepost): bool {
+    public function edit_post(object $prepost): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -383,7 +383,7 @@ class discussion {
             $this->timemodified = $prepost->timenow;
             $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
         }
-        $post->moodleoverflow_edit_post($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachments);
+        $post->edit($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachments);
 
         // The post has been edited successfully.
         return true;
@@ -396,7 +396,7 @@ class discussion {
      * @return bool true if the DB needed to be adapted. false if it didn't change.
      * @throws dml_exception|moodle_exception
      */
-    public function moodleoverflow_discussion_adapt_to_last_post(): bool {
+    public function adapt_to_last_post(): bool {
         global $DB;
         $this->existence_check();
 
@@ -500,11 +500,11 @@ class discussion {
      * @return array of votings
      * @throws moodle_exception
      */
-    public function moodleoverflow_get_discussion_ratings(): array {
+    public function get_ratings(): array {
         $this->existence_check();
         $this->posts_check();
 
-        return ratings::moodleoverflow_get_ratings_by_discussion($this->id);
+        return ratings::get_ratings_by_discussion($this->id);
     }
 
     /**
@@ -513,7 +513,7 @@ class discussion {
      * @return post[] $posts     Array ob posts objects
      * @throws moodle_exception
      */
-    public function moodleoverflow_get_discussion_posts(): array {
+    public function get_posts(): array {
         global $DB;
         $this->existence_check();
 
