@@ -113,11 +113,11 @@ class readtracking {
      * @param object $cm
      * @param null   $userid
      */
-    public static function moodleoverflow_mark_moodleoverflow_read($cm, $userid = null) {
+    public static function mark_moodleoverflow_read($cm, $userid = null) {
         global $USER, $DB;
         foreach ($DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $cm->instance]) as $discussion) {
             // Mark the discussion as read.
-            $markedcheck = self::moodleoverflow_mark_discussion_read(discussion::from_record($discussion), $userid ?? $USER->id);
+            $markedcheck = self::mark_discussion_read(discussion::from_record($discussion), $userid ?? $USER->id);
             moodleoverflow_throw_exception_with_check($markedcheck !== true, 'markreadfailed');
         }
         return true;
@@ -129,21 +129,21 @@ class readtracking {
      * @param discussion $discussion The discussion object
      * @param ?int $userid
      */
-    public static function moodleoverflow_mark_discussion_read(discussion $discussion, ?int $userid = null) {
+    public static function mark_discussion_read(discussion $discussion, ?int $userid = null) {
         global $USER;
 
         // If no user is submitted, use the current one.
         $userid = $userid ?? $USER->id;
 
         // Iterate through all posts of the discussion.
-        foreach ($discussion->moodleoverflow_get_discussion_posts() as $post) {
+        foreach ($discussion->get_posts() as $post) {
             // Ignore already read posts.
             if (self::is_post_read($discussion->get_moodleoverflow(), $post->get_id(), $userid)) {
                 continue;
             }
 
             // Mark the post as read.
-            $postreadcheck = self::moodleoverflow_mark_post_read($userid, $post->get_db_object());
+            $postreadcheck = self::mark_post_read($userid, $post->get_db_object());
             moodleoverflow_throw_exception_with_check(!$postreadcheck, 'markreadfailed');
         }
 
@@ -159,8 +159,8 @@ class readtracking {
      *
      * @return bool
      */
-    public static function moodleoverflow_mark_post_read($userid, $post) {
-        return self::moodleoverflow_is_old_post($post) || self::moodleoverflow_add_read_record($userid, $post->id);
+    public static function mark_post_read($userid, $post) {
+        return self::is_old_post($post) || self::add_read_record($userid, $post->id);
     }
 
     /**
@@ -170,7 +170,7 @@ class readtracking {
      *
      * @return bool
      */
-    public static function moodleoverflow_is_old_post($post) {
+    public static function is_old_post($post) {
         // Calculate the time, where older posts are considered read and return if the post is newer than that time.
         return ($post->modified < time() - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600));
     }
@@ -183,7 +183,7 @@ class readtracking {
      *
      * @return bool
      */
-    public static function moodleoverflow_add_read_record($userid, $postid) {
+    public static function add_read_record($userid, $postid) {
         global $DB;
 
         // Get the current time and the cutoffdate.
@@ -222,7 +222,7 @@ class readtracking {
      *
      * @return bool
      */
-    public static function moodleoverflow_delete_read_records($userid = -1, $postid = -1, $discussionid = -1, $overflowid = -1) {
+    public static function delete_read_records($userid = -1, $postid = -1, $discussionid = -1, $overflowid = -1) {
         global $DB;
 
         // Initiate variables.
@@ -271,7 +271,7 @@ class readtracking {
      * Deletes all read records that are related to posts that are older than the cutoffdate.
      * This function is only called by the modules cronjob.
      */
-    public static function moodleoverflow_clean_read_records() {
+    public static function clean_read_records() {
         global $DB;
 
         // Stop if there cannot be old posts.
@@ -310,7 +310,7 @@ class readtracking {
      *
      * @return bool Whether the deletion was successful
      */
-    public static function moodleoverflow_stop_tracking($moodleoverflowid, $userid = null) {
+    public static function stop_tracking($moodleoverflowid, $userid = null) {
         global $USER, $DB;
 
         // Set the user.
@@ -325,7 +325,7 @@ class readtracking {
             $DB->insert_record('moodleoverflow_tracking', $params);
         }
         // Delete all connected read records and return whether the deletion was successful.
-        return self::moodleoverflow_delete_read_records($userid, -1, -1, $moodleoverflowid);
+        return self::delete_read_records($userid, -1, -1, $moodleoverflowid);
     }
 
     /**
@@ -336,7 +336,7 @@ class readtracking {
      *
      * @return bool Whether the deletion was successful
      */
-    public static function moodleoverflow_start_tracking($moodleoverflowid, $userid = null) {
+    public static function start_tracking($moodleoverflowid, $userid = null) {
         global $USER, $DB;
 
         // Get the current user.
@@ -401,7 +401,7 @@ class readtracking {
      *
      * @return int
      */
-    public static function moodleoverflow_count_unread_posts_moodleoverflow(object $cm): int {
+    public static function count_unread_posts_moodleoverflow(object $cm): int {
         global $DB, $USER;
         // Return if tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
         if (self::check_tracking_off($cm->instance, $USER->id)) {
@@ -430,7 +430,7 @@ class readtracking {
      * @param int $userid
      * @return int
      */
-    public static function moodleoverflow_count_unread_posts_discussion(int $discussionid, int $userid = 0): int {
+    public static function count_unread_posts_discussion(int $discussionid, int $userid = 0): int {
         global $DB, $USER;
         $userid = $userid ?? $USER->id;
         $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid]);

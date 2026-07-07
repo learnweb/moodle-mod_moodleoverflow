@@ -98,7 +98,7 @@ if (!empty($discussionid)) {
     $record = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', $options, 'invaliddiscussionid');
     // Mark all the discussions read.
     if (
-        !readtracking::moodleoverflow_mark_discussion_read(discussion::from_record($record), $user->id)
+        !readtracking::mark_discussion_read(discussion::from_record($record), $user->id)
     ) {
         // Display an error, if something failes.
         $message = get_string('markreadfailed', 'moodleoverflow');
@@ -114,7 +114,7 @@ if (!empty($discussionid)) {
     exit;
 } else {
     // Mark all message read in the current instance.
-    if (!readtracking::moodleoverflow_mark_moodleoverflow_read($cm, $user->id)) {
+    if (!readtracking::mark_moodleoverflow_read($cm, $user->id)) {
         // Display an error, if something fails.
         $message = get_string('markreadfailed', 'moodleoverflow');
         $status = \core\output\notification::NOTIFY_ERROR;

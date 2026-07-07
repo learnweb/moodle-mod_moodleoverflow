@@ -132,7 +132,7 @@ class review_reject_post extends external_api {
 
         if (!$post->parent) {
             // Delete discussion, if this is the question.
-            discussion::from_record($discussion)->delete_discussion((object) ['modulecontext' => $context]);
+            discussion::from_record($discussion)->delete((object) ['modulecontext' => $context]);
         } else {
             $prepost = (object) ['postid' => $post->id, 'deletechildren' => true];
             discussion::from_record($discussion)->delete_post_from_discussion($prepost);

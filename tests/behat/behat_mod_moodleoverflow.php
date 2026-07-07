@@ -646,9 +646,9 @@ class behat_mod_moodleoverflow extends behat_base {
         }
 
         if ($readtype) {
-            readtracking::moodleoverflow_start_tracking($modflow->id, $user->id);
+            readtracking::start_tracking($modflow->id, $user->id);
         } else {
-            readtracking::moodleoverflow_start_tracking($modflow->id, $user->id);
+            readtracking::start_tracking($modflow->id, $user->id);
         }
     }
 

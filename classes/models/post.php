@@ -254,7 +254,7 @@ class post {
      * @throws coding_exception
      * @throws dml_exception|moodle_exception
      */
-    public function moodleoverflow_add_new_post(): bool|int|null {
+    public function add(): bool|int|null {
         global $DB;
 
         // Add post to the database.
@@ -262,7 +262,7 @@ class post {
 
         // Save draft files to permanent file area.
         $this->save_draft_files();
-        $this->moodleoverflow_add_attachment();
+        $this->add_attachment();
 
         if ($this->reviewed) {
             $DB->set_field('moodleoverflow_discussions', 'timemodified', $this->modified, ['id' => $this->discussion]);
@@ -273,20 +273,20 @@ class post {
         $cantrack = readtracking::can_track_moodleoverflows($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
-            readtracking::moodleoverflow_mark_post_read($this->userid, $this->get_db_object());
+            readtracking::mark_post_read($this->userid, $this->get_db_object());
         }
         return $this->id;
     }
 
     /**
-     * Deletes a single moodleoverflow post.
+     * Deletes this moodleoverflow post and it's children posts if wanted.
      *
-     * @param bool $deletechildren The child posts
+     * @param bool $deletechildren If child posts (posts that reference this post as parent)
      *
      * @return bool Whether the deletion was successful or not
      * @throws moodle_exception
      */
-    public function moodleoverflow_delete_post(bool $deletechildren): bool {
+    public function delete(bool $deletechildren): bool {
         global $DB, $USER;
         $this->existence_check();
 
@@ -296,11 +296,11 @@ class post {
 
             // Get the coursemoduleid for later use.
             $coursemoduleid = $this->get_coursemodule()->id;
-            $childposts = $this->moodleoverflow_get_childposts();
+            $childposts = $this->get_childposts();
             if ($deletechildren && $childposts) {
                 foreach ($childposts as $childpost) {
                     $child = $this->from_record($childpost);
-                    $child->moodleoverflow_delete_post(true);
+                    $child->delete(true);
                 }
             }
 
@@ -309,7 +309,7 @@ class post {
 
             // Delete the post.
             if ($DB->delete_records('moodleoverflow_posts', ['id' => $this->id])) {
-                readtracking::moodleoverflow_delete_read_records(-1, $this->id);
+                readtracking::delete_read_records(-1, $this->id);
 
                 // Delete the attachments.
                 $fs = get_file_storage();
@@ -375,7 +375,7 @@ class post {
      * @return true if the post has been edited successfully
      * @throws moodle_exception
      */
-    public function moodleoverflow_edit_post(int $time, string $postmessage, int $messageformat, ?int $formattachments): bool {
+    public function edit(int $time, string $postmessage, int $messageformat, ?int $formattachments): bool {
         $this->existence_check();
 
         // Update the attributes.
@@ -384,38 +384,11 @@ class post {
         $this->messageformat = $messageformat;
         $this->formattachments = $formattachments;
         $this->save_draft_files();
-        $this->moodleoverflow_add_attachment();
+        $this->add_attachment();
         $this->mark_post_read();
 
         // The post has been edited successfully.
         return true;
-    }
-
-    /**
-     * // NOTE: This function replaces the get_post_full() function but is not used until the print and print-related function for
-     * // printing the discussion and a post are adapted to the new post and discussion class.
-     * Gets a post with all info ready for moodleoverflow_print_post.
-     * Most of these joins are just to get the forum id.
-     *
-     * @return object array of posts or false
-     * @throws moodle_exception
-     */
-    public function moodleoverflow_get_complete_post(): object {
-        global $DB;
-        $this->existence_check();
-
-        $allnames = fields::for_name()->get_sql('u', false, '', '', false)->selects;
-        $sql = "SELECT p.*, d.moodleoverflow, $allnames, u.email, u.picture, u.imagealt
-                FROM {moodleoverflow_posts} p
-                    JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
-                LEFT JOIN {user} u ON p.userid = u.id
-                    WHERE p.id = " . $this->id . " ;";
-
-        $post = $DB->get_record_sql($sql);
-        if ($post->userid == 0) {
-            $post->message = get_string('privacy:anonym_post_message', 'mod_moodleoverflow');
-        }
-        return $post;
     }
 
     /**
@@ -424,7 +397,7 @@ class post {
      * @return void
      * @throws moodle_exception
      */
-    public function moodleoverflow_add_attachment(): void {
+    public function add_attachment(): void {
         global $DB;
         $this->existence_check();
 
@@ -452,7 +425,7 @@ class post {
      * @return array
      * @throws moodle_exception
      */
-    public function moodleoverflow_get_attachments(): array {
+    public function get_attachments(): array {
         global $OUTPUT;
         $this->existence_check();
 
@@ -684,7 +657,7 @@ class post {
      * @throws dml_exception
      * @throws moodle_exception
      */
-    public function moodleoverflow_get_parentpost(): post|null {
+    public function get_parentpost(): post|null {
         global $DB;
         $this->existence_check();
         // Return the parentpost, which is null if there is no parent or a post.
@@ -699,7 +672,7 @@ class post {
      * @return array children/answer posts.
      * @throws moodle_exception
      */
-    public function moodleoverflow_get_childposts(): array {
+    public function get_childposts(): array {
         global $DB;
         $this->existence_check();
         return $DB->get_records('moodleoverflow_posts', ['parent' => $this->id]);
@@ -724,9 +697,9 @@ class post {
      * @return object $ratingsobject.
      * @throws moodle_exception
      */
-    public function moodleoverflow_get_post_ratings(): object {
+    public function get_ratings(): object {
         $this->existence_check();
-        $postratings = ratings::moodleoverflow_get_ratings_by_discussion($this->get_discussion()->get_id(), $this->id);
+        $postratings = ratings::get_ratings_by_discussion($this->get_discussion()->get_id(), $this->id);
         return (object) [
             'upvotes' => $postratings->upvotes,
             'downvotes' => $postratings->downvotes,
@@ -747,7 +720,7 @@ class post {
         $cantrack = readtracking::can_track_moodleoverflows($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
-            readtracking::moodleoverflow_mark_post_read($USER->id, $this->get_db_object());
+            readtracking::mark_post_read($USER->id, $this->get_db_object());
         }
     }
 
@@ -779,7 +752,7 @@ class post {
      * @return int Amount of replies
      * @throws dml_exception
      */
-    public function moodleoverflow_count_replies(bool $onlyreviewed): int {
+    public function count_replies(bool $onlyreviewed): int {
         global $DB;
         return $DB->count_records('moodleoverflow_posts', ['parent' => $this->id] + ($onlyreviewed ? ['reviewed' => '1'] : []));
     }

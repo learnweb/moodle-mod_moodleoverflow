@@ -93,12 +93,12 @@ class discussion_card implements named_templatable, renderable {
         $issubcribable = subscriptions::is_subscribable($this->modflow, $this->context);
 
         // Check if the post was marked as helpful or as solution.
-        $helpful = array_values(ratings::moodleoverflow_discussion_is_solved($this->discussion->get_id()));
+        $helpful = array_values(ratings::discussion_is_solved($this->discussion->get_id()));
         if ($helpful) {
             $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$helpful[0]->postid}");
             $helpful = ['link' => $link->out()];
         }
-        $solution = array_values(ratings::moodleoverflow_discussion_is_solved($this->discussion->get_id(), true));
+        $solution = array_values(ratings::discussion_is_solved($this->discussion->get_id(), true));
         if ($solution) {
             $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$solution[0]->postid}");
             $solution = ['link' => $link->out()];
@@ -127,12 +127,12 @@ class discussion_card implements named_templatable, renderable {
         ];
 
         // Gather rating information about the first post.
-        $ratings = $this->firstpost->moodleoverflow_get_post_ratings();
-        $userrating = ratings::moodleoverflow_user_rated($this->firstpost->get_id());
-        $ratingability = ratings::moodleoverflow_user_can_rate($this->firstpost->get_db_object(), $this->context);
+        $ratings = $this->firstpost->get_ratings();
+        $userrating = ratings::user_rated($this->firstpost->get_id());
+        $ratingability = ratings::user_can_rate($this->firstpost->get_db_object(), $this->context);
 
         // Gather readtracking data for the readtracking template.
-        $unreadcount = readtracking::moodleoverflow_count_unread_posts_discussion($this->discussion->get_id(), $USER->id);
+        $unreadcount = readtracking::count_unread_posts_discussion($this->discussion->get_id(), $USER->id);
         $unreaddata = [
             'itemid' => 'moodleoverflow-markpostsread-' . $this->discussion->get_id(),
             'domain' => 'discussion',
@@ -162,7 +162,7 @@ class discussion_card implements named_templatable, renderable {
             'subjectlink' => (new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()]))->out(),
             'userfirstpost' => $userfirstpost,
             'userlastpost' => $userlastpost,
-            'replyamount' => count($this->discussion->moodleoverflow_get_discussion_posts()),
+            'replyamount' => count($this->discussion->get_posts()),
             'unread' => $unreadcount > 0 ? $unreaddata : [],
             'canreview' => has_capability('mod/moodleoverflow:reviewpost', $this->context),
             'needreview' => $reviewinfo->count > 0,

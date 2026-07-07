@@ -104,7 +104,7 @@ final class post_test extends \advanced_testcase {
             1,
             null
         );
-        $post->moodleoverflow_add_new_post();
+        $post->add();
 
         // The post should be in the database.
         $postscount = count($DB->get_records('moodleoverflow_posts', ['id' => $post->get_id()]));
@@ -132,7 +132,7 @@ final class post_test extends \advanced_testcase {
         $time = time();
 
         // Update the post.
-        $this->post->moodleoverflow_edit_post($time, $message, $this->post->messageformat, $this->post->formattachments);
+        $this->post->edit($time, $message, $this->post->messageformat, $this->post->formattachments);
 
         // The message and modified time should be changed.
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $this->post->get_id()]);
@@ -142,7 +142,7 @@ final class post_test extends \advanced_testcase {
 
     /**
      * Test, if a post and its attachment are deleted successfully.
-     * @covers \mod_moodleoverflow\models\post::moodleoverflow_delete_post
+     * @covers \mod_moodleoverflow\models\post::delete
      */
     public function test_moodleoverflow_delete_post(): void {
         global $DB;
@@ -156,7 +156,7 @@ final class post_test extends \advanced_testcase {
         // Delete the post with its attachment.
         // Save the post id as it gets unsettled by the post object after being deleted.
         $postid = $this->post->get_id();
-        $this->post->moodleoverflow_delete_post(true);
+        $this->post->delete(true);
 
         // Now try to get the attachment, it should be deleted from the database.
         $numberofattachments = count($DB->get_records('files', ['itemid' => $postid]));

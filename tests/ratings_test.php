@@ -95,13 +95,13 @@ final class ratings_test extends \advanced_testcase {
         $posts = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
         $this->set_ratingpreferences(0);
         $rightorder = [$this->post, $this->answer1, $this->answer3, $this->answer2, $this->answer4, $this->answer6, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Change the rating preference of the teacher and sort again.
         $this->set_ratingpreferences(1);
         $rightorder = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer6, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
     }
 
@@ -118,36 +118,36 @@ final class ratings_test extends \advanced_testcase {
         $posts = [$this->post, $this->answer1, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
         $this->set_ratingpreferences(0);
         $rightorder = [$this->post, $this->answer1, $this->answer3, $this->answer4, $this->answer6, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         $this->set_ratingpreferences(1);
         $rightorder = [$this->post, $this->answer1, $this->answer3, $this->answer4, $this->answer6, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Test without posts that are only marked as helpful.
         $posts = [$this->post, $this->answer1, $this->answer2, $this->answer4, $this->answer5, $this->answer6];
         $this->set_ratingpreferences(0);
         $rightorder = [$this->post, $this->answer1, $this->answer2, $this->answer4, $this->answer6, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         $this->set_ratingpreferences(1);
         $rightorder = [$this->post, $this->answer1, $this->answer2, $this->answer4, $this->answer6, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Test without posts that are marked as both helpful and solved.
         $posts = [$this->post, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
         $this->set_ratingpreferences(0);
         $rightorder = [$this->post, $this->answer3, $this->answer2, $this->answer4, $this->answer6, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         $this->set_ratingpreferences(1);
         $rightorder = [$this->post, $this->answer2, $this->answer3, $this->answer4, $this->answer6, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
     }
 
@@ -181,7 +181,7 @@ final class ratings_test extends \advanced_testcase {
         $this->create_twogroups('s', 'o');
         $posts = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
         $rightorder = [$this->post, $this->answer2, $this->answer1, $this->answer3, $this->answer6, $this->answer5, $this->answer4];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Test case 6: only helpful posts and not-marked posts.
@@ -205,49 +205,49 @@ final class ratings_test extends \advanced_testcase {
         $this->create_onegroup('sh');
         $posts = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
         $rightorder = [$this->post, $this->answer4, $this->answer6, $this->answer3, $this->answer1, $this->answer2, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Now set the votesdifference equal for this group, sort again and check if they are sorted correctly after time.
         $this->set_votesdifference();
         $rightorder = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Test case 2: only solvedposts.
         $this->create_onegroup('s');
         $rightorder = [$this->post, $this->answer4, $this->answer6, $this->answer3, $this->answer1, $this->answer2, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Now set the votesdifference equal for this group, sort again and check if they are sorted correctly after time.
         $this->set_votesdifference();
         $rightorder = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Test case 3: only helpful posts.
         $this->create_onegroup('h');
         $rightorder = [$this->post, $this->answer4, $this->answer6, $this->answer3, $this->answer1, $this->answer2, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Now set the votesdifference equal for this group, sort again and check if they are sorted correctly after time.
         $this->set_votesdifference();
         $rightorder = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Test case 4: only not marked posts.
         $this->create_onegroup('o');
         $rightorder = [$this->post, $this->answer4, $this->answer6, $this->answer3, $this->answer1, $this->answer2, $this->answer5];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
 
         // Now set the votesdifference equal for this group, sort again and check if they are sorted correctly after time.
         $this->set_votesdifference();
         $rightorder = [$this->post, $this->answer1, $this->answer2, $this->answer3, $this->answer4, $this->answer5, $this->answer6];
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
     }
 
@@ -519,7 +519,7 @@ final class ratings_test extends \advanced_testcase {
         if ($orderposts) {
             $rightorder = $orderposts;
         }
-        $result = $this->postsorderequal(ratings::moodleoverflow_sort_answers_by_ratings($posts), $rightorder);
+        $result = $this->postsorderequal(ratings::sort_answers_by_ratings($posts), $rightorder);
         $this->assertEquals(1, $result);
     }
 

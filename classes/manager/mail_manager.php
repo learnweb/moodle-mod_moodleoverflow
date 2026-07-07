@@ -62,7 +62,7 @@ class mail_manager {
      * @throws moodle_exception
      * @throws dml_exception
      */
-    public static function moodleoverflow_send_mails(): bool {
+    public static function send_mails(): bool {
         global $DB, $PAGE;
 
         // Get the main renderers.
@@ -76,12 +76,12 @@ class mail_manager {
         $starttime = $endtime - (get_config('moodleoverflow', 'maxmailingtime') * 60 * 60);
 
         // Retrieve posts that need to be send to users.
-        if (!$records = self::moodleoverflow_get_unmailed_posts($starttime, $endtime)) {
+        if (!$records = self::get_unmailed_posts($starttime, $endtime)) {
             return true;
         }
 
         // Mark those posts as mailed.
-        if (!self::moodleoverflow_mark_old_posts_as_mailed($endtime)) {
+        if (!self::mark_old_posts_as_mailed($endtime)) {
             return false;
         }
 
@@ -100,7 +100,7 @@ class mail_manager {
 
             // Fill the caches with objects if needed.
             // Add additional information that were not retrievable from the database to the objects if needed.
-            self::moodleoverflow_update_mail_caches(
+            self::update_mail_caches(
                 $record,
                 $coursemodules,
                 $courses,
@@ -126,7 +126,7 @@ class mail_manager {
             // Check if the user subscribed to the post wants a summary instead of a notification mail.
             if ($record->usertomaildigest != 0) {
                 // Process the record for the mail digest.
-                self::moodleoverflow_process_maildigest_record($record);
+                self::process_maildigest_record($record);
                 continue;
             }
 
@@ -219,7 +219,7 @@ class mail_manager {
      * @return array
      * @throws dml_exception
      */
-    public static function moodleoverflow_get_unmailed_posts($starttime, $endtime): array {
+    public static function get_unmailed_posts($starttime, $endtime): array {
         global $DB;
 
         // Define fields that will be retrieved from the database.
@@ -330,7 +330,7 @@ class mail_manager {
      *
      * @return void
      */
-    public static function moodleoverflow_update_mail_caches(
+    public static function update_mail_caches(
         object $record,
         array &$coursemodules,
         array &$courses,
@@ -385,13 +385,13 @@ class mail_manager {
     }
 
     /**
-     * Function that processes a record from self::moodleoverflow_get_unmailed_posts() if the user that gets the mail wants a
+     * Function that processes a record from self::get_unmailed_posts() if the user that gets the mail wants a
      * resume instead of a mail for every post.
      *
-     * @param object $data a single record object from self::moodleoverflow_get_unmailed_posts()
+     * @param object $data a single record object from self::get_unmailed_posts()
      * @return void
      */
-    public static function moodleoverflow_process_maildigest_record(object $data): void {
+    public static function process_maildigest_record(object $data): void {
         global $DB;
         // LEARNWEB-TODO: Rename database table attribute names. Rethink the table structure. What should the mail have?
         // If the record exists, update it. If not, insert a new record.
@@ -420,7 +420,7 @@ class mail_manager {
      *
      * @return bool
      */
-    public static function moodleoverflow_mark_old_posts_as_mailed($endtime) {
+    public static function mark_old_posts_as_mailed($endtime) {
         global $DB;
 
         // Get the current timestamp.

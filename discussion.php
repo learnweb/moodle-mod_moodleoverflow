@@ -79,7 +79,7 @@ if ($ratingid) {
 
     if (in_array($ratingid, [RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL])) {
         // Rate the post.
-        if (!\mod_moodleoverflow\ratings::moodleoverflow_add_rating($moodleoverflow, $ratedpost, $ratingid, $cm, $USER->id)) {
+        if (!\mod_moodleoverflow\ratings::add_rating($moodleoverflow, $ratedpost, $ratingid, $cm, $USER->id)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
@@ -134,7 +134,7 @@ $renderer = $PAGE->get_renderer('mod_moodleoverflow');
 
 // Mark the discussion as read as the user entered the discussion.
 if (readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER)) {
-    readtracking::moodleoverflow_mark_discussion_read($discussion, $USER->id);
+    readtracking::mark_discussion_read($discussion, $USER->id);
 }
 
 // Start the side-output.

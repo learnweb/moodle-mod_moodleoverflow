@@ -100,7 +100,7 @@ class overview extends activityoverviewbase {
             'instanceid' => $this->moodleoverflow->id,
             'userid' => $USER->id,
             'unreadlink' => new url('/mod/moodleoverflow/view.php', ['m' => $this->moodleoverflow->id]),
-            'unreadamount' => readtracking::moodleoverflow_count_unread_posts_moodleoverflow($this->cm),
+            'unreadamount' => readtracking::count_unread_posts_moodleoverflow($this->cm),
         ];
         $name = get_string('unreadposts', 'moodleoverflow');
         return new overviewitem($name, $name, $OUTPUT->render_from_template('mod_moodleoverflow/readtracking', $mustachedata));

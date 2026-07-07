@@ -46,7 +46,7 @@ class send_mails extends \core\task\scheduled_task {
     #[\Override]
     public function execute(): bool {
         try {
-            mail_manager::moodleoverflow_send_mails();
+            mail_manager::send_mails();
         } catch (Exception $e) {
             notification::error(get_string('error_sending_mails', 'mod_moodleoverflow', $e->getMessage()));
             return false;

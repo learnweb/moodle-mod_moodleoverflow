@@ -290,14 +290,14 @@ function moodleoverflow_delete_instance($id) {
     if ($discussions = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $moodleoverflow->id])) {
         require_once('locallib.php');
         foreach ($discussions as $discussion) {
-            if (!discussion::from_record($discussion)->delete_discussion((object) ['modulecontext' => $context])) {
+            if (!discussion::from_record($discussion)->delete((object) ['modulecontext' => $context])) {
                 $result = false;
             }
         }
     }
 
     // Delete the read records.
-    \mod_moodleoverflow\readtracking::moodleoverflow_delete_read_records(-1, -1, -1, $moodleoverflow->id);
+    \mod_moodleoverflow\readtracking::delete_read_records(-1, -1, -1, $moodleoverflow->id);
 
     // Delete the moodleoverflow instance.
     if (!$DB->delete_records('moodleoverflow', ['id' => $moodleoverflow->id])) {
@@ -599,7 +599,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
         }
     }
     if ($cantrack) {
-        $unread = \mod_moodleoverflow\readtracking::moodleoverflow_count_unread_posts_moodleoverflow($cm);
+        $unread = \mod_moodleoverflow\readtracking::count_unread_posts_moodleoverflow($cm);
         if ($unread) {
             $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {

@@ -38,7 +38,7 @@ class ratings {
      *
      * @return bool|int
      */
-    public static function moodleoverflow_add_rating($moodleoverflow, $postid, $rating, $cm, $userid) {
+    public static function add_rating($moodleoverflow, $postid, $rating, $cm, $userid) {
         global $DB;
 
         // Is the submitted rating valid?
@@ -75,7 +75,7 @@ class ratings {
         $coursecontext = \context_course::instance($course->id);
 
         // Redirect the user if capabilities are missing.
-        if (!self::moodleoverflow_user_can_rate($post, $modulecontext, $userid)) {
+        if (!self::user_can_rate($post, $modulecontext, $userid)) {
             // Catch unenrolled users.
             $returnurl = '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id;
             moodleoverflow_catch_unenrolled_user($coursecontext, $course->id, $returnurl);
@@ -99,11 +99,11 @@ class ratings {
             );
 
             // Delete the rating.
-            return self::moodleoverflow_remove_rating($postid, $rating / 10, $userid, $modulecontext);
+            return self::remove_rating($postid, $rating / 10, $userid, $modulecontext);
         }
 
         // Check for an older rating in this discussion.
-        $oldrating = self::moodleoverflow_check_old_rating($postid, $userid);
+        $oldrating = self::check_old_rating($postid, $userid);
 
         // Mark a post as solution or as helpful.
         if ($rating == RATING_SOLVED || $rating == RATING_HELPFUL) {
@@ -125,9 +125,9 @@ class ratings {
 
                 // If there is an old rating, update it. Else create a new rating record.
                 if ($otherrating) {
-                    return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
+                    return self::update_rating_record($post->id, $rating, $userid, $otherrating->id, $modulecontext);
                 } else {
-                    return self::moodleoverflow_add_rating_record(
+                    return self::add_rating_record(
                         $moodleoverflow->id,
                         $discussion->id,
                         $post->id,
@@ -138,7 +138,7 @@ class ratings {
                 }
             } else {
                 // If multiplemarks are allowed, only create a new rating.
-                return self::moodleoverflow_add_rating_record(
+                return self::add_rating_record(
                     $moodleoverflow->id,
                     $discussion->id,
                     $post->id,
@@ -159,16 +159,16 @@ class ratings {
             );
 
             // Check if the rating can still be changed.
-            if (!self::moodleoverflow_can_be_changed($postid, $oldrating['normal']->rating, $userid)) {
+            if (!self::can_be_changed($postid, $oldrating['normal']->rating, $userid)) {
                 return false;
             }
 
             // Update the rating record.
-            return self::moodleoverflow_update_rating_record($post->id, $rating, $userid, $oldrating['normal']->id, $modulecontext);
+            return self::update_rating_record($post->id, $rating, $userid, $oldrating['normal']->id, $modulecontext);
         }
 
         // Create a new rating record.
-        return self::moodleoverflow_add_rating_record(
+        return self::add_rating_record(
             $moodleoverflow->id,
             $post->discussion,
             $postid,
@@ -189,7 +189,7 @@ class ratings {
      *
      * @return int
      */
-    public static function moodleoverflow_get_reputation($moodleoverflowid, $userid, $forcesinglerating = false) {
+    public static function get_reputation($moodleoverflowid, $userid, $forcesinglerating = false) {
         // Check the moodleoverflow instance.
         $moodleoverflow = moodleoverflow_get_record_or_exception(
             'moodleoverflow',
@@ -199,11 +199,11 @@ class ratings {
 
         // Check whether the reputation can be summed over the whole course.
         if ($moodleoverflow->coursewidereputation && !$forcesinglerating) {
-            return self::moodleoverflow_get_reputation_course($moodleoverflow->course, $userid);
+            return self::get_reputation_course($moodleoverflow->course, $userid);
         }
 
         // Else return the reputation within this instance.
-        return self::moodleoverflow_get_reputation_instance($moodleoverflow->id, $userid);
+        return self::get_reputation_instance($moodleoverflow->id, $userid);
     }
 
     /**
@@ -211,7 +211,7 @@ class ratings {
      *
      * @param array $posts all the posts from a discussion.
      */
-    public static function moodleoverflow_sort_answers_by_ratings($posts) {
+    public static function sort_answers_by_ratings($posts) {
         // Create a copy that only has the answer posts and save the parent post.
         $answerposts = $posts;
         $parentpost = array_shift($answerposts);
@@ -252,10 +252,10 @@ class ratings {
         }
 
         // Step 2: Sort each group after their votes and eventually time modified.
-        self::moodleoverflow_sort_postgroup($solvedhelpfulposts, 0, count($solvedhelpfulposts) - 1);
-        self::moodleoverflow_sort_postgroup($solvedposts, 0, count($solvedposts) - 1);
-        self::moodleoverflow_sort_postgroup($helpfulposts, 0, count($helpfulposts) - 1);
-        self::moodleoverflow_sort_postgroup($unmarkedposts, 0, count($unmarkedposts) - 1);
+        self::sort_postgroup($solvedhelpfulposts, 0, count($solvedhelpfulposts) - 1);
+        self::sort_postgroup($solvedposts, 0, count($solvedposts) - 1);
+        self::sort_postgroup($helpfulposts, 0, count($helpfulposts) - 1);
+        self::sort_postgroup($unmarkedposts, 0, count($unmarkedposts) - 1);
 
         // Step 3: Put each group together in the right order depending on the rating preferences.
         $temp = $solutionspreferred ? array_merge($solvedposts, $helpfulposts) : array_merge($helpfulposts, $solvedposts);
@@ -279,7 +279,7 @@ class ratings {
      *
      * @return mixed
      */
-    public static function moodleoverflow_user_rated($postid, $userid = null) {
+    public static function user_rated($postid, $userid = null) {
         global $DB, $USER;
 
         // Is a user submitted?
@@ -305,7 +305,7 @@ class ratings {
         $post = moodleoverflow_get_record_or_exception('moodleoverflow_posts', ['id' => $postid], 'postnotexist');
 
         // Get the rating for this single post.
-        return self::moodleoverflow_get_ratings_by_discussion($post->discussion, $postid);
+        return self::get_ratings_by_discussion($post->discussion, $postid);
     }
 
     /**
@@ -316,7 +316,7 @@ class ratings {
      *
      * @return array
      */
-    public static function moodleoverflow_get_ratings_by_discussion($discussionid, $postid = null) {
+    public static function get_ratings_by_discussion($discussionid, $postid = null) {
         global $DB;
 
         // Get the amount of votes.
@@ -353,7 +353,7 @@ class ratings {
      *
      * @return array
      */
-    public static function moodleoverflow_discussion_is_solved(int $discussionid, bool $teacher = false): array {
+    public static function discussion_is_solved(int $discussionid, bool $teacher = false): array {
         global $DB;
         $rating = $teacher ? RATING_SOLVED : RATING_HELPFUL;
         return $DB->get_records('moodleoverflow_ratings', ['discussionid' => $discussionid, 'rating' => $rating]);
@@ -367,7 +367,7 @@ class ratings {
      *
      * @return int
      */
-    public static function moodleoverflow_get_reputation_instance($moodleoverflowid, $userid = null) {
+    public static function get_reputation_instance($moodleoverflowid, $userid = null) {
         global $DB, $USER;
 
         // Get the user id.
@@ -442,7 +442,7 @@ class ratings {
      *
      * @return int
      */
-    public static function moodleoverflow_get_reputation_course($courseid, $userid = null) {
+    public static function get_reputation_course($courseid, $userid = null) {
         global $USER, $DB;
 
         // Get the userid.
@@ -464,7 +464,7 @@ class ratings {
 
         // Sum the reputation of each individual instance.
         foreach ($instances as $instance) {
-            $reputation += self::moodleoverflow_get_reputation_instance($instance->id, $userid);
+            $reputation += self::get_reputation_instance($instance->id, $userid);
         }
 
         // The result does not need to be corrected.
@@ -480,7 +480,7 @@ class ratings {
      *
      * @return array|mixed
      */
-    private static function moodleoverflow_check_old_rating($postid, $userid, $oldrating = null) {
+    private static function check_old_rating($postid, $userid, $oldrating = null) {
         global $DB;
 
         // Initiate the array.
@@ -528,9 +528,9 @@ class ratings {
      *
      * @return bool
      */
-    private static function moodleoverflow_can_be_changed($postid, $rating, $userid) {
+    private static function can_be_changed($postid, $rating, $userid) {
         // Check if the old read record exists.
-        $old = self::moodleoverflow_check_old_rating($postid, $userid, $rating);
+        $old = self::check_old_rating($postid, $userid, $rating);
         if (!$old) {
             return false;
         }
@@ -547,16 +547,16 @@ class ratings {
      *
      * @return bool
      */
-    private static function moodleoverflow_remove_rating($postid, $rating, $userid, $modulecontext) {
+    private static function remove_rating($postid, $rating, $userid, $modulecontext) {
         global $DB;
 
         // Check if the post can be removed.
-        if (!self::moodleoverflow_can_be_changed($postid, $rating, $userid)) {
+        if (!self::can_be_changed($postid, $rating, $userid)) {
             return false;
         }
 
         // Get the old rating record.
-        $oldrecord = self::moodleoverflow_check_old_rating($postid, $userid, $rating);
+        $oldrecord = self::check_old_rating($postid, $userid, $rating);
 
         // Trigger an event.
         $event = \mod_moodleoverflow\event\rating_deleted::create(['objectid' => $oldrecord->id, 'context' => $modulecontext]);
@@ -579,7 +579,7 @@ class ratings {
      *
      * @return bool|int
      */
-    private static function moodleoverflow_add_rating_record($moodleoverflowid, $discussionid, $postid, $rating, $userid, $mod) {
+    private static function add_rating_record($moodleoverflowid, $discussionid, $postid, $rating, $userid, $mod) {
         global $DB;
 
         // Create the rating record.
@@ -618,7 +618,7 @@ class ratings {
      *
      * @return bool
      */
-    private static function moodleoverflow_update_rating_record($postid, $rating, $userid, $ratingid, $modulecontext) {
+    private static function update_rating_record($postid, $rating, $userid, $ratingid, $modulecontext) {
         global $DB;
 
         // Update the record.
@@ -646,7 +646,7 @@ class ratings {
      *
      * @return bool
      */
-    public static function moodleoverflow_user_can_rate($post, $modulecontext, $userid = null) {
+    public static function user_can_rate($post, $modulecontext, $userid = null) {
         global $USER;
         if (!$userid) {
             // Guests and non-logged-in users can not rate.
@@ -669,7 +669,7 @@ class ratings {
      * @param int   $high   Endindex until where equal votes will be checked
      * @return void
      */
-    private static function moodleoverflow_sort_postgroup(&$posts, $low, $high) {
+    private static function sort_postgroup(&$posts, $low, $high) {
         // First sort the array after their votesdifference.
         moodleoverflow_quick_array_sort($posts, 0, $high, 'votesdifference', 'desc');
 

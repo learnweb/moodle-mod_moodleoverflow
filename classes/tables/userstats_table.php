@@ -122,8 +122,8 @@ class userstats_table extends \flexible_table {
                 }
             }
             // Get the user reputation from the course.
-            $student->forumreputation = ratings::moodleoverflow_get_reputation_instance($this->moodleoverflowid, $student->id);
-            $student->coursereputation = ratings::moodleoverflow_get_reputation_course($this->courseid, $student->id);
+            $student->forumreputation = ratings::get_reputation_instance($this->moodleoverflowid, $student->id);
+            $student->coursereputation = ratings::get_reputation_course($this->courseid, $student->id);
             $this->userstatsdata[] = $student;
         }
     }

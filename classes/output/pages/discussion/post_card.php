@@ -69,7 +69,7 @@ class post_card implements named_templatable, renderable {
         global $USER;
 
         // Get important variables for later checks.
-        $parentpost = $this->post->moodleoverflow_get_parentpost();
+        $parentpost = $this->post->get_parentpost();
         $discussion = $this->post->get_discussion();
         $moodleoverflow = $discussion->get_moodleoverflow();
 
@@ -83,9 +83,9 @@ class post_card implements named_templatable, renderable {
         $allowdisablerating = get_config('moodleoverflow', 'allowdisablerating') == 1;
         $ratingallowed = $allowdisablerating ? $moodleoverflow->allowrating : true;
         $reputationallowed = $allowdisablerating ? $moodleoverflow->allowreputation : true;
-        $ratings = $this->post->moodleoverflow_get_post_ratings();
-        $userrating = ratings::moodleoverflow_user_rated($this->post->get_id());
-        $ratingability = ratings::moodleoverflow_user_can_rate($this->post->get_db_object(), $this->context);
+        $ratings = $this->post->get_ratings();
+        $userrating = ratings::user_rated($this->post->get_id());
+        $ratingability = ratings::user_can_rate($this->post->get_db_object(), $this->context);
 
         $showvotes = $ratingallowed ? [
             'postid' => $this->post->get_id(),
@@ -96,7 +96,7 @@ class post_card implements named_templatable, renderable {
         ] : [];
         $showreputation = $reputationallowed && anonymous::user_can_see_post($this->post, $USER->id) ? [
             'userid' => $this->post->get_userid(),
-            'userreputation' => ratings::moodleoverflow_get_reputation($moodleoverflow->id, $this->post->get_userid()),
+            'userreputation' => ratings::get_reputation($moodleoverflow->id, $this->post->get_userid()),
         ] : [];
 
         // Review data.
@@ -113,7 +113,7 @@ class post_card implements named_templatable, renderable {
             'postclass' => ' ' . ($isread ? 'read' : 'unread') . ' ' . $ishelpful . ' ' . $issolved,
             'permalink' => (new moodle_url($discusspath, ['d' => $discussion->get_id()], 'p' . $this->post->get_id()))->out(),
             'postcontent' => $this->post->get_message_formatted(),
-            'attachments' => $this->post->moodleoverflow_get_attachments(),
+            'attachments' => $this->post->get_attachments(),
             'authorname' => $this->post->get_userlink()['fullname'],
             'authorlink' => $this->post->get_userlink()['link'],
             'authorpicture' => $this->post->get_userpicture(),
@@ -140,7 +140,7 @@ class post_card implements named_templatable, renderable {
         $discussion   = $this->post->get_discussion();
         $moodleoverflow = $discussion->get_moodleoverflow();
         $firstpostid  = $discussion->get_firstpostid();
-        $parentpost   = $this->post->moodleoverflow_get_parentpost();
+        $parentpost   = $this->post->get_parentpost();
 
         $isroot    = $this->post->get_id() == $firstpostid;
         $isanswer  = !$isroot && $parentpost !== null && $parentpost->get_id() == $firstpostid;
@@ -148,7 +148,7 @@ class post_card implements named_templatable, renderable {
         $ownpost       = $this->post->get_userid() == $USER->id;
         $age           = time() - $this->post->created;
         $maxeditingtime = get_config('moodleoverflow', 'maxeditingtime');
-        $ratings       = $this->post->moodleoverflow_get_post_ratings();
+        $ratings       = $this->post->get_ratings();
 
         $commands = [];
 
@@ -156,7 +156,7 @@ class post_card implements named_templatable, renderable {
         if ($isanswer && $USER->id == $discussion->get_userid() && $USER->id != $this->post->get_userid()) {
             if ($ratings->markedhelpful) {
                 $label = get_string('marknothelpful', 'moodleoverflow');
-            } else if (ratings::moodleoverflow_discussion_is_solved($discussion->get_id(), false)) {
+            } else if (ratings::discussion_is_solved($discussion->get_id(), false)) {
                 $label = get_string('alsomarkhelpful', 'moodleoverflow');
             } else {
                 $label = get_string('markhelpful', 'moodleoverflow');
@@ -172,7 +172,7 @@ class post_card implements named_templatable, renderable {
         if ($isanswer && capabilities::has(capabilities::MARK_SOLVED, $this->context)) {
             if ($ratings->markedsolution) {
                 $label = get_string('marknotsolved', 'moodleoverflow');
-            } else if (ratings::moodleoverflow_discussion_is_solved($discussion->get_id(), true)) {
+            } else if (ratings::discussion_is_solved($discussion->get_id(), true)) {
                 $label = get_string('alsomarksolved', 'moodleoverflow');
             } else {
                 $label = get_string('marksolved', 'moodleoverflow');
