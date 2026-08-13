@@ -117,9 +117,6 @@ if (empty($forumnode)) {
 $url = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->get_id()]);
 $node = $forumnode->add(format_string($discussion->name), $url);
 $node->display = false;
-if ($node) {
-    $node->add(format_string($discussion->name), $PAGE->url);
-}
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 
