@@ -936,7 +936,7 @@ class post_control {
      */
     private function catch_unenrolled(): void {
         global $SESSION;
-        if (!isguestuser() && !is_enrolled($this->info->coursecontext)) {
+        if (!isguestuser() && !is_enrolled($this->info->coursecontext) && !is_viewing($this->info->coursecontext)) {
             if (enrol_selfenrol_available($this->info->course->id)) {
                 $SESSION->wantsurl = qualified_me();
                 $SESSION->enrolcancel = get_local_referer(false);
