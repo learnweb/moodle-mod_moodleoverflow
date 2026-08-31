@@ -17,9 +17,9 @@
 namespace mod_moodleoverflow\external;
 
 use mod_moodleoverflow\readtracking;
-use external_function_parameters;
-use external_api;
-use external_value;
+use core_external\external_function_parameters;
+use core_external\external_api;
+use core_external\external_value;
 
 
 defined('MOODLE_INTERNAL') || die();
