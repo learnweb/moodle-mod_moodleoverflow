@@ -23,9 +23,9 @@ use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\models\discussion;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\review;
-use external_function_parameters;
-use external_api;
-use external_value;
+use core_external\external_function_parameters;
+use core_external\external_api;
+use core_external\external_value;
 
 defined('MOODLE_INTERNAL') || die();
 
