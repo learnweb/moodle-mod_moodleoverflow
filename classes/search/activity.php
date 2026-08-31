@@ -14,21 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_moodleoverflow\search;
+
 /**
- * Defines the version and other meta-info about the plugin
+ * Moodleoverflow activities search area.
  *
- * See https://docs.moodle.org/dev/version.php for more info.
- *
- * @package   mod_moodleoverflow
- * @copyright 2025 Thomas Niedermaier, University Münster
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_moodleoverflow
+ * @copyright  2026 Tamaro Walter
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class activity extends \core_search\base_activity {
+    /** @var string attribute to check new posts for indexing. */
+    const CREATED_FIELD_NAME = 'timecreated';
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version = 2026050702;
-$plugin->requires = 2024100700.00; // Require Moodle 4.5.
-$plugin->supported = [405, 502];
-$plugin->component = 'mod_moodleoverflow';
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = 'v5.2-r2';
+    /**
+     * Returns true if this area uses file indexing.
+     * @return bool
+     */
+    public function uses_file_indexing() {
+        return true;
+    }
+}
