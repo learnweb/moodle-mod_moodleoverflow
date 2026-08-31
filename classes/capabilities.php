@@ -17,6 +17,8 @@
 namespace mod_moodleoverflow;
 
 use context;
+use core_cache\cache;
+use core_cache\store;
 
 /**
  * Class for easily caching capabilities.
@@ -65,9 +67,6 @@ class capabilities {
     /** capability review post to be published*/
     const REVIEW_POST = 'mod/moodleoverflow:reviewpost';
 
-    /** @var array cache capabilities*/
-    private static $cache = [];
-
     /**
      * Saves the cache from has_capability.
      *
@@ -81,12 +80,16 @@ class capabilities {
         global $USER;
         $userid = $userid ?? $USER->id;
 
+        $cache = cache::make_from_params(store::MODE_REQUEST, 'mod_moodleoverflow', 'capabilities');
         $key = "$userid:$context->id:$capability";
 
-        if (!isset(self::$cache[$key])) {
-            self::$cache[$key] = has_capability($capability, $context, $userid);
+        // Store the answer as an int, so that a cached "false" is told apart from a cache miss.
+        $cached = $cache->get($key);
+        if ($cached === false) {
+            $cached = has_capability($capability, $context, $userid) ? 1 : 0;
+            $cache->set($key, $cached);
         }
 
-        return self::$cache[$key];
+        return (bool) $cached;
     }
 }
