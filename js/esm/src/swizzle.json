@@ -1,0 +1,14 @@
+{
+  "UserPage": {
+    "eject": "risky",
+    "wrap": "risky"
+  },
+  "UserPost": {
+    "eject": "risky",
+    "wrap": "risky"
+  },
+  "PostFilter": {
+    "eject": "risky",
+    "wrap": "risky"
+  }
+}
