@@ -37,6 +37,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
+require_once($CFG->libdir . '/filelib.php');
 
 /**
  * Class that represents a post.

@@ -347,3 +347,14 @@ function moodleoverflow_catch_unenrolled_user($coursecontext, $courseid, $return
         }
     }
 }
+
+/**
+ * Caches all language strings keys so react components can access them.
+ * @return void
+ */
+function moodleoverflow_cache_strings(): void {
+    global $PAGE;
+    $strings = get_string_manager()->load_component_strings('mod_moodleoverflow', current_language());
+    $PAGE->requires->strings_for_js(array_keys($strings), 'mod_moodleoverflow');
+    $PAGE->requires->strings_for_js(['loading', 'noresults', 'nothingtodisplay', 'posts'], 'core');
+}

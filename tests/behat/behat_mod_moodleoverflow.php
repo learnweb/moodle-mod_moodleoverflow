@@ -665,4 +665,20 @@ class behat_mod_moodleoverflow extends behat_base {
             $discussiontitle . '"]]'
         );
     }
+
+    /**
+     * Opens the page that lists all moodleoverflow posts of a user.
+     *
+     * IMPORTANT!: The user is searched by their username, so it needs to be unique in the testing scenario.
+     *
+     * @Given /^I am on the moodleoverflow posts page of "(?P<username_string>[^"]*)"$/
+     * @param string $username The user whose posts are listed.
+     * @return void
+     * @throws dml_exception
+     */
+    public function i_am_on_the_moodleoverflow_posts_page_of(string $username): void {
+        global $DB;
+        $userid = $DB->get_field('user', 'id', ['username' => $username], MUST_EXIST);
+        $this->execute('behat_general::i_visit', ['/mod/moodleoverflow/user.php?user=' . $userid]);
+    }
 }
