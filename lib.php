@@ -31,6 +31,7 @@
 
 // LEARNWEB-TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
 use core_completion\api;
+use core_user\output\myprofile\tree;
 use mod_moodleoverflow\models\discussion;
 use mod_moodleoverflow\models\post;
 use mod_moodleoverflow\subscriptions;
@@ -736,6 +737,40 @@ function moodleoverflow_grade_item_update($moodleoverflow, $grades = null) {
     }
 
     return $gradeupdate;
+}
+
+/**
+ * Add node to myprofile page to see all moodleoverflow posts.
+ *
+ * @param tree $tree Tree object
+ * @param stdClass $user user object
+ * @param bool $iscurrentuser
+ * @param stdClass|null $course Course object
+ *
+ * @return bool
+ */
+function mod_moodleoverflow_myprofile_navigation(tree $tree, stdClass $user, bool $iscurrentuser, stdClass|null $course): bool {
+    global $CFG;
+    // As the user page is builed with react, older moodle version can not support this feature.
+    if ($CFG->branch < 502) {
+        return false;
+    }
+
+    // Guest user do not have own posts. Only let a user see the own posts. Vieweing other peoples posts is not allowed yet.
+    if (isguestuser($user) || !$iscurrentuser) {
+        return false;
+    }
+
+    $params = ['user' => $user->id];
+    if (!empty($course)) {
+        $params['course'] = $course->id;
+    }
+    $url = new moodle_url('/mod/moodleoverflow/user.php', $params);
+    $string = get_string('moodleoverflowposts', 'mod_moodleoverflow');
+    $node = new core_user\output\myprofile\node('miscellaneous', 'moodleoverflowposts', $string, null, $url);
+    $tree->add_node($node);
+
+    return true;
 }
 
 /**

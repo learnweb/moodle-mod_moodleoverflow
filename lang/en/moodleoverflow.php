@@ -160,6 +160,7 @@ $string['eventsubscriptiondeleted'] = 'Subscription deleted';
 $string['everyonecannowchoose'] = 'Everyone can now choose to be subscribed';
 $string['everyoneisnowsubscribed'] = 'Everyone is now subscribed to this forum';
 $string['everyoneissubscribed'] = 'Everyone is subscribed to this forum';
+$string['featurenotavailable'] = "This feature isn't available yet — please ask your site administrator to update Moodle.";
 $string['forcedreadtracking'] = 'Allow forced read tracking';
 $string['generalmoodleoverflows'] = 'Forums in this course';
 $string['give_a_reason'] = 'Give a reason (optional)';
@@ -238,6 +239,7 @@ $string['modulename_summary'] = 'Provides a question-and-answer forum where post
 $string['modulename_tip'] = "Explore the official <a href='https://github.com/learnweb/moodle-mod_moodleoverflow/wiki'>wiki</a> for more details and customization options!";
 $string['modulenameplural'] = 'Moodleoverflows';
 $string['moodleoverflow'] = 'Moodleoverflow';
+$string['moodleoverflowposts'] = 'My Moodleoverflow posts';
 $string['moodleoverflow:addinstance'] = 'Add a new Moodleoverflow instance';
 $string['moodleoverflow:allowforcesubscribe'] = 'Allow forced subscription';
 $string['moodleoverflow:createattachment'] = 'Create attachments';
