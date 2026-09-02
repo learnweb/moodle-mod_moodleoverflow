@@ -73,18 +73,14 @@
             </div>
             <div class="attachments flex-grow-1">
                 {{#attachments}}
-                    {{#image}}
-                        <img src="{{filepath}}" alt=""/>
+                    {{#isimage}}
+                        <img src="{{{url}}}" alt="{{filename}}"/>
                         <br>
-                    {{/image}}
-                    {{^image}}
-                        <a class="icon-size-6" href="{{filepath}}">
-                            {{{icon}}}
-                        </a>
-                        <a href="{{filepath}}">
-                            {{filename}}
-                        </a>
-                    {{/image}}
+                    {{/isimage}}
+                    {{^isimage}}
+                        <a class="icon-size-6" href="{{{url}}}">{{#pix}} {{icon}}, core {{/pix}}</a>
+                        <a href="{{{url}}}">{{filename}}</a>
+                    {{/isimage}}
                     <br>
                 {{/attachments}}
             </div>
