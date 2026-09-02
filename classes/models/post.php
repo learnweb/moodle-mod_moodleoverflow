@@ -19,6 +19,8 @@ namespace mod_moodleoverflow\models;
 use coding_exception;
 use context_module;
 use core\output\html_writer;
+use core\output\renderer_base;
+use core_files\external\stored_file_exporter;
 use core_user\fields;
 use dml_exception;
 use mod_moodleoverflow\anonymous;
@@ -384,57 +386,53 @@ class post {
     }
 
     /**
-     * Returns attachments with information for the template
+     * Returns the module context of this post.
      *
-     * @return array
+     * @return context_module
      * @throws moodle_exception
      */
-    public function get_attachments(): array {
-        global $OUTPUT;
+    public function get_context(): context_module {
+        $this->existence_check();
+        return context_module::instance($this->get_coursemodule()->id);
+    }
+
+    /**
+     * Returns the attachment files of this post, sorted by filename.
+     *
+     * @return \stored_file[]
+     * @throws moodle_exception
+     */
+    public function get_attachment_files(): array {
         $this->existence_check();
 
-        if (empty($this->attachment) || (!$context = context_module::instance($this->get_coursemodule()->id))) {
+        if (empty($this->attachment)) {
             return [];
         }
 
-        $attachments = [];
-        $fs = get_file_storage();
+        return array_values(get_file_storage()->get_area_files(
+            $this->get_context()->id,
+            'mod_moodleoverflow',
+            'attachment',
+            $this->id,
+            'filename',
+            false
+        ));
+    }
 
-        // We retrieve all files according to the time that they were created.  In the case that several files were uploaded
-        // at the sametime (e.g. in the case of drag/drop upload) we revert to using the filename.
-        $files = $fs->get_area_files($context->id, 'mod_moodleoverflow', 'attachment', $this->id, "filename", false);
-        if ($files) {
-            $i = 0;
-            foreach ($files as $file) {
-                $attachments[$i] = [];
-                $attachments[$i]['filename'] = $file->get_filename();
-                $mimetype = $file->get_mimetype();
-                $iconimage = $OUTPUT->pix_icon(
-                    file_file_icon($file),
-                    get_mimetype_description($file),
-                    'moodle',
-                    ['class' => 'icon']
-                );
-                $path = moodle_url::make_pluginfile_url(
-                    $file->get_contextid(),
-                    $file->get_component(),
-                    $file->get_filearea(),
-                    $file->get_itemid(),
-                    $file->get_filepath(),
-                    $file->get_filename()
-                );
-                $attachments[$i]['icon'] = $iconimage;
-                $attachments[$i]['filepath'] = $path;
+    /**
+     * Returns the attachments of this post exported for a template.
+     *
+     * @param renderer_base $output the renderer used to export the stored files
+     * @return array
+     * @throws moodle_exception
+     */
+    public function get_attachments(renderer_base $output): array {
+        $context = $this->get_context();
 
-                if (in_array($mimetype, ['image/gif', 'image/jpeg', 'image/png'])) {
-                    $attachments[$i]['image'] = true;
-                } else {
-                    $attachments[$i]['image'] = false;
-                }
-                $i += 1;
-            }
-        }
-        return $attachments;
+        return array_map(
+            fn($file) => (new stored_file_exporter($file, ['context' => $context]))->export($output),
+            $this->get_attachment_files()
+        );
     }
 
     /**

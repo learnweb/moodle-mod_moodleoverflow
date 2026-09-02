@@ -113,7 +113,7 @@ class post_card implements named_templatable, renderable {
             'postclass' => ' ' . ($isread ? 'read' : 'unread') . ' ' . $ishelpful . ' ' . $issolved,
             'permalink' => (new moodle_url($discusspath, ['d' => $discussion->get_id()], 'p' . $this->post->get_id()))->out(),
             'postcontent' => $this->post->get_message_formatted(),
-            'attachments' => $this->post->get_attachments(),
+            'attachments' => $this->post->get_attachments($output),
             'authorname' => $this->post->get_userlink()['fullname'],
             'authorlink' => $this->post->get_userlink()['link'],
             'authorpicture' => $this->post->get_userpicture(),
