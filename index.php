@@ -29,10 +29,6 @@ require_once(dirname(__FILE__) . '/locallib.php');
 global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
 require_once($CFG->dirroot . '/course/lib.php');
 
-// Require needed files.
-use core\context\course;
-use core\output\pix_icon;
-
 // Fetch submitted parameters.
 $id = required_param('id', PARAM_INT);
 $subscribe = optional_param('subscribe', null, PARAM_INT);

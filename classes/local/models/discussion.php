@@ -560,7 +560,7 @@ class discussion {
         $this->existence_check();
 
         if (empty($this->moodleoverflowobject)) {
-            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $this->moodleoverflow]);
+            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $this->moodleoverflow], '*', MUST_EXIST);
         }
 
         return $this->moodleoverflowobject;

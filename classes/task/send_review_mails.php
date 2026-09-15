@@ -17,7 +17,7 @@
 namespace mod_moodleoverflow\task;
 
 use core\cron;
-use core\session\exception;
+use Exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\output\moodleoverflow_email;
 
@@ -132,7 +132,7 @@ class send_review_mails extends \core\task\scheduled_task {
                         $OUTPUT->render_from_template('mod_moodleoverflow/email_review_needed_text', $textcontext),
                         $OUTPUT->render_from_template('mod_moodleoverflow/email_review_needed_html', $htmlcontext)
                     );
-                } catch (exception $e) {
+                } catch (Exception $e) {
                     mtrace("Error sending review notification for post $post->id to user $userto->id!");
                 }
             }

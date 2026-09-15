@@ -109,7 +109,7 @@ class ratings {
         if ($rating == RATING_SOLVED || $rating == RATING_HELPFUL) {
             // Make sure that a helpful mark is made by the user who started the discussion.
             $isnotstartuser = $rating == RATING_HELPFUL && $userid != $discussion->userid;
-            moodleoverflow_throw_exception_with_check($isnotstartuser, 'nostartuser');
+            moodleoverflow_throw_exception_with_check($isnotstartuser, 'notstartuser');
 
             // Make sure that a solution mark is made by a teacher (or someone with the right capability).
             $isnotteacher = $rating == RATING_SOLVED && !has_capability('mod/moodleoverflow:marksolved', $modulecontext);

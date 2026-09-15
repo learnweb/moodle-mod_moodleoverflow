@@ -26,11 +26,9 @@
  */
 
 use core_availability\info_module;
-use core_user\fields;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\ratings;
-use mod_moodleoverflow\readtracking;
 
 defined('MOODLE_INTERNAL') || die();
 

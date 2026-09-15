@@ -550,38 +550,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
 }
 
 /**
- * Determine the current context if one wa not already specified.
- *
- * If a context of type context_module is specified, it is immediately returned and not checked.
- *
- * @param int            $moodleoverflowid The moodleoverflow ID
- * @param context_module $context          The current context
- *
- * @return context_module The context determined
- */
-function moodleoverflow_get_context($moodleoverflowid, $context = null) {
-    global $PAGE;
-
-    // If the context does not exist, find the context.
-    if (!$context || !($context instanceof context_module)) {
-        // Try to take current page context to save on DB query.
-        if (
-            $PAGE->cm && $PAGE->cm->modname === 'moodleoverflow' && $PAGE->cm->instance == $moodleoverflowid
-            && $PAGE->context->contextlevel == CONTEXT_MODULE && $PAGE->context->instanceid == $PAGE->cm->id
-        ) {
-            $context = $PAGE->context;
-        } else {
-            // Get the context via the coursemodule.
-            $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflowid);
-            $context = \context_module::instance($cm->id);
-        }
-    }
-
-    // Return the context.
-    return $context;
-}
-
-/**
  * Adds information about unread messages, that is only required for the course view page (and
  * similar), to the course-module object.
  *

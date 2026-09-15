@@ -52,7 +52,6 @@ class send_daily_mails extends \core\task\scheduled_task {
                 }
 
                 $currentforum = $DB->get_record('moodleoverflow', ['id' => $row->forumid], 'name, id');
-                $coursemoduleid = get_coursemodule_from_instance('moodleoverflow', $row->forumid);
                 $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $row->forumdiscussionid], 'name, id');
                 $unreadposts = $row->numberofposts;
 

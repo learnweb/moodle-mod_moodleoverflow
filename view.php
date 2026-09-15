@@ -26,10 +26,8 @@
  */
 
 // Include config and locallib.
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\event\course_module_viewed;
 use mod_moodleoverflow\output\pages\view\view_page;
-use mod_moodleoverflow\review;
 
 require_once(__DIR__ . '/../../config.php');
 global $CFG, $PAGE, $DB, $OUTPUT, $SESSION, $USER;
