@@ -370,23 +370,6 @@ class subscriptions {
     }
 
     /**
-     * Set the moodleoverflow subscription mode.
-     *
-     * By default when called without options, this is set to MOODLEOVERFLOW_FORCESUBSCRIBE.
-     *
-     * @param int $moodleoverflowid The moodleoverflow ID
-     * @param int $status           The new subscrription status
-     *
-     * @return bool
-     */
-    public static function set_subscription_mode($moodleoverflowid, $status = 1) {
-        global $DB;
-
-        // Change the value in the database.
-        return $DB->set_field('moodleoverflow', 'forcesubscribe', $status, ['id' => $moodleoverflowid]);
-    }
-
-    /**
      * Returns the current subscription mode for the moodleoverflow.
      *
      * @param object $moodleoverflow The moodleoverflow record
