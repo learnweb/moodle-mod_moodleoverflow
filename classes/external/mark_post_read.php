@@ -72,14 +72,38 @@ class mark_post_read extends external_api {
      */
     public static function execute(int $instanceid, string $domain): int {
         global $DB, $USER;
-        if ($domain == 'moodleoverflow') {
-            $cm = get_coursemodule_from_instance('moodleoverflow', $instanceid);
+
+        // Validation.
+        $params = self::validate_parameters(self::execute_parameters(), ['instanceid' => $instanceid, 'domain' => $domain]);
+        if (!in_array($params['domain'], ['moodleoverflow', 'discussion'])) {
+            throw new \invalid_parameter_exception('Use a valid parameter for the domain.');
+        }
+
+        // Get data.
+        $discussion = null;
+        if ($params['domain'] === 'discussion') {
+            $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $params['instanceid']], '*', MUST_EXIST);
+            $moodleoverflowid = $discussion->moodleoverflow;
+        } else {
+            $moodleoverflowid = $params['instanceid'];
+        }
+        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid], '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course, false, MUST_EXIST);
+
+        // Check activity access and permissions.
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+        require_capability('mod/moodleoverflow:viewdiscussion', $context);
+        if (isguestuser()) {
+            throw new \moodle_exception('noguesttracking', 'moodleoverflow');
+        }
+
+        // Execute the readtracking action.
+        if ($discussion === null) {
             readtracking::mark_moodleoverflow_read($cm, $USER->id);
             return readtracking::count_unread_posts_moodleoverflow($cm);
-        } else {
-            $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $instanceid]));
-            readtracking::mark_discussion_read($discussion, $USER->id);
-            return readtracking::count_unread_posts_discussion($instanceid);
         }
+        readtracking::mark_discussion_read(discussion::from_record($discussion), $USER->id);
+        return readtracking::count_unread_posts_discussion($discussion->id, $USER->id);
     }
 }

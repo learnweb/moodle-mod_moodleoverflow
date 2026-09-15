@@ -22,6 +22,7 @@
  */
 
 import Ajax from 'core/ajax';
+import Notification from 'core/notification';
 
 /**
  * Init function
@@ -48,7 +49,7 @@ export function init(itemid, toggleitem) {
 const addSubscriptionListener = (itemid) => {
     // Get the right subscription toggle element.
     const element = document.getElementById(itemid);
-    element.addEventListener('change', function() {
+    element.addEventListener('change', async function() {
             const cmid = parseInt(element.dataset.cmid);
             const subscribed = element.dataset.setting === 'true';
             const data = {
@@ -60,7 +61,13 @@ const addSubscriptionListener = (itemid) => {
             };
             element.dataset.setting = Boolean(!subscribed);
             // Call the AJAX function.
-            return Ajax.call([data]);
+            try {
+                await Ajax.call([data])[0];
+            } catch (error) {
+                element.dataset.setting = Boolean(subscribed);
+                element.checked = subscribed;
+                Notification.exception(error);
+            }
         }
     );
 };
@@ -72,7 +79,7 @@ const addSubscriptionListener = (itemid) => {
 const addReadtrackingListener = (itemid) => {
     // Get the right readtracking toggle element.
     const element = document.getElementById(itemid);
-    element.addEventListener('change', function() {
+    element.addEventListener('change', async function() {
             const moodleoverflowid = parseInt(element.dataset.moodleoverflowid);
             const tracked = element.dataset.setting === 'true';
             const data = {
@@ -84,7 +91,13 @@ const addReadtrackingListener = (itemid) => {
             };
             element.dataset.setting = Boolean(!tracked);
             // Call the AJAX function.
-            return Ajax.call([data]);
+            try {
+                await Ajax.call([data])[0];
+            } catch (error) {
+                element.dataset.setting = Boolean(tracked);
+                element.checked = tracked;
+                Notification.exception(error);
+            }
         }
     );
 };

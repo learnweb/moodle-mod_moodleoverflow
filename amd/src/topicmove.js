@@ -64,7 +64,13 @@ export async function init() {
                     moodleoverflowid: Number(execute.dataset.destination),
                 },
             };
-            const result = await Ajax.call([data])[0];
+            let result;
+            try {
+                result = await Ajax.call([data])[0];
+            } catch (error) {
+                Notification.exception(error);
+                return;
+            }
             if (result) {
                 const message = await getString('topicmove_success', 'mod_moodleoverflow', execute.dataset.destinationname);
                 Notification.addNotification({message: message, type: 'success'});

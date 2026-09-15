@@ -81,9 +81,9 @@ class review_reject_post extends external_api {
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $course = get_course($cm->course);
         $context = context_module::instance($cm->id);
+        self::validate_context($context);
 
         $PAGE->set_context($context);
-
         require_capability('mod/moodleoverflow:reviewpost', $context);
 
         if ($post->reviewed) {

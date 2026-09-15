@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
+import Notification from 'core/notification';
 import Ajax from 'core/ajax';
 
 /**
@@ -40,13 +40,18 @@ export function init(itemid) {
                 domain: domain
             },
         };
-        const result = await Ajax.call([data])[0];
+        let result;
+        try {
+            result = await Ajax.call([data])[0];
+        } catch (error) {
+            Notification.exception(error);
+            return;
+        }
         // Update the red bubble icon with the new amount of unread posts.
         const unreadamountElement = element.nextElementSibling;
         const bubble = unreadamountElement?.querySelector('.unread-bubble');
         if (bubble) {
             bubble.textContent = String(result);
         }
-        return result;
     });
 }
