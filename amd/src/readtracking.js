@@ -31,15 +31,13 @@ import Ajax from 'core/ajax';
 export function init(itemid) {
     const element = document.getElementById(itemid);
     element.addEventListener('click', async function() {
-        const userid = parseInt(element.dataset.userid);
         const instanceid = parseInt(element.dataset.instanceid);
         const domain = element.dataset.domain;
         const data = {
             methodname: 'mod_moodleoverflow_mark_post_read',
             args: {
                 instanceid: instanceid,
-                domain: domain,
-                userid: userid
+                domain: domain
             },
         };
         const result = await Ajax.call([data])[0];

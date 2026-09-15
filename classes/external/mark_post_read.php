@@ -50,7 +50,6 @@ class mark_post_read extends external_api {
             [
                 'instanceid' => new external_value(PARAM_INT, 'Id of the discussion or moodleoverflow'),
                 'domain' => new external_value(PARAM_TEXT, 'If a discussion or moodleoverflow is targeted'),
-                'userid' => new external_value(PARAM_INT, 'the user id'),
             ]
         );
     }
@@ -67,20 +66,19 @@ class mark_post_read extends external_api {
      * Marks all posts of a discussion/moodleoverflow as read
      * @param int $instanceid id of the discussion/moodleoverflow.
      * @param string $domain Can be "moodleoverflow" or "discussion"
-     * @param int $userid
      * @return int Return how many unread posts the user has in the discussion/moodleoverflow. JS uses it to update the unread info.
      *             (It should always be 0, otherwise an error ocurred. This is important for behat testing).
      * @throws coding_exception|dml_exception
      */
-    public static function execute(int $instanceid, string $domain, int $userid): int {
-        global $DB;
+    public static function execute(int $instanceid, string $domain): int {
+        global $DB, $USER;
         if ($domain == 'moodleoverflow') {
             $cm = get_coursemodule_from_instance('moodleoverflow', $instanceid);
-            readtracking::mark_moodleoverflow_read($cm, $userid);
+            readtracking::mark_moodleoverflow_read($cm, $USER->id);
             return readtracking::count_unread_posts_moodleoverflow($cm);
         } else {
             $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $instanceid]));
-            readtracking::mark_discussion_read($discussion, $userid);
+            readtracking::mark_discussion_read($discussion, $USER->id);
             return readtracking::count_unread_posts_discussion($instanceid);
         }
     }
