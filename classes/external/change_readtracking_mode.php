@@ -45,7 +45,6 @@ class change_readtracking_mode extends external_api {
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
             [
-                'userid' => new external_value(PARAM_INT, 'the user id'),
                 'tracked' => new external_value(PARAM_BOOL, 'current tracking status'),
                 'moodleoverflowid' => new external_value(PARAM_INT, 'moodleoverflow that is targeted'),
             ]
@@ -62,16 +61,16 @@ class change_readtracking_mode extends external_api {
 
     /**
      * Changes the subscription mode on a moodleoverflow
-     * @param int $userid The user the setting will be changed for.
      * @param bool $tracked current readtracking status.
      * @param int $moodleoverflowid The moodleoverflow that is being targeted.
      * @return bool
      */
-    public static function execute(int $userid, bool $tracked, int $moodleoverflowid): bool {
+    public static function execute(bool $tracked, int $moodleoverflowid): bool {
+        global $USER;
         if ($tracked) {
-            return readtracking::stop_tracking($moodleoverflowid, $userid);
+            return readtracking::stop_tracking($moodleoverflowid, $USER->id);
         } else {
-            return readtracking::start_tracking($moodleoverflowid, $userid);
+            return readtracking::start_tracking($moodleoverflowid, $USER->id);
         }
     }
 }

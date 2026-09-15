@@ -49,13 +49,11 @@ const addSubscriptionListener = (itemid) => {
     // Get the right subscription toggle element.
     const element = document.getElementById(itemid);
     element.addEventListener('change', function() {
-            const userid = parseInt(element.dataset.userid);
             const cmid = parseInt(element.dataset.cmid);
             const subscribed = element.dataset.setting === 'true';
             const data = {
                 methodname: 'mod_moodleoverflow_change_subscription_mode',
                 args: {
-                    userid: userid,
                     subscribed: subscribed,
                     cmid: cmid
                 },
@@ -75,13 +73,11 @@ const addReadtrackingListener = (itemid) => {
     // Get the right readtracking toggle element.
     const element = document.getElementById(itemid);
     element.addEventListener('change', function() {
-            const userid = parseInt(element.dataset.userid);
             const moodleoverflowid = parseInt(element.dataset.moodleoverflowid);
             const tracked = element.dataset.setting === 'true';
             const data = {
                 methodname: 'mod_moodleoverflow_change_readtracking_mode',
                 args: {
-                    userid: userid,
                     tracked: tracked,
                     moodleoverflowid: moodleoverflowid,
                 },

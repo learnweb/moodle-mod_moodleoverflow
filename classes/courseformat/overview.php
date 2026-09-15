@@ -168,7 +168,7 @@ class overview extends activityoverviewbase {
      * @throws moodle_exception
      */
     private function render_toggle_template(array $templateparams): bool|string {
-        global $USER, $PAGE;
+        global $PAGE;
         $renderer = $PAGE->get_renderer('core_reportbuilder');
         return $renderer->render_from_template(
             'core/toggle',
@@ -182,7 +182,6 @@ class overview extends activityoverviewbase {
                     ['name' => 'data-action', 'value' => 'toggle'],
                     ['name' => 'data-cmid', 'value' => $this->cm->id],
                     ['name' => 'data-moodleoverflowid', 'value' => $this->moodleoverflow->id],
-                    ['name' => 'data-userid', 'value' => $USER->id],
                     ['name' => 'data-setting', 'value' => $templateparams['setting'] ? 'true' : 'false'],
                 ],
             ]
