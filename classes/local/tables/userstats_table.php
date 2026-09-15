@@ -341,14 +341,7 @@ class userstats_table extends \flexible_table {
      */
     private function sort_table_data($sortorder) {
         $key = $sortorder['sortby'];
-        // The index of each object in usertable is it's value of $key.
-        $length = count($this->userstatsdata);
-        if ($sortorder['sortorder'] == 4) {
-            // 4 means sort in ascending order.
-            moodleoverflow_quick_array_sort($this->userstatsdata, 0, $length - 1, $key, 'asc');
-        } else if ($sortorder['sortorder'] == 3) {
-            // 3 means sort in descending order.
-            moodleoverflow_quick_array_sort($this->userstatsdata, 0, $length - 1, $key, 'desc');
-        }
+        $direction = $sortorder['sortorder'] == SORT_ASC ? 1 : -1;
+        usort($this->userstatsdata, fn($a, $b) => $direction * ($a->$key <=> $b->$key));
     }
 }

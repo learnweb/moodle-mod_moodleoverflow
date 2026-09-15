@@ -251,11 +251,12 @@ class ratings {
             }
         }
 
-        // Step 2: Sort each group after their votes and eventually time modified.
-        self::sort_postgroup($solvedhelpfulposts, 0, count($solvedhelpfulposts) - 1);
-        self::sort_postgroup($solvedposts, 0, count($solvedposts) - 1);
-        self::sort_postgroup($helpfulposts, 0, count($helpfulposts) - 1);
-        self::sort_postgroup($unmarkedposts, 0, count($unmarkedposts) - 1);
+        // Step 2: Sort each group by their votes and, for equal votes, by time modified.
+        $compare = fn($a, $b) => $b->votesdifference <=> $a->votesdifference ?: $a->modified <=> $b->modified;
+        usort($solvedhelpfulposts, $compare);
+        usort($solvedposts, $compare);
+        usort($helpfulposts, $compare);
+        usort($unmarkedposts, $compare);
 
         // Step 3: Put each group together in the right order depending on the rating preferences.
         $temp = $solutionspreferred ? array_merge($solvedposts, $helpfulposts) : array_merge($helpfulposts, $solvedposts);
@@ -658,37 +659,5 @@ class ratings {
 
         // Check the capability.
         return capabilities::has(capabilities::RATE_POST, $modulecontext, $userid) && $post->reviewed == 1;
-    }
-
-    /**
-     * Helper function for moodleoverflow_sort_answer_by_rating. Sorts a group of posts (solved and helpful, only solved/helpful
-     * and other) after their votesdifference and if needed after their modified time.
-     *
-     * @param array $posts  The array that will be sorted
-     * @param int   $low    Startindex from where equal votes will be checked
-     * @param int   $high   Endindex until where equal votes will be checked
-     * @return void
-     */
-    private static function sort_postgroup(&$posts, $low, $high) {
-        // First sort the array after their votesdifference.
-        moodleoverflow_quick_array_sort($posts, 0, $high, 'votesdifference', 'desc');
-
-        // Check if posts have the same votesdifference and sort them after their modified time if needed.
-        while ($low < $high) {
-            if ($posts[$low]->votesdifference == $posts[$low + 1]->votesdifference) {
-                $tempstartindex = $low;
-                $tempendindex = $tempstartindex + 1;
-                while (
-                    ($tempendindex + 1 <= $high) &&
-                      ($posts[$tempendindex]->votesdifference == $posts[$tempendindex + 1]->votesdifference)
-                ) {
-                    $tempendindex++;
-                }
-                moodleoverflow_quick_array_sort($posts, $tempstartindex, $tempendindex, 'modified', 'asc');
-                $low = $tempendindex + 1;
-            } else {
-                $low++;
-            }
-        }
     }
 }
