@@ -23,6 +23,7 @@ use core\output\renderer_base;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\ratings;
 
 /**
  * This class presents the output of the discussion page (discussion.php). The discussion page shows all discussion
@@ -72,11 +73,35 @@ class discussion_page implements named_templatable, renderable{
         // Organize the answer posts as comment and answers are mixed and need to be categorized correctly.
         $answersorganized = $this->answers;
         $firstpostid = $this->firstpost->get_id();
-        // Sort direct answers by date. Put comments of an answer after the answer.
-        usort($answersorganized, function ($a, $b) use ($answersorganized, $firstpostid) {
+
+        // Rank the direct answers by marks and votes, depending on the "Display first" setting.
+        $moodleoverflow = $this->discussion->get_moodleoverflow();
+        $discussionratings = ratings::get_ratings_by_discussion($this->discussion->get_id());
+        $sortdata = [];
+        foreach ([$this->firstpost, ...$this->answers] as $post) {
+            if ($post !== $this->firstpost && $post->get_parentid() != $firstpostid) {
+                continue;
+            }
+            $rating = $discussionratings[$post->get_id()];
+            $sortdata[] = (object) [
+                'id' => $post->get_id(),
+                'modified' => $post->modified,
+                'ratingpreference' => $moodleoverflow->ratingpreference,
+                'votesdifference' => $rating->upvotes - $rating->downvotes,
+                'markedsolution' => $rating->issolved,
+                'markedhelpful' => $rating->ishelpful,
+            ];
+        }
+        $rank = array_flip(array_keys(ratings::sort_answers_by_ratings($sortdata)));
+
+        // Sort direct answers by their rank. Put comments of an answer after the answer, sorted by date.
+        usort($answersorganized, function ($a, $b) use ($answersorganized, $firstpostid, $rank) {
             $aparent = $a->get_parentid() == $firstpostid ? $a : ($answersorganized[$a->get_parentid()] ?? $a);
             $bparent = $b->get_parentid() == $firstpostid ? $b : ($answersorganized[$b->get_parentid()] ?? $b);
-            return $aparent->created !== $bparent->created ? $aparent->created <=> $bparent->created : $a->created <=> $b->created;
+            if ($aparent->get_id() != $bparent->get_id()) {
+                return ($rank[$aparent->get_id()] ?? PHP_INT_MAX) <=> ($rank[$bparent->get_id()] ?? PHP_INT_MAX);
+            }
+            return $a->created <=> $b->created;
         });
 
         $answers = array_map(
