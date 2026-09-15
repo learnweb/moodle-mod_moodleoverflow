@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\post;
+namespace mod_moodleoverflow\local\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
 use coding_exception;
@@ -75,7 +75,7 @@ class post_control {
      */
     private stdClass $info;
 
-    /** @var stdClass prepost for the classes/post/post_form.php,
+    /** @var stdClass prepost for the classes/post_form.php,
      * This object is more like a prototype of a post and it's not in the database.
      * difference between info and prepost: Info has objects, prepost mostly ID's and strings like the message of the post.
      */

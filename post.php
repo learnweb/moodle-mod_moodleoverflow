@@ -23,11 +23,9 @@
  */
 
 use core\output\notification;
-use mod_moodleoverflow\post\post_control;
-// Include config and locallib.
-use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\review;
+use mod_moodleoverflow\local\post\post_control;
 
+// Include config and locallib.
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
 require_once(dirname(__FILE__) . '/locallib.php');

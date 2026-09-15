@@ -21,10 +21,8 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir . '/completionlib.php');
 
-use mod_moodleoverflow\manager\mail_manager;
-use mod_moodleoverflow\subscriptions;
+use mod_moodleoverflow\local\manager\mail_manager;
 use mod_moodleoverflow\task\send_mails;
-use PHPUnit\Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
@@ -43,7 +41,7 @@ use stdClass;
  * @copyright 2025 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
- * @covers \mod_moodleoverflow\manager\mail_manager
+ * @covers \mod_moodleoverflow\local\manager\mail_manager
  */
 #[CoversClass(mail_manager::class)]
 final class notification_mail_test extends \advanced_testcase {
