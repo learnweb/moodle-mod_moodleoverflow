@@ -20,7 +20,7 @@ use coding_exception;
 use context_module;
 use core_user;
 use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\review;
 use core_external\external_function_parameters;

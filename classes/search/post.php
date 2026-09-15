@@ -40,7 +40,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  */
 class post extends \core_search\base_mod {
     /**
-     * @var \mod_moodleoverflow\models\post[] Internal quick static cache of post entities.
+     * @var \mod_moodleoverflow\local\models\post[] Internal quick static cache of post entities.
      */
     protected $posts = [];
 
@@ -206,14 +206,14 @@ class post extends \core_search\base_mod {
      * Returns the specified forum post from its internal cache.
      *
      * @param int $postid
-     * @return \mod_moodleoverflow\models\post
+     * @return \mod_moodleoverflow\local\models\post
      * @throws dml_missing_record_exception|dml_exception
      */
-    protected function get_post(int $postid): \mod_moodleoverflow\models\post {
+    protected function get_post(int $postid): \mod_moodleoverflow\local\models\post {
         global $DB;
         if (empty($this->posts[$postid])) {
             $record = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
-            $this->posts[$postid] = \mod_moodleoverflow\models\post::from_record($record);
+            $this->posts[$postid] = \mod_moodleoverflow\local\models\post::from_record($record);
         }
         return $this->posts[$postid];
     }

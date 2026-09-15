@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\models;
+namespace mod_moodleoverflow\local\models;
 
 use coding_exception;
 use context_module;

@@ -19,8 +19,8 @@ namespace mod_moodleoverflow\local\service;
 use core\exception\moodle_exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\dto\userpost_dto;
-use mod_moodleoverflow\models\discussion;
-use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\post;
 use moodle_url;
 
 /**

@@ -21,7 +21,7 @@ use dml_exception;
 use core_external\external_function_parameters;
 use core_external\external_api;
 use core_external\external_value;
-use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\local\models\discussion;
 
 defined('MOODLE_INTERNAL') || die();
 

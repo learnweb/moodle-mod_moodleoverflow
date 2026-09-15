@@ -19,7 +19,7 @@ namespace mod_moodleoverflow;
 use coding_exception;
 use context_module;
 use dml_exception;
-use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\local\models\discussion;
 use moodle_exception;
 
 /**

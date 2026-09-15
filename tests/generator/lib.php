@@ -23,8 +23,8 @@
  */
 
 use mod_moodleoverflow\capabilities;
-use mod_moodleoverflow\models\discussion;
-use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 

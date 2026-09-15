@@ -24,7 +24,7 @@
 
 // Include config and locallib.
 use mod_moodleoverflow\event\discussion_viewed;
-use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\output\pages\discussion\discussion_page;
 use mod_moodleoverflow\readtracking;
 
