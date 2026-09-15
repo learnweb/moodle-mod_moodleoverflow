@@ -22,7 +22,7 @@ use core\output\renderable;
 use core\output\renderer_base;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
-use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 use moodle_url;

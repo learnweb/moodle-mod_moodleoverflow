@@ -32,8 +32,8 @@
 // LEARNWEB-TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
 use core_completion\api;
 use core_user\output\myprofile\tree;
-use mod_moodleoverflow\models\discussion;
-use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();

@@ -23,8 +23,8 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\models\discussion;
-use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\post;
 
 /**
  * Tests if the functions from the discussion class are working correctly.
@@ -33,7 +33,7 @@ use mod_moodleoverflow\models\post;
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_moodleoverflow\models\discussion
+ * @covers \mod_moodleoverflow\local\models\discussion
  */
 final class discussion_test extends \advanced_testcase {
     /** @var \stdClass test course */
@@ -121,7 +121,7 @@ final class discussion_test extends \advanced_testcase {
 
     /**
      * Test, if a post and its attachment are deleted successfully.
-     * @covers \mod_moodleoverflow\models\discussion::delete_post_from_discussion
+     * @covers \mod_moodleoverflow\local\models\discussion::delete_post_from_discussion
      */
     public function test_delete_discussion(): void {
         global $DB;

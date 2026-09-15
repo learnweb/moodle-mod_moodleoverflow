@@ -22,7 +22,7 @@ use core\output\renderer_base;
 use html_writer;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
-use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;

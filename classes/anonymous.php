@@ -16,7 +16,7 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\local\models\post;
 
 /**
  * Class for Moodleoverflow anonymity

@@ -18,7 +18,7 @@ namespace mod_moodleoverflow\external;
 
 use coding_exception;
 use context_module;
-use mod_moodleoverflow\models\discussion;
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\readtracking;
 use dml_exception;
 use core_external\external_function_parameters;

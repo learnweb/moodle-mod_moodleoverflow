@@ -20,8 +20,8 @@ use context_module;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
-use mod_moodleoverflow\models\discussion;
-use mod_moodleoverflow\models\post;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\readtracking;
 
 /**
