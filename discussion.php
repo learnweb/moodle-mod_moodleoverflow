@@ -32,27 +32,17 @@ require_once('../../config.php');
 global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
-// Declare optional parameters.
+// Declare parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
-$sesskey = optional_param('sesskey', null, PARAM_TEXT);
-$ratingid = optional_param('r', 0, PARAM_INT);
-$ratedpost = optional_param('rp', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/discussion.php', ['d' => $d]);
-
-// The page should not be large, only pages containing broad tables are usually.
 $PAGE->add_body_class('limitedwidth');
 
 // Check if the discussion is valid.
 $record = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $d], 'invaliddiscussionid');
 $discussion = discussion::from_record($record);
-// Check if the related moodleoverflow instance is valid.
-$moodleoverflow = moodleoverflow_get_record_or_exception(
-    'moodleoverflow',
-    ['id' => $discussion->get_moodleoverflowid()],
-    'invalidmoodleoverflowid'
-);
+$moodleoverflow = $discussion->get_moodleoverflow();
 
 // Check if the related moodleoverflow instance is valid.
 $course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->get_courseid()], 'invalidcourseid', '*', true);
@@ -69,24 +59,8 @@ $modulecontext = context_module::instance($cm->id);
 require_course_login($course, true, $cm);
 
 // Check if the user has the capability to view discussions.
-if (!$canviewdiscussion = has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext)) {
+if (!has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext)) {
     notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
-}
-
-// Has a request to rate a post (as solved or helpful) or to remove rating been submitted?
-if ($ratingid) {
-    require_sesskey();
-
-    if (in_array($ratingid, [RATING_SOLVED, RATING_REMOVE_SOLVED, RATING_HELPFUL, RATING_REMOVE_HELPFUL])) {
-        // Rate the post.
-        if (!\mod_moodleoverflow\ratings::add_rating($moodleoverflow, $ratedpost, $ratingid, $cm, $USER->id)) {
-            throw new moodle_exception('ratingfailed', 'moodleoverflow');
-        }
-
-        // Return to the discussion.
-        $returnto = new moodle_url('/mod/moodleoverflow/discussion.php?d=' . $discussion->get_id());
-        redirect($returnto);
-    }
 }
 
 // Trigger the discussion viewed event.
@@ -99,11 +73,8 @@ unset($SESSION->fromdiscussion);
 
 // Has the user the capability to view the post?
 if (!moodleoverflow_user_can_see_post($discussion->get_first_post(), $cm)) {
-    throw new moodle_exception(
-        'noviewdiscussionspermission',
-        'moodleoverflow',
-        "$CFG->wwwroot/mod/moodleoverflow/view.php?m=$moodleoverflow->id"
-    );
+    $redirect = (new moodle_url('/mod/moodleoverflow/view.php', ['m' => $moodleoverflow->id]))->out();
+    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow', $redirect);
 }
 
 // Append the discussion name to the navigation.
@@ -119,15 +90,11 @@ $node = $forumnode->add(format_string($discussion->name), $url);
 $node->display = false;
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
-
 $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, (bool)$moodleoverflow->allowmultiplemarks]);
 
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
-
-// Include the renderer.
-$renderer = $PAGE->get_renderer('mod_moodleoverflow');
 
 // Mark the discussion as read as the user entered the discussion.
 if (readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER)) {

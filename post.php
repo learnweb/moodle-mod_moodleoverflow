@@ -46,9 +46,6 @@ $PAGE->set_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverf
 // These params will be passed as hidden variables later in the form.
 $pageparams = ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit];
 
-// Get the system context instance.
-$systemcontext = context_system::instance();
-
 // Create a post_control object to control and lead the process.
 $postcontrol = new post_control();
 

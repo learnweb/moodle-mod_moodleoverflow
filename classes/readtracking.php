@@ -20,7 +20,6 @@ use coding_exception;
 use context_module;
 use dml_exception;
 use mod_moodleoverflow\local\models\discussion;
-use moodle_exception;
 
 /**
  * Static methods for managing the tracking of read posts and discussions.
