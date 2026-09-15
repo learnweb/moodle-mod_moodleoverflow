@@ -30,7 +30,7 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
-use mod_moodleoverflow_post_form;
+use mod_moodleoverflow\form\post_form;
 use moodle_exception;
 use moodle_url;
 use stdClass;
@@ -575,11 +575,11 @@ class post_control {
      *
      * Builds and returns a post_form object where the users enters/edits the message and attachments of the post.
      * @param array $pageparams An object that the post.php created.
-     * @return mod_moodleoverflow_post_form a mod_moodleoverflow_post_form object.
+     * @return post_form a post_form object.
      * @throws coding_exception
      * @throws \core\exception\moodle_exception
      */
-    public function build_postform(array $pageparams): mod_moodleoverflow_post_form {
+    public function build_postform(array $pageparams): post_form {
         global $USER;
         // Require that the user is logged in properly and enrolled to the course.
         require_login($this->info->course, false, $this->info->cm);
@@ -592,7 +592,7 @@ class post_control {
             'mod_moodleoverflow',
             'attachment',
             empty($this->prepost->postid) ? null : $this->prepost->postid,
-            mod_moodleoverflow_post_form::attachment_options($this->info->moodleoverflow)
+            post_form::attachment_options($this->info->moodleoverflow)
         );
 
         // If the post is anonymous, attachments should have an anonymous author when editing the attachment.
@@ -620,7 +620,7 @@ class post_control {
                     ];
 
         // Declare the post_form.
-        $mformpost = new mod_moodleoverflow_post_form('post.php', $formarray, 'post', '', ['id' => 'mformmoodleoverflow']);
+        $mformpost = new post_form('post.php', $formarray, 'post', '', ['id' => 'mformmoodleoverflow']);
 
         // If the user is not the original author append an extra message to the message. (Happens when interaction = 'edit').
         if ($USER->id != $this->prepost->userid) {

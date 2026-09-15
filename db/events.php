@@ -29,19 +29,19 @@ $observers = [
     // Delete read records and subscriptions if the user is not anymore enrolled.
     [
         'eventname' => '\core\event\user_enrolment_deleted',
-        'callback' => 'mod_moodleoverflow_observer::user_enrolment_deleted',
+        'callback' => '\mod_moodleoverflow\observer::user_enrolment_deleted',
     ],
 
     // Subscribe the user to moodleoverflows which force him to when enroling a user.
     [
         'eventname' => '\core\event\role_assigned',
-        'callback' => 'mod_moodleoverflow_observer::role_assigned',
+        'callback' => '\mod_moodleoverflow\observer::role_assigned',
     ],
 
     // Subscribe the user to moodleoverflows which force him to when creating an instance.
     [
         'eventname' => '\core\event\course_module_created',
-        'callback' => 'mod_moodleoverflow_observer::course_module_created',
+        'callback' => '\mod_moodleoverflow\observer::course_module_created',
     ],
 
 ];

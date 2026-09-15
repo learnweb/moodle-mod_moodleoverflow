@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_moodleoverflow\form;
+
+use context_module;
+use moodleform;
+use stdClass;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
@@ -26,7 +32,7 @@ require_once($CFG->dirroot . '/repository/lib.php');
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_moodleoverflow_post_form extends moodleform {
+class post_form extends moodleform {
     /**
      * Form definition.
      *

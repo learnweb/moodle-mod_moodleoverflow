@@ -26,9 +26,9 @@ use dml_exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
+use mod_moodleoverflow\form\post_form;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow_post_form;
 use moodle_exception;
 use moodle_url;
 use stdClass;
@@ -381,7 +381,7 @@ class post {
             'mod_moodleoverflow',
             'attachment',
             $this->id,
-            \mod_moodleoverflow_post_form::attachment_options($this->get_moodleoverflow())
+            post_form::attachment_options($this->get_moodleoverflow())
         );
         $DB->set_field('moodleoverflow_posts', 'attachment', $present, ['id' => $this->id]);
     }
@@ -451,7 +451,7 @@ class post {
             'mod_moodleoverflow',
             'post',
             $this->id,
-            mod_moodleoverflow_post_form::editor_options($context, $this->id),
+            post_form::editor_options($context, $this->id),
             $this->message
         );
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
