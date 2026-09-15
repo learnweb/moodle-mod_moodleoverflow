@@ -30,7 +30,7 @@ require_once(__DIR__ . '/../../config.php');
 global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
-use mod_moodleoverflow\tables\userstats_table;
+use mod_moodleoverflow\local\tables\userstats_table;
 // Declare optional parameters.
 $cmid = required_param('id', PARAM_INT);             // Course Module ID.
 

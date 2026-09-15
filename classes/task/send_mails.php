@@ -24,11 +24,10 @@
 
 namespace mod_moodleoverflow\task;
 
-use coding_exception;
 use core\notification;
 use Exception;
 use lang_string;
-use mod_moodleoverflow\manager\mail_manager;
+use mod_moodleoverflow\local\manager\mail_manager;
 
 /**
  * A scheduled task for moodleoverflow cron to send mails to users that need to review a moodleoverflow post.

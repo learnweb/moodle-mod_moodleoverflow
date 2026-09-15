@@ -30,7 +30,7 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
-use mod_moodleoverflow\post\post_control;
+use mod_moodleoverflow\local\post\post_control;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
