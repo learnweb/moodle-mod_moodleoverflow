@@ -337,7 +337,7 @@ class subscriptions {
     /**
      * Determines whether a moodleoverflow has it's subscription mode set to disabled.
      *
-     * @param object $moodleoverflow The moodleoverflow ID
+     * @param object $moodleoverflow The moodleoverflow
      *
      * @return bool
      */
@@ -348,7 +348,7 @@ class subscriptions {
     /**
      * Checks wheter the specified moodleoverflow can be subscribed to.
      *
-     * @param object $moodleoverflow The moodleoverflow ID
+     * @param object $moodleoverflow The moodleoverflow
      * @param context_module $context The module context.
      *
      * @return boolean

@@ -17,6 +17,7 @@
 namespace mod_moodleoverflow\external;
 
 use context_module;
+use core\exception\moodle_exception;
 use mod_moodleoverflow\subscriptions;
 use core_external\external_function_parameters;
 use core_external\external_api;
@@ -67,10 +68,19 @@ class change_subscription_mode extends external_api {
      */
     public static function execute(bool $subscribed, int $cmid): bool {
         global $DB, $USER;
+        self::validate_parameters(self::execute_parameters(), ['subscribed' => $subscribed, 'cmid' => $cmid]);
+
         // Get the moodleoverflow from the cmid.
         $cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
         $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance], '*', MUST_EXIST);
         $modulecontext = context_module::instance($cmid);
+
+        // Validation and security checks.
+        self::validate_context($modulecontext);
+        require_capability('mod/moodleoverflow:viewdiscussion', $modulecontext);
+        if (!subscriptions::is_subscribable($moodleoverflow, $modulecontext)) {
+            throw new moodle_exception('cannotchangesubscription', 'moodleoverflow');
+        }
 
         if ($subscribed) {
             return subscriptions::unsubscribe_user($USER->id, $moodleoverflow, $modulecontext, true);

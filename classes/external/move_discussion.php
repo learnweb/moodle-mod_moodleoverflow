@@ -17,6 +17,7 @@
 namespace mod_moodleoverflow\external;
 
 use coding_exception;
+use context_module;
 use dml_exception;
 use core_external\external_function_parameters;
 use core_external\external_api;
@@ -53,7 +54,7 @@ class move_discussion extends external_api {
     }
 
     /**
-     * Returns the result of the vote (new rating and reputations).
+     * External result.
      * @return external_value
      */
     public static function execute_returns(): external_value {
@@ -61,7 +62,7 @@ class move_discussion extends external_api {
     }
 
     /**
-     * Records upvotes and downvotes.
+     * Moves discussion from one moodleoverflow to another.
      *
      * @param int $discussionid
      * @param int $moodleoverflowid
@@ -70,7 +71,29 @@ class move_discussion extends external_api {
      */
     public static function execute(int $discussionid, int $moodleoverflowid): bool {
         global $DB;
-        $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $discussionid]));
-        return $discussion->move_dicussion($moodleoverflowid);
+        // Validation.
+        $params = ['discussionid' => $discussionid, 'moodleoverflowid' => $moodleoverflowid];
+        self::validate_parameters(self::execute_parameters(), $params);
+
+        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $params['discussionid']], '*', MUST_EXIST);
+
+        // Validate context and capability of the moodleoverflow where the discussion is from.
+        $source = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow], '*', MUST_EXIST);
+        $context = context_module::instance(get_coursemodule_from_instance('moodleoverflow', $source->id)->id);
+        self::validate_context($context);
+        require_capability('mod/moodleoverflow:movetopic', $context);
+
+        // Check if the discussion is possible.
+        $destination = $DB->get_record('moodleoverflow', ['id' => $params['moodleoverflowid']], '*', MUST_EXIST);
+        $instances = get_fast_modinfo($source->course)->get_instances_of('moodleoverflow');
+        if (
+            $destination->id == $source->id
+            || $destination->course != $source->course
+            || $destination->anonymous < $source->anonymous
+            || empty($instances[$destination->id]) || $instances[$destination->id]->deletioninprogress
+        ) {
+            throw new \moodle_exception('invalidmovedestination', 'moodleoverflow');
+        }
+        return discussion::from_record($discussion)->move_dicussion($destination->id);
     }
 }
