@@ -22,6 +22,8 @@ use mod_moodleoverflow\anonymous;
 use core_external\external_function_parameters;
 use core_external\external_api;
 use core_external\external_value;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\ratings;
 use moodle_exception;
 
@@ -87,21 +89,13 @@ class record_vote extends external_api {
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
 
         // Check if the discussion is valid.
-        $discussion = moodleoverflow_get_record_or_exception(
-            'moodleoverflow_discussions',
-            ['id' => $post->discussion],
-            'invaliddiscussionid'
-        );
+        $discussion = discussion::from_id($post->discussion)->get_db_object();
 
         // Check if the related moodleoverflow instance is valid.
-        $moodleoverflow = moodleoverflow_get_record_or_exception(
-            'moodleoverflow',
-            ['id' => $discussion->moodleoverflow],
-            'invalidmoodleoverflowid'
-        );
+        $moodleoverflow = moodleoverflow::from_id($discussion->moodleoverflow);
 
         // Check if the related moodleoverflow instance is valid.
-        $course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->course], 'invalidcourseid', '*', true);
+        $course = get_course($discussion->course);
 
         // Get the related coursemodule and its context.
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {

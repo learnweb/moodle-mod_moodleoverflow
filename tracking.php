@@ -23,6 +23,9 @@
  */
 
 // Require needed files.
+use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\readtracking;
+
 require_once("../../config.php");
 require_once("locallib.php");
 global $CFG, $DB, $USER;
@@ -35,10 +38,8 @@ $returnpage = optional_param('returnpage', 'index.php', PARAM_FILE); // The page
 require_sesskey();
 
 // Retrieve the moodleoverflow instance to track or untrack.
-$moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $id], 'invalidmoodleoverflowid');
-
-// Retrieve the course of the instance.
-$course = moodleoverflow_get_record_or_exception('course', ['id' => $moodleoverflow->course], 'invalidcourseid', '*', true);
+$moodleoverflow = moodleoverflow::from_id($id);
+$course = $moodleoverflow->get_course();
 
 // Retrieve the course module of that course.
 if (!$cm = get_coursemodule_from_instance("moodleoverflow", $moodleoverflow->id, $course->id)) {
@@ -55,7 +56,7 @@ $returnpageurl = new moodle_url($url, $params);
 $returnto = moodleoverflow_go_back_to($returnpageurl);
 
 // Check whether the user can track the moodleoverflow instance.
-$cantrack = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($moodleoverflow);
+$cantrack = readtracking::can_track_moodleoverflows($moodleoverflow);
 
 // Do not continue if the user is not allowed to track the moodleoverflow. Redirect the user back.
 if (!$cantrack) {
@@ -76,12 +77,12 @@ $eventparams = [
 ];
 
 // Check whether the moodleoverflow is tracked.
-$istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+$istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
 if ($istracked) {
     // The moodleoverflow instance is tracked. The next step is to untrack.
 
     // Untrack the moodleoverflow instance.
-    if (\mod_moodleoverflow\readtracking::stop_tracking($moodleoverflow->id)) {
+    if (readtracking::stop_tracking($moodleoverflow->id)) {
         // Successful stopped to track.
 
         // Trigger the readtracking disabled event.
@@ -98,7 +99,7 @@ if ($istracked) {
     // The moodleoverflow instance is not tracked. The next step is to track.
 
     // Track the moodleoverflow instance.
-    if (\mod_moodleoverflow\readtracking::start_tracking($moodleoverflow->id)) {
+    if (readtracking::start_tracking($moodleoverflow->id)) {
         // Successfully started to track.
 
         // Trigger the readtracking event.

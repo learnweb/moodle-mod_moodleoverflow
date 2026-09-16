@@ -17,12 +17,12 @@
 namespace mod_moodleoverflow\external;
 
 use coding_exception;
-use context_module;
 use dml_exception;
 use core_external\external_function_parameters;
 use core_external\external_api;
 use core_external\external_value;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -78,13 +78,16 @@ class move_discussion extends external_api {
         $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $params['discussionid']], '*', MUST_EXIST);
 
         // Validate context and capability of the moodleoverflow where the discussion is from.
-        $source = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow], '*', MUST_EXIST);
-        $context = context_module::instance(get_coursemodule_from_instance('moodleoverflow', $source->id)->id);
+        $source = moodleoverflow::from_id($discussion->moodleoverflow);
+        $context = $source->get_context();
         self::validate_context($context);
         require_capability('mod/moodleoverflow:movetopic', $context);
 
         // Check if the discussion is possible.
-        $destination = $DB->get_record('moodleoverflow', ['id' => $params['moodleoverflowid']], '*', MUST_EXIST);
+        $destination = moodleoverflow::from_id($params['moodleoverflowid']);
+        $context = $destination->get_context();
+        self::validate_context($context);
+        require_capability('mod/moodleoverflow:movetopic', $context);
         $instances = get_fast_modinfo($source->course)->get_instances_of('moodleoverflow');
         if (
             $destination->id == $source->id
@@ -94,6 +97,7 @@ class move_discussion extends external_api {
         ) {
             throw new \moodle_exception('invalidmovedestination', 'moodleoverflow');
         }
-        return discussion::from_record($discussion)->move_dicussion($destination->id);
+        discussion::from_record($discussion)->move_dicussion($destination->id);
+        return true;
     }
 }

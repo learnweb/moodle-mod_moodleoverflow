@@ -27,6 +27,7 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\privacy\provider;
 use mod_moodleoverflow\privacy\data_export_helper;
 
@@ -1265,6 +1266,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $course = self::getDataGenerator()->create_course();
         $forum = self::getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id, 'scale' => 100,
                             'grademaxgrade' => 50, 'gradescalefactor' => 2, ]);
+        $forum = moodleoverflow::from_id($forum->id);
         $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
         $context = \context_module::instance($cm->id);
 

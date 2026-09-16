@@ -15,6 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace mod_moodleoverflow;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use moodle_exception;
 
 /**
@@ -30,7 +33,7 @@ class ratings {
      * Add a rating.
      * This is the basic function to add or edit ratings.
      *
-     * @param object $moodleoverflow
+     * @param moodleoverflow $moodleoverflow
      * @param int    $postid
      * @param int    $rating
      * @param object $cm
@@ -48,27 +51,13 @@ class ratings {
         moodleoverflow_throw_exception_with_check(!in_array($rating, $possibleratings), 'invalidratingid');
 
         // Get the related post.
-        $post = moodleoverflow_get_record_or_exception('moodleoverflow_posts', ['id' => $postid], 'invalidparentpostid');
+        $post = post::from_id($postid)->get_db_object();
 
         // Check if the post belongs to a discussion.
-        $discussion = moodleoverflow_get_record_or_exception(
-            'moodleoverflow_discussions',
-            ['id' => $post->discussion],
-            'notpartofdiscussion'
-        );
+        $discussion = discussion::from_id($post->discussion)->get_db_object();
 
         // Get the related course.
-        $course = moodleoverflow_get_record_or_exception(
-            'course',
-            ['id' => $moodleoverflow->course],
-            'invalidcourseid',
-            '*',
-            true
-        );
-
-        // Are multiple marks allowed?
-        $markssetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'allowmultiplemarks');
-        $multiplemarks = (bool) $markssetting->allowmultiplemarks;
+        $course = $moodleoverflow->get_course();
 
         // Retrieve the contexts.
         $modulecontext = \context_module::instance($cm->id);
@@ -116,7 +105,7 @@ class ratings {
             moodleoverflow_throw_exception_with_check($isnotteacher, 'notteacher');
 
             // Check if multiple marks are not enabled.
-            if (!$multiplemarks) {
+            if (!$moodleoverflow->allows_multiple_marks()) {
                 // Get other ratings in the discussion.
                 $sql = "SELECT *
                         FROM {moodleoverflow_ratings}
@@ -191,11 +180,7 @@ class ratings {
      */
     public static function get_reputation($moodleoverflowid, $userid, $forcesinglerating = false) {
         // Check the moodleoverflow instance.
-        $moodleoverflow = moodleoverflow_get_record_or_exception(
-            'moodleoverflow',
-            ['id' => $moodleoverflowid],
-            'invalidmoodleoverflowid'
-        );
+        $moodleoverflow = moodleoverflow::from_id($moodleoverflowid);
 
         // Check whether the reputation can be summed over the whole course.
         if ($moodleoverflow->coursewidereputation && !$forcesinglerating) {
@@ -302,11 +287,8 @@ class ratings {
      * @return array
      */
     public static function moodleoverflow_get_rating($postid) {
-        // Retrieve the full post.
-        $post = moodleoverflow_get_record_or_exception('moodleoverflow_posts', ['id' => $postid], 'postnotexist');
-
         // Get the rating for this single post.
-        return self::get_ratings_by_discussion($post->discussion, $postid);
+        return self::get_ratings_by_discussion(post::from_id($postid)->get_discussionid(), $postid);
     }
 
     /**
@@ -375,9 +357,7 @@ class ratings {
         $userid = $userid ?? $USER->id;
 
         // Check the moodleoverflow instance.
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid])) {
-            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
-        }
+        $moodleoverflow = moodleoverflow::from_id($moodleoverflowid);
 
         // Initiate a variable.
         $reputation = 0;
@@ -453,7 +433,7 @@ class ratings {
         $reputation = 0;
 
         // Check if the course exists.
-        $course = moodleoverflow_get_record_or_exception('course', ['id' => $courseid], 'invalidcourseid', '*', true);
+        $course = get_course($courseid);
 
         // Get all moodleoverflow instances in this course.
         $sql = "SELECT id

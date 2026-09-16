@@ -24,6 +24,7 @@
 
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
@@ -123,15 +124,12 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         // Convert the record to an object.
         $record = (object) $record;
 
-        // Get the module context.
-        $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
-        $modulecontext = \context_module::instance($cm->id);
-
         // Use current time for post creation; timestart is only the discussion availability period.
         $timenow = time();
 
         // Determine reviewed status based on the user's review capability.
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $record->moodleoverflow]);
+        $moodleoverflow = moodleoverflow::from_id($record->moodleoverflow);
+        $modulecontext = $moodleoverflow->get_context();
         if (
             review::get_review_level($moodleoverflow) >= review::QUESTIONS &&
             !capabilities::has(capabilities::REVIEW_POST, $modulecontext, $record->userid)
@@ -291,7 +289,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * Create a new discussion and post within the specified forum, as the
      * specified author.
      *
-     * @param stdClass $forum   The moodleoverflow to post in
+     * @param stdClass|moodleoverflow $forum   The moodleoverflow to post in
      * @param stdClass $author  The author to post as
      * @param stdClass|null $record Fields for the discussion
      *

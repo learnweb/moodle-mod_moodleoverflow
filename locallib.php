@@ -27,6 +27,7 @@
 
 use core_availability\info_module;
 use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\ratings;
 
@@ -186,10 +187,10 @@ function moodleoverflow_update_user_grade(object $moodleoverflow, int $postuserr
 function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
     global $DB;
 
-    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid]);
+    $moodleoverflow = moodleoverflow::from_id($moodleoverflowid);
 
     // Check whether moodleoverflow object has the added params.
-    if ($moodleoverflow->grademaxgrade > 0 && $moodleoverflow->gradescalefactor > 0) {
+    if ($moodleoverflow->is_graded()) {
         // Get all users id.
         $params = ['moodleoverflowid' => $moodleoverflowid, 'moodleoverflowid2' => $moodleoverflowid];
         $sql = 'SELECT DISTINCT u.userid FROM (
@@ -227,24 +228,6 @@ function moodleoverflow_update_all_grades() {
     foreach ($cmids as $cmid) {
         moodleoverflow_update_all_grades_for_cm($cmid->id);
     }
-}
-
-/**
- * Function to get a record from the database and throw an exception, if the record is not available. The error string is
- * retrieved from moodleoverflow but can be retrieved from the core too.
- * @param string $table                 The table to get the record from
- * @param array $options                Conditions for the record
- * @param string $exceptionstring       Name of the moodleoverflow exception that should be thrown in case there is no record.
- * @param string $fields                Optional fields that are retrieved from the found record.
- * @param bool $coreexception           Optional param if exception is from the core exceptions.
- * @return mixed $record                The found record
- */
-function moodleoverflow_get_record_or_exception($table, $options, $exceptionstring, $fields = '*', $coreexception = false) {
-    global $DB;
-    if (!$record = $DB->get_record($table, $options, $fields)) {
-        throw new moodle_exception($exceptionstring, $coreexception ? 0 : 'moodleoverflow');
-    }
-    return $record;
 }
 
 /**

@@ -149,7 +149,7 @@ function moodleoverflow_add_instance(stdClass $data) {
  * This function is typically called by the course_module_created observer.
  *
  * @param context_module   $context        The context of the moodleoverflow
- * @param stdClass $moodleoverflow The moodleoverflow object
+ * @param object $moodleoverflow The moodleoverflow object
  */
 function moodleoverflow_instance_created($context, $moodleoverflow) {
 

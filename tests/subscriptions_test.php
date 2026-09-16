@@ -24,6 +24,7 @@
 namespace mod_moodleoverflow;
 
 use advanced_testcase;
+use mod_moodleoverflow\local\models\moodleoverflow;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -131,7 +132,7 @@ final class subscriptions_test extends advanced_testcase {
 
         // Test the forced subscription.
         $DB->set_field('moodleoverflow', 'forcesubscribe', MOODLEOVERFLOW_FORCESUBSCRIBE, ['id' => $moodleoverflow->id]);
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
+        $moodleoverflow = moodleoverflow::from_id($moodleoverflow->id);
         $this->assertEquals(
             MOODLEOVERFLOW_FORCESUBSCRIBE,
             subscriptions::get_subscription_mode($moodleoverflow)
@@ -142,21 +143,21 @@ final class subscriptions_test extends advanced_testcase {
 
         // Test the disallowed subscription.
         $DB->set_field('moodleoverflow', 'forcesubscribe', MOODLEOVERFLOW_DISALLOWSUBSCRIBE, ['id' => $moodleoverflow->id]);
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
+        $moodleoverflow = moodleoverflow::from_id($moodleoverflow->id);
         $this->assertTrue(subscriptions::subscription_disabled($moodleoverflow));
         $this->assertFalse(subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(subscriptions::is_forcesubscribed($moodleoverflow));
 
         // Test the initial subscription.
         $DB->set_field('moodleoverflow', 'forcesubscribe', MOODLEOVERFLOW_INITIALSUBSCRIBE, ['id' => $moodleoverflow->id]);
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
+        $moodleoverflow = moodleoverflow::from_id($moodleoverflow->id);
         $this->assertTrue(subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(subscriptions::subscription_disabled($moodleoverflow));
         $this->assertFalse(subscriptions::is_forcesubscribed($moodleoverflow));
 
         // Test the choose subscription.
         $DB->set_field('moodleoverflow', 'forcesubscribe', MOODLEOVERFLOW_CHOOSESUBSCRIBE, ['id' => $moodleoverflow->id]);
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id]);
+        $moodleoverflow = moodleoverflow::from_id($moodleoverflow->id);
         $this->assertTrue(subscriptions::is_subscribable($moodleoverflow, $modulecontext));
         $this->assertFalse(subscriptions::subscription_disabled($moodleoverflow));
         $this->assertFalse(subscriptions::is_forcesubscribed($moodleoverflow));

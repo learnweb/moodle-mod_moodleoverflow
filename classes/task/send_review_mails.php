@@ -19,6 +19,7 @@ namespace mod_moodleoverflow\task;
 use core\cron;
 use Exception;
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\output\moodleoverflow_email;
 
 defined('MOODLE_INTERNAL') || die();
@@ -84,8 +85,9 @@ class send_review_mails extends \core\task\scheduled_task {
             }
 
             if ($moodleoverflow == null || $moodleoverflow->id != $postinfo->mid) {
-                $cm = get_coursemodule_from_instance('moodleoverflow', $postinfo->mid, 0, false, MUST_EXIST);
-                $modulecontext = \context_module::instance($cm->id);
+                $moodleoverflow = moodleoverflow::from_id($postinfo->mid);
+                $cm = $moodleoverflow->get_cm();
+                $modulecontext = $moodleoverflow->get_context();
                 $userswithcapability = get_users_by_capability($modulecontext, 'mod/moodleoverflow:reviewpost');
                 $coursecontext = \context_course::instance($course->id);
                 $usersenrolled = get_enrolled_users($coursecontext);
@@ -95,8 +97,6 @@ class send_review_mails extends \core\task\scheduled_task {
                         array_push($usersto, $user);
                     }
                 }
-
-                $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $postinfo->mid], '*', MUST_EXIST);
             }
 
             if ($discussion == null || $discussion->id != $postinfo->did) {

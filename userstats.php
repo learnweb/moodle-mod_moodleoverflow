@@ -30,21 +30,22 @@ require_once(__DIR__ . '/../../config.php');
 global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\tables\userstats_table;
+
 // Declare optional parameters.
-$cmid = required_param('id', PARAM_INT);             // Course Module ID.
+$cmid = required_param('id', PARAM_INT); // Course Module ID.
 
 // Define important variables.
-
-$cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', ['id' => $cm->course]);
-$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance]);
+$moodleoverflow = moodleoverflow::from_cmid($cmid);
+$cm = $moodleoverflow->get_cm();
+$course = $moodleoverflow->get_course();
 
 // Require a login.
 require_login($course, true, $cm);
 
 // Set the context.
-$context = context_module::instance($cm->id);
+$context = $moodleoverflow->get_context();
 $PAGE->set_context($context);
 
 // Do a capability check, in case a user iserts the userstats-url manually.

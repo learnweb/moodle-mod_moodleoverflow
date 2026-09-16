@@ -38,7 +38,7 @@ class moodleoverflow {
     /** @var ?cm_info Lazy cache for the course module. */
     private ?cm_info $cm = null;
 
-    /** @var string[] Properties that are int(1) columns, booleans in the model. */
+    /** @var string[] Properties that are int(1) db columns, booleans in the model. */
     private const FLAGS = [
         'coursewidereputation', 'allowrating', 'allowreputation', 'allownegativereputation', 'allowmultiplemarks',
     ];
@@ -188,8 +188,7 @@ class moodleoverflow {
      * @return self
      */
     public static function from_cmid(int $cmid): self {
-        $cm = get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST);
-        return self::from_id($cm->instance);
+        return self::from_id(get_coursemodule_from_id('moodleoverflow', $cmid, 0, false, MUST_EXIST)->instance);
     }
 
     /**
