@@ -23,11 +23,10 @@
  */
 
 use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
-use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
@@ -131,7 +130,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $moodleoverflow = moodleoverflow::from_id($record->moodleoverflow);
         $modulecontext = $moodleoverflow->get_context();
         if (
-            review::get_review_level($moodleoverflow) >= review::QUESTIONS &&
+            $moodleoverflow->get_review_level() !== review_level::NONE &&
             !capabilities::has(capabilities::REVIEW_POST, $modulecontext, $record->userid)
         ) {
             $reviewed = 0;
@@ -214,11 +213,10 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             throw new coding_exception('discussion must be present in phpunit_util::create_post() $record');
         }
         $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $record->discussion]));
-        $moodleoverflow = $discussion->get_moodleoverflow();
         $context = context_module::instance($discussion->get_coursemodule()->id);
 
         if (
-            review::get_review_level($discussion->get_moodleoverflow()) == review::EVERYTHING &&
+            $discussion->get_moodleoverflow()->get_review_level() === review_level::EVERYTHING &&
             !has_capability('mod/moodleoverflow:reviewpost', $context)
         ) {
             $record->reviewed = 0;

@@ -20,9 +20,11 @@ use context_module;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\local\enum\anonymity;
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 use moodle_url;
@@ -40,8 +42,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class view_page implements named_templatable, renderable {
-    /** @var object The moodleoverflow that gets shown */
-    public object $modflow;
+    /** @var moodleoverflow The moodleoverflow that gets shown */
+    public moodleoverflow $modflow;
 
     /** @var int Which page gets shown */
     public int $page;
@@ -51,10 +53,10 @@ class view_page implements named_templatable, renderable {
 
     /**
      * Constructor.
-     * @param object $moodleoverflow The moodleoverflow DB object
+     * @param moodleoverflow $moodleoverflow The moodleoverflow DB object
      * @param int $page Which "page" should get
      */
-    public function __construct(object $moodleoverflow, int $page = -1) {
+    public function __construct(moodleoverflow $moodleoverflow, int $page = -1) {
         $this->modflow = $moodleoverflow;
         $this->page = $page;
         $module = 'moodleoverflow';
@@ -131,14 +133,14 @@ class view_page implements named_templatable, renderable {
         }
 
         // Anonymous mode and Review mod description string identifier.
-        $anonymousdesc = match ($this->modflow->anonymous) {
-            anonymous::QUESTION_ANONYMOUS => get_string('desc:only_questions', 'moodleoverflow'),
-            anonymous::EVERYTHING_ANONYMOUS => get_string('desc:anonymous', 'moodleoverflow'),
+        $anonymousdesc = match ($this->modflow->get_anonymity()) {
+            anonymity::QUESTIONS => get_string('desc:only_questions', 'moodleoverflow'),
+            anonymity::EVERYTHING => get_string('desc:anonymous', 'moodleoverflow'),
             default => ''
         };
-        $reviewdesc = match (review::get_review_level($this->modflow)) {
-            review::QUESTIONS => get_string('desc:review_questions', 'moodleoverflow'),
-            review::EVERYTHING => get_string('desc:review_everything', 'moodleoverflow'),
+        $reviewdesc = match ($this->modflow->get_review_level()) {
+            review_level::QUESTIONS => get_string('desc:review_questions', 'moodleoverflow'),
+            review_level::EVERYTHING => get_string('desc:review_everything', 'moodleoverflow'),
             default => ''
         };
 

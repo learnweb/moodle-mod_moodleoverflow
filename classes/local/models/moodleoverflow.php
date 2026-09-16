@@ -289,11 +289,11 @@ class moodleoverflow {
      * Whether a new post has to be reviewed before it becomes visible.
      * Replaces review::should_post_be_reviewed().
      *
-     * @param bool $isstarter Whether the post starts a discussion.
+     * @param bool $isquestion Whether the post is a question (a discussion starter).
      * @return bool
      */
-    public function requires_review(bool $isstarter): bool {
-        return $this->get_review_level()->requires_review($isstarter);
+    public function requires_review(bool $isquestion): bool {
+        return $this->get_review_level()->requires_review($isquestion);
     }
 
     /**

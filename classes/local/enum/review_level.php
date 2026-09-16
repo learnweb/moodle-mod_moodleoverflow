@@ -39,13 +39,13 @@ enum review_level: int {
     /**
      * Whether a post has to be reviewed before it becomes visible.
      *
-     * @param bool $isstarter Whether the post is the discussion starter.
+     * @param bool $isquestion Whether the post is a question (a discussion starter).
      * @return bool
      */
-    public function requires_review(bool $isstarter): bool {
+    public function requires_review(bool $isquestion): bool {
         return match ($this) {
             self::NONE => false,
-            self::QUESTIONS => $isstarter,
+            self::QUESTIONS => $isquestion,
             self::EVERYTHING => true,
         };
     }
