@@ -26,10 +26,10 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_updated;
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
-use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 use mod_moodleoverflow\form\post_form;
 use moodle_exception;
@@ -283,9 +283,7 @@ class post_control {
         // Check if the post can be edited.
         $beyondtime = ((time() - $this->info->relatedpost->created) > get_config('moodleoverflow', 'maxeditingtime'));
 
-        // Please be aware that in future the use of get_db_object() should be replaced with $this->info->relatedpost,
-        // as the review class should be refactored with the new way of working with posts.
-        $alreadyreviewed = review::should_post_be_reviewed($this->info->relatedpost->get_db_object(), $this->info->moodleoverflow)
+        $alreadyreviewed = $this->info->moodleoverflow->requires_review($this->info->relatedpost->get_parentid() == 0)
                            && $this->info->relatedpost->reviewed;
         $capability = has_capability('mod/moodleoverflow:editanypost', $this->info->modulecontext);
         if (($beyondtime || $alreadyreviewed) && !$capability) {
@@ -356,8 +354,8 @@ class post_control {
 
         // Set the post to not reviewed if questions should be reviewed and the user is not a reviewed themselves.
         if (
-            review::get_review_level($this->info->moodleoverflow) >= review::QUESTIONS &&
-                !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)
+            $this->info->moodleoverflow->get_review_level() !== review_level::NONE &&
+            !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)
         ) {
             $this->prepost->reviewed = 0;
         } else {
@@ -414,7 +412,7 @@ class post_control {
 
         // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
         if (
-            review::get_review_level($this->info->moodleoverflow) == review::EVERYTHING &&
+            $this->info->moodleoverflow->get_review_level() === review_level::EVERYTHING &&
                 !has_capability('mod/moodleoverflow:reviewpost', \context_module::instance($this->info->cm->id))
         ) {
             $this->prepost->reviewed = 0;

@@ -25,7 +25,6 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\review;
 use moodle_url;
 
 /**
@@ -186,7 +185,7 @@ class post_card implements named_templatable, renderable {
 
         // Edit.
         $caneditown = $ownpost && $age < $maxeditingtime
-            && (!review::should_post_be_reviewed($this->post->get_db_object(), $moodleoverflow) || !$this->post->reviewed);
+            && (!$moodleoverflow->requires_review($this->post->get_parentid() == 0) || !$this->post->reviewed);
         if ($caneditown || capabilities::has(capabilities::EDIT_ANY_POST, $this->context)) {
             $commands[] = html_writer::link(
                 new moodle_url('/mod/moodleoverflow/post.php', ['edit' => $this->post->get_id()]),

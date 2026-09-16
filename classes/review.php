@@ -38,19 +38,6 @@ class review {
     const EVERYTHING = 2;
 
     /**
-     * Returns the review level of the given moodleoverflow instance, considering the global allowreview setting.
-     * @param object $moodleoverflow
-     * @return int
-     */
-    public static function get_review_level(object $moodleoverflow): int {
-        if (get_config('moodleoverflow', 'allowreview') == '1') {
-            return $moodleoverflow->needsreview;
-        } else {
-            return self::NOTHING;
-        }
-    }
-
-    /**
      * Returns a short review info for the discussion.
      * @param int $discussionid The discussionid.
      * @return object {"count": amount needing review (int) , "first": first postid needing review (int)}
@@ -119,21 +106,6 @@ class review {
             ], 'p' . $records[$key]->postid))->out(false);
         } else {
             return null;
-        }
-    }
-
-    /**
-     * Return if the post does need/needed a review with the current moodleoverflow settings.
-     * @param object $post
-     * @param object $moodleoverflow
-     * @return bool
-     */
-    public static function should_post_be_reviewed($post, $moodleoverflow): bool {
-        $reviewlevel = self::get_review_level($moodleoverflow);
-        if ($post->parent != 0) {
-            return $reviewlevel == self::EVERYTHING;
-        } else {
-            return $reviewlevel >= self::QUESTIONS;
         }
     }
 
