@@ -17,9 +17,11 @@
 namespace mod_moodleoverflow\local\models;
 
 // Important namespaces.
+use cm_info;
 use coding_exception;
 use dml_exception;
 use Exception;
+use mod_moodleoverflow\event\discussion_deleted;
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
@@ -53,11 +55,8 @@ class discussion {
     /** @var bool  a variable for checking if this instance has all its posts */
     public bool $postsbuild;
 
-    /** @var object The moodleoverflow object where the discussion is located */
-    public object $moodleoverflowobject;
-
-    /** @var object The course module object */
-    public object $cmobject;
+    /** @var moodleoverflow The moodleoverflow object where the discussion is located */
+    public moodleoverflow $moodleoverflowobject;
 
     // Constructors and other builders.
 
@@ -147,6 +146,17 @@ class discussion {
     ): object {
         $id = null;
         return new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
+    }
+
+    /**
+     * Build discussion instance from id.
+     * @param int $id
+     * @return self
+     * @throws dml_exception
+     */
+    public static function from_id(int $id): self {
+        global $DB;
+        return self::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $id], '*', MUST_EXIST));
     }
 
     // Discussion Functions.
@@ -250,7 +260,7 @@ class discussion {
                 'context' => $prepost->modulecontext,
             ];
 
-            $event = \mod_moodleoverflow\event\discussion_deleted::create($params);
+            $event = discussion_deleted::create($params);
             $event->trigger();
 
             // Set the id of this instance to null, so that working with it is not possible anymore.
@@ -402,20 +412,15 @@ class discussion {
 
     /**
      * Moves discussion from one moodleoverflow to another.
-     *
      * @param int $moodleoverflowid The moodleoverflow where the discussion is moved to.
-     * @return bool
-     * @throws coding_exception|dml_exception
+     * @return void
+     * @throws coding_exception|dml_exception|moodle_exception
      */
-    public function move_dicussion(int $moodleoverflowid): bool {
+    public function move_dicussion(int $moodleoverflowid): void {
         global $DB;
-        if (has_capability('mod/moodleoverflow:movetopic', \context_module::instance($this->get_coursemodule()->id))) {
-            $this->moodleoverflow = $moodleoverflowid;
-            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $this->moodleoverflow]);
-            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
-            return true;
-        }
-        return false;
+        $this->moodleoverflow = $moodleoverflowid;
+        $this->moodleoverflowobject = moodleoverflow::from_id($moodleoverflowid);
+        $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
     }
 
     // Getter.
@@ -552,43 +557,24 @@ class discussion {
     /**
      * Returns the moodleoverflowobject
      *
-     * @return object $moodleoverflowobject
+     * @return moodleoverflow $moodleoverflowobject
      * @throws dml_exception|moodle_exception
      */
-    public function get_moodleoverflow(): object {
-        global $DB;
+    public function get_moodleoverflow(): moodleoverflow {
         $this->existence_check();
-
-        if (empty($this->moodleoverflowobject)) {
-            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $this->moodleoverflow], '*', MUST_EXIST);
-        }
-
-        return $this->moodleoverflowobject;
+        return $this->moodleoverflowobject ??= moodleoverflow::from_id($this->moodleoverflow);
     }
 
     /**
      * Returns the coursemodule
      *
-     * @return object $cmobject
+     * @return cm_info
      * @throws dml_exception
      * @throws moodle_exception
      */
-    public function get_coursemodule(): object {
+    public function get_coursemodule(): cm_info {
         $this->existence_check();
-
-        if (empty($this->cmobject)) {
-            if (
-                !$this->cmobject = get_coursemodule_from_instance(
-                    'moodleoverflow',
-                    $this->get_moodleoverflow()->id,
-                    $this->get_moodleoverflow()->course
-                )
-            ) {
-                throw new moodle_exception('invalidcoursemodule');
-            }
-        }
-
-        return $this->cmobject;
+        return $this->get_moodleoverflow()->get_cm();
     }
 
     /**

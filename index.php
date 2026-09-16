@@ -54,7 +54,7 @@ if ($subscribe !== null) {
 $PAGE->set_url($url);
 
 // Check if the id is related to a valid course.
-$course = moodleoverflow_get_record_or_exception('course', ['id' => $id], 'invalidcourseid', '*', true);
+$course = get_course($id);
 
 // From now on, the user must be enrolled to a course.
 require_course_login($course);

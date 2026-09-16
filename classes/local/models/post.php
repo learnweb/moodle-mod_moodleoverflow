@@ -16,6 +16,7 @@
 
 namespace mod_moodleoverflow\local\models;
 
+use cm_info;
 use coding_exception;
 use context_module;
 use core\output\html_writer;
@@ -70,11 +71,8 @@ class post {
     /** @var discussion The discussion where the post is located */
     public discussion $discussionobject;
 
-    /** @var object The Moodleoverflow where the post is located*/
-    public object $moodleoverflowobject;
-
-    /** @var object The course module object */
-    public object $cmobject;
+    /** @var moodleoverflow The Moodleoverflow where the post is located*/
+    public moodleoverflow $moodleoverflowobject;
 
     /** @var ?object The parent post of an answerpost */
     public ?object $parentpost;
@@ -211,6 +209,17 @@ class post {
             $timereviewed,
             $formattachments
         );
+    }
+
+    /**
+     * Build post instance from post id.
+     * @param int $id
+     * @return self
+     * @throws dml_exception
+     */
+    public static function from_id(int $id): self {
+        global $DB;
+        return self::from_record($DB->get_record('moodleoverflow_posts', ['id' => $id], '*', MUST_EXIST));
     }
 
     // Post Functions.
@@ -572,19 +581,12 @@ class post {
 
     /**
      * Returns the moodleoverflow where the post is located.
-     * @return object $moodleoverflowobject
+     * @return moodleoverflow
      * @throws moodle_exception
      */
-    public function get_moodleoverflow(): object {
-        global $DB;
+    public function get_moodleoverflow(): moodleoverflow {
         $this->existence_check();
-
-        if (empty($this->moodleoverflowobject)) {
-            $discussion = $this->get_discussion();
-            $this->moodleoverflowobject = $DB->get_record('moodleoverflow', ['id' => $discussion->get_moodleoverflowid()]);
-        }
-
-        return $this->moodleoverflowobject;
+        return $this->moodleoverflowobject ??= $this->get_discussion()->get_moodleoverflow();
     }
 
     /**
@@ -594,24 +596,19 @@ class post {
      * @throws moodle_exception
      */
     public function get_discussion(): discussion {
-        global $DB;
         $this->existence_check();
-        if (empty($this->discussionobject)) {
-            $record = $DB->get_record('moodleoverflow_discussions', ['id' => $this->discussion]);
-            $this->discussionobject = discussion::from_record($record);
-        }
-        return $this->discussionobject;
+        return $this->discussionobject ??= discussion::from_id($this->discussion);
     }
 
     /**
      * Returns the coursemodule
      *
-     * @return object $cmobject
+     * @return cm_info
      * @throws moodle_exception
      */
-    public function get_coursemodule(): object {
+    public function get_coursemodule(): cm_info {
         $this->existence_check();
-        return $this->cmobject ??= \get_coursemodule_from_instance('moodleoverflow', $this->get_moodleoverflow()->id);
+        return $this->get_moodleoverflow()->get_cm();
     }
 
     /**

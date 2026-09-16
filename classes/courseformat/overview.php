@@ -17,7 +17,6 @@
 namespace mod_moodleoverflow\courseformat;
 
 use cm_info;
-use context_module;
 use core\context\module;
 use core\exception\moodle_exception;
 use core\output\action_link;
@@ -27,6 +26,7 @@ use core\output\renderer_helper;
 use core\url;
 use core_courseformat\activityoverviewbase;
 use core_courseformat\local\overview\overviewitem;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\subscriptions;
 
@@ -51,12 +51,11 @@ class overview extends activityoverviewbase {
      * @param renderer_helper $rendererhelper the renderer helper.
      */
     public function __construct(cm_info $cm, renderer_helper $rendererhelper) {
-        global $DB;
         parent::__construct($cm);
 
         // Build important objects.
-        $this->moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $this->cm->instance], '*', MUST_EXIST);
-        $this->modulecontext = context_module::instance($this->cm->id);
+        $this->moodleoverflow = moodleoverflow::from_id($this->cm->instance);
+        $this->modulecontext = $this->moodleoverflow->get_context();
     }
 
     #[\Override]

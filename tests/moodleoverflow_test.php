@@ -29,9 +29,11 @@ use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use stdClass;
-
 defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/../../../lib.php');
+
+global $CFG;
+require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
+
 
 /**
  *

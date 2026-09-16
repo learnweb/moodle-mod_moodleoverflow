@@ -27,6 +27,7 @@
 
 // Include config and locallib.
 use mod_moodleoverflow\event\course_module_viewed;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\output\pages\view\view_page;
 
 require_once(__DIR__ . '/../../config.php');
@@ -52,25 +53,20 @@ $PAGE->set_url('/mod/moodleoverflow/view.php', $params);
 
 // Check for the course and module.
 if ($id) {
-    $cm = get_coursemodule_from_id('moodleoverflow', $id, 0, false, MUST_EXIST);
-    $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
-    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $cm->instance], '*', MUST_EXIST);
+    $moodleoverflow = moodleoverflow::from_cmid($id);
 } else if ($m) {
-    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $m], '*', MUST_EXIST);
-    $course = $DB->get_record('course', ['id' => $moodleoverflow->course], '*', MUST_EXIST);
-    $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
+    $moodleoverflow = moodleoverflow::from_id($m);
 } else {
     throw new moodle_exception('missingparameter');
 }
 
-// Save the allowmultiplemarks setting.
-$marksetting = $DB->get_record('moodleoverflow', ['id' => $moodleoverflow->id], 'allowmultiplemarks');
+$cm = $moodleoverflow->get_cm();
+$course = $moodleoverflow->get_course();
+$context = $moodleoverflow->get_context();
 
 // Require a login.
 require_login($course, true, $cm);
 
-// Set the context.
-$context = context_module::instance($cm->id);
 $PAGE->set_context($context);
 
 // Check some capabilities.
@@ -89,7 +85,7 @@ $PAGE->set_heading(format_string($course->fullname));
 $PAGE->add_body_class('limitedwidth');
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/topicmove', 'init');
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $marksetting->allowmultiplemarks]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $moodleoverflow->allows_multiple_marks()]);
 
 // Return here after posting, etc.
 $SESSION->fromdiscussion = qualified_me();

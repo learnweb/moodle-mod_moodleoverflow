@@ -75,7 +75,7 @@ class anonymous {
      * @return bool
      */
     public static function user_can_see_post(post $post, int $userid): bool {
-        $anonymous = (int) $post->get_moodleoverflow()->anonymous;
+        $anonymous = $post->get_moodleoverflow()->anonymous;
         $discussion = $post->get_discussion();
         return match ($anonymous) {
             self::NOT_ANONYMOUS => true,

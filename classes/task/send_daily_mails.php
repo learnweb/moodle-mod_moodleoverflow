@@ -16,6 +16,9 @@
 
 namespace mod_moodleoverflow\task;
 
+use dml_missing_record_exception;
+use mod_moodleoverflow\local\models\moodleoverflow;
+
 /**
  * This task sends a daily mail of unread posts
  *
@@ -45,13 +48,17 @@ class send_daily_mails extends \core\task\scheduled_task {
             $mail = [];
             // Fill the $mail array.
             foreach ($userdata as $row) {
-                $currentcourse = $DB->get_record('course', ['id' => $row->courseid], 'fullname, id');
                 // Check if the user is enrolled in the course, if not, go to the next row.
                 if (!is_enrolled(\context_course::instance($row->courseid), $user->userid, '', true)) {
                     continue;
                 }
+                try {
+                    $currentforum = moodleoverflow::from_id($row->forumid);
+                    $currentcourse = $currentforum->get_course();
+                } catch (dml_missing_record_exception $e) {
+                    continue;
+                }
 
-                $currentforum = $DB->get_record('moodleoverflow', ['id' => $row->forumid], 'name, id');
                 $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $row->forumdiscussionid], 'name, id');
                 $unreadposts = $row->numberofposts;
 
