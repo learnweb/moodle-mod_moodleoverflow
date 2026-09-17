@@ -26,6 +26,7 @@ use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use moodle_exception;
+use moodle_url;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -586,6 +587,17 @@ class discussion {
     public function get_db_object(): object {
         $this->existence_check();
         return $this->build_db_object();
+    }
+
+    /**
+     * Returns the link to this discussion
+     * @return moodle_url
+     * @throws \core\exception\moodle_exception
+     * @throws moodle_exception
+     */
+    public function get_link(): moodle_url {
+        $this->existence_check();
+        return new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->id]);
     }
 
     // Helper functions.

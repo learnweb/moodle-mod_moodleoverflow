@@ -122,10 +122,10 @@ final class moodleoverflow_test extends \advanced_testcase {
     /**
      * Test, if the exported database object matches the database record.
      */
-    public function test_build_db_object(): void {
+    public function test_get_db_object(): void {
         global $DB;
         $dbrecord = $DB->get_record('moodleoverflow', ['id' => $this->record->id]);
-        $dbobject = moodleoverflow::from_id($this->record->id)->build_db_object();
+        $dbobject = moodleoverflow::from_id($this->record->id)->get_db_object();
 
         // Every column should be exported with the same value, flags as integers.
         $this->assertEquals($dbrecord, $dbobject);

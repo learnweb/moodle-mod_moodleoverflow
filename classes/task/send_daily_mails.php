@@ -64,12 +64,11 @@ class send_daily_mails extends \core\task\scheduled_task {
 
                 // Build url to the course, forum, and discussion.
                 $linktocourse = new \moodle_url('/course/view.php', ['id' => $currentcourse->id]);
-                $linktoforum = new \moodle_url('/mod/moodleoverflow/view.php', ['m' => $currentforum->id]);
                 $linktodiscussion = new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id]);
 
                 // Now change the url to a clickable html link.
                 $linktocourse = \html_writer::link($linktocourse->out(), $currentcourse->fullname);
-                $linktoforum = \html_writer::link($linktoforum->out(), $currentforum->name);
+                $linktoforum = \html_writer::link($currentforum->get_link()->out(), $currentforum->name);
                 $linktodiscussion = \html_writer::link($linktodiscussion->out(), $discussion->name);
 
                 // Build a single line string with the digest information and add it to the mailarray.

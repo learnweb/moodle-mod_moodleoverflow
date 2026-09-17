@@ -520,10 +520,8 @@ class post_control {
 
         // Check if the user has the capability to delete the post.
         $timepassed = time() - $this->info->relatedpost->created;
-        $SESSION->errorreturnurl = new moodle_url(
-            '/mod/moodleoverflow/discussion.php',
-            ['d' => $this->info->discussion->get_id()]
-        );
+        $SESSION->errorreturnurl = $this->info->discussion->get_link();
+
         if (($timepassed > get_config('moodleoverflow', 'maxeditingtime')) && !$this->info->deleteanypost) {
             throw new moodle_exception('cannotdeletepost', 'moodleoverflow');
         }
@@ -543,8 +541,7 @@ class post_control {
             return 'view.php?m=' . $moodleoverflowid;
         } else {
             $this->info->discussion->delete_post_from_discussion($this->prepost);
-            $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
-            return moodleoverflow_go_back_to($discussionurl);
+            return moodleoverflow_go_back_to($this->info->discussion->get_link());
         }
     }
 

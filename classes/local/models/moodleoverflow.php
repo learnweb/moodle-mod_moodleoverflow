@@ -20,6 +20,7 @@ use cm_info;
 use coding_exception;
 use context_module;
 use dml_exception;
+use moodle_url;
 use stdClass;
 use mod_moodleoverflow\local\enum\rating_preference;
 use mod_moodleoverflow\local\enum\review_level;
@@ -195,7 +196,7 @@ class moodleoverflow {
      * Exports the moodleoverflow to a db object.
      * @return stdClass
      */
-    public function build_db_object(): stdClass {
+    public function get_db_object(): stdClass {
         $record = get_object_vars($this);
         unset($record['cm']);
         foreach (self::FLAGS as $flag) {
@@ -415,5 +416,13 @@ class moodleoverflow {
      */
     public function is_graded(): bool {
         return $this->grademaxgrade > 0 && $this->gradescalefactor > 0;
+    }
+
+    /**
+     * Get the link to the moodleoverflow instance.
+     * @return moodle_url
+     */
+    public function get_link(): moodle_url {
+        return new moodle_url('/mod/moodleoverflow/view.php', ['m' => $this->id]);
     }
 }
