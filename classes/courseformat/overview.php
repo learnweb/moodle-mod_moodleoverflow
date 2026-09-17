@@ -60,8 +60,6 @@ class overview extends activityoverviewbase {
 
     #[\Override]
     public function get_actions_overview(): ?overviewitem {
-        $url = new url('/mod/moodleoverflow/view.php', ['m' => $this->moodleoverflow->id]);
-
         if (
             class_exists(button::class) &&
             (new \ReflectionClass(button::class))->hasConstant('BODY_OUTLINE')
@@ -72,7 +70,7 @@ class overview extends activityoverviewbase {
             $buttonclass = "btn btn-outline-secondary";
         }
 
-        $content = new action_link($url, get_string('view'), null, ['class' => $buttonclass]);
+        $content = new action_link($this->moodleoverflow->get_link(), get_string('view'), null, ['class' => $buttonclass]);
         return new overviewitem(get_string('actions'), get_string('view'), $content, text_align::CENTER);
     }
 
@@ -98,7 +96,7 @@ class overview extends activityoverviewbase {
             'domain' => 'moodleoverflow',
             'instanceid' => $this->moodleoverflow->id,
             'userid' => $USER->id,
-            'unreadlink' => new url('/mod/moodleoverflow/view.php', ['m' => $this->moodleoverflow->id]),
+            'unreadlink' => $this->moodleoverflow->get_link(),
             'unreadamount' => readtracking::count_unread_posts_moodleoverflow($this->cm),
         ];
         $name = get_string('unreadposts', 'moodleoverflow');

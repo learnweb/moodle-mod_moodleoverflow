@@ -66,8 +66,7 @@ class ratings {
         // Redirect the user if capabilities are missing.
         if (!self::user_can_rate($post, $modulecontext, $userid)) {
             // Catch unenrolled users.
-            $returnurl = '/mod/moodleoverflow/view.php?m' . $moodleoverflow->id;
-            moodleoverflow_catch_unenrolled_user($coursecontext, $course->id, $returnurl);
+            moodleoverflow_catch_unenrolled_user($coursecontext, $course->id, $moodleoverflow->get_link()->out());
 
             // Notify the user, that he can not post a new discussion.
             throw new moodle_exception('noratemoodleoverflow', 'moodleoverflow');
