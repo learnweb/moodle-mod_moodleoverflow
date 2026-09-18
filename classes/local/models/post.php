@@ -246,7 +246,7 @@ class post {
         }
 
         // Mark the created post as read if the user is tracking the discussion.
-        $cantrack = readtracking::can_track_moodleoverflows($this->get_moodleoverflow());
+        $cantrack = readtracking::can_track($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
             readtracking::mark_post_read($this->userid, $this->get_db_object());
@@ -677,7 +677,7 @@ class post {
      */
     public function mark_post_read(): void {
         global $USER;
-        $cantrack = readtracking::can_track_moodleoverflows($this->get_moodleoverflow());
+        $cantrack = readtracking::can_track($this->get_moodleoverflow());
         $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
         if ($cantrack && $istracked) {
             readtracking::mark_post_read($USER->id, $this->get_db_object());

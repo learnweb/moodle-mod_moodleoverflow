@@ -30,6 +30,7 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\post\post_control;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
@@ -610,7 +611,7 @@ class behat_mod_moodleoverflow extends behat_base {
      */
     public function should_be_tracking(string $type, string $modflowname) {
         global $DB;
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
+        $moodleoverflow = moodleoverflow::from_record($DB->get_record('moodleoverflow', ['name' => $modflowname]));
         if ($type == 'not') {
             if (readtracking::moodleoverflow_is_tracked($moodleoverflow)) {
                 throw new Exception("User should not have readtracking on but it is on");

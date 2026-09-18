@@ -82,8 +82,8 @@ class mark_post_read extends external_api {
         // Get data.
         $discussion = null;
         if ($params['domain'] === 'discussion') {
-            $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $params['instanceid']], '*', MUST_EXIST);
-            $moodleoverflowid = $discussion->moodleoverflow;
+            $discussion = discussion::from_id($params['instanceid']);
+            $moodleoverflowid = $discussion->get_moodleoverflow()->id;
         } else {
             $moodleoverflowid = $params['instanceid'];
         }
@@ -103,7 +103,7 @@ class mark_post_read extends external_api {
             readtracking::mark_moodleoverflow_read($cm, $USER->id);
             return readtracking::count_unread_posts_moodleoverflow($cm);
         }
-        readtracking::mark_discussion_read(discussion::from_record($discussion), $USER->id);
-        return readtracking::count_unread_posts_discussion($discussion->id, $USER->id);
+        readtracking::mark_discussion_read($discussion, $USER->id);
+        return readtracking::count_unread_posts_discussion($discussion);
     }
 }

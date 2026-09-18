@@ -96,7 +96,7 @@ $generaltable->head = [$string['moodleoverflow'], $string['description'], $strin
 $generaltable->align = ['left', 'left', 'center'];
 
 // Check whether moodleoverflows can be tracked.
-$cantrack = \mod_moodleoverflow\readtracking::can_track_moodleoverflows();
+$cantrack = !isguestuser($USER) && !empty($USER->id) && get_config('moodleoverflow', 'trackreadposts');
 if ($cantrack) {
     $untracked = \mod_moodleoverflow\readtracking::get_untracked_moodleoverflows($USER->id, $course->id);
 
