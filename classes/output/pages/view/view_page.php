@@ -89,8 +89,7 @@ class view_page implements named_templatable, renderable {
         $canreview = has_capability('mod/moodleoverflow:reviewpost', $context);
         $canstartdiscussion = !(isguestuser() || !isloggedin()) && has_capability('mod/moodleoverflow:startdiscussion', $context);
         $seestats = has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('moodleoverflow', 'showuserstats');
-        $cantrack = readtracking::can_track_moodleoverflows($this->modflow);
-        $istracked = $cantrack && readtracking::moodleoverflow_is_tracked($this->modflow);
+        $istracked = readtracking::can_track($this->modflow) && readtracking::moodleoverflow_is_tracked($this->modflow);
 
         // Create links.
         $startdiscussion = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $this->modflow->id]);

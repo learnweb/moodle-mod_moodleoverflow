@@ -29,16 +29,19 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// LEARNWEB-TODO: Adapt functions to the new way of working with posts and discussions (Replace the post/discussion functions).
 use core_completion\api;
 use core_user\output\myprofile\tree;
+use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/locallib.php');
 
+// LEARNWEB-TODO: Use new enums instead of these constants if possible.
 // Readtracking constants.
 define('MOODLEOVERFLOW_TRACKING_OFF', 0);
 define('MOODLEOVERFLOW_TRACKING_OPTIONAL', 1);
@@ -298,7 +301,7 @@ function moodleoverflow_delete_instance($id) {
     }
 
     // Delete the read records.
-    \mod_moodleoverflow\readtracking::delete_read_records(-1, -1, -1, $moodleoverflow->id);
+    readtracking::delete_read_records(-1, -1, -1, $moodleoverflow->id);
 
     // Delete the moodleoverflow instance.
     if (!$DB->delete_records('moodleoverflow', ['id' => $moodleoverflow->id])) {
@@ -478,10 +481,10 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  * @throws moodle_exception
  */
 function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, ?navigation_node $moodleoverflownode = null) {
-    global $DB, $USER;
+    global $USER;
 
     // Retrieve the current moodle record.
-    $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $settingsnav->get_page()->cm->instance]);
+    $moodleoverflow = moodleoverflow::from_id($settingsnav->get_page()->cm->instance);
 
     // Check if the user can subscribe to the instance.
     if (!$context = context_module::instance($settingsnav->get_page()->cm->id)) {
@@ -494,7 +497,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     $subscdisabled = subscriptions::subscription_disabled($moodleoverflow);
     $cansubscribe = $activeenrolled && (!$subscdisabled || $canmanage) &&
         !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $context));
-    $cantrack = \mod_moodleoverflow\readtracking::can_track_moodleoverflows($moodleoverflow);
 
     // Display a link to the index.
     if ($enrolled && $activeenrolled) {
@@ -524,16 +526,11 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     }
 
     // Display a link to enable or disable readtracking.
-    if ($enrolled && $cantrack) {
-        // Check some basic capabilities.
-        $isoptional = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
-        $forceallowed = get_config('moodleoverflow', 'allowforcedreadtracking');
-        $isforced = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
-
+    if ($enrolled && readtracking::can_track($moodleoverflow)) {
         // Check whether the readtracking state can be changed.
-        if ($isoptional || (!$forceallowed && $isforced)) {
+        if ($moodleoverflow->get_tracking_type()->users_can_choose()) {
             // Generate the text of the link depending on the current state.
-            $istracked = \mod_moodleoverflow\readtracking::moodleoverflow_is_tracked($moodleoverflow);
+            $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
             if ($istracked) {
                 $linktext = get_string('notrackmoodleoverflow', 'moodleoverflow');
             } else {
@@ -556,8 +553,8 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
  * @param cm_info $cm Course-module object
  */
 function moodleoverflow_cm_info_view(cm_info $cm) {
-
-    $cantrack = \mod_moodleoverflow\readtracking::can_track_moodleoverflows();
+    $moodleoverflow = moodleoverflow::from_id($cm->instance);
+    $cantrack = readtracking::can_track($moodleoverflow);
     $out = "";
     if (has_capability('mod/moodleoverflow:reviewpost', $cm->context)) {
         $reviewcount = \mod_moodleoverflow\review::count_outstanding_reviews_in_moodleoverflow($cm->instance);
@@ -568,7 +565,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
         }
     }
     if ($cantrack) {
-        $unread = \mod_moodleoverflow\readtracking::count_unread_posts_moodleoverflow($cm);
+        $unread = readtracking::count_unread_posts_moodleoverflow($cm);
         if ($unread) {
             $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {

@@ -138,14 +138,13 @@ class overview extends activityoverviewbase {
         global $PAGE;
         // Check if the user tracks the moodleoverflow currently.
         $tracked = readtracking::moodleoverflow_is_tracked($this->moodleoverflow);
-        $changeable = $this->moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL;
 
         // Build the content.
         $itemid = 'moodleoverflow-readtracking-toggle-' . $this->moodleoverflow->id;
         $content = $this->render_toggle_template([
             'itemid' => $itemid,
             'checked' => $tracked,
-            'disabled' => !$changeable,
+            'disabled' => !$this->moodleoverflow->get_tracking_type()->users_can_choose(),
             'datatype' => 'moodleoverflow-readtracking-toggle',
             'setting' => $tracked,
         ]);

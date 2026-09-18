@@ -18,6 +18,7 @@ namespace mod_moodleoverflow\external;
 
 use context_module;
 use core\exception\moodle_exception;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\readtracking;
 use core_external\external_function_parameters;
 use core_external\external_api;
@@ -68,18 +69,17 @@ class change_readtracking_mode extends external_api {
      * @return bool
      */
     public static function execute(bool $tracked, int $moodleoverflowid): bool {
-        global $USER, $DB;
+        global $USER;
         self::validate_parameters(self::execute_parameters(), ['tracked' => $tracked, 'moodleoverflowid' => $moodleoverflowid]);
 
         // Get data.
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid], '*', MUST_EXIST);
-        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course, false, MUST_EXIST);
-        $context = context_module::instance($cm->id);
+        $moodleoverflow = moodleoverflow::from_id($moodleoverflowid);
+        $context = $moodleoverflow->get_context();
 
         // Security checks.
         self::validate_context($context);
         require_capability('mod/moodleoverflow:viewdiscussion', $context);
-        if (isguestuser() || $moodleoverflow->trackingtype != MOODLEOVERFLOW_TRACKING_OPTIONAL) {
+        if (isguestuser() || !$moodleoverflow->get_tracking_type()->users_can_choose()) {
             throw new moodle_exception('cannotchangetracking', 'moodleoverflow');
         }
 
