@@ -79,21 +79,18 @@ class post_card implements named_templatable, renderable {
         $ishelpful = $ratings->ishelpful > 0 ? 'markedhelpful' : '';
 
         // Get voting data for the voting template as well as reputation rating.
-        $allowdisablerating = get_config('moodleoverflow', 'allowdisablerating') == 1;
-        $ratingallowed = $allowdisablerating ? $moodleoverflow->allowrating : true;
-        $reputationallowed = $allowdisablerating ? $moodleoverflow->allowreputation : true;
         $ratings = $this->post->get_ratings();
         $userrating = ratings::user_rated($this->post->get_id());
         $ratingability = ratings::user_can_rate($this->post->get_db_object(), $this->context);
 
-        $showvotes = $ratingallowed ? [
+        $showvotes = $moodleoverflow->is_rating_enabled() ? [
             'postid' => $this->post->get_id(),
             'votes' => $ratings->votesdifference,
             'userupvoted' => $userrating && $userrating->rating == RATING_UPVOTE,
             'userdownvoted' => $userrating && $userrating->rating == RATING_DOWNVOTE,
             'canchange' => $ratingability && $this->post->get_userid() != $USER->id,
         ] : [];
-        $showreputation = $reputationallowed && anonymous::user_can_see_post($this->post, $USER->id) ? [
+        $showreputation = $moodleoverflow->is_reputation_enabled() && anonymous::user_can_see_post($this->post, $USER->id) ? [
             'userid' => $this->post->get_userid(),
             'userreputation' => ratings::get_reputation($moodleoverflow->id, $this->post->get_userid()),
         ] : [];
@@ -206,13 +203,7 @@ class post_card implements named_templatable, renderable {
         // Reply.
         if (moodleoverflow_user_can_post($this->context, $this->post->get_db_object(), false)) {
             if ($isroot) {
-                // Check limitedanswer window.
-                $hasstarttime = !empty($moodleoverflow->la_starttime);
-                $hasendtime   = !empty($moodleoverflow->la_endtime);
-                $islimited    = ($hasstarttime && $moodleoverflow->la_starttime > time())
-                    || ($hasendtime && $moodleoverflow->la_endtime < time());
-
-                if (($hasstarttime || $hasendtime) && $islimited) {
+                if (!$moodleoverflow->is_answer_window_open()) {
                     if (!has_capability('mod/moodleoverflow:addinstance', $this->context)) {
                         $helpicon  = $OUTPUT->help_icon('la_student_helpicon', 'moodleoverflow');
                         $commands[] = html_writer::tag(

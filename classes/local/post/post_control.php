@@ -496,7 +496,13 @@ class post_control {
         // The edit was successful.
         $redirectmessage = get_string('postupdated', 'moodleoverflow');
         if ($this->prepost->userid != $USER->id) {
-            if (anonymous::is_post_anonymous($this->info->discussion, $this->info->moodleoverflow, $this->prepost->userid)) {
+            if (
+                anonymous::is_post_anonymous(
+                    $this->info->discussion->get_db_object(),
+                    $this->info->moodleoverflow,
+                    $this->prepost->userid
+                )
+            ) {
                 $name = get_string('anonymous', 'moodleoverflow');
             } else {
                 $realuser = $DB->get_record('user', ['id' => $this->prepost->userid]);

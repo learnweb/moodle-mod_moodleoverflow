@@ -21,6 +21,7 @@ use context_module;
 use core_user;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\review;
 use core_external\external_function_parameters;
@@ -77,10 +78,8 @@ class review_reject_post extends external_api {
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
         $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion], '*', MUST_EXIST);
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow], '*', MUST_EXIST);
-        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
-        $course = get_course($cm->course);
-        $context = context_module::instance($cm->id);
+        $moodleoverflow = moodleoverflow::from_id($discussion->moodleoverflow);
+        $context = $moodleoverflow->get_context();
         self::validate_context($context);
 
         $PAGE->set_context($context);
@@ -102,8 +101,8 @@ class review_reject_post extends external_api {
         $userto->anonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid);
 
         $maildata = new moodleoverflow_email(
-            $course,
-            $cm,
+            $moodleoverflow->get_course(),
+            $moodleoverflow->get_cm(),
             $moodleoverflow,
             $discussion,
             $post,
