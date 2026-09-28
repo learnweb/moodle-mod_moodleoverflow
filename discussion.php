@@ -40,12 +40,11 @@ $PAGE->set_url('/mod/moodleoverflow/discussion.php', ['d' => $d]);
 $PAGE->add_body_class('limitedwidth');
 
 // Check if the discussion is valid.
-$record = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', ['id' => $d], 'invaliddiscussionid');
-$discussion = discussion::from_record($record);
+$discussion = discussion::from_id($d);
 $moodleoverflow = $discussion->get_moodleoverflow();
 
 // Check if the related moodleoverflow instance is valid.
-$course = moodleoverflow_get_record_or_exception('course', ['id' => $discussion->get_courseid()], 'invalidcourseid', '*', true);
+$course = get_course($discussion->get_courseid());
 
 // Get the related coursemodule and its context.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {

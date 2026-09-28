@@ -16,6 +16,7 @@
 
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 
 /**
@@ -44,26 +45,17 @@ class anonymous {
      * if a post is seen as "anonymous" or not to a user.
      *
      * @param object $discussion
-     * @param object $moodleoverflow
+     * @param moodleoverflow $moodleoverflow
      * @param int $postinguserid The user id of the post that is being checked.
      *
      * @return bool true if user is not logged in, everything is marked anonymous
      * and if the question is anonymous and there are no answers yet, else false
      */
-    public static function is_post_anonymous($discussion, $moodleoverflow, $postinguserid): bool {
+    public static function is_post_anonymous($discussion, moodleoverflow $moodleoverflow, int $postinguserid): bool {
         if ($postinguserid == 0) {
             return true;
         }
-
-        if ($moodleoverflow->anonymous == self::EVERYTHING_ANONYMOUS) {
-            return true;
-        }
-
-        if ($moodleoverflow->anonymous == self::QUESTION_ANONYMOUS) {
-            return $discussion->userid == $postinguserid;
-        }
-
-        return false;
+        return $moodleoverflow->is_author_anonymous($discussion->userid == $postinguserid);
     }
 
     /**
@@ -75,7 +67,7 @@ class anonymous {
      * @return bool
      */
     public static function user_can_see_post(post $post, int $userid): bool {
-        $anonymous = (int) $post->get_moodleoverflow()->anonymous;
+        $anonymous = $post->get_moodleoverflow()->anonymous;
         $discussion = $post->get_discussion();
         return match ($anonymous) {
             self::NOT_ANONYMOUS => true,

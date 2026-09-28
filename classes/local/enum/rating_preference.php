@@ -14,21 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_moodleoverflow\local\enum;
+
 /**
- * Defines the version and other meta-info about the plugin
- *
- * See https://docs.moodle.org/dev/version.php for more info.
+ * Moodleoverflow instance setting if helpful answers or solution posts should be ranked higher.
  *
  * @package   mod_moodleoverflow
- * @copyright 2025 Thomas Niedermaier, University Münster
+ * @copyright 2026 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+enum rating_preference: int {
+    // A helpful mark by the question author is pinned first.
+    case STARTER = 0;
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version = 2026050704;
-$plugin->requires = 2024100700.00; // Require Moodle 4.5.
-$plugin->supported = [405, 502];
-$plugin->component = 'mod_moodleoverflow';
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = 'v5.2-r2';
+    // A solution mark by a teacher is pinned first.
+    case TEACHER = 1;
+}

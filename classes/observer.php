@@ -18,6 +18,7 @@ namespace mod_moodleoverflow;
 
 use context;
 use context_module;
+use mod_moodleoverflow\local\models\moodleoverflow;
 
 /**
  * Event observer for mod_moodleoverflow.
@@ -120,7 +121,7 @@ class observer {
      * @return void
      */
     public static function course_module_created(\core\event\course_module_created $event) {
-        global $DB, $CFG;
+        global $CFG;
 
         // Check if a moodleoverflow instance was created.
         if ($event->other['modulename'] === 'moodleoverflow') {
@@ -128,7 +129,7 @@ class observer {
             require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
             // Create a snapshot of the created moodleoverflow record.
-            $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $event->other['instanceid']]);
+            $moodleoverflow = moodleoverflow::from_id($event->other['instanceid']);
 
             // Trigger the function for a created moodleoverflow instance.
             moodleoverflow_instance_created($event->get_context(), $moodleoverflow);

@@ -24,6 +24,7 @@ use core_search\manager;
 use dml_exception;
 use dml_missing_record_exception;
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use moodle_recordset;
 use moodle_url;
 use stdClass;
@@ -59,8 +60,7 @@ class post extends \core_search\base_mod {
             return null;
         }
 
-        $sql = "SELECT p.*, m.id AS moodleoverflowid, m.course AS courseid, m.anonymous AS anonymous,
-                       d.name AS discussionname, d.userid AS discussionuserid
+        $sql = "SELECT p.*, m.id AS moodleoverflowid, m.course AS courseid, d.name AS discussionname, d.userid AS discussionuserid
                 FROM {moodleoverflow_posts} p
                 JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
                 JOIN {moodleoverflow} m ON m.id = d.moodleoverflow
@@ -98,7 +98,7 @@ class post extends \core_search\base_mod {
         $re = get_string('re', 'mod_moodleoverflow') . ' ';
         $anonymous = anonymous::is_post_anonymous(
             (object) ['userid' => $record->discussionuserid],
-            (object) ['anonymous' => $record->anonymous],
+            moodleoverflow::from_id($record->moodleoverflowid),
             $record->userid
         );
 

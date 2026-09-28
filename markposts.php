@@ -23,6 +23,7 @@
  */
 
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\readtracking;
 
 require_once('../../config.php');
@@ -50,10 +51,10 @@ if ($returndiscussion !== 0) {
 $PAGE->set_url($url);
 
 // Retrieve the connected moodleoverflow instance.
-$moodleoverflow = moodleoverflow_get_record_or_exception('moodleoverflow', ['id' => $moodleoverflowid], 'invalidmoodleoverflowid');
+$moodleoverflow = moodleoverflow::from_id($moodleoverflowid);
 
 // Retrieve the connected course.
-$course = moodleoverflow_get_record_or_exception('course', ['id' => $moodleoverflow->course], 'invalidcourseid', '*', true);
+$course = get_course($moodleoverflow->course);
 
 // Get the coursemodule.
 if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
@@ -93,13 +94,12 @@ if (isguestuser()) {
 
 // Delete a single discussion.
 if (!empty($discussionid)) {
-    // Check if the discussion exists.
-    $options = ['id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id];
-    $record = moodleoverflow_get_record_or_exception('moodleoverflow_discussions', $options, 'invaliddiscussionid');
     // Mark all the discussions read.
-    if (
-        !readtracking::mark_discussion_read(discussion::from_record($record), $user->id)
-    ) {
+    $discussion = discussion::from_id($discussionid);
+    if ($discussion->get_moodleoverflowid() != $moodleoverflow->id) {
+        throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
+    }
+    if (!readtracking::mark_discussion_read($discussion, $user->id)) {
         // Display an error, if something failes.
         $message = get_string('markreadfailed', 'moodleoverflow');
         $status = \core\output\notification::NOTIFY_ERROR;

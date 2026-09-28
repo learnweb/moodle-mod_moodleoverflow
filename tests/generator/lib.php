@@ -23,10 +23,10 @@
  */
 
 use mod_moodleoverflow\capabilities;
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
-use mod_moodleoverflow\readtracking;
-use mod_moodleoverflow\review;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
@@ -123,17 +123,14 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         // Convert the record to an object.
         $record = (object) $record;
 
-        // Get the module context.
-        $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
-        $modulecontext = \context_module::instance($cm->id);
-
         // Use current time for post creation; timestart is only the discussion availability period.
         $timenow = time();
 
         // Determine reviewed status based on the user's review capability.
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $record->moodleoverflow]);
+        $moodleoverflow = moodleoverflow::from_id($record->moodleoverflow);
+        $modulecontext = $moodleoverflow->get_context();
         if (
-            review::get_review_level($moodleoverflow) >= review::QUESTIONS &&
+            $moodleoverflow->get_review_level() !== review_level::NONE &&
             !capabilities::has(capabilities::REVIEW_POST, $modulecontext, $record->userid)
         ) {
             $reviewed = 0;
@@ -216,11 +213,10 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             throw new coding_exception('discussion must be present in phpunit_util::create_post() $record');
         }
         $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $record->discussion]));
-        $moodleoverflow = $discussion->get_moodleoverflow();
         $context = context_module::instance($discussion->get_coursemodule()->id);
 
         if (
-            review::get_review_level($discussion->get_moodleoverflow()) == review::EVERYTHING &&
+            $discussion->get_moodleoverflow()->get_review_level() === review_level::EVERYTHING &&
             !has_capability('mod/moodleoverflow:reviewpost', $context)
         ) {
             $record->reviewed = 0;
@@ -291,7 +287,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      * Create a new discussion and post within the specified forum, as the
      * specified author.
      *
-     * @param stdClass $forum   The moodleoverflow to post in
+     * @param stdClass|moodleoverflow $forum   The moodleoverflow to post in
      * @param stdClass $author  The author to post as
      * @param stdClass|null $record Fields for the discussion
      *

@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\subscriptions;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
@@ -52,21 +54,17 @@ if (!is_null($discussionid)) {
 $PAGE->set_url($url);
 
 // Get all necessary objects.
-$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $id], '*', MUST_EXIST);
-$course = $DB->get_record('course', ['id' => $moodleoverflow->course], '*', MUST_EXIST);
-$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id, false, MUST_EXIST);
-$context = context_module::instance($cm->id);
+$moodleoverflow = moodleoverflow::from_id($id);
+$course = $moodleoverflow->get_course();
+$cm = $moodleoverflow->get_cm();
+$context = $moodleoverflow->get_context();
 
 // To subscribe to a moodleoverflow or a discussion, the user needs to be logged in.
 require_login($course, false, $cm);
 
 $discussion = null;
 if (!is_null($discussionid)) {
-    $discussion = moodleoverflow_get_record_or_exception(
-        'moodleoverflow_discussions',
-        ['id' => $discussionid, 'moodleoverflow' => $moodleoverflow->id],
-        'invaliddiscussionid'
-    );
+    $discussion = discussion::from_id($discussionid)->get_db_object();
 }
 
 // Define variables.

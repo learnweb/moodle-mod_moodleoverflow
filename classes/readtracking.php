@@ -18,8 +18,11 @@ namespace mod_moodleoverflow;
 
 use coding_exception;
 use context_module;
+use core\user;
 use dml_exception;
+use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 
 /**
  * Static methods for managing the tracking of read posts and discussions.
@@ -30,80 +33,48 @@ use mod_moodleoverflow\local\models\discussion;
  */
 class readtracking {
     /**
-     * Determine if a user can track moodleoverflows and optionally a particular moodleoverflow instance.
-     * Checks the site settings and the moodleoverflow settings (if requested).
-     *
-     * @param object $moodleoverflow
-     *
-     * @return boolean
-     * */
-    public static function can_track_moodleoverflows($moodleoverflow = null) {
+     * Whether the user can track this moodleoverflow at all.
+     * @param moodleoverflow $moodleoverflow
+     * @param ?object $user Defaults to the current user.
+     * @return bool
+     */
+    public static function can_track(moodleoverflow $moodleoverflow, ?object $user = null): bool {
         global $USER;
+        $user = $user ?? $USER;
 
-        // Check if readtracking is disabled for the module.
-        if (!get_config('moodleoverflow', 'trackreadposts')) {
+        // Guests and users who are not logged in cannot track moodleoverflows.
+        if (isguestuser($user) || empty($user->id)) {
             return false;
         }
 
-        // Guests are not allowed to track moodleoverflows.
-        if (isguestuser($USER) || empty($USER->id)) {
-            return false;
-        }
-
-        // If no specific moodleoverflow is submitted, check the modules basic settings.
-        if (is_null($moodleoverflow)) {
-            if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
-                // Since we can force tracking, assume yes without a specific forum.
-                return true;
-            } else {
-                // User tracks moodleoverflows by default.
-                return true;
-            }
-        }
-        // Check the settings of the moodleoverflow instance.
-        $allowed = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
-        $forced = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
-
-        return ($allowed || $forced);
+        return $moodleoverflow->get_tracking_type() !== tracking_type::OFF;
     }
 
     /**
      * Tells whether a specific moodleoverflow is tracked by the user.
      *
-     * @param object $moodleoverflow
+     * @param moodleoverflow $moodleoverflow
      * @param ?object $user
      *
      * @return bool
      * @throws dml_exception
      * @throws coding_exception
      */
-    public static function moodleoverflow_is_tracked(object $moodleoverflow, ?object $user = null): bool {
+    public static function moodleoverflow_is_tracked(moodleoverflow $moodleoverflow, ?object $user = null): bool {
         global $USER, $DB;
-
-        // Get the user.
         $user = $user ?? $USER;
 
-        // Guests cannot track a moodleoverflow. The moodleoverflow should be generally trackable.
-        if (isguestuser($USER) || empty($USER->id) || !self::can_track_moodleoverflows($moodleoverflow)) {
+        // The moodleoverflow should be generally trackable.
+        if (!self::can_track($moodleoverflow, $user)) {
             return false;
         }
 
         // Check the settings of the moodleoverflow instance.
-        $allowed = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL);
-        $forced = ($moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED);
+        $type = $moodleoverflow->get_tracking_type();
+        $params = ['userid' => $user->id, 'moodleoverflowid' => $moodleoverflow->id];
+        $userpreference = $DB->get_record('moodleoverflow_tracking', $params);
 
-        // Check the preferences of the user.
-        $userpreference = $DB->get_record(
-            'moodleoverflow_tracking',
-            ['userid' => $user->id, 'moodleoverflowid' => $moodleoverflow->id]
-        );
-
-        // Return the boolean.
-        if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
-            return ($forced || ($allowed && $userpreference === false));
-        } else {
-            return (($allowed || $forced) && $userpreference === false);
-        }
+        return $type === tracking_type::FORCED || ($type === tracking_type::OPTIONAL && $userpreference === false);
     }
 
     /**
@@ -347,7 +318,7 @@ class readtracking {
 
     /**
      * Get a list of forums not tracked by the user.
-     *
+     * LEARNWEB-TODO: this function is only called in the index.php. When index.php gets removed, remove this function too.
      * @param int $userid   The user ID
      * @param int $courseid The course ID
      *
@@ -359,15 +330,15 @@ class readtracking {
         // Check whether readtracking may be forced.
         if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
             // Create a part of a sql-statement.
-            $trackingsql = "AND (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OFF . "
-                            OR (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL . " AND mt.id IS NOT NULL))";
+            $trackingsql = "AND (m.trackingtype = " . tracking_type::OFF->value . "
+                            OR (m.trackingtype = " . tracking_type::OPTIONAL->value . " AND mt.id IS NOT NULL))";
         } else {
             // Readtracking may be forced.
 
             // Create another sql-statement.
-            $trackingsql = "AND (m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OFF .
-                " OR ((m.trackingtype = " . MOODLEOVERFLOW_TRACKING_OPTIONAL .
-                " OR m.trackingtype = " . MOODLEOVERFLOW_TRACKING_FORCED . ") AND mt.id IS NOT NULL))";
+            $trackingsql = "AND (m.trackingtype = " . tracking_type::OFF->value .
+                " OR ((m.trackingtype = " . tracking_type::OPTIONAL->value .
+                " OR m.trackingtype = " . tracking_type::FORCED->value . ") AND mt.id IS NOT NULL))";
         }
 
         // Create the sql-queryx.
@@ -377,16 +348,11 @@ class readtracking {
                  WHERE m.course = ? $trackingsql";
 
         // Get all untracked moodleoverflows from the database.
-        $moodleoverflows = $DB->get_records_sql($sql, [$userid, $courseid, $userid]);
+        $moodleoverflows = $DB->get_records_sql($sql, [$userid, $courseid]);
 
         // Check whether there are no untracked moodleoverflows.
         if (!$moodleoverflows) {
             return [];
-        }
-
-        // Loop through all moodleoverflows.
-        foreach ($moodleoverflows as $moodleoverflow) {
-            $moodleoverflows[$moodleoverflow->id] = $moodleoverflow;
         }
 
         // Return all untracked moodleoverflows.
@@ -403,7 +369,7 @@ class readtracking {
     public static function count_unread_posts_moodleoverflow(object $cm): int {
         global $DB, $USER;
         // Return if tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
-        if (self::check_tracking_off($cm->instance, $USER->id)) {
+        if (!self::moodleoverflow_is_tracked(moodleoverflow::from_id($cm->instance), $USER)) {
             return 0;
         }
 
@@ -425,16 +391,14 @@ class readtracking {
 
     /**
      * Get amound of unread posts in a discussion
-     * @param int $discussionid
-     * @param int $userid
+     * @param discussion $discussion
+     * @param ?object $user
      * @return int
      */
-    public static function count_unread_posts_discussion(int $discussionid, int $userid = 0): int {
+    public static function count_unread_posts_discussion(discussion $discussion, ?object $user = null): int {
         global $DB, $USER;
-        $userid = $userid ?? $USER->id;
-        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid]);
-
-        if (self::check_tracking_off($discussion->moodleoverflow, $userid)) {
+        $user = $user ?? $USER;
+        if (!self::moodleoverflow_is_tracked($discussion->get_moodleoverflow(), $user)) {
             return 0;
         }
 
@@ -443,7 +407,7 @@ class readtracking {
         $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
 
         // Define a sql-query.
-        $params = [$USER->id, $discussion->id, $cutoffdate];
+        $params = [$user->id, $discussion->get_id(), $cutoffdate];
         $sql = "SELECT COUNT(p.id)
                   FROM {moodleoverflow_posts} p
                   JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
@@ -455,44 +419,18 @@ class readtracking {
     }
 
     /**
-     * Helper function, checks if:
-     * tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
-     * @param int $moodleoverflowid Object from DB.
-     * @param int $userid
-     * @return bool
-     */
-    private static function check_tracking_off(int $moodleoverflowid, int $userid): bool {
-        global $DB;
-        $moodleoverflow = $DB->get_record_sql("SELECT m.*, tm.id as hasdisabledtracking " .
-            "FROM {moodleoverflow} m " .
-            "LEFT JOIN {moodleoverflow_tracking} tm ON m.id = tm.moodleoverflowid AND tm.userid = :userid " .
-            "WHERE m.id = :moodleoverflowid", ['userid' => $userid, 'moodleoverflowid' => $moodleoverflowid]);
-
-        return (
-            $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OFF || (
-                $moodleoverflow->hasdisabledtracking && (
-                    $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_OPTIONAL || (
-                        $moodleoverflow->trackingtype == MOODLEOVERFLOW_TRACKING_FORCED &&
-                        !get_config('moodleoverflow', 'allowforcedreadtracking')
-                    )
-                )
-            )
-        );
-    }
-
-    /**
      * Checks whether a specific post has been read by a user.
      * Posts older than the configured cutoff date are always considered read.
      *
-     * @param object $moodleoverflow
+     * @param moodleoverflow $moodleoverflow
      * @param int $postid
      * @param int $userid
      * @return bool True if read (or old), false if unread.
      */
-    public static function is_post_read(object $moodleoverflow, int $postid, int $userid): bool {
-        global $DB;
-
-        if (!self::moodleoverflow_is_tracked($moodleoverflow)) {
+    public static function is_post_read(moodleoverflow $moodleoverflow, int $postid, int $userid): bool {
+        global $DB, $USER;
+        $user = ($userid == $USER->id) ? $USER : user::get_user($userid);
+        if (!self::moodleoverflow_is_tracked($moodleoverflow, $user)) {
             return true;
         }
 

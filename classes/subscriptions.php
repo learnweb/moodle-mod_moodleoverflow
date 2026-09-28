@@ -611,7 +611,7 @@ class subscriptions {
      * Adds user to the subscriber list.
      *
      * @param int             $userid         The user ID
-     * @param stdClass       $moodleoverflow The moodleoverflow record
+     * @param object       $moodleoverflow The moodleoverflow record
      * @param context_module $context        The module context
      * @param bool            $userrequest    Whether the user requested this change themselves.
      *
@@ -675,7 +675,7 @@ class subscriptions {
      * Removes user from the subscriber list.
      *
      * @param int             $userid         The user ID.
-     * @param stdClass       $moodleoverflow The moodleoverflow record
+     * @param object       $moodleoverflow The moodleoverflow record
      * @param context_module $context        The module context
      * @param boolean         $userrequest    Whether the user requested this change themselves.
      *

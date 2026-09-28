@@ -20,6 +20,7 @@ use core\exception\moodle_exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\dto\userpost_dto;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use moodle_url;
 
@@ -78,8 +79,7 @@ class user_service {
             }
 
             $post = post::from_record($record);
-            $post->cmobject = $cm;
-            $post->moodleoverflowobject = $moodleoverflows[$record->modflowid];
+            $post->moodleoverflowobject = moodleoverflow::from_record($moodleoverflows[$record->modflowid]);
             $post->discussionobject = discussion::from_record($discussions[$record->discussid]);
 
             if (!moodleoverflow_user_can_see_post($post, $cm, $USER->id) || !anonymous::user_can_see_post($post, $USER->id)) {

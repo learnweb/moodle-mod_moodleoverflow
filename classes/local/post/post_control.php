@@ -26,9 +26,10 @@ use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_updated;
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
-use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 use mod_moodleoverflow\form\post_form;
 use moodle_exception;
@@ -282,9 +283,7 @@ class post_control {
         // Check if the post can be edited.
         $beyondtime = ((time() - $this->info->relatedpost->created) > get_config('moodleoverflow', 'maxeditingtime'));
 
-        // Please be aware that in future the use of get_db_object() should be replaced with $this->info->relatedpost,
-        // as the review class should be refactored with the new way of working with posts.
-        $alreadyreviewed = review::should_post_be_reviewed($this->info->relatedpost->get_db_object(), $this->info->moodleoverflow)
+        $alreadyreviewed = $this->info->moodleoverflow->requires_review($this->info->relatedpost->get_parentid() == 0)
                            && $this->info->relatedpost->reviewed;
         $capability = has_capability('mod/moodleoverflow:editanypost', $this->info->modulecontext);
         if (($beyondtime || $alreadyreviewed) && !$capability) {
@@ -355,8 +354,8 @@ class post_control {
 
         // Set the post to not reviewed if questions should be reviewed and the user is not a reviewed themselves.
         if (
-            review::get_review_level($this->info->moodleoverflow) >= review::QUESTIONS &&
-                !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)
+            $this->info->moodleoverflow->get_review_level() !== review_level::NONE &&
+            !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)
         ) {
             $this->prepost->reviewed = 0;
         } else {
@@ -413,7 +412,7 @@ class post_control {
 
         // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
         if (
-            review::get_review_level($this->info->moodleoverflow) == review::EVERYTHING &&
+            $this->info->moodleoverflow->get_review_level() === review_level::EVERYTHING &&
                 !has_capability('mod/moodleoverflow:reviewpost', \context_module::instance($this->info->cm->id))
         ) {
             $this->prepost->reviewed = 0;
@@ -497,7 +496,13 @@ class post_control {
         // The edit was successful.
         $redirectmessage = get_string('postupdated', 'moodleoverflow');
         if ($this->prepost->userid != $USER->id) {
-            if (anonymous::is_post_anonymous($this->info->discussion, $this->info->moodleoverflow, $this->prepost->userid)) {
+            if (
+                anonymous::is_post_anonymous(
+                    $this->info->discussion->get_db_object(),
+                    $this->info->moodleoverflow,
+                    $this->prepost->userid
+                )
+            ) {
                 $name = get_string('anonymous', 'moodleoverflow');
             } else {
                 $realuser = $DB->get_record('user', ['id' => $this->prepost->userid]);
@@ -521,10 +526,8 @@ class post_control {
 
         // Check if the user has the capability to delete the post.
         $timepassed = time() - $this->info->relatedpost->created;
-        $SESSION->errorreturnurl = new moodle_url(
-            '/mod/moodleoverflow/discussion.php',
-            ['d' => $this->info->discussion->get_id()]
-        );
+        $SESSION->errorreturnurl = $this->info->discussion->get_link();
+
         if (($timepassed > get_config('moodleoverflow', 'maxeditingtime')) && !$this->info->deleteanypost) {
             throw new moodle_exception('cannotdeletepost', 'moodleoverflow');
         }
@@ -544,8 +547,7 @@ class post_control {
             return 'view.php?m=' . $moodleoverflowid;
         } else {
             $this->info->discussion->delete_post_from_discussion($this->prepost);
-            $discussionurl = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->info->discussion->get_id()]);
-            return moodleoverflow_go_back_to($discussionurl);
+            return moodleoverflow_go_back_to($this->info->discussion->get_link());
         }
     }
 
@@ -740,16 +742,16 @@ class post_control {
     private function collect_information(false|int $postid = false, false|int $moodleoverflowid = false): void {
         if ($postid) {
             // The related post is the post that is being answered, edited, or deleted.
-            $this->info->relatedpost = $this->check_post_exists($postid);
-            $this->info->discussion = $this->check_discussion_exists($this->info->relatedpost->get_discussionid());
+            $this->info->relatedpost = post::from_id($postid);
+            $this->info->discussion = $this->info->relatedpost->get_discussion();
             $localmoodleoverflowid = $this->info->discussion->get_moodleoverflowid();
         } else {
             $localmoodleoverflowid = $moodleoverflowid;
         }
-        $this->info->moodleoverflow = $this->check_moodleoverflow_exists($localmoodleoverflowid);
-        $this->info->course = $this->check_course_exists($this->info->moodleoverflow->course);
-        $this->info->cm = $this->check_coursemodule_exists($this->info->moodleoverflow->id, $this->info->course->id);
-        $this->info->modulecontext = \context_module::instance($this->info->cm->id);
+        $this->info->moodleoverflow = moodleoverflow::from_id($localmoodleoverflowid);
+        $this->info->course = $this->info->moodleoverflow->get_course();
+        $this->info->cm = $this->info->moodleoverflow->get_cm();
+        $this->info->modulecontext = $this->info->moodleoverflow->get_context();
         $this->info->coursecontext = \context_course::instance($this->info->course->id);
     }
 
@@ -788,89 +790,6 @@ class post_control {
         if ($this->interaction != $interaction) {
             throw new moodle_exception('wronginteraction', 'moodleoverflow');
         }
-    }
-
-    // Database checks.
-
-    /**
-     * Checks if the course exists. Returns the $DB->record of the course.
-     * @param int $courseid
-     * @return object $course
-     * @throws moodle_exception
-     */
-    private function check_course_exists(int $courseid): object {
-        global $DB;
-        if (!$course = $DB->get_record('course', ['id' => $courseid])) {
-            throw new moodle_exception('invalidcourseid');
-        }
-        return $course;
-    }
-
-    /**
-     * Checks if the coursemodule exists.
-     * @param int $moodleoverflowid
-     * @param int $courseid
-     * @return object $cm
-     * @throws coding_exception
-     * @throws moodle_exception
-     */
-    private function check_coursemodule_exists(int $moodleoverflowid, int $courseid): object {
-        if (
-            !$cm = get_coursemodule_from_instance(
-                'moodleoverflow',
-                $moodleoverflowid,
-                $courseid
-            )
-        ) {
-            throw new moodle_exception('invalidcoursemodule');
-        }
-        return $cm;
-    }
-
-    /**
-     * Checks if the related moodleoverflow exists.
-     * @param int $moodleoverflowid
-     * @return object $moodleoverflow
-     * @throws dml_exception
-     * @throws moodle_exception
-     */
-    private function check_moodleoverflow_exists(int $moodleoverflowid): object {
-        // Get the related moodleoverflow instance.
-        global $DB;
-        if (!$moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid])) {
-            throw new moodle_exception('invalidmoodleoverflowid', 'moodleoverflow');
-        }
-        return $moodleoverflow;
-    }
-
-    /**
-     * Checks if the related discussion exists.
-     * @param int $discussionid
-     * @return discussion $discussion
-     * @throws dml_exception
-     * @throws moodle_exception
-     */
-    private function check_discussion_exists(int $discussionid): discussion {
-        global $DB;
-        if (!$discussionrecord = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid])) {
-            throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
-        }
-        return discussion::from_record($discussionrecord);
-    }
-
-    /**
-     * Checks if a post exists.
-     * @param int $postid
-     * @return post $post
-     * @throws dml_exception
-     * @throws moodle_exception
-     */
-    private function check_post_exists(int $postid): post {
-        global $DB;
-        if (!$postrecord = $DB->get_record('moodleoverflow_posts', ['id' => $postid])) {
-            throw new moodle_exception('invalidpostid', 'moodleoverflow');
-        }
-        return post::from_record($postrecord);
     }
 
     // Capability checks.

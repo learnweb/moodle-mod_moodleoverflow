@@ -304,15 +304,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     public function get_courselink() {
-        $link = new \moodle_url(
-        // Posts are viewed on the topic.
-            '/course/view.php',
-            [
-                'id' => $this->course->id,
-            ]
-        );
-
-        return $link->out(false);
+        return (new \moodle_url('/course/view.php', ['id' => $this->course->id]))->out(false);
     }
 
     /**
@@ -460,14 +452,7 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return string
      */
     protected function get_discussionurl() {
-        return new \moodle_url(
-        // Posts are viewed on the topic.
-            '/mod/moodleoverflow/discussion.php',
-            [
-                // Within a discussion.
-                'd' => $this->discussion->id,
-            ]
-        );
+        return new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->discussion->id]);
     }
 
     /**
