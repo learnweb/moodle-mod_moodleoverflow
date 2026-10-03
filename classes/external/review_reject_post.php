@@ -22,6 +22,8 @@ use core_user;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\review;
 use core_external\external_function_parameters;
@@ -71,7 +73,7 @@ class review_reject_post extends external_api {
      * @return string|null Url of next post to review.
      */
     public static function execute($postid, $reason = null) {
-        global $DB, $PAGE, $OUTPUT;
+        global $DB, $PAGE, $OUTPUT, $USER;
 
         $params = self::validate_parameters(self::execute_parameters(), ['postid' => $postid, 'reason' => $reason]);
         $postid = $params['postid'];
@@ -85,13 +87,7 @@ class review_reject_post extends external_api {
         $PAGE->set_context($context);
         require_capability('mod/moodleoverflow:reviewpost', $context);
 
-        if ($post->reviewed) {
-            throw new coding_exception('post was already approved!');
-        }
-
-        if (!review::is_post_in_review_period($post)) {
-            throw new coding_exception('post is not yet in review period!');
-        }
+        permissions::ensure(permissions::can_review_post(post::from_record($post), $USER->id), '');
 
         // Has to be done before deleting the post.
         $rendererhtml = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');

@@ -537,6 +537,42 @@ class post {
         return format_text($message, $this->messageformat, $options);
     }
 
+    /**
+     * Checks if the post is in the window to be editable.
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function in_edit_window(): bool {
+        return (time() - $this->created) < $this->get_moodleoverflow()->get_edit_window();
+    }
+
+    /**
+     * If the post is the discussion starter in the discussion.
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function is_question(): bool {
+        return $this->get_parentid() === 0;
+    }
+
+    /**
+     * If the post is a direct answer to the first post of the discussion.
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function is_direct_answer(): bool {
+        return $this->get_parentid() === $this->get_discussion()->get_firstpostid();
+    }
+
+    /**
+     * If the post is a comment (an answer to a direct answer).
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function is_comment(): bool {
+        return !$this->is_question() && !$this->is_direct_answer();
+    }
+
     // Getter.
 
     /**
