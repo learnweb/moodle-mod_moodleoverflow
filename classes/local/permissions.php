@@ -94,6 +94,10 @@ class permissions {
      * @throws moodle_exception
      */
     public static function can_view_author(post $post, int $userid): bool {
+        if ($post->get_userid() === 0) {
+            // The privacy provider sets userid = 0 on posts. This check covers that.
+            return false;
+        }
         $ownpost = $post->get_userid() === $userid;
         $isquestioner = $post->get_userid() === $post->get_discussion()->get_userid();
         return self::can_view_post($post, $userid)

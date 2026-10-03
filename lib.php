@@ -35,6 +35,7 @@ use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\subscriptions;
 
@@ -419,7 +420,7 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
  * @param array    $options       additional options affecting the file serving
  */
 function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
-    global $DB;
+    global $DB, $USER;
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
     }
@@ -457,7 +458,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
     $file = $fs->get_file($context->id, 'mod_moodleoverflow', $filearea, $itemid, $filepath, $filename);
 
     // Make sure we're allowed to see it...
-    if (!moodleoverflow_user_can_see_post(post::from_record($post), $cm)) {
+    if (!permissions::can_view_post(post::from_record($post), $USER->id)) {
         return false;
     }
 

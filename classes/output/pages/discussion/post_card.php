@@ -20,9 +20,9 @@ use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
 use html_writer;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use moodle_url;
@@ -90,7 +90,7 @@ class post_card implements named_templatable, renderable {
             'userdownvoted' => $userrating && $userrating->rating == RATING_DOWNVOTE,
             'canchange' => $ratingability && $this->post->get_userid() != $USER->id,
         ] : [];
-        $showreputation = $moodleoverflow->is_reputation_enabled() && anonymous::user_can_see_post($this->post, $USER->id) ? [
+        $showreputation = permissions::can_view_reputation($this->post, $USER->id) ? [
             'userid' => $this->post->get_userid(),
             'userreputation' => ratings::get_reputation($moodleoverflow->id, $this->post->get_userid()),
         ] : [];

@@ -16,10 +16,7 @@
 
 namespace mod_moodleoverflow\external;
 
-use coding_exception;
-use context_module;
 use core_user;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
@@ -90,39 +87,40 @@ class review_reject_post extends external_api {
         permissions::ensure(permissions::can_review_post(post::from_record($post), $USER->id), '');
 
         // Has to be done before deleting the post.
-        $rendererhtml = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
-        $renderertext = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
+        if ($post->userid != 0) {
+            $rendererhtml = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
+            $renderertext = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
 
-        $userto = core_user::get_user($post->userid);
-        $userto->anonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid);
+            $userto = core_user::get_user($post->userid);
+            $userto->anonymous = $moodleoverflow->is_author_anonymous($discussion->userid == $post->userid);
 
-        $maildata = new moodleoverflow_email(
-            $moodleoverflow->get_course(),
-            $moodleoverflow->get_cm(),
-            $moodleoverflow,
-            $discussion,
-            $post,
-            $userto,
-            $userto,
-            false
-        );
+            $maildata = new moodleoverflow_email(
+                $moodleoverflow->get_course(),
+                $moodleoverflow->get_cm(),
+                $moodleoverflow,
+                $discussion,
+                $post,
+                $userto,
+                $userto,
+                false
+            );
 
-        $textcontext = $maildata->export_for_template($renderertext, true);
-        $htmlcontext = $maildata->export_for_template($rendererhtml, false);
+            $textcontext = $maildata->export_for_template($renderertext, true);
+            $htmlcontext = $maildata->export_for_template($rendererhtml, false);
 
-        if ($params['reason'] ?? null) {
-            $htmlcontext['reason'] = format_text_email($params['reason'], FORMAT_PLAIN);
-            $textcontext['reason'] = $htmlcontext['reason'];
+            if ($params['reason'] ?? null) {
+                $htmlcontext['reason'] = format_text_email($params['reason'], FORMAT_PLAIN);
+                $textcontext['reason'] = $htmlcontext['reason'];
+            }
+
+            email_to_user(
+                $userto,
+                core_user::get_noreply_user(),
+                get_string('email_rejected_subject', 'moodleoverflow', $textcontext),
+                $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_text', $textcontext),
+                $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_html', $htmlcontext)
+            );
         }
-
-        email_to_user(
-            $userto,
-            core_user::get_noreply_user(),
-            get_string('email_rejected_subject', 'moodleoverflow', $textcontext),
-            $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_text', $textcontext),
-            $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_html', $htmlcontext)
-        );
-
         $url = review::get_first_review_post($moodleoverflow->id, $post->id);
 
         if (!$post->parent) {

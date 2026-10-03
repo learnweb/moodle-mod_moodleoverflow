@@ -19,6 +19,7 @@ namespace mod_moodleoverflow\external;
 use coding_exception;
 use context_module;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 use dml_exception;
 use core_external\external_function_parameters;
@@ -83,6 +84,7 @@ class mark_post_read extends external_api {
         $discussion = null;
         if ($params['domain'] === 'discussion') {
             $discussion = discussion::from_id($params['instanceid']);
+            permissions::ensure(permissions::can_view_discussion($discussion, $USER->id), 'markreadfailed');
             $moodleoverflowid = $discussion->get_moodleoverflow()->id;
         } else {
             $moodleoverflowid = $params['instanceid'];

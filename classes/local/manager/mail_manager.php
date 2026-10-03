@@ -19,8 +19,8 @@ namespace mod_moodleoverflow\local\manager;
 use context_module;
 use core_user;
 use dml_exception;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\subscriptions;
 use moodle_exception;
@@ -88,6 +88,7 @@ class mail_manager {
         // Start processing the records.
         // Build cache arrays for most important objects. All caches are structured with id => object.
         $posts = [];
+        $postmodels = [];
         $authors = [];
         $recipients = [];
         $courses = [];
@@ -113,13 +114,9 @@ class mail_manager {
 
             // Filter records that are not getting mailed.
             // Check if the user can see the post.
-            if (
-                !moodleoverflow_user_can_see_post(
-                    post::from_record($posts[$record->postid]),
-                    $coursemodules[$record->cmid],
-                    $record->usertoid
-                )
-            ) {
+            $postmodels[$record->postid] ??= post::from_id($record->postid);
+            $post = $postmodels[$record->postid];
+            if (!permissions::can_view_post($post, $record->usertoid)) {
                 continue;
             }
 
@@ -131,11 +128,7 @@ class mail_manager {
             }
 
             // Determine if the author should be anonymous.
-            $authoranonymous = match ((int)$record->moodleoverflowanonymous) {
-                anonymous::NOT_ANONYMOUS => false,
-                anonymous::EVERYTHING_ANONYMOUS => true,
-                anonymous::QUESTION_ANONYMOUS => ($record->discussionuserid == $record->authorid)
-            };
+            $authoranonymous = !permissions::can_view_author($post, $record->usertoid);
 
             // Set the userfrom variable, that is anonymous or the post author.
             $authoranonymous ? $userfrom = core_user::get_noreply_user() : $userfrom = clone($authors[$record->authorid]);

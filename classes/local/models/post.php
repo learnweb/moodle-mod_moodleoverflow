@@ -479,8 +479,11 @@ class post {
         $courseid = $this->get_discussion()->get_courseid();
         $modulecontext = context_module::instance($this->get_coursemodule()->id);
         $userid = $this->get_userid();
-
-        if (anonymous::is_post_anonymous($this->get_discussion()->get_db_object(), $this->get_moodleoverflow(), $userid)) {
+        if ($userid === 0) {
+            $name = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
+            return ['link' => $name, 'fullname' => $name];
+        }
+        if ($this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $userid)) {
             if ($userid == $USER->id) {
                 $fullname = get_string('anonym_you', 'mod_moodleoverflow');
                 $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
@@ -502,8 +505,10 @@ class post {
      */
     public function get_userpicture(): string {
         global $DB, $OUTPUT;
-        $userid = $this->get_userid();
-        if (!anonymous::is_post_anonymous($this->get_discussion()->get_db_object(), $this->get_moodleoverflow(), $userid)) {
+        if (
+            $this->userid != 0
+            && !$this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $this->get_userid())
+        ) {
             $user = username_load_fields_from_object(
                 (new stdClass()),
                 $DB->get_record('user', ['id' => $this->userid]),

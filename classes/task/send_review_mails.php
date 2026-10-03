@@ -18,7 +18,6 @@ namespace mod_moodleoverflow\task;
 
 use core\cron;
 use Exception;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\output\moodleoverflow_email;
 
@@ -104,8 +103,11 @@ class send_review_mails extends \core\task\scheduled_task {
             }
 
             $post = $postinfo;
-            $userfrom = \core_user::get_user($postinfo->userid, '*', MUST_EXIST);
-            $userfrom->anonymous = anonymous::is_post_anonymous($discussion, $moodleoverflow, $postinfo->userid);
+            $userfrom = $postinfo->userid == 0
+                ? clone(\core_user::get_noreply_user())
+                : \core_user::get_user($postinfo->userid, '*', MUST_EXIST);
+            $userfrom->anonymous = $postinfo->userid == 0
+                || $moodleoverflow->is_author_anonymous($discussion->userid == $postinfo->userid);
 
             foreach ($usersto as $userto) {
                 try {

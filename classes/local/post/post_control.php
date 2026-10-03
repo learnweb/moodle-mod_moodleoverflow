@@ -21,7 +21,6 @@ use coding_exception;
 use core\notification;
 use dml_exception;
 use html_writer;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\event\post_created;
@@ -497,10 +496,9 @@ class post_control {
         $redirectmessage = get_string('postupdated', 'moodleoverflow');
         if ($this->prepost->userid != $USER->id) {
             if (
-                anonymous::is_post_anonymous(
-                    $this->info->discussion->get_db_object(),
-                    $this->info->moodleoverflow,
-                    $this->prepost->userid
+                $this->prepost->userid == 0
+                || $this->info->moodleoverflow->is_author_anonymous(
+                    $this->info->discussion->get_userid() === $this->prepost->userid
                 )
             ) {
                 $name = get_string('anonymous', 'moodleoverflow');
@@ -598,14 +596,10 @@ class post_control {
         );
 
         // If the post is anonymous, attachments should have an anonymous author when editing the attachment.
-        // LEARNWEB-TODO: Please be aware that in future the use of build_db_object() should be replaced with only
-        // $this->info->discussion, when the new way of working with posts is fully implemented.
         if (
-            $draftitemid && $this->interaction == 'edit' && anonymous::is_post_anonymous(
-                $this->info->discussion->get_db_object(),
-                $this->info->moodleoverflow,
-                $this->prepost->userid
-            )
+            $draftitemid
+            && $this->interaction == 'edit'
+            && $this->info->moodleoverflow->is_author_anonymous($this->info->discussion->get_userid() === $this->prepost->userid)
         ) {
             $usercontext = \context_user::instance($USER->id);
             $anonymousstr = get_string('anonymous', 'moodleoverflow');

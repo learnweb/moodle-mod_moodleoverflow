@@ -19,9 +19,10 @@ namespace mod_moodleoverflow\output\pages\view;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
-use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
@@ -85,8 +86,7 @@ class discussion_card implements named_templatable, renderable {
 
     #[\Override]
     public function export_for_template(renderer_base $output): object {
-        global $USER, $DB;
-        $comp = 'mod_moodleoverflow';
+        global $USER;
         $isloggedin = (!is_guest($this->context, $USER) && isloggedin());
         $viewdiscussion = has_capability('mod/moodleoverflow:viewdiscussion', $this->context);
         $canmovetopic = has_capability('mod/moodleoverflow:movetopic', $this->context);
@@ -105,23 +105,17 @@ class discussion_card implements named_templatable, renderable {
         }
 
         // Gather information about the discussion starter and the last user that posted something.
-        $startuser = $DB->get_record('user', ['id' => $this->discussion->get_userid()]);
-        $lastpostuser = $DB->get_record('user', ['id' => $this->lastpost->get_userid()]);
-        $startername = fullname($startuser, has_capability('moodle/site:viewfullnames', $this->context));
-        $lastpostname = fullname($lastpostuser, has_capability('moodle/site:viewfullnames', $this->context));
-        $isstarter = ($this->modflow->anonymous != anonymous::NOT_ANONYMOUS) && ($USER->id == $this->firstpost->get_userid());
-        $islastpost = ($this->modflow->anonymous != anonymous::NOT_ANONYMOUS) && ($USER->id == $this->lastpost->get_userid());
         $starterl = new moodle_url($this->l['user'], ['id' => $this->discussion->get_userid(), 'course' => $this->modflow->course]);
         $lastpostl = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id(), 'parent' => $this->lastpost->get_id()]);
-        $isnotanon = $this->modflow->anonymous == anonymous::NOT_ANONYMOUS;
+        $isnotanon = $this->modflow->get_anonymity() === anonymity::NONE;
 
         $userfirstpost = [
-            'name' => $isnotanon ? $startername : get_string(($isstarter ? 'anonym_you' : 'privacy:anonym_user_name'), $comp),
+            'name' => $this->author_name($this->firstpost),
             'picture' => $isnotanon ? $this->firstpost->get_userpicture() : '',
-            'link' => $isnotanon ? $starterl->out() : '',
+            'link' => $isnotanon && $this->firstpost->get_userid() !== 0 ? $starterl->out() : '',
         ];
         $userlastpost = [
-            'name' => $isnotanon ? $lastpostname : get_string(($islastpost ? 'anonym_you' : 'privacy:anonym_user_name'), $comp),
+            'name' => $this->author_name($this->lastpost),
             'date' => userdate($this->discussion->timemodified, get_string('strftimerecentfull')),
             'link' => $lastpostl->out(),
         ];
@@ -171,5 +165,24 @@ class discussion_card implements named_templatable, renderable {
             'canmovetopic' => ($isloggedin && $canmovetopic && $this->movepossible) ? $topicmove : [],
             'cansubtodiscussion' => ($isloggedin && $viewdiscussion && $issubcribable) ? ['discussionsubicon' => $subicon] : [],
         ];
+    }
+
+    /**
+     * Returns the author name that gets displayed.
+     * @param post $post
+     * @return string
+     * @throws \coding_exception|moodle_exception
+     */
+    private function author_name(post $post): string {
+        global $USER, $DB;
+        if (!permissions::can_view_author($post, $USER->id)) {
+            return get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
+        }
+        $isquestioner = $post->get_userid() === $this->discussion->get_userid();
+        if ($this->modflow->is_author_anonymous($isquestioner)) {
+            return get_string('anonym_you', 'mod_moodleoverflow');
+        }
+        $user = $DB->get_record('user', ['id' => $post->get_userid()]);
+        return fullname($user, has_capability('moodle/site:viewfullnames', $this->context));
     }
 }

@@ -25,10 +25,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core_availability\info_module;
-use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\ratings;
 
 defined('MOODLE_INTERNAL') || die();
@@ -91,28 +88,6 @@ function moodleoverflow_get_discussions_unread($cm) {
             GROUP BY d.id";
 
     return !empty($DB->get_records_sql($sql, $params));
-}
-
-/**
- * Checks if a user can see a specific post.
- *
- * @param post $post
- * @param object $cm
- * @param ?int $userid
- *
- * @return bool
- */
-function moodleoverflow_user_can_see_post(post $post, object $cm, ?int $userid = null) {
-    global $USER;
-    $userid = $userid ?? $USER->id;
-    $modulecontext = context_module::instance($cm->id);
-
-    // Get capabilites.
-    $canview = capabilities::has(capabilities::VIEW_DISCUSSION, $modulecontext, $userid);
-    $canreview = capabilities::has(capabilities::REVIEW_POST, $modulecontext, $userid);
-    $isvisible = info_module::is_user_visible($cm, $userid, false);
-
-    return ($canview && ($post->reviewed == 1 || $post->get_userid() == $userid || $canreview)) && $isvisible;
 }
 
 /**

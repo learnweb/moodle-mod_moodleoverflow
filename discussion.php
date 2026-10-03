@@ -25,6 +25,7 @@
 // Include config and locallib.
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\output\pages\discussion\discussion_page;
 use mod_moodleoverflow\readtracking;
 
@@ -57,9 +58,10 @@ $modulecontext = context_module::instance($cm->id);
 // A user must be logged in and enrolled to the course.
 require_course_login($course, true, $cm);
 
-// Check if the user has the capability to view discussions.
-if (!has_capability('mod/moodleoverflow:viewdiscussion', $modulecontext)) {
-    notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
+// Has the user the capability to view the discussion?
+if (!permissions::can_view_discussion($discussion, $USER->id)) {
+    $redirect = (new moodle_url('/mod/moodleoverflow/view.php', ['m' => $moodleoverflow->id]))->out();
+    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow', $redirect);
 }
 
 // Trigger the discussion viewed event.
@@ -69,12 +71,6 @@ $event->trigger();
 // Unset where the user is coming from.
 // Allows to calculate the correct return url later.
 unset($SESSION->fromdiscussion);
-
-// Has the user the capability to view the post?
-if (!moodleoverflow_user_can_see_post($discussion->get_first_post(), $cm)) {
-    $redirect = (new moodle_url('/mod/moodleoverflow/view.php', ['m' => $moodleoverflow->id]))->out();
-    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow', $redirect);
-}
 
 // Append the discussion name to the navigation.
 $forumnode = $PAGE->navigation->find($cm->id, navigation_node::TYPE_ACTIVITY);
