@@ -157,7 +157,7 @@ class mail_manager {
                 $modulecontext = context_module::instance($record->cmid);
 
                 // Check the users capabilities.
-                $canreply = moodleoverflow_user_can_post($modulecontext, $posts[$record->postid], $record->usertoid);
+                $canreply = moodleoverflow_user_can_post($modulecontext, $posts[$record->postid], true, $record->usertoid);
                 $recipients[$record->usertoid]->canpost[$record->discussionid] = $canreply;
             }
 

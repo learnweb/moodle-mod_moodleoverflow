@@ -52,7 +52,12 @@ class discussion_page implements named_templatable, renderable{
     public function __construct(discussion $discussion) {
         $this->discussion = $discussion;
         $this->firstpost = $this->discussion->get_first_post();
-        $this->answers = $this->discussion->get_answerposts();
+        $this->answers = [];
+        foreach ($this->discussion->get_answerposts() as $post) {
+            if (moodleoverflow_user_can_see_post($post, $this->discussion->get_coursemodule())) {
+                $this->answers[] = $post;
+            }
+        }
     }
 
     #[\Override]
