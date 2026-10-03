@@ -18,6 +18,8 @@ namespace mod_moodleoverflow\external;
 
 use coding_exception;
 use context_module;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\review;
 use core_external\external_function_parameters;
 use core_external\external_api;
@@ -64,7 +66,7 @@ class review_approve_post extends external_api {
      * @return string|null Url of next post to review.
      */
     public static function execute($postid) {
-        global $DB;
+        global $DB, $USER;
 
         $params = self::validate_parameters(self::execute_parameters(), ['postid' => $postid]);
         $postid = $params['postid'];
@@ -78,13 +80,7 @@ class review_approve_post extends external_api {
         self::validate_context($context);
         require_capability('mod/moodleoverflow:reviewpost', $context);
 
-        if ($post->reviewed) {
-            throw new coding_exception('post was already approved!');
-        }
-
-        if (!review::is_post_in_review_period($post)) {
-            throw new coding_exception('post is not yet in review period!');
-        }
+        permissions::ensure(permissions::can_review_post(post::from_record($post), $USER->id), '');
 
         $post->reviewed = 1;
         $post->timereviewed = time();
