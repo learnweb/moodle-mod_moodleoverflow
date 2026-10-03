@@ -24,6 +24,7 @@ use core_external\external_api;
 use core_external\external_value;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\ratings;
 use moodle_exception;
 
@@ -97,6 +98,10 @@ class record_vote extends external_api {
         // Check if the related moodleoverflow instance is valid.
         $course = get_course($discussion->course);
 
+        if (!moodleoverflow_user_can_see_post(post::from_record($post), $moodleoverflow->get_cm())) {
+            throw new moodle_exception('ratingfailed', 'moodleoverflow');
+        }
+
         // Get the related coursemodule and its context.
         if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
             throw new moodle_exception('invalidcoursemodule');
@@ -117,7 +122,7 @@ class record_vote extends external_api {
         $ownerrating = ratings::get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = ratings::get_reputation($moodleoverflow->id, $USER->id);
 
-        $cannotseeowner = anonymous::is_post_anonymous($discussion, $moodleoverflow, $USER->id) && $USER->id != $postownerid;
+        $cannotseeowner = anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid) && $USER->id != $postownerid;
 
         $params['postrating'] = $rating->upvotes - $rating->downvotes;
         $params['ownerreputation'] = $cannotseeowner ? null : $ownerrating;
