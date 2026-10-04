@@ -317,49 +317,6 @@ class readtracking {
     }
 
     /**
-     * Get a list of forums not tracked by the user.
-     * LEARNWEB-TODO: this function is only called in the index.php. When index.php gets removed, remove this function too.
-     * @param int $userid   The user ID
-     * @param int $courseid The course ID
-     *
-     * @return array Array with untracked moodleoverflows
-     */
-    public static function get_untracked_moodleoverflows($userid, $courseid) {
-        global $DB;
-
-        // Check whether readtracking may be forced.
-        if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
-            // Create a part of a sql-statement.
-            $trackingsql = "AND (m.trackingtype = " . tracking_type::OFF->value . "
-                            OR (m.trackingtype = " . tracking_type::OPTIONAL->value . " AND mt.id IS NOT NULL))";
-        } else {
-            // Readtracking may be forced.
-
-            // Create another sql-statement.
-            $trackingsql = "AND (m.trackingtype = " . tracking_type::OFF->value .
-                " OR ((m.trackingtype = " . tracking_type::OPTIONAL->value .
-                " OR m.trackingtype = " . tracking_type::FORCED->value . ") AND mt.id IS NOT NULL))";
-        }
-
-        // Create the sql-queryx.
-        $sql = "SELECT m.id
-                  FROM {moodleoverflow} m
-             LEFT JOIN {moodleoverflow_tracking} mt ON (mt.moodleoverflowid = m.id AND mt.userid = ?)
-                 WHERE m.course = ? $trackingsql";
-
-        // Get all untracked moodleoverflows from the database.
-        $moodleoverflows = $DB->get_records_sql($sql, [$userid, $courseid]);
-
-        // Check whether there are no untracked moodleoverflows.
-        if (!$moodleoverflows) {
-            return [];
-        }
-
-        // Return all untracked moodleoverflows.
-        return $moodleoverflows;
-    }
-
-    /**
      * Get number of unread posts in a moodleoverflow instance.
      *
      * @param object $cm

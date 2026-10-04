@@ -77,11 +77,11 @@ class overview extends activityoverviewbase {
     #[\Override]
     public function get_extra_overview_items(): array {
         global $CFG;
-        return $CFG->branch <= 500 ? [] : [
+        return $CFG->branch >= 501 ? [
             'subscriptions' => $this->get_extra_subscriptions_overview(),
             'readtracking' => $this->get_extra_readtracking_overview(),
             'unread_posts' => $this->get_extra_unread_posts_overview(),
-        ];
+        ] : [];
     }
 
     /**
