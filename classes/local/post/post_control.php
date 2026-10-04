@@ -21,15 +21,13 @@ use coding_exception;
 use core\notification;
 use dml_exception;
 use html_writer;
-use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_updated;
-use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\subscriptions;
 use mod_moodleoverflow\form\post_form;
 use moodle_exception;
@@ -201,7 +199,7 @@ class post_control {
         $this->collect_information(false, $moodleoverflowid);
 
         // Check if the user can start a new discussion.
-        $this->check_user_can_create_discussion();
+        permissions::ensure(permissions::can_start_discussion($this->info->moodleoverflow, $USER->id), 'nopostmoodleoverflow');
 
         // Catch an unenrolled user and give the user the chance to enroll himself to the course.
         $this->catch_unenrolled();
@@ -248,15 +246,10 @@ class post_control {
         $this->prepost->message = '';
 
         // Check whether the user is allowed to post.
-        $this->check_user_can_create_reply();
+        permissions::ensure(permissions::can_reply($this->info->relatedpost, $USER->id), 'cannotreply');
 
         // Catch an unenrolled user and give the user the chance to enroll himself to the course.
         $this->catch_unenrolled();
-
-        // Make sure the user can post here.
-        if (!$this->info->cm->visible && !has_capability('moodle/course:viewhiddenactivities', $this->info->modulecontext)) {
-            throw new moodle_exception('activityiscurrentlyhidden');
-        }
 
         // Unset where the user is coming from.
         // Allows to calculate the correct return url later.
@@ -281,24 +274,7 @@ class post_control {
         $PAGE->set_cm($this->info->cm, $this->info->course, $this->info->moodleoverflow);
 
         // Check if the post can be edited.
-        $beyondtime = ((time() - $this->info->relatedpost->created) > get_config('moodleoverflow', 'maxeditingtime'));
-
-        $alreadyreviewed = $this->info->moodleoverflow->requires_review($this->info->relatedpost->get_parentid() == 0)
-                           && $this->info->relatedpost->reviewed;
-        $capability = has_capability('mod/moodleoverflow:editanypost', $this->info->modulecontext);
-        if (($beyondtime || $alreadyreviewed) && !$capability) {
-            $formattime = format_time(get_config('moodleoverflow', 'maxeditingtime'));
-            throw new moodle_exception('maxtimehaspassed', 'moodleoverflow', '', $formattime);
-        }
-
-        // If the current user is not the one who posted this post.
-        if ($this->info->relatedpost->get_userid() != $USER->id) {
-            // Check if the current user has not the capability to edit any post.
-            if (!has_capability('mod/moodleoverflow:editanypost', $this->info->modulecontext)) {
-                // Display the error. Capabilities are missing.
-                throw new moodle_exception('cannoteditposts', 'moodleoverflow');
-            }
-        }
+        permissions::ensure(permissions::can_edit_post($this->info->relatedpost, $USER->id), 'cannoteditposts');
 
         // Load the $post variable.
         $this->assemble_prepost();
@@ -317,6 +293,7 @@ class post_control {
      * @throws moodle_exception
      */
     private function build_prepost_delete(int $deletepostid): void {
+        global $USER;
         // Get the related post, discussion, moodleoverflow, course, coursemodule and contexts.
         $this->collect_information($deletepostid);
 
@@ -324,7 +301,7 @@ class post_control {
         require_login($this->info->course, false, $this->info->cm);
 
         // Check some capabilities.
-        $this->check_user_can_delete_post();
+        permissions::ensure(permissions::can_delete_post($this->info->relatedpost, $USER->id), 'cannotdeletepost');
 
         // Count all replies of this post.
         $this->info->replycount = $this->info->relatedpost->count_replies(false);
@@ -350,17 +327,11 @@ class post_control {
     private function execute_create(object $form): object {
         global $USER;
         // Check if the user is allowed to post.
-        $this->check_user_can_create_discussion();
+        permissions::ensure(permissions::can_start_discussion($this->info->moodleoverflow, $USER->id), 'nopostmoodleoverflow');
 
         // Set the post to not reviewed if questions should be reviewed and the user is not a reviewed themselves.
-        if (
-            $this->info->moodleoverflow->get_review_level() !== review_level::NONE &&
-            !capabilities::has(capabilities::REVIEW_POST, $this->info->modulecontext, $USER->id)
-        ) {
-            $this->prepost->reviewed = 0;
-        } else {
-            $this->prepost->reviewed = 1;
-        }
+        $this->prepost->reviewed = (int) !$this->info->moodleoverflow->requires_review(true)
+            || permissions::can_review_posts($this->info->moodleoverflow, $USER->id);
 
         // Get the discussion subject.
         $this->prepost->subject = $form->subject;
@@ -407,18 +378,13 @@ class post_control {
      * @throws moodle_exception if the reply could not be added.
      */
     private function execute_reply(object $form): object {
+        global $USER;
         // Check if the user has the capability to write a reply.
-        $this->check_user_can_create_reply();
+        permissions::ensure(permissions::can_reply($this->info->relatedpost, $USER->id), 'cannotreply');
 
-        // Set to not reviewed, if posts should be reviewed, and user is not a reviewer themselves.
-        if (
-            $this->info->moodleoverflow->get_review_level() === review_level::EVERYTHING &&
-                !has_capability('mod/moodleoverflow:reviewpost', \context_module::instance($this->info->cm->id))
-        ) {
-            $this->prepost->reviewed = 0;
-        } else {
-            $this->prepost->reviewed = 1;
-        }
+        // Set to not reviewed, if posts should be reviewed and user is not a reviewer themselves.
+        $this->prepost->reviewed = (int) !$this->info->moodleoverflow->requires_review(false)
+            || permissions::can_review_posts($this->info->moodleoverflow, $USER->id);
 
         // Create the new post.
         if (!$newpostid = $this->info->discussion->add_new_post($this->prepost)) {
@@ -466,7 +432,7 @@ class post_control {
     private function execute_edit(object $form): object {
         global $USER, $DB;
         // Check if the user has the capability to edit his post.
-        $this->check_user_can_edit_post();
+        permissions::ensure(permissions::can_edit_post($this->info->relatedpost, $USER->id), 'cannotupdatepost');
 
         // If the post that is being edited is the parent post, the subject can be edited too.
         if ($this->prepost->parentid == 0) {
@@ -497,10 +463,9 @@ class post_control {
         $redirectmessage = get_string('postupdated', 'moodleoverflow');
         if ($this->prepost->userid != $USER->id) {
             if (
-                anonymous::is_post_anonymous(
-                    $this->info->discussion->get_db_object(),
-                    $this->info->moodleoverflow,
-                    $this->prepost->userid
+                $this->prepost->userid == 0
+                || $this->info->moodleoverflow->is_author_anonymous(
+                    $this->info->discussion->get_userid() === $this->prepost->userid
                 )
             ) {
                 $name = get_string('anonymous', 'moodleoverflow');
@@ -521,21 +486,12 @@ class post_control {
      * @throws moodle_exception if the post could not be deleted.
      */
     public function execute_delete(): mixed {
-        global $SESSION;
+        global $SESSION, $USER;
         $this->check_interaction('delete');
 
         // Check if the user has the capability to delete the post.
-        $timepassed = time() - $this->info->relatedpost->created;
         $SESSION->errorreturnurl = $this->info->discussion->get_link();
-
-        if (($timepassed > get_config('moodleoverflow', 'maxeditingtime')) && !$this->info->deleteanypost) {
-            throw new moodle_exception('cannotdeletepost', 'moodleoverflow');
-        }
-
-        // A normal user cannot delete his post if there are direct replies.
-        if ($this->info->replycount && !$this->info->deleteanypost) {
-            throw new moodle_exception('cannotdeletereplies', 'moodleoverflow');
-        }
+        permissions::ensure(permissions::can_delete_post($this->info->relatedpost, $USER->id), 'cannotdeletepost');
 
         // Check if the post is a parent post or not.
         if ($this->prepost->parentid == 0) {
@@ -598,14 +554,10 @@ class post_control {
         );
 
         // If the post is anonymous, attachments should have an anonymous author when editing the attachment.
-        // LEARNWEB-TODO: Please be aware that in future the use of build_db_object() should be replaced with only
-        // $this->info->discussion, when the new way of working with posts is fully implemented.
         if (
-            $draftitemid && $this->interaction == 'edit' && anonymous::is_post_anonymous(
-                $this->info->discussion->get_db_object(),
-                $this->info->moodleoverflow,
-                $this->prepost->userid
-            )
+            $draftitemid
+            && $this->interaction == 'edit'
+            && $this->info->moodleoverflow->is_author_anonymous($this->info->discussion->get_userid() === $this->prepost->userid)
         ) {
             $usercontext = \context_user::instance($USER->id);
             $anonymousstr = get_string('anonymous', 'moodleoverflow');
@@ -793,57 +745,6 @@ class post_control {
     }
 
     // Capability checks.
-
-    /**
-     * Checks if a user can create a discussion.
-     * @throws moodle_exception
-     */
-    private function check_user_can_create_discussion(): void {
-        if (!has_capability('mod/moodleoverflow:startdiscussion', $this->info->modulecontext)) {
-            throw new moodle_exception('nopostmoodleoverflow', 'moodleoverflow');
-        }
-    }
-
-    /**
-     * Checks if a user can reply in a discussion.
-     * @throws moodle_exception
-     */
-    private function check_user_can_create_reply(): void {
-        if (!has_capability('mod/moodleoverflow:replypost', $this->info->modulecontext, $this->prepost->userid)) {
-            throw new moodle_exception('cannotreply', 'moodleoverflow');
-        }
-    }
-
-    /**
-     * Checks if a user can edit a post.
-     * A user can edit if he can edit any post of if he edits his own post and has the ability to:
-     * start a new discussion or to reply to a post.
-     *
-     * @throws moodle_exception
-     */
-    private function check_user_can_edit_post(): void {
-        global $USER;
-        $editanypost = has_capability('mod/moodleoverflow:editanypost', $this->info->modulecontext);
-        $replypost = has_capability('mod/moodleoverflow:replypost', $this->info->modulecontext);
-        $startdiscussion = has_capability('mod/moodleoverflow:startdiscussion', $this->info->modulecontext);
-        $ownpost = ($this->prepost->userid == $USER->id);
-        if (!(($ownpost && ($replypost || $startdiscussion)) || $editanypost)) {
-            throw new moodle_exception('cannotupdatepost', 'moodleoverflow');
-        }
-    }
-
-    /**
-     * Checks if a user can edit a post.
-     * @throws moodle_exception
-     */
-    private function check_user_can_delete_post(): void {
-        global $USER;
-        $this->info->deleteownpost = has_capability('mod/moodleoverflow:deleteownpost', $this->info->modulecontext);
-        $this->info->deleteanypost = has_capability('mod/moodleoverflow:deleteanypost', $this->info->modulecontext);
-        if (!(($this->info->relatedpost->get_userid() == $USER->id && $this->info->deleteownpost) || $this->info->deleteanypost)) {
-            throw new moodle_exception('cannotdeletepost', 'moodleoverflow');
-        }
-    }
 
     /**
      * Catches an unenrolled users and gives chance for enrollment.

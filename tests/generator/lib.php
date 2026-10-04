@@ -22,11 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_moodleoverflow\capabilities;
-use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
@@ -127,16 +126,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $timenow = time();
 
         // Determine reviewed status based on the user's review capability.
-        $moodleoverflow = moodleoverflow::from_id($record->moodleoverflow);
-        $modulecontext = $moodleoverflow->get_context();
-        if (
-            $moodleoverflow->get_review_level() !== review_level::NONE &&
-            !capabilities::has(capabilities::REVIEW_POST, $modulecontext, $record->userid)
-        ) {
-            $reviewed = 0;
-        } else {
-            $reviewed = 1;
-        }
+        $modflow = moodleoverflow::from_id($record->moodleoverflow);
 
         // Add the discussion.
         $discussion = discussion::construct_without_id(
@@ -154,9 +144,9 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             'timenow' => $timenow,
             'message' => $record->message,
             'messageformat' => $record->messageformat,
-            'reviewed' => $reviewed,
+            'reviewed' => (int) (!$modflow->requires_review(true) || permissions::can_review_posts($modflow, $record->userid)),
             'formattachments' => null,
-            'modulecontext' => $modulecontext,
+            'modulecontext' => $modflow->get_context(),
         ];
         $record->id = $discussion->add($prepost);
 
@@ -213,16 +203,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             throw new coding_exception('discussion must be present in phpunit_util::create_post() $record');
         }
         $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $record->discussion]));
-        $context = context_module::instance($discussion->get_coursemodule()->id);
-
-        if (
-            $discussion->get_moodleoverflow()->get_review_level() === review_level::EVERYTHING &&
-            !has_capability('mod/moodleoverflow:reviewpost', $context)
-        ) {
-            $record->reviewed = 0;
-        } else {
-            $record->reviewed = 1;
-        }
+        $modflow = $discussion->get_moodleoverflow();
 
         $post = post::construct_without_id(
             $record->discussion,
@@ -234,7 +215,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $record->messageformat,
             $record->attachment ?? '',
             $record->mailed,
-            $record->reviewed,
+            (int) !$modflow->requires_review(false) || permissions::can_review_posts($modflow, $record->userid),
             null
         );
 

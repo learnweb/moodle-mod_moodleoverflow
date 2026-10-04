@@ -94,6 +94,10 @@ class permissions {
      * @throws moodle_exception
      */
     public static function can_view_author(post $post, int $userid): bool {
+        if ($post->get_userid() === 0) {
+            // The privacy provider sets userid = 0 on posts. This check covers that.
+            return false;
+        }
         $ownpost = $post->get_userid() === $userid;
         $isquestioner = $post->get_userid() === $post->get_discussion()->get_userid();
         return self::can_view_post($post, $userid)
@@ -314,7 +318,7 @@ class permissions {
     // Discussion permissions.
 
     /**
-     * If a user can move a discussion to another moodleoverflow.
+     * If a user can move a specific discussion to another moodleoverflow.
      * @param discussion $discussion
      * @param moodleoverflow $destination
      * @param int $userid
@@ -322,12 +326,25 @@ class permissions {
      * @throws coding_exception|dml_exception|moodle_exception
      */
     public static function can_move_discussion(discussion $discussion, moodleoverflow $destination, int $userid): bool {
-        $source = $discussion->get_moodleoverflow();
+        return self::can_view_discussion($discussion, $userid)
+            && self::can_move_discussions($discussion->get_moodleoverflow(), $destination, $userid);
+    }
+
+    /**
+     * If a discussion move from one moodleoverflow to another is in general possible. Use it when checking move ability without
+     * a specific discussion.
+     *
+     * @param moodleoverflow $source
+     * @param moodleoverflow $destination
+     * @param int $userid
+     * @return bool
+     * @throws coding_exception|dml_exception|moodle_exception
+     */
+    public static function can_move_discussions(moodleoverflow $source, moodleoverflow $destination, int $userid): bool {
         return $destination->id !== $source->id
             && $destination->course === $source->course
             && !$destination->get_cm()->deletioninprogress
             && $destination->get_anonymity()->value >= $source->get_anonymity()->value
-            && self::can_view_discussion($discussion, $userid)
             && self::can_view_moodleoverflow($destination, $userid)
             && has_capability('mod/moodleoverflow:movetopic', $source->get_context(), $userid)
             && has_capability('mod/moodleoverflow:movetopic', $destination->get_context(), $userid);

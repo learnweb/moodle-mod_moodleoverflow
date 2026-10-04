@@ -17,8 +17,9 @@
 namespace mod_moodleoverflow\external;
 
 use coding_exception;
-use context_module;
 use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 use dml_exception;
 use core_external\external_function_parameters;
@@ -71,7 +72,7 @@ class mark_post_read extends external_api {
      * @throws coding_exception|dml_exception
      */
     public static function execute(int $instanceid, string $domain): int {
-        global $DB, $USER;
+        global $USER;
 
         // Validation.
         $params = self::validate_parameters(self::execute_parameters(), ['instanceid' => $instanceid, 'domain' => $domain]);
@@ -83,20 +84,16 @@ class mark_post_read extends external_api {
         $discussion = null;
         if ($params['domain'] === 'discussion') {
             $discussion = discussion::from_id($params['instanceid']);
-            $moodleoverflowid = $discussion->get_moodleoverflow()->id;
+            permissions::ensure(permissions::can_view_discussion($discussion, $USER->id), 'markreadfailed');
+            $moodleoverflow = $discussion->get_moodleoverflow();
         } else {
-            $moodleoverflowid = $params['instanceid'];
+            $moodleoverflow = moodleoverflow::from_id($params['instanceid']);
         }
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid], '*', MUST_EXIST);
-        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $moodleoverflow->course, false, MUST_EXIST);
+        $cm = $moodleoverflow->get_cm();
 
         // Check activity access and permissions.
-        $context = context_module::instance($cm->id);
-        self::validate_context($context);
-        require_capability('mod/moodleoverflow:viewdiscussion', $context);
-        if (isguestuser()) {
-            throw new \moodle_exception('noguesttracking', 'moodleoverflow');
-        }
+        self::validate_context($moodleoverflow->get_context());
+        permissions::ensure(permissions::can_track($moodleoverflow, $USER->id), 'markreadfailed');
 
         // Execute the readtracking action.
         if ($discussion === null) {

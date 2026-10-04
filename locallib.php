@@ -25,10 +25,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core_availability\info_module;
-use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\ratings;
 
 defined('MOODLE_INTERNAL') || die();
@@ -94,28 +91,6 @@ function moodleoverflow_get_discussions_unread($cm) {
 }
 
 /**
- * Checks if a user can see a specific post.
- *
- * @param post $post
- * @param object $cm
- * @param ?int $userid
- *
- * @return bool
- */
-function moodleoverflow_user_can_see_post(post $post, object $cm, ?int $userid = null) {
-    global $USER;
-    $userid = $userid ?? $USER->id;
-    $modulecontext = context_module::instance($cm->id);
-
-    // Get capabilites.
-    $canview = capabilities::has(capabilities::VIEW_DISCUSSION, $modulecontext, $userid);
-    $canreview = capabilities::has(capabilities::REVIEW_POST, $modulecontext, $userid);
-    $isvisible = info_module::is_user_visible($cm, $userid, false);
-
-    return ($canview && ($post->reviewed == 1 || $post->get_userid() == $userid || $canreview)) && $isvisible;
-}
-
-/**
  * Modifies the session to return back to where the user is coming from.
  *
  * @param object $default
@@ -132,23 +107,6 @@ function moodleoverflow_go_back_to($default) {
     } else {
         return $default;
     }
-}
-
-/**
- * Checks whether the user can reply to posts in a discussion.
- *
- * @param context $modulecontext
- * @param object $posttoreplyto
- * @param bool $considerreviewstatus
- * @param int $userid
- * @return bool Whether the user can reply
- * @throws coding_exception
- */
-function moodleoverflow_user_can_post($modulecontext, $posttoreplyto, $considerreviewstatus = true, $userid = null) {
-    global $USER;
-    $userid = $userid ?? $USER->id;
-    $canpost = has_capability('mod/moodleoverflow:replypost', $modulecontext, $userid);
-    return  $canpost && (!$considerreviewstatus || $posttoreplyto->reviewed == 1);
 }
 
 /**
@@ -255,25 +213,6 @@ function moodleoverflow_get_config_or_exception($plugin, $configname, $errorcode
 function moodleoverflow_throw_exception_with_check($check, $errorcode, $coreexception = false) {
     if ($check) {
         throw new moodle_exception($errorcode, $coreexception ? 0 : 'moodleoverflow');
-    }
-}
-
-/**
- * Function that catches unenrolled users and redirects them to the enrolment page.
- * @param context $coursecontext     The context of the course.
- * @param int $courseid             Id of the course that the user needs to enrol.
- * @param string $returnurl         The url to return to after the user has been enrolled.
- * @return void
- */
-function moodleoverflow_catch_unenrolled_user($coursecontext, $courseid, $returnurl) {
-    global $SESSION;
-    if (!isguestuser() && !is_enrolled($coursecontext)) {
-        if (enrol_selfenrol_available($courseid)) {
-            $SESSION->wantsurl = qualified_me();
-            $SESSION->enrolcancel = get_local_referer(false);
-            $url = new \moodle_url('/enrol/index.php', ['id' => $courseid, 'returnurl' => $returnurl]);
-            redirect($url, get_string('youneedtoenrol'));
-        }
     }
 }
 

@@ -31,10 +31,10 @@
 
 use core_completion\api;
 use core_user\output\myprofile\tree;
-use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\subscriptions;
 
@@ -419,7 +419,7 @@ function moodleoverflow_get_file_info($browser, $areas, $course, $cm, $context, 
  * @param array    $options       additional options affecting the file serving
  */
 function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
-    global $DB;
+    global $DB, $USER;
     if ($context->contextlevel != CONTEXT_MODULE) {
         return false;
     }
@@ -457,7 +457,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
     $file = $fs->get_file($context->id, 'mod_moodleoverflow', $filearea, $itemid, $filepath, $filename);
 
     // Make sure we're allowed to see it...
-    if (!moodleoverflow_user_can_see_post(post::from_record($post), $cm)) {
+    if (!permissions::can_view_post(post::from_record($post), $USER->id)) {
         return false;
     }
 
@@ -526,23 +526,16 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     }
 
     // Display a link to enable or disable readtracking.
-    if ($enrolled && readtracking::can_track($moodleoverflow)) {
-        // Check whether the readtracking state can be changed.
-        if ($moodleoverflow->get_tracking_type()->users_can_choose()) {
-            // Generate the text of the link depending on the current state.
-            $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
-            if ($istracked) {
-                $linktext = get_string('notrackmoodleoverflow', 'moodleoverflow');
-            } else {
-                $linktext = get_string('trackmoodleoverflow', 'moodleoverflow');
-            }
+    if (permissions::can_change_tracking($moodleoverflow, $USER->id)) {
+        // Generate the text of the link depending on the current state.
+        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
+        $linktext = get_string($istracked ? 'notrackmoodleoverflow' : 'trackmoodleoverflow', 'moodleoverflow');
 
-            // Generate the link.
-            $link = new moodle_url('/mod/moodleoverflow/tracking.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
+        // Generate the link.
+        $link = new moodle_url('/mod/moodleoverflow/tracking.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
 
-            // Add the link to the menu.
-            $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
-        }
+        // Add the link to the menu.
+        $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
     }
 }
 
@@ -553,10 +546,10 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
  * @param cm_info $cm Course-module object
  */
 function moodleoverflow_cm_info_view(cm_info $cm) {
+    global $USER;
     $moodleoverflow = moodleoverflow::from_id($cm->instance);
-    $cantrack = readtracking::can_track($moodleoverflow);
     $out = "";
-    if (has_capability('mod/moodleoverflow:reviewpost', $cm->context)) {
+    if (permissions::can_review_posts($moodleoverflow, $USER->id)) {
         $reviewcount = \mod_moodleoverflow\review::count_outstanding_reviews_in_moodleoverflow($cm->instance);
         if ($reviewcount) {
             $out .= '<span class="mod_moodleoverflow-label-review"><a href="' . $cm->url . '">';
@@ -564,7 +557,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
             $out .= '</a></span> ';
         }
     }
-    if ($cantrack) {
+    if (permissions::can_track($moodleoverflow, $USER->id)) {
         $unread = readtracking::count_unread_posts_moodleoverflow($cm);
         if ($unread) {
             $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
@@ -579,27 +572,6 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
     if ($out) {
         $cm->set_after_link($out);
     }
-}
-
-/**
- * Check if the user can create attachments in moodleoverflow.
- *
- * @param  stdClass $moodleoverflow moodleoverflow object
- * @param  context_module $context        context object
- *
- * @return bool true if the user can create attachments, false otherwise
- * @since  Moodle 3.3
- */
-function moodleoverflow_can_create_attachment($moodleoverflow, $context) {
-    // If maxbytes == 1 it means no attachments at all.
-    if (
-        empty($moodleoverflow->maxattachments) || $moodleoverflow->maxbytes == 1 ||
-        !has_capability('mod/moodleoverflow:createattachment', $context)
-    ) {
-        return false;
-    }
-
-    return true;
 }
 
 /**

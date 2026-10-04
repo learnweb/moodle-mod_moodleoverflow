@@ -15,10 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Prints a particular instance of moodleoverflow
- *
- * You can have a rather longer description of the file as well,
- * if you like, and it can span multiple lines.
+ * Page for user statistics
  *
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
@@ -27,10 +24,11 @@
 
 // Include config and locallib.
 require_once(__DIR__ . '/../../config.php');
-global $CFG, $PAGE, $DB, $OUTPUT, $SESSION;
+global $CFG, $PAGE, $DB, $OUTPUT, $SESSION, $USER;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\tables\userstats_table;
 
 // Declare optional parameters.
@@ -45,11 +43,9 @@ $course = $moodleoverflow->get_course();
 require_login($course, true, $cm);
 
 // Set the context.
-$context = $moodleoverflow->get_context();
-$PAGE->set_context($context);
+$PAGE->set_context($moodleoverflow->get_context());
 
-// Do a capability check, in case a user iserts the userstats-url manually.
-if (has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('moodleoverflow', 'showuserstats')) {
+if (permissions::can_view_userstats($moodleoverflow, $USER->id)) {
     // Print the page header.
     $PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id, 'courseid' => $course->id, 'mid' => $moodleoverflow->id]);
     $PAGE->set_title(get_string('userstats', 'moodleoverflow'));

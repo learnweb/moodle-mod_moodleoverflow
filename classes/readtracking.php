@@ -23,6 +23,7 @@ use dml_exception;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 
 /**
  * Static methods for managing the tracking of read posts and discussions.
@@ -32,24 +33,6 @@ use mod_moodleoverflow\local\models\moodleoverflow;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class readtracking {
-    /**
-     * Whether the user can track this moodleoverflow at all.
-     * @param moodleoverflow $moodleoverflow
-     * @param ?object $user Defaults to the current user.
-     * @return bool
-     */
-    public static function can_track(moodleoverflow $moodleoverflow, ?object $user = null): bool {
-        global $USER;
-        $user = $user ?? $USER;
-
-        // Guests and users who are not logged in cannot track moodleoverflows.
-        if (isguestuser($user) || empty($user->id)) {
-            return false;
-        }
-
-        return $moodleoverflow->get_tracking_type() !== tracking_type::OFF;
-    }
-
     /**
      * Tells whether a specific moodleoverflow is tracked by the user.
      *
@@ -65,7 +48,7 @@ class readtracking {
         $user = $user ?? $USER;
 
         // The moodleoverflow should be generally trackable.
-        if (!self::can_track($moodleoverflow, $user)) {
+        if (!permissions::can_track($moodleoverflow, $user->id)) {
             return false;
         }
 

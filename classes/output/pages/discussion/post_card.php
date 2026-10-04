@@ -20,9 +20,8 @@ use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
 use html_writer;
-use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\readtracking;
 use moodle_url;
@@ -81,23 +80,21 @@ class post_card implements named_templatable, renderable {
         // Get voting data for the voting template as well as reputation rating.
         $ratings = $this->post->get_ratings();
         $userrating = ratings::user_rated($this->post->get_id());
-        $ratingability = ratings::user_can_rate($this->post->get_db_object(), $this->context);
-
         $showvotes = $moodleoverflow->is_rating_enabled() ? [
             'postid' => $this->post->get_id(),
             'votes' => $ratings->votesdifference,
             'userupvoted' => $userrating && $userrating->rating == RATING_UPVOTE,
             'userdownvoted' => $userrating && $userrating->rating == RATING_DOWNVOTE,
-            'canchange' => $ratingability && $this->post->get_userid() != $USER->id,
+            'canchange' => permissions::can_vote($this->post, $USER->id),
         ] : [];
-        $showreputation = $moodleoverflow->is_reputation_enabled() && anonymous::user_can_see_post($this->post, $USER->id) ? [
+        $showreputation = permissions::can_view_reputation($this->post, $USER->id) ? [
             'userid' => $this->post->get_userid(),
             'userreputation' => ratings::get_reputation($moodleoverflow->id, $this->post->get_userid()),
         ] : [];
 
         // Review data.
-        $reviewtime = get_config('moodleoverflow', 'reviewpossibleaftertime');
-        $inreviewperiod = (time() - $this->post->created) > $reviewtime;
+        $reviewdelay = $moodleoverflow->get_review_delay();
+        $needsreview = $this->post->reviewed === 0;
 
         // Links.
         $discusspath = '/mod/moodleoverflow/discussion.php';
@@ -120,8 +117,12 @@ class post_card implements named_templatable, renderable {
             'questioner' => $this->post->get_userid() == $this->post->get_discussion()->get_userid() ? 'questioner' : '',
             'showvotes' => $showvotes,
             'showreputation' => $showreputation,
-            'canreview' => capabilities::has(capabilities::REVIEW_POST, $this->context),
-            'needsreview' => !$this->post->reviewed ? ['withinreviewperiod' => $inreviewperiod, 'reviewdelay' => $reviewtime] : [],
+            'needsreview' => $needsreview ? [
+                'withinreviewperiod' => (time() - $this->post->created) > $reviewdelay,
+                'reviewdelay' => $reviewdelay,
+            ] : [],
+            'canreview' => $needsreview && permissions::can_review_posts($moodleoverflow, $USER->id),
+            'canreviewnow' => permissions::can_review_post($this->post, $USER->id),
             'commands' => $this->build_commands(),
         ];
     }
@@ -135,21 +136,13 @@ class post_card implements named_templatable, renderable {
 
         $discussion   = $this->post->get_discussion();
         $moodleoverflow = $discussion->get_moodleoverflow();
-        $firstpostid  = $discussion->get_firstpostid();
         $parentpost   = $this->post->get_parentpost();
-
-        $isroot    = $this->post->get_id() == $firstpostid;
-        $isanswer  = !$isroot && $parentpost !== null && $parentpost->get_id() == $firstpostid;
-
-        $ownpost       = $this->post->get_userid() == $USER->id;
-        $age           = time() - $this->post->created;
-        $maxeditingtime = get_config('moodleoverflow', 'maxeditingtime');
         $ratings       = $this->post->get_ratings();
 
         $commands = [];
 
         // Mark helpful — discussion starter only, direct answers only.
-        if ($isanswer && $USER->id == $discussion->get_userid() && $USER->id != $this->post->get_userid()) {
+        if (permissions::can_mark_helpful($this->post, $USER->id)) {
             if ($ratings->markedhelpful) {
                 $label = get_string('marknothelpful', 'moodleoverflow');
             } else if (ratings::discussion_is_solved($discussion->get_id(), false)) {
@@ -165,7 +158,7 @@ class post_card implements named_templatable, renderable {
         }
 
         // Mark solved — teachers only, direct answers only.
-        if ($isanswer && capabilities::has(capabilities::MARK_SOLVED, $this->context)) {
+        if (permissions::can_mark_solved($this->post, $USER->id)) {
             if ($ratings->markedsolution) {
                 $label = get_string('marknotsolved', 'moodleoverflow');
             } else if (ratings::discussion_is_solved($discussion->get_id(), true)) {
@@ -181,9 +174,7 @@ class post_card implements named_templatable, renderable {
         }
 
         // Edit.
-        $caneditown = $ownpost && $age < $maxeditingtime
-            && (!$moodleoverflow->requires_review($this->post->get_parentid() == 0) || !$this->post->reviewed);
-        if ($caneditown || capabilities::has(capabilities::EDIT_ANY_POST, $this->context)) {
+        if (permissions::can_edit_post($this->post, $USER->id)) {
             $commands[] = html_writer::link(
                 new moodle_url('/mod/moodleoverflow/post.php', ['edit' => $this->post->get_id()]),
                 get_string('edit', 'moodleoverflow')
@@ -191,9 +182,7 @@ class post_card implements named_templatable, renderable {
         }
 
         // Delete.
-        $candeleteown = $ownpost && $age < $maxeditingtime
-            && capabilities::has(capabilities::DELETE_OWN_POST, $this->context);
-        if ($candeleteown || capabilities::has(capabilities::DELETE_ANY_POST, $this->context)) {
+        if (permissions::can_delete_post($this->post, $USER->id)) {
             $commands[] = html_writer::link(
                 new moodle_url('/mod/moodleoverflow/post.php', ['delete' => $this->post->get_id()]),
                 get_string('delete', 'moodleoverflow')
@@ -201,50 +190,28 @@ class post_card implements named_templatable, renderable {
         }
 
         // Reply.
-        if (moodleoverflow_user_can_post($this->context, $this->post->get_db_object(), false)) {
-            if ($isroot) {
-                if (!$moodleoverflow->is_answer_window_open()) {
-                    if (!has_capability('mod/moodleoverflow:addinstance', $this->context)) {
-                        $helpicon  = $OUTPUT->help_icon('la_student_helpicon', 'moodleoverflow');
-                        $commands[] = html_writer::tag(
-                            'span',
-                            html_writer::tag('span', get_string('replyfirst', 'moodleoverflow') . '    ' . $helpicon),
-                            ['class' => 'onlyifreviewed text-muted']
-                        );
-                    } else {
-                        $helpicon   = $OUTPUT->help_icon('la_teacher_helpicon', 'moodleoverflow');
-                        $replyurl   = new moodle_url(
-                            '/mod/moodleoverflow/post.php#mformmoodleoverflow',
-                            ['reply' => $this->post->get_id()]
-                        );
-                        $answerlink = html_writer::link(
-                            $replyurl,
-                            get_string('replyfirst', 'moodleoverflow'),
-                            ['class' => 'onlyifreviewed answerbutton']
-                        );
-                        $commands[] = html_writer::tag('span', $answerlink . '    ' . $helpicon, ['class' => 'onlyifreviewed']);
-                    }
-                } else {
-                    $commands[] = html_writer::link(
-                        new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $this->post->get_id()]),
-                        get_string('replyfirst', 'moodleoverflow'),
-                        ['class' => 'onlyifreviewed']
-                    );
-                }
-            } else if ($isanswer) {
-                $commands[] = html_writer::link(
-                    new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $this->post->get_id()]),
-                    get_string('reply', 'moodleoverflow'),
-                    ['class' => 'onlyifreviewed']
-                );
-            } else {
-                // Comment: reply targets the parent answer, not this comment.
-                $commands[] = html_writer::link(
-                    new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $parentpost->get_id()]),
-                    get_string('reply', 'moodleoverflow'),
-                    ['class' => 'onlyifreviewed']
-                );
+        $replytarget = (!$this->post->is_comment()) ? $this->post : $parentpost;
+        $windowopen = $moodleoverflow->is_answer_window_open();
+
+        if (permissions::can_reply($replytarget, $USER->id)) {
+            $link = html_writer::link(
+                new moodle_url('/mod/moodleoverflow/post.php#mformmoodleoverflow', ['reply' => $replytarget->get_id()]),
+                get_string($this->post->is_question() ? 'replyfirst' : 'reply', 'moodleoverflow'),
+                ['class' => 'onlyifreviewed']
+            );
+            if (!$windowopen) {
+                // Allowed although the window is closed: the teacher bypass, so explain it.
+                $link .= '    ' . $OUTPUT->help_icon('la_teacher_helpicon', 'moodleoverflow');
             }
+            $commands[] = $link;
+        } else if ($this->post->is_question() && !$windowopen) {
+            // Tell students that they can answer once the window opens.
+            $helpicon = $OUTPUT->help_icon('la_student_helpicon', 'moodleoverflow');
+            $commands[] = html_writer::tag(
+                'span',
+                get_string('replyfirst', 'moodleoverflow') . '    ' . $helpicon,
+                ['class' => 'onlyifreviewed text-muted']
+            );
         }
 
         return implode('', $commands);

@@ -123,16 +123,14 @@
         </div>
     </div>
     {{#canreview}}
-        {{#needsreview}}
-            <div class="reviewrow p-2 text-center bg-gray">
-                {{#withinreviewperiod}}
-                    {{> mod_moodleoverflow/review_buttons }}
-                {{/withinreviewperiod}}
-                {{^withinreviewperiod}}
-                    {{#str}}pending_review_but_cannot_now, mod_moodleoverflow, {{reviewdelay}} {{/str}}
-                {{/withinreviewperiod}}
-            </div>
-        {{/needsreview}}
+        <div class="reviewrow p-2 text-center bg-gray">
+            {{#canreviewnow}}
+                {{> mod_moodleoverflow/review_buttons }}
+            {{/canreviewnow}}
+            {{^canreviewnow}}
+                {{#str}}pending_review_but_cannot_now, mod_moodleoverflow, {{needsreview.reviewdelay}} {{/str}}
+            {{/canreviewnow}}
+        </div>
     {{/canreview}}
 </div>
 </div>

@@ -22,6 +22,7 @@ use core\output\renderable;
 use core\output\renderer_base;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\ratings;
 
@@ -50,14 +51,10 @@ class discussion_page implements named_templatable, renderable{
      * @param discussion $discussion
      */
     public function __construct(discussion $discussion) {
+        global $USER;
         $this->discussion = $discussion;
         $this->firstpost = $this->discussion->get_first_post();
-        $this->answers = [];
-        foreach ($this->discussion->get_answerposts() as $post) {
-            if (moodleoverflow_user_can_see_post($post, $this->discussion->get_coursemodule())) {
-                $this->answers[] = $post;
-            }
-        }
+        $this->answers = array_filter($this->discussion->get_answerposts(), fn($p) => permissions::can_view_post($p, $USER->id));
     }
 
     #[\Override]
