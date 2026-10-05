@@ -20,11 +20,11 @@ use context_module;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
-use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 use moodle_url;
@@ -86,10 +86,8 @@ class view_page implements named_templatable, renderable {
         $limitamount = $usepaging ? $perpage : 0;
 
         // Check some capabilities and create other check variables.
-        $canreview = has_capability('mod/moodleoverflow:reviewpost', $context);
-        $canstartdiscussion = !(isguestuser() || !isloggedin()) && has_capability('mod/moodleoverflow:startdiscussion', $context);
-        $seestats = has_capability('mod/moodleoverflow:viewanyrating', $context) && get_config('moodleoverflow', 'showuserstats');
-        $istracked = readtracking::can_track($this->modflow) && readtracking::moodleoverflow_is_tracked($this->modflow);
+        $canstartdiscussion = permissions::can_start_discussion($this->modflow, $USER->id);
+        $istracked = readtracking::moodleoverflow_is_tracked($this->modflow);
 
         // Create links.
         $startdiscussion = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $this->modflow->id]);
@@ -103,21 +101,15 @@ class view_page implements named_templatable, renderable {
 
         // Get moodleoverflow where discussions can be moved.
         $destinations = [];
-        $instances = get_fast_modinfo($this->modflow->course)->get_instances_of('moodleoverflow');
-        $params = ['course' => $this->modflow->course, 'anonymous' => $this->modflow->anonymous, 'currentid' => $this->modflow->id];
-        $sql = "SELECT *
-            FROM {moodleoverflow}
-            WHERE course = :course
-                AND anonymous >= :anonymous
-                AND id != :currentid";
-        foreach ($DB->get_records_sql($sql, $params) as $modflow) {
-            if (empty($instances[$modflow->id]->deletioninprogress)) {
-                $destinations[] = ['name' => $modflow->name, 'modflowid' => $modflow->id];
+        foreach ($DB->get_records('moodleoverflow', ['course' => $this->modflow->course]) as $record) {
+            $destination = moodleoverflow::from_record($record);
+            if (permissions::can_move_discussions($this->modflow, $destination, $USER->id)) {
+                $destinations[] = ['name' => $destination->name, 'modflowid' => $destination->id];
             }
         }
 
         // Iterate through every visible discussion and build the discussion card.
-        $canreview = capabilities::has(capabilities::REVIEW_POST, $context) ? 1 : 0;
+        $canreview = permissions::can_review_posts($this->modflow, $USER->id);
         $items = [];
         $sql = "SELECT d.*
             FROM {moodleoverflow_discussions} d
@@ -126,7 +118,7 @@ class view_page implements named_templatable, renderable {
                 AND p.parent = 0
                 AND (? = 1 OR (p.reviewed = 1 OR p.userid = ?))
             ORDER BY d.timestart DESC, d.id DESC";
-        $discussions = $DB->get_records_sql($sql, [$this->modflow->id, $canreview, $USER->id], $limitfrom, $limitamount);
+        $discussions = $DB->get_records_sql($sql, [$this->modflow->id, $canreview ? 1 : 0, $USER->id], $limitfrom, $limitamount);
         foreach ($discussions as $discussion) {
             $items[] = $OUTPUT->render(new discussion_card(discussion::from_record($discussion), $context, !empty($destinations)));
         }
@@ -149,7 +141,7 @@ class view_page implements named_templatable, renderable {
             'hasdiscussions' => count($discussions) > 0,
             'startdiscussion' => $canstartdiscussion ? ['link' => $startdiscussion->out()] : [],
             'markallread' => $unreads ? ['link' => $markallreadlink->out()] : [],
-            'stats' => $seestats ? ['link' => $userstatslink->out()] : [],
+            'stats' => permissions::can_view_userstats($this->modflow, $USER->id) ? ['link' => $userstatslink->out()] : [],
             'paging_bar' => ($this->page != -1) ? $pagingbar : false,
             'destinations' => $destinations,
             'anonymous_desc' => $anonymousdesc,

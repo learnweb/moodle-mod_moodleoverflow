@@ -24,6 +24,7 @@
 
 // Require needed files.
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 
 require_once("../../config.php");
@@ -52,11 +53,8 @@ require_login($course, false, $cm);
 $returnpageurl = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $moodleoverflow->id]);
 $returnto = moodleoverflow_go_back_to($returnpageurl);
 
-// Check whether the user can track the moodleoverflow instance.
-$cantrack = readtracking::can_track($moodleoverflow);
-
 // Do not continue if the user is not allowed to track the moodleoverflow. Redirect the user back.
-if (!$cantrack) {
+if (!permissions::can_change_tracking($moodleoverflow, $USER->id)) {
     redirect($returnto);
     exit;
 }

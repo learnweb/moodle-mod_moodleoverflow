@@ -17,7 +17,9 @@
 namespace mod_moodleoverflow\task;
 
 use dml_missing_record_exception;
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 
 /**
  * This task sends a daily mail of unread posts
@@ -48,28 +50,26 @@ class send_daily_mails extends \core\task\scheduled_task {
             $mail = [];
             // Fill the $mail array.
             foreach ($userdata as $row) {
-                // Check if the user is enrolled in the course, if not, go to the next row.
-                if (!is_enrolled(\context_course::instance($row->courseid), $user->userid, '', true)) {
-                    continue;
-                }
                 try {
+                    $discussion = discussion::from_id($row->forumdiscussionid);
                     $currentforum = moodleoverflow::from_id($row->forumid);
                     $currentcourse = $currentforum->get_course();
                 } catch (dml_missing_record_exception $e) {
                     continue;
                 }
 
-                $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $row->forumdiscussionid], 'name, id');
+                if (!permissions::can_view_discussion($discussion, $user->userid)) {
+                    continue;
+                }
                 $unreadposts = $row->numberofposts;
 
                 // Build url to the course, forum, and discussion.
                 $linktocourse = new \moodle_url('/course/view.php', ['id' => $currentcourse->id]);
-                $linktodiscussion = new \moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->id]);
 
                 // Now change the url to a clickable html link.
                 $linktocourse = \html_writer::link($linktocourse->out(), $currentcourse->fullname);
                 $linktoforum = \html_writer::link($currentforum->get_link()->out(), $currentforum->name);
-                $linktodiscussion = \html_writer::link($linktodiscussion->out(), $discussion->name);
+                $linktodiscussion = \html_writer::link($discussion->get_link()->out(), $discussion->name);
 
                 // Build a single line string with the digest information and add it to the mailarray.
                 $string = get_string('digestunreadpost', 'mod_moodleoverflow', ['linktocourse' => $linktocourse,

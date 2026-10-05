@@ -28,6 +28,7 @@
 // Include config and locallib.
 use mod_moodleoverflow\event\course_module_viewed;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\output\pages\view\view_page;
 
 require_once(__DIR__ . '/../../config.php');
@@ -70,7 +71,7 @@ require_login($course, true, $cm);
 $PAGE->set_context($context);
 
 // Check some capabilities.
-if (!has_capability('mod/moodleoverflow:viewdiscussion', $context)) {
+if (!permissions::can_view_moodleoverflow($moodleoverflow, $USER->id)) {
     notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
 }
 

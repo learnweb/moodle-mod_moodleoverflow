@@ -17,11 +17,11 @@
 namespace mod_moodleoverflow\local\service;
 
 use core\exception\moodle_exception;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\dto\userpost_dto;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use moodle_url;
 
 /**
@@ -59,30 +59,15 @@ class user_service {
         // Build caches for everything the loop needs, keyed by id, in three queries. This reduces DB calls from the post object.
         $discussions = $DB->get_records_list('moodleoverflow_discussions', 'id', array_unique(array_column($records, 'discussid')));
         $moodleoverflows = $DB->get_records_list('moodleoverflow', 'id', array_unique(array_column($records, 'modflowid')));
-        $courses = $DB->get_records_list('course', 'id', array_unique(array_column($records, 'courseid')));
-        $hascourseaccess = [];
-        $modinfos = [];
-
         $userposts = [];
         $path = '/mod/moodleoverflow/';
         // Build the dto's. Filter out posts that the current user can't see.
         foreach ($records as $record) {
-            $hascourseaccess[$record->courseid] ??= can_access_course($courses[$record->courseid], $USER->id, '', true);
-            if (!$hascourseaccess[$record->courseid]) {
-                continue;
-            }
-
-            $modinfos[$record->courseid] ??= get_fast_modinfo($record->courseid, $USER->id);
-            $cm = $modinfos[$record->courseid]->get_instance_of('moodleoverflow', $record->modflowid);
-            if (!$cm) {
-                continue;
-            }
-
             $post = post::from_record($record);
             $post->moodleoverflowobject = moodleoverflow::from_record($moodleoverflows[$record->modflowid]);
             $post->discussionobject = discussion::from_record($discussions[$record->discussid]);
 
-            if (!moodleoverflow_user_can_see_post($post, $cm, $USER->id) || !anonymous::user_can_see_post($post, $USER->id)) {
+            if (!permissions::can_view_post($post, $USER->id) || !permissions::can_view_author($post, $USER->id)) {
                 continue;
             }
 

@@ -24,6 +24,7 @@
 
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 
 require_once('../../config.php');
@@ -92,6 +93,8 @@ if (isguestuser()) {
     exit;
 }
 
+permissions::ensure(permissions::can_track($moodleoverflow, $USER->id), 'markreadfailed');
+
 // Delete a single discussion.
 if (!empty($discussionid)) {
     // Mark all the discussions read.
@@ -99,6 +102,7 @@ if (!empty($discussionid)) {
     if ($discussion->get_moodleoverflowid() != $moodleoverflow->id) {
         throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
     }
+    permissions::ensure(permissions::can_view_discussion($discussion, $user->id), 'markreadfailed');
     if (!readtracking::mark_discussion_read($discussion, $user->id)) {
         // Display an error, if something failes.
         $message = get_string('markreadfailed', 'moodleoverflow');

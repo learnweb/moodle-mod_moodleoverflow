@@ -25,6 +25,7 @@ namespace mod_moodleoverflow;
 
 use advanced_testcase;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -41,7 +42,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  */
 final class readtracking_test extends advanced_testcase {
     /**
-     * Test the logic in the can_trac() function.
+     * Test the logic in permissions::can_track().
+     * @covers \mod_moodleoverflow\local\permissions::can_track
      */
     public function test_can_track(): void {
 
@@ -58,34 +60,50 @@ final class readtracking_test extends advanced_testcase {
         $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL]; // Optional.
         $mooptional = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
+        // Users: an enrolled student, a user that is not enrolled and the guest user.
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $notenrolled = $this->getDataGenerator()->create_user();
+        $guest = guest_user();
+
         // Allow force.
         set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
-        // Modleoverflow off, should be off.
-        $result = readtracking::can_track($mooff);
+        // Moodleoverflow off, should be off.
+        $result = permissions::can_track($mooff, $student->id);
         $this->assertEquals(false, $result);
 
-        // Moodleoverflow on, should be off.
-        $result = readtracking::can_track($moforce);
-        $this->assertEquals(false, $result);
+        // Moodleoverflow forced, should be on.
+        $result = permissions::can_track($moforce, $student->id);
+        $this->assertEquals(true, $result);
 
-        // Moodleoverflow optional, should be false.
-        $result = readtracking::can_track($mooptional);
-        $this->assertEquals(false, $result);
+        // Moodleoverflow optional, should be on.
+        $result = permissions::can_track($mooptional, $student->id);
+        $this->assertEquals(true, $result);
 
         // Don't allow force.
         set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
-        $result = readtracking::can_track($mooff);
+        $result = permissions::can_track($mooff, $student->id);
         $this->assertEquals(false, $result);
 
-        // Moodleoverflow on, should be off.
-        $result = readtracking::can_track($moforce);
-        $this->assertEquals(false, $result);
+        // Moodleoverflow forced, counts as optional now, should be on.
+        $result = permissions::can_track($moforce, $student->id);
+        $this->assertEquals(true, $result);
 
-        // Moodleoverflow optional, should be off.
-        $result = readtracking::can_track($mooptional);
+        // Moodleoverflow optional, should be on.
+        $result = permissions::can_track($mooptional, $student->id);
+        $this->assertEquals(true, $result);
+
+        // Users that are not enrolled, guests and users that are not logged in can not track.
+        $this->assertEquals(false, permissions::can_track($mooptional, $notenrolled->id));
+        $this->assertEquals(false, permissions::can_track($mooptional, $guest->id));
+        $this->assertEquals(false, permissions::can_track($mooptional, 0));
+
+        // Read tracking switched off for the whole site, should be off.
+        set_config('trackreadposts', 0, 'moodleoverflow');
+        $result = permissions::can_track($mooptional, $student->id);
         $this->assertEquals(false, $result);
     }
 

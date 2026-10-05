@@ -17,6 +17,7 @@
 namespace mod_moodleoverflow\form;
 
 use context_module;
+use mod_moodleoverflow\local\permissions;
 use moodleform;
 use stdClass;
 
@@ -39,7 +40,7 @@ class post_form extends moodleform {
      * @return void
      */
     public function definition() {
-
+        global $USER;
         $modform =& $this->_form;
         $post = $this->_customdata['post'];
         $edit = $this->_customdata['edit'];
@@ -68,7 +69,7 @@ class post_form extends moodleform {
         $modform->setType('message', PARAM_RAW);
         $modform->addRule('message', get_string('required'), 'required', null, 'client');
 
-        if (moodleoverflow_can_create_attachment($moodleoverflow, $modcontext)) {
+        if (permissions::can_add_attachments($moodleoverflow, $USER->id)) {
             $modform->addElement(
                 'filemanager',
                 'attachments',

@@ -16,6 +16,8 @@
 
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\local\models\post;
+
 /**
  * Class for Moodleoverflow reviews
  *
@@ -107,15 +109,6 @@ class review {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Returns whether a post is reviewable depending on its review state and review period.
-     * @param object $post
-     * @return bool
-     */
-    public static function is_post_in_review_period($post): bool {
-        return time() - $post->created > get_config('moodleoverflow', 'reviewpossibleaftertime');
     }
 
     /**

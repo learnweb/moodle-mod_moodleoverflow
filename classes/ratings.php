@@ -15,9 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace mod_moodleoverflow;
+use mod_moodleoverflow\event\rating_created;
+use mod_moodleoverflow\event\rating_updated;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use moodle_exception;
 
 /**
@@ -51,31 +54,21 @@ class ratings {
         moodleoverflow_throw_exception_with_check(!in_array($rating, $possibleratings), 'invalidratingid');
 
         // Get the related post.
-        $post = post::from_id($postid)->get_db_object();
+        $postmodel = post::from_id($postid);
+        $post = $postmodel->get_db_object();
 
         // Check if the post belongs to a discussion.
         $discussion = discussion::from_id($post->discussion)->get_db_object();
 
-        // Get the related course.
-        $course = $moodleoverflow->get_course();
-
         // Retrieve the contexts.
         $modulecontext = \context_module::instance($cm->id);
-        $coursecontext = \context_course::instance($course->id);
 
-        // Redirect the user if capabilities are missing.
-        if (!self::user_can_rate($post, $modulecontext, $userid)) {
-            // Catch unenrolled users.
-            moodleoverflow_catch_unenrolled_user($coursecontext, $course->id, $moodleoverflow->get_link()->out());
-
-            // Notify the user, that he can not post a new discussion.
-            throw new moodle_exception('noratemoodleoverflow', 'moodleoverflow');
-        }
-
-        // Make sure post author != current user, unless they have permission.
-        $authorcheck = ($post->userid == $userid) && !(($rating == RATING_SOLVED || $rating == RATING_REMOVE_SOLVED) &&
-                                                        has_capability('mod/moodleoverflow:marksolved', $modulecontext));
-        moodleoverflow_throw_exception_with_check($authorcheck, 'rateownpost');
+        [$allowed, $errorcode] = match ((int) $rating) {
+            RATING_HELPFUL, RATING_REMOVE_HELPFUL => [permissions::can_mark_helpful($postmodel, $userid), 'notstartuser'],
+            RATING_SOLVED, RATING_REMOVE_SOLVED => [permissions::can_mark_solved($postmodel, $userid), 'notteacher'],
+            default => [permissions::can_vote($postmodel, $userid), 'noratemoodleoverflow'],
+        };
+        permissions::ensure($allowed, $errorcode);
 
         // Check if we are removing a mark.
         if (in_array($rating / 10, $possibleratings)) {
@@ -95,14 +88,6 @@ class ratings {
 
         // Mark a post as solution or as helpful.
         if ($rating == RATING_SOLVED || $rating == RATING_HELPFUL) {
-            // Make sure that a helpful mark is made by the user who started the discussion.
-            $isnotstartuser = $rating == RATING_HELPFUL && $userid != $discussion->userid;
-            moodleoverflow_throw_exception_with_check($isnotstartuser, 'notstartuser');
-
-            // Make sure that a solution mark is made by a teacher (or someone with the right capability).
-            $isnotteacher = $rating == RATING_SOLVED && !has_capability('mod/moodleoverflow:marksolved', $modulecontext);
-            moodleoverflow_throw_exception_with_check($isnotteacher, 'notteacher');
-
             // Check if multiple marks are not enabled.
             if (!$moodleoverflow->allows_multiple_marks()) {
                 // Get other ratings in the discussion.
@@ -563,27 +548,22 @@ class ratings {
         global $DB;
 
         // Create the rating record.
-        $record = new \stdClass();
-        $record->userid = $userid;
-        $record->postid = $postid;
-        $record->discussionid = $discussionid;
-        $record->moodleoverflowid = $moodleoverflowid;
-        $record->rating = $rating;
-        $record->firstrated = time();
-        $record->lastchanged = time();
-
+        $time = time();
+        $record = (object) [
+            'userid' => $userid,
+            'postid' => $postid,
+            'discussionid' => $discussionid,
+            'moodleoverflowid' => $moodleoverflowid,
+            'rating' => $rating,
+            'firstrated' => $time,
+            'lastchanged' => $time,
+        ];
         // Add the record to the database.
         $recordid = $DB->insert_record('moodleoverflow_ratings', $record);
 
         // Trigger an event.
-        $params = [
-            'objectid' => $recordid,
-            'context' => $mod,
-        ];
-        $event = \mod_moodleoverflow\event\rating_created::create($params);
+        $event = rating_created::create(['objectid' => $recordid, 'context' => $mod]);
         $event->trigger();
-
-        // Add the record to the database.
         return $recordid;
     }
 
@@ -600,43 +580,14 @@ class ratings {
      */
     private static function update_rating_record($postid, $rating, $userid, $ratingid, $modulecontext) {
         global $DB;
-
         // Update the record.
         $sql = "UPDATE {moodleoverflow_ratings}
                    SET postid = ?, userid = ?, rating=?, lastchanged = ?
                  WHERE id = ?";
 
         // Trigger an event.
-        $params = [
-            'objectid' => $ratingid,
-            'context' => $modulecontext,
-        ];
-        $event = \mod_moodleoverflow\event\rating_updated::create($params);
+        $event = rating_updated::create(['objectid' => $ratingid, 'context' => $modulecontext]);
         $event->trigger();
-
         return $DB->execute($sql, [$postid, $userid, $rating, time(), $ratingid]);
-    }
-
-    /**
-     * Check if a user can rate the post.
-     *
-     * @param object $post
-     * @param \context_module   $modulecontext
-     * @param null|int $userid
-     *
-     * @return bool
-     */
-    public static function user_can_rate($post, $modulecontext, $userid = null) {
-        global $USER;
-        if (!$userid) {
-            // Guests and non-logged-in users can not rate.
-            if (isguestuser() || !isloggedin()) {
-                return false;
-            }
-            $userid = $USER->id;
-        }
-
-        // Check the capability.
-        return capabilities::has(capabilities::RATE_POST, $modulecontext, $userid) && $post->reviewed == 1;
     }
 }

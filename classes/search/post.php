@@ -23,8 +23,8 @@ use core_search\document_factory;
 use core_search\manager;
 use dml_exception;
 use dml_missing_record_exception;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use moodle_recordset;
 use moodle_url;
 use stdClass;
@@ -96,11 +96,7 @@ class post extends \core_search\base_mod {
 
         // Prepare associative array with data from DB.
         $re = get_string('re', 'mod_moodleoverflow') . ' ';
-        $anonymous = anonymous::is_post_anonymous(
-            (object) ['userid' => $record->discussionuserid],
-            moodleoverflow::from_id($record->moodleoverflowid),
-            $record->userid
-        );
+        $moodleoverflow = moodleoverflow::from_id($record->moodleoverflowid);
 
         $doc = document_factory::instance($record->id, $this->componentname, $this->areaname);
         $title = $record->parent ? $re . $record->discussionname : $record->discussionname;
@@ -110,7 +106,7 @@ class post extends \core_search\base_mod {
         $doc->set('courseid', $record->courseid);
         $doc->set('owneruserid', manager::NO_OWNER_ID);
         $doc->set('modified', $record->modified);
-        if (!$anonymous) {
+        if ((int) $record->userid !== 0 && !$moodleoverflow->is_author_anonymous($record->discussionuserid === $record->userid)) {
             $doc->set('userid', $record->userid);
         }
 
@@ -163,16 +159,16 @@ class post extends \core_search\base_mod {
      * @return int
      */
     public function check_access($id): int {
+        global $USER;
         try {
             $post = $this->get_post($id);
-            $cminfo = $this->get_cm('moodleoverflow', $post->get_moodleoverflow()->id, $post->get_moodleoverflow()->course);
         } catch (dml_missing_record_exception $ex) {
             return manager::ACCESS_DELETED;
         } catch (dml_exception $ex) {
             return manager::ACCESS_DENIED;
         }
 
-        if ($cminfo->uservisible === false || !moodleoverflow_user_can_see_post($post, $cminfo)) {
+        if (!permissions::can_view_post($post, $USER->id)) {
             return manager::ACCESS_DENIED;
         }
 

@@ -25,7 +25,6 @@ use core_files\external\stored_file_exporter;
 use core_user\fields;
 use dml_exception;
 use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\capabilities;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\form\post_form;
 use mod_moodleoverflow\ratings;
@@ -246,9 +245,7 @@ class post {
         }
 
         // Mark the created post as read if the user is tracking the discussion.
-        $cantrack = readtracking::can_track($this->get_moodleoverflow());
-        $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
-        if ($cantrack && $istracked) {
+        if (readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow())) {
             readtracking::mark_post_read($this->userid, $this->get_db_object());
         }
         return $this->id;
@@ -479,8 +476,11 @@ class post {
         $courseid = $this->get_discussion()->get_courseid();
         $modulecontext = context_module::instance($this->get_coursemodule()->id);
         $userid = $this->get_userid();
-
-        if (anonymous::is_post_anonymous($this->get_discussion()->get_db_object(), $this->get_moodleoverflow(), $userid)) {
+        if ($userid === 0) {
+            $name = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
+            return ['link' => $name, 'fullname' => $name];
+        }
+        if ($this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $userid)) {
             if ($userid == $USER->id) {
                 $fullname = get_string('anonym_you', 'mod_moodleoverflow');
                 $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
@@ -491,7 +491,7 @@ class post {
             }
         }
         $user = $DB->get_record('user', ['id' => $userid]);
-        $fullname = fullname($user, capabilities::has('moodle/site:viewfullnames', $modulecontext));
+        $fullname = fullname($user, has_capability('moodle/site:viewfullnames', $modulecontext));
         $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
         return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
     }
@@ -502,8 +502,10 @@ class post {
      */
     public function get_userpicture(): string {
         global $DB, $OUTPUT;
-        $userid = $this->get_userid();
-        if (!anonymous::is_post_anonymous($this->get_discussion()->get_db_object(), $this->get_moodleoverflow(), $userid)) {
+        if (
+            $this->userid != 0
+            && !$this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $this->get_userid())
+        ) {
             $user = username_load_fields_from_object(
                 (new stdClass()),
                 $DB->get_record('user', ['id' => $this->userid]),
@@ -535,6 +537,42 @@ class post {
         $options->para = true;
         $options->context = $context;
         return format_text($message, $this->messageformat, $options);
+    }
+
+    /**
+     * Checks if the post is in the window to be editable.
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function in_edit_window(): bool {
+        return (time() - $this->created) < $this->get_moodleoverflow()->get_edit_window();
+    }
+
+    /**
+     * If the post is the discussion starter in the discussion.
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function is_question(): bool {
+        return $this->get_parentid() === 0;
+    }
+
+    /**
+     * If the post is a direct answer to the first post of the discussion.
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function is_direct_answer(): bool {
+        return $this->get_parentid() === $this->get_discussion()->get_firstpostid();
+    }
+
+    /**
+     * If the post is a comment (an answer to a direct answer).
+     * @return bool
+     * @throws moodle_exception
+     */
+    public function is_comment(): bool {
+        return !$this->is_question() && !$this->is_direct_answer();
     }
 
     // Getter.
@@ -677,9 +715,7 @@ class post {
      */
     public function mark_post_read(): void {
         global $USER;
-        $cantrack = readtracking::can_track($this->get_moodleoverflow());
-        $istracked = readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow());
-        if ($cantrack && $istracked) {
+        if (readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow())) {
             readtracking::mark_post_read($USER->id, $this->get_db_object());
         }
     }

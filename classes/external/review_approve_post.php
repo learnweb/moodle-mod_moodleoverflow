@@ -16,8 +16,8 @@
 
 namespace mod_moodleoverflow\external;
 
-use coding_exception;
-use context_module;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\review;
 use core_external\external_function_parameters;
 use core_external\external_api;
@@ -64,39 +64,26 @@ class review_approve_post extends external_api {
      * @return string|null Url of next post to review.
      */
     public static function execute($postid) {
-        global $DB;
+        global $DB, $USER;
 
         $params = self::validate_parameters(self::execute_parameters(), ['postid' => $postid]);
-        $postid = $params['postid'];
-
-        $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
-        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $post->discussion], '*', MUST_EXIST);
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['id' => $discussion->moodleoverflow], '*', MUST_EXIST);
-
-        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
-        $context = context_module::instance($cm->id);
-        self::validate_context($context);
-        require_capability('mod/moodleoverflow:reviewpost', $context);
-
-        if ($post->reviewed) {
-            throw new coding_exception('post was already approved!');
-        }
-
-        if (!review::is_post_in_review_period($post)) {
-            throw new coding_exception('post is not yet in review period!');
-        }
+        $post = post::from_id($params['postid']);
+        $discussion = $post->get_discussion();
+        $moodleoverflow = $discussion->get_moodleoverflow();
+        self::validate_context($moodleoverflow->get_context());
+        permissions::ensure(permissions::can_review_post($post, $USER->id), 'cannotreviewpost');
 
         $post->reviewed = 1;
         $post->timereviewed = time();
 
-        $DB->update_record('moodleoverflow_posts', $post);
+        $DB->update_record('moodleoverflow_posts', $post->get_db_object());
 
         if ($post->modified > $discussion->timemodified) {
             $discussion->timemodified = $post->modified;
-            $discussion->usermodified = $post->userid;
-            $DB->update_record('moodleoverflow_discussions', $discussion);
+            $discussion->usermodified = $post->get_userid();
+            $DB->update_record('moodleoverflow_discussions', $discussion->get_db_object());
         }
 
-        return review::get_first_review_post($moodleoverflow->id, $post->id);
+        return review::get_first_review_post($moodleoverflow->id, $post->get_id());
     }
 }

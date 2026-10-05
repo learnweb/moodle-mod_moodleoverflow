@@ -16,15 +16,13 @@
 
 namespace mod_moodleoverflow\external;
 
-use context_module;
 use core_external\external_single_structure;
-use mod_moodleoverflow\anonymous;
 use core_external\external_function_parameters;
 use core_external\external_api;
 use core_external\external_value;
-use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\ratings;
 use moodle_exception;
 
@@ -87,45 +85,30 @@ class record_vote extends external_api {
 
         $transaction = $DB->start_delegated_transaction();
 
-        $post = $DB->get_record('moodleoverflow_posts', ['id' => $postid], '*', MUST_EXIST);
-
-        // Check if the discussion is valid.
-        $discussion = discussion::from_id($post->discussion)->get_db_object();
-
-        // Check if the related moodleoverflow instance is valid.
+        $post = post::from_id($postid);
+        $discussion = $post->get_discussion()->get_db_object();
         $moodleoverflow = moodleoverflow::from_id($discussion->moodleoverflow);
-
-        // Check if the related moodleoverflow instance is valid.
-        $course = get_course($discussion->course);
-
-        if (!moodleoverflow_user_can_see_post(post::from_record($post), $moodleoverflow->get_cm())) {
-            throw new moodle_exception('ratingfailed', 'moodleoverflow');
-        }
-
-        // Get the related coursemodule and its context.
-        if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-            throw new moodle_exception('invalidcoursemodule');
-        }
+        $cm = $moodleoverflow->get_cm();
 
         // Security checks.
-        $context = context_module::instance($cm->id);
+        $context = $moodleoverflow->get_context();
         self::validate_context($context);
-        require_capability('mod/moodleoverflow:ratepost', $context);
 
         // Rate the post.
+        permissions::ensure(permissions::can_view_post($post, $USER->id), 'ratingfailed');
         if (!ratings::add_rating($moodleoverflow, $postid, $ratingid, $cm, $USER->id)) {
             throw new moodle_exception('ratingfailed', 'moodleoverflow');
         }
 
-        $postownerid = $post->userid;
+        $postownerid = $post->get_userid();
         $rating = ratings::get_ratings_by_discussion($discussion->id, $postid);
         $ownerrating = ratings::get_reputation($moodleoverflow->id, $postownerid);
         $raterrating = ratings::get_reputation($moodleoverflow->id, $USER->id);
 
-        $cannotseeowner = anonymous::is_post_anonymous($discussion, $moodleoverflow, $post->userid) && $USER->id != $postownerid;
+        $cannotseeowner = !permissions::can_view_author($post, $USER->id);
 
         $params['postrating'] = $rating->upvotes - $rating->downvotes;
-        $params['ownerreputation'] = $cannotseeowner ? null : $ownerrating;
+        $params['ownerreputation'] = permissions::can_view_reputation($post, $USER->id) ? $ownerrating : null;
         $params['raterreputation'] = $raterrating;
         $params['ownerid'] = $cannotseeowner ? null : $postownerid;
 

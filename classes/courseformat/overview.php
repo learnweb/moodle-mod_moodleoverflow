@@ -23,10 +23,10 @@ use core\output\action_link;
 use core\output\local\properties\button;
 use core\output\local\properties\text_align;
 use core\output\renderer_helper;
-use core\url;
 use core_courseformat\activityoverviewbase;
 use core_courseformat\local\overview\overviewitem;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\subscriptions;
 
@@ -91,6 +91,11 @@ class overview extends activityoverviewbase {
      */
     private function get_extra_unread_posts_overview(): ?overviewitem {
         global $OUTPUT, $USER;
+        $name = get_string('unreadposts', 'moodleoverflow');
+        if (!permissions::can_track($this->moodleoverflow, $USER->id)) {
+            return new overviewitem(name: $name, value: null, content: '-');
+        }
+
         $mustachedata = [
             'itemid' => 'moodleoverflow-markpostsread-' . $this->moodleoverflow->id,
             'domain' => 'moodleoverflow',
@@ -99,7 +104,6 @@ class overview extends activityoverviewbase {
             'unreadlink' => $this->moodleoverflow->get_link(),
             'unreadamount' => readtracking::count_unread_posts_moodleoverflow($this->cm),
         ];
-        $name = get_string('unreadposts', 'moodleoverflow');
         return new overviewitem($name, $name, $OUTPUT->render_from_template('mod_moodleoverflow/readtracking', $mustachedata));
     }
 
@@ -135,7 +139,11 @@ class overview extends activityoverviewbase {
      * @return overviewitem|null
      */
     private function get_extra_readtracking_overview(): ?overviewitem {
-        global $PAGE;
+        global $PAGE, $USER;
+        $name = get_string('trackingtype', 'mod_moodleoverflow');
+        if (!permissions::can_track($this->moodleoverflow, $USER->id)) {
+            return new overviewitem(name: $name, value: null, content: '-');
+        }
         // Check if the user tracks the moodleoverflow currently.
         $tracked = readtracking::moodleoverflow_is_tracked($this->moodleoverflow);
 
@@ -144,14 +152,13 @@ class overview extends activityoverviewbase {
         $content = $this->render_toggle_template([
             'itemid' => $itemid,
             'checked' => $tracked,
-            'disabled' => !$this->moodleoverflow->get_tracking_type()->users_can_choose(),
+            'disabled' => !permissions::can_change_tracking($this->moodleoverflow, $USER->id),
             'datatype' => 'moodleoverflow-readtracking-toggle',
             'setting' => $tracked,
         ]);
 
         // Add js to change subscription.
         $PAGE->requires->js_call_amd('mod_moodleoverflow/overview_toggle_item', 'init', [$itemid, "readtracking"]);
-        $name = get_string('trackingtype', 'mod_moodleoverflow');
         return new overviewitem($name, $name, $content);
     }
 
