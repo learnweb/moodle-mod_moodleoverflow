@@ -120,9 +120,7 @@ if (!$isenrolled) {
 }
 
 // Create the url to redirect the user back to where he is coming from.
-$urlindex = 'index.php?id=' . $course->id;
-$urlview = 'view.php?m=' . $id;
-$returnto = optional_param('backtoindex', 0, PARAM_INT) ? $urlindex : $urlview;
+$returnto = 'view.php?m=' . $id;
 if ($returnurl) {
     $returnto = $returnurl;
 }

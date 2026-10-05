@@ -32,7 +32,6 @@ global $CFG, $DB, $USER;
 
 // Get submitted parameters.
 $id = required_param('id', PARAM_INT);                       // The moodleoverflow to track or untrack.
-$returnpage = optional_param('returnpage', 'index.php', PARAM_FILE); // The page to return to.
 
 // A session key is needed to change the tracking options.
 require_sesskey();
@@ -50,9 +49,7 @@ if (!$cm = get_coursemodule_from_instance("moodleoverflow", $moodleoverflow->id,
 require_login($course, false, $cm);
 
 // Set the page to return to.
-$url = '/mod/moodleoverflow/' . $returnpage;
-$params = ['id' => $course->id, 'm' => $moodleoverflow->id];
-$returnpageurl = new moodle_url($url, $params);
+$returnpageurl = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $moodleoverflow->id]);
 $returnto = moodleoverflow_go_back_to($returnpageurl);
 
 // Check whether the user can track the moodleoverflow instance.

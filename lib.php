@@ -481,7 +481,7 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  * @throws moodle_exception
  */
 function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, ?navigation_node $moodleoverflownode = null) {
-    global $USER;
+    global $USER, $CFG;
 
     // Retrieve the current moodle record.
     $moodleoverflow = moodleoverflow::from_id($settingsnav->get_page()->cm->instance);
@@ -499,7 +499,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
         !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $context));
 
     // Display a link to the index.
-    if ($enrolled && $activeenrolled) {
+    if ($enrolled && $activeenrolled && $CFG->branch >= 501) {
         // Generate the text of the link.
         $linktext = get_string('gotoindex', 'moodleoverflow');
 
