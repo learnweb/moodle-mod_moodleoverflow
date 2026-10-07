@@ -95,7 +95,7 @@ class view_page implements named_templatable, renderable {
         $userstatslink = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->cm->id]);
 
         // Get information about the moodleoverflow. This includes: discussioncount, unread posts, discussions its replies.
-        $discussioncount = moodleoverflow_get_discussions_count($this->cm);
+        $discussioncount = moodleoverflow_get_discussions_count($this->modflow, $USER->id);
         $unreads = $istracked ? moodleoverflow_get_discussions_unread($this->cm) : false;
         $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, "view.php?id={$this->cm->id}");
 

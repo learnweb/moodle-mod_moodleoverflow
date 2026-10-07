@@ -25,7 +25,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\ratings;
 
 defined('MOODLE_INTERNAL') || die();
@@ -34,28 +36,24 @@ global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
 
 /**
- * Returns the amount of discussions of the given context module.
- *
- * @param object $cm
- *
+ * Returns the number of discussions a user can see in a moodleoverflow.
+ * @param moodleoverflow $modflow
+ * @param int $userid
  * @return int
+ * @throws dml_exception|moodle_exception
  */
-function moodleoverflow_get_discussions_count(object $cm): int {
-    global $DB, $USER;
-
-    $params = ['instance' => $cm->instance];
-    $whereconditions = ['d.moodleoverflow = :instance', 'p.parent = 0'];
-
-    if (!has_capability('mod/moodleoverflow:reviewpost', context_module::instance($cm->id))) {
-        $whereconditions[] = '(p.reviewed = 1 OR p.userid = :userid)';
-        $params['userid'] = $USER->id;
+function moodleoverflow_get_discussions_count(moodleoverflow $modflow, int $userid): int {
+    global $DB;
+    if (!permissions::can_view_moodleoverflow($modflow, $userid)) {
+        return 0;
     }
-    $sql = 'SELECT COUNT(d.id)
-            FROM {moodleoverflow_discussions} d
-                JOIN {moodleoverflow_posts} p ON p.discussion = d.id
-            WHERE ' . implode(' AND ', $whereconditions);
-    return $DB->count_records_sql($sql, $params);
+
+    return count(array_filter(
+        $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $modflow->id]),
+        fn($discussion) => permissions::can_view_discussion(discussion::from_record($discussion), $userid)
+    ));
 }
+
 /**
  * Returns if there are unread messages for the current user in a moodleoverflow.
  *
