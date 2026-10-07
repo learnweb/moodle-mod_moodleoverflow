@@ -524,19 +524,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
         $url = new moodle_url('/mod/moodleoverflow/subscribe.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
         $moodleoverflownode->add($linktext, $url, navigation_node::TYPE_SETTING);
     }
-
-    // Display a link to enable or disable readtracking.
-    if (permissions::can_change_tracking($moodleoverflow, $USER->id)) {
-        // Generate the text of the link depending on the current state.
-        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER->id);
-        $linktext = get_string($istracked ? 'notrackmoodleoverflow' : 'trackmoodleoverflow', 'moodleoverflow');
-
-        // Generate the link.
-        $link = new moodle_url('/mod/moodleoverflow/tracking.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
-
-        // Add the link to the menu.
-        $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
-    }
 }
 
 /**

@@ -23,6 +23,7 @@
 
 import Notification from 'core/notification';
 import Ajax from 'core/ajax';
+import {getString} from "core/str";
 
 /**
  * Init function
@@ -31,13 +32,11 @@ import Ajax from 'core/ajax';
 export function init(itemid) {
     const element = document.getElementById(itemid);
     element.addEventListener('click', async function() {
-        const instanceid = parseInt(element.dataset.instanceid);
-        const domain = element.dataset.domain;
         const data = {
             methodname: 'mod_moodleoverflow_mark_post_read',
             args: {
-                instanceid: instanceid,
-                domain: domain
+                instanceid: parseInt(element.dataset.instanceid),
+                domain: element.dataset.domain,
             },
         };
         let result;
@@ -47,9 +46,18 @@ export function init(itemid) {
             Notification.exception(error);
             return;
         }
+
+        // "Mark all posts as read" on the view page: everything is read, remove all unread markers and the button.
+        if (element.dataset.clearpage) {
+            document.querySelectorAll('.unread-part').forEach(part => part.remove());
+            element.remove();
+            const message = await getString('markmoodleoverflowreadsuccessful', 'mod_moodleoverflow');
+            Notification.addNotification({message: message, type: 'success'});
+            return;
+        }
+
         // Update the red bubble icon with the new amount of unread posts.
-        const unreadamountElement = element.nextElementSibling;
-        const bubble = unreadamountElement?.querySelector('.unread-bubble');
+        const bubble = element.nextElementSibling?.querySelector('.unread-bubble');
         if (bubble) {
             bubble.textContent = String(result);
         }

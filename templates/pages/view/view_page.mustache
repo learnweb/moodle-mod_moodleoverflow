@@ -56,7 +56,15 @@
             <a href="{{{link}}}" class="btn btn-secondary m-2">{{#str}} seeuserstats, moodleoverflow {{/str}}</a>
         {{/stats}}
         {{#markallread}}
-            <a href="{{{link}}}" class="btn btn-secondary m-2">{{#str}} markallread_forum, moodleoverflow {{/str}}</a>
+            <button type="button" id="{{itemid}}" class="btn btn-secondary m-2"
+                    data-domain="moodleoverflow" data-instanceid="{{instanceid}}" data-clearpage="1">
+                {{#str}} markallread_forum, moodleoverflow {{/str}}
+            </button>
+            {{#js}}
+                require(['mod_moodleoverflow/readtracking'], function(readtracking) {
+                readtracking.init({{#quote}}{{itemid}}{{/quote}});
+                });
+            {{/js}}
         {{/markallread}}
 
         {{! Print the table of discussions. }}
