@@ -247,7 +247,7 @@ class discussion {
             $firstpost->delete(true);
 
             // Delete the read-records for the discussion.
-            readtracking::delete_read_records(-1, -1, $this->id);
+            readtracking::delete_read_records(discussid: $this->id);
 
             // Remove the subscriptions for the discussion.
             $DB->delete_records('moodleoverflow_discuss_subs', ['discussion' => $this->id]);
@@ -349,9 +349,10 @@ class discussion {
     /**
      * Edits the message of a post from this discussion.
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
+     * @param int $userid The user that makes the edit
      * @throws dml_exception|moodle_exception
      */
-    public function edit_post(object $prepost): bool {
+    public function edit_post(object $prepost, int $userid): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -369,7 +370,7 @@ class discussion {
             $this->timemodified = $prepost->timenow;
             $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
         }
-        $post->edit($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachments);
+        $post->edit($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachments, $userid);
 
         // The post has been edited successfully.
         return true;

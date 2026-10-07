@@ -87,7 +87,6 @@ class view_page implements named_templatable, renderable {
 
         // Check some capabilities and create other check variables.
         $canstartdiscussion = permissions::can_start_discussion($this->modflow, $USER->id);
-        $istracked = readtracking::moodleoverflow_is_tracked($this->modflow);
 
         // Create links.
         $startdiscussion = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $this->modflow->id]);
@@ -96,7 +95,7 @@ class view_page implements named_templatable, renderable {
 
         // Get information about the moodleoverflow. This includes: discussioncount, unread posts, discussions its replies.
         $discussioncount = moodleoverflow_get_discussions_count($this->modflow, $USER->id);
-        $unreads = $istracked ? moodleoverflow_get_discussions_unread($this->cm) : false;
+        $unreads = readtracking::count_unread_posts_moodleoverflow($this->modflow, $USER->id) > 0;
         $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, "view.php?id={$this->cm->id}");
 
         // Get moodleoverflow where discussions can be moved.

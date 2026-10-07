@@ -102,7 +102,7 @@ class overview extends activityoverviewbase {
             'instanceid' => $this->moodleoverflow->id,
             'userid' => $USER->id,
             'unreadlink' => $this->moodleoverflow->get_link(),
-            'unreadamount' => readtracking::count_unread_posts_moodleoverflow($this->cm),
+            'unreadamount' => readtracking::count_unread_posts_moodleoverflow($this->moodleoverflow, $USER->id),
         ];
         return new overviewitem($name, $name, $OUTPUT->render_from_template('mod_moodleoverflow/readtracking', $mustachedata));
     }
@@ -145,7 +145,7 @@ class overview extends activityoverviewbase {
             return new overviewitem(name: $name, value: null, content: '-');
         }
         // Check if the user tracks the moodleoverflow currently.
-        $tracked = readtracking::moodleoverflow_is_tracked($this->moodleoverflow);
+        $tracked = readtracking::moodleoverflow_is_tracked($this->moodleoverflow, $USER->id);
 
         // Build the content.
         $itemid = 'moodleoverflow-readtracking-toggle-' . $this->moodleoverflow->id;

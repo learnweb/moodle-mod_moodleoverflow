@@ -301,7 +301,7 @@ function moodleoverflow_delete_instance($id) {
     }
 
     // Delete the read records.
-    readtracking::delete_read_records(-1, -1, -1, $moodleoverflow->id);
+    readtracking::delete_read_records(modflowid:  $moodleoverflow->id);
 
     // Delete the moodleoverflow instance.
     if (!$DB->delete_records('moodleoverflow', ['id' => $moodleoverflow->id])) {
@@ -528,7 +528,7 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
     // Display a link to enable or disable readtracking.
     if (permissions::can_change_tracking($moodleoverflow, $USER->id)) {
         // Generate the text of the link depending on the current state.
-        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
+        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER->id);
         $linktext = get_string($istracked ? 'notrackmoodleoverflow' : 'trackmoodleoverflow', 'moodleoverflow');
 
         // Generate the link.
@@ -558,7 +558,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
         }
     }
     if (permissions::can_track($moodleoverflow, $USER->id)) {
-        $unread = readtracking::count_unread_posts_moodleoverflow($cm);
+        $unread = readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id);
         if ($unread) {
             $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {

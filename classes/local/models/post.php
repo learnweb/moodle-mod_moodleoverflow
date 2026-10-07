@@ -245,8 +245,8 @@ class post {
         }
 
         // Mark the created post as read if the user is tracking the discussion.
-        if (readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow())) {
-            readtracking::mark_post_read($this->userid, $this->get_db_object());
+        if (readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow(), $this->userid)) {
+            readtracking::add_read_record($this->userid, $this->id);
         }
         return $this->id;
     }
@@ -282,7 +282,7 @@ class post {
 
             // Delete the post.
             if ($DB->delete_records('moodleoverflow_posts', ['id' => $this->id])) {
-                readtracking::delete_read_records(-1, $this->id);
+                readtracking::delete_read_records(postid: $this->id);
 
                 // Delete the attachments.
                 $fs = get_file_storage();
@@ -344,11 +344,11 @@ class post {
      * @param string $postmessage The new message
      * @param int $messageformat
      * @param ?int $formattachments Information about attachments from the post_form
-     *
+     * @param int $userid User that makes the edit
      * @return true if the post has been edited successfully
      * @throws moodle_exception
      */
-    public function edit(int $time, string $postmessage, int $messageformat, ?int $formattachments): bool {
+    public function edit(int $time, string $postmessage, int $messageformat, ?int $formattachments, int $userid): bool {
         $this->existence_check();
 
         // Update the attributes.
@@ -358,7 +358,11 @@ class post {
         $this->formattachments = $formattachments;
         $this->save_draft_files();
         $this->add_attachment();
-        $this->mark_post_read();
+
+        // Mark the post as read.
+        if (readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow(), $userid)) {
+            readtracking::add_read_record($userid, $this->id);
+        }
 
         // The post has been edited successfully.
         return true;
@@ -387,7 +391,7 @@ class post {
             'mod_moodleoverflow',
             'attachment',
             $this->id,
-            post_form::attachment_options($this->get_moodleoverflow())
+            post_form::attachment_options($this->get_moodleoverflow()->get_db_object())
         );
         $DB->set_field('moodleoverflow_posts', 'attachment', $present, ['id' => $this->id]);
     }
@@ -705,19 +709,6 @@ class post {
             'markedhelpful' => $postratings->ishelpful,
             'markedsolution' => $postratings->issolved,
         ];
-    }
-
-    /**
-     * Marks the post as read if the user is tracking the discussion.
-     * Uses function from mod_moodleoverflow\readtracking.
-     * @return void
-     * @throws moodle_exception
-     */
-    public function mark_post_read(): void {
-        global $USER;
-        if (readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow())) {
-            readtracking::mark_post_read($USER->id, $this->get_db_object());
-        }
     }
 
     /**

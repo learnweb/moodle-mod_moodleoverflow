@@ -382,8 +382,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $forumon = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
         [$user] = $this->create_users($course, 1);
         // Set user tracking data.
-        readtracking::stop_tracking($forumoff->id, $user->id);
-        readtracking::start_tracking($forumon->id, $user->id);
+        readtracking::stop_tracking(moodleoverflow::from_record($forumoff), $user->id);
+        readtracking::start_tracking(moodleoverflow::from_record($forumon), $user->id);
         // Run as the user under test.
         $this->setUser($user);
         // Retrieve all contexts - only the forum tracking reads should be included.
@@ -1231,8 +1231,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [, $user, $otheruser] = $this->create_users($course, 3);
 
         // Stop tracking the read posts.
-        readtracking::stop_tracking($moodleoverflow->id, $user->id);
-        readtracking::stop_tracking($othermoodleoverflow->id, $otheruser->id);
+        readtracking::stop_tracking(moodleoverflow::from_record($moodleoverflow), $user->id);
+        readtracking::stop_tracking(moodleoverflow::from_record($othermoodleoverflow), $otheruser->id);
 
         $userlist = new userlist(\context_module::instance($cm->id), 'mod_moodleoverflow');
         provider::get_users_in_context($userlist);

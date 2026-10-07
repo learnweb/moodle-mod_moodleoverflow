@@ -55,40 +55,6 @@ function moodleoverflow_get_discussions_count(moodleoverflow $modflow, int $user
 }
 
 /**
- * Returns if there are unread messages for the current user in a moodleoverflow.
- *
- * @param object $cm
- *
- * @return bool
- */
-function moodleoverflow_get_discussions_unread($cm) {
-    global $DB, $USER;
-
-    // Get the current timestamp and the oldpost-timestamp.
-    $cutoffdate = round(time(), -2) - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
-
-    $whereconditions = ['d.moodleoverflow = :instance', 'p.modified >= :cutoffdate', 'r.id is NULL'];
-    $params = ['userid' => $USER->id, 'instance' => $cm->instance, 'cutoffdate' => $cutoffdate];
-
-    if (!has_capability('mod/moodleoverflow:reviewpost', context_module::instance($cm->id))) {
-        $whereconditions[] = '(p.reviewed = 1 OR p.userid = :userid2)';
-        $params['userid2'] = $USER->id;
-    }
-
-    $wheresql = join(' AND ', $whereconditions);
-
-    // Define the sql-query.
-    $sql = "SELECT d.id, COUNT(p.id) AS unread
-            FROM {moodleoverflow_discussions} d
-                JOIN {moodleoverflow_posts} p ON p.discussion = d.id
-                LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = :userid)
-            WHERE $wheresql
-            GROUP BY d.id";
-
-    return !empty($DB->get_records_sql($sql, $params));
-}
-
-/**
  * Modifies the session to return back to where the user is coming from.
  *
  * @param object $default

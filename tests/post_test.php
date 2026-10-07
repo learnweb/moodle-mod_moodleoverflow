@@ -132,7 +132,7 @@ final class post_test extends \advanced_testcase {
         $time = time();
 
         // Update the post.
-        $this->post->edit($time, $message, $this->post->messageformat, $this->post->formattachments);
+        $this->post->edit($time, $message, $this->post->messageformat, $this->post->formattachments, $this->teacher->id);
 
         // The message and modified time should be changed.
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $this->post->get_id()]);

@@ -17,12 +17,11 @@
 namespace mod_moodleoverflow;
 
 use coding_exception;
-use context_module;
-use core\user;
 use dml_exception;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use moodle_exception;
 
@@ -38,97 +37,46 @@ class readtracking {
      * Tells whether a specific moodleoverflow is tracked by the user.
      *
      * @param moodleoverflow $moodleoverflow
-     * @param ?object $user
-     *
+     * @param int $userid
      * @return bool
      * @throws dml_exception
      * @throws coding_exception
      */
-    public static function moodleoverflow_is_tracked(moodleoverflow $moodleoverflow, ?object $user = null): bool {
-        global $USER, $DB;
-        $user = $user ?? $USER;
+    public static function moodleoverflow_is_tracked(moodleoverflow $moodleoverflow, int $userid): bool {
+        global $DB;
 
         // The moodleoverflow should be generally trackable.
-        if (!permissions::can_track($moodleoverflow, $user->id)) {
+        if (!permissions::can_track($moodleoverflow, $userid)) {
             return false;
         }
 
         // Check the settings of the moodleoverflow instance.
         $type = $moodleoverflow->get_tracking_type();
-        $params = ['userid' => $user->id, 'moodleoverflowid' => $moodleoverflow->id];
-        $userpreference = $DB->get_record('moodleoverflow_tracking', $params);
-
-        return $type === tracking_type::FORCED || ($type === tracking_type::OPTIONAL && $userpreference === false);
+        $params = ['userid' => $userid, 'moodleoverflowid' => $moodleoverflow->id];
+        return $type === tracking_type::FORCED
+            || ($type === tracking_type::OPTIONAL && !$DB->record_exists('moodleoverflow_tracking', $params));
     }
 
     /**
      * Marks a specific moodleoverflow instance as read by a specific user.
      *
-     * @param object $cm
-     * @param null   $userid
+     * @param moodleoverflow $modflow
+     * @param int $userid
+     * @return void
      */
-    public static function mark_moodleoverflow_read($cm, $userid = null) {
-        global $USER, $DB;
-        foreach ($DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $cm->instance]) as $discussion) {
-            // Mark the discussion as read.
-            if (self::mark_discussion_read(discussion::from_record($discussion), $userid ?? $USER->id) !== true) {
-                throw new moodle_exception('markreadfailed', 'moodleoverflow');
-            }
-        }
-        return true;
+    public static function mark_moodleoverflow_read(moodleoverflow $modflow, int $userid): void {
+        self::mark_posts_read($modflow, $userid, 'd.moodleoverflow = :modflowid', ['modflowid' => $modflow->id]);
     }
 
     /**
      * Marks a specific discussion as read by a specific user.
      *
      * @param discussion $discussion The discussion object
-     * @param ?int $userid
+     * @param int $userid
+     * @return void
      */
-    public static function mark_discussion_read(discussion $discussion, ?int $userid = null) {
-        global $USER;
-
-        // If no user is submitted, use the current one.
-        $userid = $userid ?? $USER->id;
-
-        // Iterate through all posts of the discussion.
-        foreach ($discussion->get_posts() as $post) {
-            // Ignore already read posts.
-            if (self::is_post_read($discussion->get_moodleoverflow(), $post->get_id(), $userid)) {
-                continue;
-            }
-
-            // Mark the post as read.
-            if (!self::mark_post_read($userid, $post->get_db_object())) {
-                throw new moodle_exception('markreadfailed', 'moodleoverflow');
-            }
-        }
-
-        // The discussion has been marked as read.
-        return true;
-    }
-
-    /**
-     * Marks a specific post as read by a specific user.
-     *
-     * @param int    $userid
-     * @param object $post
-     *
-     * @return bool
-     */
-    public static function mark_post_read($userid, $post) {
-        return self::is_old_post($post) || self::add_read_record($userid, $post->id);
-    }
-
-    /**
-     * Checks if a post is older than the limit.
-     *
-     * @param object $post
-     *
-     * @return bool
-     */
-    public static function is_old_post($post) {
-        // Calculate the time, where older posts are considered read and return if the post is newer than that time.
-        return ($post->modified < time() - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600));
+    public static function mark_discussion_read(discussion $discussion, int $userid): void {
+        self::mark_posts_read($discussion->get_moodleoverflow(), $userid, 'd.id = :did', ['did' => $discussion->get_id()]);
     }
 
     /**
@@ -139,12 +87,12 @@ class readtracking {
      *
      * @return bool
      */
-    public static function add_read_record($userid, $postid) {
+    public static function add_read_record(int $userid, int $postid): bool {
         global $DB;
 
         // Get the current time and the cutoffdate.
         $now = time();
-        $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600);
+        $cutoffdate = $now - moodleoverflow::get_old_post_age();
 
         // Check for read records for this user an this post.
         $oldrecord = $DB->get_record('moodleoverflow_read', ['postid' => $postid, 'userid' => $userid]);
@@ -164,116 +112,72 @@ class readtracking {
                    SET lastread = ?
                  WHERE userid = ? AND postid = ?";
 
-        return $DB->execute($sql, [$now, $userid, $userid]);
+        return $DB->execute($sql, [$now, $userid, $postid]);
     }
 
     /**
-     * Deletes read record for the specified index.
-     * At least one parameter must be specified.
-     *
-     * @param int $userid
-     * @param int $postid
-     * @param int $discussionid
-     * @param int $overflowid
-     *
-     * @return bool
+     * Deletes read record for the specified index. At least one parameter must be specified.
+     * @param int|null $userid
+     * @param int|null $postid
+     * @param int|null $discussid
+     * @param int|null $modflowid
+     * @return void
+     * @throws coding_exception
+     * @throws dml_exception
      */
-    public static function delete_read_records($userid = -1, $postid = -1, $discussionid = -1, $overflowid = -1) {
+    public static function delete_read_records(
+        ?int $userid = null,
+        ?int $postid = null,
+        ?int $discussid = null,
+        ?int $modflowid = null
+    ): void {
         global $DB;
 
-        // Initiate variables.
-        $params = [];
-        $select = '';
-
-        // Create the sql-Statement depending on the submitted parameters.
-        if ($userid > -1) {
-            if ($select != '') {
-                $select .= ' AND ';
-            }
-            $select .= 'userid = ?';
-            $params[] = $userid;
+        $conditions = array_filter(
+            ['userid' => $userid, 'postid' => $postid, 'discussionid' => $discussid, 'moodleoverflowid' => $modflowid],
+            fn($value) => $value !== null
+        );
+        if (!$conditions) {
+            throw new coding_exception('delete_read_records() needs at least one condition');
         }
-        if ($postid > -1) {
-            if ($select != '') {
-                $select .= ' AND ';
-            }
-            $select .= 'postid = ?';
-            $params[] = $postid;
-        }
-        if ($discussionid > -1) {
-            if ($select != '') {
-                $select .= ' AND ';
-            }
-            $select .= 'discussionid = ?';
-            $params[] = $discussionid;
-        }
-        if ($overflowid > -1) {
-            if ($select != '') {
-                $select .= ' AND ';
-            }
-            $select .= 'moodleoverflowid = ?';
-            $params[] = $overflowid;
-        }
-
-        // Check if at least one parameter was specified.
-        if ($select == '') {
-            return false;
-        } else {
-            return $DB->delete_records_select('moodleoverflow_read', $select, $params);
-        }
+        $DB->delete_records('moodleoverflow_read', $conditions);
     }
 
     /**
      * Deletes all read records that are related to posts that are older than the cutoffdate.
      * This function is only called by the modules cronjob.
+     * @return void
+     * @throws dml_exception
      */
-    public static function clean_read_records() {
+    public static function clean_read_records(): void {
         global $DB;
 
         // Stop if there cannot be old posts.
-        if (!get_config('moodleoverflow', 'oldpostdays')) {
+        $maxage = moodleoverflow::get_old_post_age();
+        if (!$maxage) {
             return;
         }
 
-        // Find the timestamp for records older than allowed.
-        $cutoffdate = time() - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
-
-        // Find the timestamp of the oldest read record.
-        // This will speedup the delete query.
-        $sql = "SELECT MIN(p.modified) AS first
-                FROM {moodleoverflow_posts} p
-                JOIN {moodleoverflow_read} r ON r.postid = p.id";
-
-        // If there is no old read record, end this method.
-        if (!$first = $DB->get_field_sql($sql)) {
-            return;
-        }
-
-        // Delete the old read tracking information between that timestamp and the cutoffdate.
-        $sql = "DELETE
-                FROM {moodleoverflow_read}
-                WHERE postid IN (SELECT p.id
-                                 FROM {moodleoverflow_posts} p
-                                 WHERE p.modified >= ? AND p.modified < ?)";
-        $DB->execute($sql, [$first, $cutoffdate]);
+        // Delete the read records of posts that are older than allowed.
+        $DB->delete_records_select(
+            'moodleoverflow_read',
+            'postid IN (SELECT p.id FROM {moodleoverflow_posts} p WHERE p.modified < :cutoff)',
+            ['cutoff' => time() - $maxage]
+        );
     }
 
     /**
      * Stop to track a moodleoverflow instance.
      *
-     * @param int $moodleoverflowid The moodleoverflow ID
+     * @param moodleoverflow $modflow The moodleoverflow
      * @param int $userid           The user ID
      *
      * @return bool Whether the deletion was successful
      */
-    public static function stop_tracking($moodleoverflowid, $userid = null) {
-        global $USER, $DB;
-
-        // Set the user.
-        $userid = $userid ?? $USER->id;
-
+    public static function stop_tracking(moodleoverflow $modflow, int $userid) {
+        global $DB;
         // Check if the user already stopped to track the moodleoverflow.
-        $params = ['userid' => $userid, 'moodleoverflowid' => $moodleoverflowid];
+        $params = ['userid' => $userid, 'moodleoverflowid' => $modflow->id];
 
         // Stop tracking the moodleoverflow if not already stopped.
         if (!$DB->record_exists('moodleoverflow_tracking', $params)) {
@@ -281,84 +185,50 @@ class readtracking {
             $DB->insert_record('moodleoverflow_tracking', $params);
         }
         // Delete all connected read records and return whether the deletion was successful.
-        return self::delete_read_records($userid, -1, -1, $moodleoverflowid);
+        self::delete_read_records(userid: $userid, modflowid: $modflow->id);
+        return true;
     }
 
     /**
      * Start to track a moodleoverflow instance.
      *
-     * @param int $moodleoverflowid The moodleoverflow ID
-     * @param int $userid           The user ID
+     * @param moodleoverflow $modflow
+     * @param int $userid The user ID
      *
      * @return bool Whether the deletion was successful
+     * @throws dml_exception
      */
-    public static function start_tracking($moodleoverflowid, $userid = null) {
-        global $USER, $DB;
-
-        // Get the current user.
-        $userid = $userid ?? $USER->id;
-
+    public static function start_tracking(moodleoverflow $modflow, int $userid) {
+        global $DB;
         // Delete the tracking setting of this user for this moodleoverflow.
-        return $DB->delete_records('moodleoverflow_tracking', ['userid' => $userid, 'moodleoverflowid' => $moodleoverflowid]);
+        return $DB->delete_records('moodleoverflow_tracking', ['userid' => $userid, 'moodleoverflowid' => $modflow->id]);
     }
 
     /**
      * Get number of unread posts in a moodleoverflow instance.
      *
-     * @param object $cm
-     *
+     * @param moodleoverflow $modflow
+     * @param int $userid
      * @return int
      */
-    public static function count_unread_posts_moodleoverflow(object $cm): int {
-        global $DB, $USER;
-        // Return if tracking is off, or ((optional or forced, but forced disallowed by admin) and user has disabled tracking).
-        if (!self::moodleoverflow_is_tracked(moodleoverflow::from_id($cm->instance), $USER)) {
+    public static function count_unread_posts_moodleoverflow(moodleoverflow $modflow, int $userid): int {
+        if (!self::moodleoverflow_is_tracked($modflow, $userid)) {
             return 0;
         }
-
-        // Get the current timestamp and the cutoffdate.
-        $now = round(time(), -2);
-        $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
-
-        // Define a sql-query.
-        $params = [$USER->id, $cm->instance, $cutoffdate];
-        $sql = "SELECT COUNT(p.id)
-                  FROM {moodleoverflow_posts} p
-                  JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
-             LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = ?)
-                 WHERE d.moodleoverflow = ? AND p.modified >= ? AND r.id IS NULL";
-
-        // Return the number of unread posts per moodleoverflow.
-        return $DB->get_field_sql($sql, $params);
+        return count(self::get_unread_posts($userid, 'd.moodleoverflow = :modflowid', ['modflowid' => $modflow->id]));
     }
 
     /**
-     * Get amound of unread posts in a discussion
+     * Get number of unread posts in a discussion
      * @param discussion $discussion
-     * @param ?object $user
+     * @param int $userid
      * @return int
      */
-    public static function count_unread_posts_discussion(discussion $discussion, ?object $user = null): int {
-        global $DB, $USER;
-        $user = $user ?? $USER;
-        if (!self::moodleoverflow_is_tracked($discussion->get_moodleoverflow(), $user)) {
+    public static function count_unread_posts_discussion(discussion $discussion, int $userid): int {
+        if (!self::moodleoverflow_is_tracked($discussion->get_moodleoverflow(), $userid)) {
             return 0;
         }
-
-        // Get the current timestamp and the cutoffdate.
-        $now = round(time(), -2);
-        $cutoffdate = $now - (get_config('moodleoverflow', 'oldpostdays') * 24 * 60 * 60);
-
-        // Define a sql-query.
-        $params = [$user->id, $discussion->get_id(), $cutoffdate];
-        $sql = "SELECT COUNT(p.id)
-                  FROM {moodleoverflow_posts} p
-                  JOIN {moodleoverflow_discussions} d ON p.discussion = d.id
-             LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = ?)
-                 WHERE d.id = ? AND p.modified >= ? AND r.id IS NULL";
-
-        // Return the number of unread posts per discussion.
-        return $DB->get_field_sql($sql, $params);
+        return count(self::get_unread_posts($userid, 'd.id = :discussionid', ['discussionid' => $discussion->get_id()]));
     }
 
     /**
@@ -371,13 +241,12 @@ class readtracking {
      * @return bool True if read (or old), false if unread.
      */
     public static function is_post_read(moodleoverflow $moodleoverflow, int $postid, int $userid): bool {
-        global $DB, $USER;
-        $user = ($userid == $USER->id) ? $USER : user::get_user($userid);
-        if (!self::moodleoverflow_is_tracked($moodleoverflow, $user)) {
+        global $DB;
+        if (!self::moodleoverflow_is_tracked($moodleoverflow, $userid)) {
             return true;
         }
 
-        $cutoffdate = time() - (get_config('moodleoverflow', 'oldpostdays') * 24 * 3600);
+        $cutoffdate = time() - moodleoverflow::get_old_post_age();
 
         $sql = "SELECT p.id
                   FROM {moodleoverflow_posts} p
@@ -393,30 +262,51 @@ class readtracking {
      * Returns the id of the first unread post in a discussion. Useful to point to the post in a discussion that is unread.
      * @param int $discussionid
      * @param int $userid
-     * @param context_module $context
      * @return int
      * @throws coding_exception|dml_exception
      */
-    public static function get_first_unread_post_id(int $discussionid, int $userid, context_module $context): int {
+    public static function get_first_unread_post_id(int $discussionid, int $userid): int {
+        $posts = self::get_unread_posts($userid, 'd.id = :discussionid', ['discussionid' => $discussionid]);
+        usort($posts, fn($a, $b) => $a->created <=> $b->created);
+        return $posts ? $posts[0]->get_id() : -1;
+    }
+
+    // Private Helper functions.
+
+    /**
+     * Returns the unread posts a user can see, in a moodleoverflow or a discussion.
+     * @param int $userid
+     * @param string $where condition on p (posts) or d (discussions)
+     * @param array $params parameters of the condition
+     * @return post[]
+     */
+    private static function get_unread_posts(int $userid, string $where, array $params): array {
         global $DB;
-        $cutoffdate = time() - (get_config('moodleoverflow', 'oldpostdays') * 86400);
+        $sql = "SELECT p.*
+              FROM {moodleoverflow_posts} p
+              JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+         LEFT JOIN {moodleoverflow_read} r ON r.postid = p.id AND r.userid = :userid
+             WHERE $where AND p.modified >= :cutoff AND r.id IS NULL";
+        $params += ['userid' => $userid, 'cutoff' => time() - moodleoverflow::get_old_post_age()];
+        $posts = array_map(fn($record) => post::from_record($record), $DB->get_records_sql($sql, $params));
+        return array_filter($posts, fn($post) => permissions::can_view_post($post, $userid));
+    }
 
-        $reviewfilter = '';
-        $params = ['userid' => $userid, 'discussion' => $discussionid, 'cutoffdate' => $cutoffdate];
-
-        if (!has_capability('mod/moodleoverflow:reviewpost', $context)) {
-            $reviewfilter = 'AND (p.reviewed = 1 OR p.userid = :userid2)';
-            $params['userid2'] = $userid;
+    /**
+     * Marks the unread posts a user can see as read, in a moodleoverflow or a discussion.
+     * @param moodleoverflow $modflow
+     * @param int $userid
+     * @param string $where
+     * @param array $params
+     * @return void
+     * @throws coding_exception|dml_exception|moodle_exception
+     */
+    private static function mark_posts_read(moodleoverflow $modflow, int $userid, string $where, array $params): void {
+        if (!self::moodleoverflow_is_tracked($modflow, $userid)) {
+            return;
         }
-        $sql = "SELECT p.id
-             FROM {moodleoverflow_posts} p
-        LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = :userid)
-            WHERE p.discussion = :discussion
-              AND p.modified >= :cutoffdate
-              AND r.id IS NULL
-              $reviewfilter
-            ORDER BY p.created ASC
-            LIMIT 1";
-        return $DB->get_field_sql($sql, $params) ?: -1;
+        foreach (self::get_unread_posts($userid, $where, $params) as $post) {
+            self::add_read_record($userid, $post->get_id());
+        }
     }
 }

@@ -416,6 +416,15 @@ class moodleoverflow {
         return $type;
     }
 
+    /**
+     * Returns in seconds the time after a post is considered as "read" automatically. The "oldpostdays" config is stored in
+     * days for readability.
+     * @return int
+     */
+    public static function get_old_post_age(): int {
+        return (int) get_config('moodleoverflow', 'oldpostdays') * DAYSECS;
+    }
+
     // Grading.
 
     /**

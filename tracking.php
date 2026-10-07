@@ -72,12 +72,12 @@ $eventparams = [
 ];
 
 // Check whether the moodleoverflow is tracked.
-$istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
+$istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER->id);
 if ($istracked) {
     // The moodleoverflow instance is tracked. The next step is to untrack.
 
     // Untrack the moodleoverflow instance.
-    if (readtracking::stop_tracking($moodleoverflow->id)) {
+    if (readtracking::stop_tracking($moodleoverflow, $USER->id)) {
         // Successful stopped to track.
 
         // Trigger the readtracking disabled event.
@@ -94,7 +94,7 @@ if ($istracked) {
     // The moodleoverflow instance is not tracked. The next step is to track.
 
     // Track the moodleoverflow instance.
-    if (readtracking::start_tracking($moodleoverflow->id)) {
+    if (readtracking::start_tracking($moodleoverflow, $USER->id)) {
         // Successfully started to track.
 
         // Trigger the readtracking event.

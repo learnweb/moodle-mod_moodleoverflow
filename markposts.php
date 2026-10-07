@@ -22,6 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\notification;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
@@ -53,20 +54,10 @@ $PAGE->set_url($url);
 
 // Retrieve the connected moodleoverflow instance.
 $moodleoverflow = moodleoverflow::from_id($moodleoverflowid);
-
-// Retrieve the connected course.
-$course = get_course($moodleoverflow->course);
-
-// Get the coursemodule.
-if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-    throw new moodle_exception('invalidcoursemodule');
-}
-
-// Get the current user.
-$user = $USER;
+$course = $moodleoverflow->get_course();
 
 // From now on, the user must be logged in and enrolled.
-require_login($course, false, $cm);
+require_login($course, false, $moodleoverflow->get_cm());
 
 // Default relink address.
 if ($returndiscussion === 0) {
@@ -102,33 +93,12 @@ if (!empty($discussionid)) {
     if ($discussion->get_moodleoverflowid() != $moodleoverflow->id) {
         throw new moodle_exception('invaliddiscussionid', 'moodleoverflow');
     }
-    permissions::ensure(permissions::can_view_discussion($discussion, $user->id), 'markreadfailed');
-    if (!readtracking::mark_discussion_read($discussion, $user->id)) {
-        // Display an error, if something failes.
-        $message = get_string('markreadfailed', 'moodleoverflow');
-        $status = \core\output\notification::NOTIFY_ERROR;
-    } else {
-        // The discussion is successfully marked as read.
-        $message = get_string('markmoodleoverflowreadsuccessful', 'moodleoverflow');
-        $status = \core\output\notification::NOTIFY_SUCCESS;
-    }
-
-    // Redirect the user.
-    redirect(moodleoverflow_go_back_to($returnto), $message, null, $status);
-    exit;
+    permissions::ensure(permissions::can_view_discussion($discussion, $USER->id), 'markreadfailed');
+    readtracking::mark_discussion_read($discussion, $USER->id);
+    $message = get_string('markdiscussionreadsuccessful', 'moodleoverflow');
 } else {
     // Mark all message read in the current instance.
-    if (!readtracking::mark_moodleoverflow_read($cm, $user->id)) {
-        // Display an error, if something fails.
-        $message = get_string('markreadfailed', 'moodleoverflow');
-        $status = \core\output\notification::NOTIFY_ERROR;
-    } else {
-        // All posts of the instance have been marked as read.
-        $message = get_string('markdiscussionreadsuccessful', 'moodleoverflow');
-        $status = \core\output\notification::NOTIFY_SUCCESS;
-    }
-
-    // Redirect the user back to the view.php.
-    redirect(moodleoverflow_go_back_to($returnto), $message, null, $status);
-    exit;
+    readtracking::mark_moodleoverflow_read($moodleoverflow, $USER->id);
+    $message = get_string('markmoodleoverflowreadsuccessful', 'moodleoverflow');
 }
+redirect(moodleoverflow_go_back_to($returnto), $message, null, notification::NOTIFY_SUCCESS);

@@ -121,7 +121,7 @@ class discussion_card implements named_templatable, renderable {
         $userrating = ratings::user_rated($this->firstpost->get_id());
 
         // Gather readtracking data for the readtracking template.
-        $unreadcount = readtracking::count_unread_posts_discussion($this->discussion);
+        $unreadcount = readtracking::count_unread_posts_discussion($this->discussion, $USER->id);
         $unreaddata = [
             'itemid' => 'moodleoverflow-markpostsread-' . $this->discussion->get_id(),
             'domain' => 'discussion',

@@ -440,7 +440,7 @@ class post_control {
         }
 
         // Update the post.
-        if (!$this->info->discussion->edit_post($this->prepost)) {
+        if (!$this->info->discussion->edit_post($this->prepost, $USER->id)) {
             throw new moodle_exception('couldnotupdate', 'moodleoverflow');
         }
 

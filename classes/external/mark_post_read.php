@@ -89,7 +89,6 @@ class mark_post_read extends external_api {
         } else {
             $moodleoverflow = moodleoverflow::from_id($params['instanceid']);
         }
-        $cm = $moodleoverflow->get_cm();
 
         // Check activity access and permissions.
         self::validate_context($moodleoverflow->get_context());
@@ -97,10 +96,10 @@ class mark_post_read extends external_api {
 
         // Execute the readtracking action.
         if ($discussion === null) {
-            readtracking::mark_moodleoverflow_read($cm, $USER->id);
-            return readtracking::count_unread_posts_moodleoverflow($cm);
+            readtracking::mark_moodleoverflow_read($moodleoverflow, $USER->id);
+            return readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id);
         }
         readtracking::mark_discussion_read($discussion, $USER->id);
-        return readtracking::count_unread_posts_discussion($discussion);
+        return readtracking::count_unread_posts_discussion($discussion, $USER->id);
     }
 }

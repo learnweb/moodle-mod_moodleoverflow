@@ -92,7 +92,7 @@ $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
 
 // Mark the discussion as read as the user entered the discussion.
-if (readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER)) {
+if (readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER->id)) {
     readtracking::mark_discussion_read($discussion, $USER->id);
 }
 
