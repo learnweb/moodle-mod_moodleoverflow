@@ -24,6 +24,7 @@ use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
+use moodle_exception;
 
 /**
  * Static methods for managing the tracking of read posts and discussions.
@@ -70,8 +71,9 @@ class readtracking {
         global $USER, $DB;
         foreach ($DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $cm->instance]) as $discussion) {
             // Mark the discussion as read.
-            $markedcheck = self::mark_discussion_read(discussion::from_record($discussion), $userid ?? $USER->id);
-            moodleoverflow_throw_exception_with_check($markedcheck !== true, 'markreadfailed');
+            if (self::mark_discussion_read(discussion::from_record($discussion), $userid ?? $USER->id) !== true) {
+                throw new moodle_exception('markreadfailed', 'moodleoverflow');
+            }
         }
         return true;
     }
@@ -96,8 +98,9 @@ class readtracking {
             }
 
             // Mark the post as read.
-            $postreadcheck = self::mark_post_read($userid, $post->get_db_object());
-            moodleoverflow_throw_exception_with_check(!$postreadcheck, 'markreadfailed');
+            if (!self::mark_post_read($userid, $post->get_db_object())) {
+                throw new moodle_exception('markreadfailed', 'moodleoverflow');
+            }
         }
 
         // The discussion has been marked as read.

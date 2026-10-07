@@ -189,34 +189,6 @@ function moodleoverflow_update_all_grades() {
 }
 
 /**
- * Function to retrieve a config and throw an exception, if the config is not found.
- * @param string $plugin            Plugin that has the configuration
- * @param string $configname        Name of configuration
- * @param string $errorcode         Error code/name of the exception
- * @param string $exceptionmodule   Module that has the exception.
- * @return mixed $config
- */
-function moodleoverflow_get_config_or_exception($plugin, $configname, $errorcode, $exceptionmodule) {
-    if (!$config = get_config($plugin, $configname)) {
-        throw new moodle_exception($errorcode, $exceptionmodule);
-    }
-    return $config;
-}
-
-/**
- * Function that throws an exception if a given check is true.
- * @param bool $check               The result of a boolean check.
- * @param string $errorcode         Error code/name of the exception
- * @param string $coreexception     Optional param if exception is from the core exceptions and not moodleoverflow.
- * @return void
- */
-function moodleoverflow_throw_exception_with_check($check, $errorcode, $coreexception = false) {
-    if ($check) {
-        throw new moodle_exception($errorcode, $coreexception ? 0 : 'moodleoverflow');
-    }
-}
-
-/**
  * Caches all language strings keys so react components can access them.
  * @return void
  */

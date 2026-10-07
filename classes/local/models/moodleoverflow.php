@@ -343,6 +343,14 @@ class moodleoverflow {
     }
 
     /**
+     * Whether users may change or remove their ratings (admin setting).
+     * @return bool
+     */
+    public function allows_rating_change(): bool {
+        return (bool) get_config('moodleoverflow', 'allowratingchange');
+    }
+
+    /**
      * Which mark is pinned first in a discussion: the helpful mark of the question author or a teacher's solution.
      * @return rating_preference
      */

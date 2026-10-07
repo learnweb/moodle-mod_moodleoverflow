@@ -51,7 +51,9 @@ class ratings {
         $possibleratings = [RATING_NEUTRAL, RATING_DOWNVOTE, RATING_UPVOTE, RATING_SOLVED,
             RATING_HELPFUL, RATING_REMOVE_DOWNVOTE, RATING_REMOVE_UPVOTE,
             RATING_REMOVE_SOLVED, RATING_REMOVE_HELPFUL, ];
-        moodleoverflow_throw_exception_with_check(!in_array($rating, $possibleratings), 'invalidratingid');
+        if (!in_array($rating, $possibleratings)) {
+            throw new moodle_exception('invalidratingid', 'moodleoverflow');
+        }
 
         // Get the related post.
         $postmodel = post::from_id($postid);
@@ -72,12 +74,9 @@ class ratings {
 
         // Check if we are removing a mark.
         if (in_array($rating / 10, $possibleratings)) {
-            moodleoverflow_get_config_or_exception(
-                'moodleoverflow',
-                'allowratingchange',
-                'noratingchangeallowed',
-                'moodleoverflow'
-            );
+            if (!$moodleoverflow->allows_rating_change()) {
+                throw new moodle_exception('noratingchangeallowed', 'moodleoverflow');
+            }
 
             // Delete the rating.
             return self::remove_rating($postid, $rating / 10, $userid, $modulecontext);
@@ -124,12 +123,9 @@ class ratings {
 
         // Update an rating record.
         if ($oldrating['normal']) {
-            moodleoverflow_get_config_or_exception(
-                'moodleoverflow',
-                'allowratingchange',
-                'noratingchangeallowed',
-                'moodleoverflow'
-            );
+            if (!$moodleoverflow->allows_rating_change()) {
+                throw new moodle_exception('noratingchangeallowed', 'moodleoverflow');
+            }
 
             // Check if the rating can still be changed.
             if (!self::can_be_changed($postid, $oldrating['normal']->rating, $userid)) {
