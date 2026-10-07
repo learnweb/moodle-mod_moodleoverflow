@@ -215,7 +215,7 @@ function moodleoverflow_update_instance(stdClass $data): bool {
     moodleoverflow_grade_item_update($data);
 
     // Update all grades.
-    moodleoverflow_update_all_grades_for_cm($data->id);
+    moodleoverflow_update_all_grades_for_instance(moodleoverflow::from_id($data->id));
 
     $completiontime = !empty($data->completionexpected) ? $data->completionexpected : null;
     api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $data->id, $completiontime);

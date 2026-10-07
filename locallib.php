@@ -102,7 +102,6 @@ function moodleoverflow_go_back_to($default) {
     if (!empty($SESSION->fromdiscussion)) {
         $returnto = $SESSION->fromdiscussion;
         unset($SESSION->fromdiscussion);
-
         return $returnto;
     } else {
         return $default;
@@ -112,45 +111,43 @@ function moodleoverflow_go_back_to($default) {
 /**
  * Updates user grade.
  *
- * @param object $moodleoverflow
+ * @param moodleoverflow $modflow
  * @param int $postuserrating
  * @param int $postinguser
  * @return void
  */
-function moodleoverflow_update_user_grade(object $moodleoverflow, int $postuserrating, int $postinguser): void {
+function moodleoverflow_update_user_grade(moodleoverflow $modflow, int $postuserrating, int $postinguser): void {
     global $DB;
-    // Check whether moodleoverflow object has the added params.
-    if ($moodleoverflow->grademaxgrade > 0 && $moodleoverflow->gradescalefactor > 0) {
-        // Calculate the posting user's updated grade.
-        $grade = min($postuserrating / $moodleoverflow->gradescalefactor, $moodleoverflow->grademaxgrade);
-        // Save updated grade on local table.
-        $lookup = ['userid' => $postinguser, 'moodleoverflowid' => $moodleoverflow->id];
-        if ($existing = $DB->get_record('moodleoverflow_grades', $lookup)) {
-            $existing->grade = $grade;
-            $DB->update_record('moodleoverflow_grades', $existing);
-        } else {
-            $DB->insert_record('moodleoverflow_grades', (object) array_merge($lookup, ['grade' => $grade]));
-        }
-        // Update gradebook.
-        moodleoverflow_update_grades($moodleoverflow, $postinguser);
+    if (!$modflow->is_graded()) {
+        return;
     }
+    // Calculate the posting user's updated grade.
+    $grade = min($postuserrating / $modflow->gradescalefactor, $modflow->grademaxgrade);
+
+    // Save updated grade on local table.
+    $lookup = ['userid' => $postinguser, 'moodleoverflowid' => $modflow->id];
+    if ($DB->record_exists('moodleoverflow_grades', $lookup)) {
+        $DB->set_field('moodleoverflow_grades', 'grade', $grade, $lookup);
+    } else {
+        $DB->insert_record('moodleoverflow_grades', (object) ($lookup + ['grade' => $grade]));
+    }
+    // Update gradebook.
+    moodleoverflow_update_grades($modflow->get_db_object(), $postinguser);
 }
 
 /**
- * Updates all grades for context module.
- *
- * @param int $moodleoverflowid
- *
+ * Updates all grades in a moodleoverflow.
+ * @param moodleoverflow $modflow
+ * @return void
+ * @throws dml_exception
  */
-function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
+function moodleoverflow_update_all_grades_for_instance(moodleoverflow $modflow): void {
     global $DB;
 
-    $moodleoverflow = moodleoverflow::from_id($moodleoverflowid);
-
     // Check whether moodleoverflow object has the added params.
-    if ($moodleoverflow->is_graded()) {
+    if ($modflow->is_graded()) {
         // Get all users id.
-        $params = ['moodleoverflowid' => $moodleoverflowid, 'moodleoverflowid2' => $moodleoverflowid];
+        $params = ['moodleoverflowid' => $modflow->id, 'moodleoverflowid2' => $modflow->id];
         $sql = 'SELECT DISTINCT u.userid FROM (
                     SELECT p.userid as userid
                     FROM {moodleoverflow_discussions} d, {moodleoverflow_posts} p
@@ -167,24 +164,21 @@ function moodleoverflow_update_all_grades_for_cm($moodleoverflowid) {
             if ($userid == 0) {
                 continue;
             }
-
-            // Get user reputation.
-            $userrating = ratings::get_reputation($moodleoverflow->id, $userid, true);
-
             // Calculate the posting user's updated grade.
-            moodleoverflow_update_user_grade($moodleoverflow, $userrating, $userid);
+            moodleoverflow_update_user_grade($modflow, ratings::get_reputation($modflow->id, $userid, true), $userid);
         }
     }
 }
 
 /**
  * Updates all grades.
+ * @return void
+ * @throws coding_exception|dml_exception
  */
-function moodleoverflow_update_all_grades() {
+function moodleoverflow_update_all_grades(): void {
     global $DB;
-    $cmids = $DB->get_records_select('moodleoverflow', null, null, 'id');
-    foreach ($cmids as $cmid) {
-        moodleoverflow_update_all_grades_for_cm($cmid->id);
+    foreach ($DB->get_records('moodleoverflow') as $record) {
+        moodleoverflow_update_all_grades_for_instance(moodleoverflow::from_record($record));
     }
 }
 
