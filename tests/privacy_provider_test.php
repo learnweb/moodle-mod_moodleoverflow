@@ -28,8 +28,10 @@ use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\privacy\provider;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\privacy\data_export_helper;
+use mod_moodleoverflow\privacy\provider;
 
 /**
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
@@ -426,12 +428,14 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         // Insert read info.
         // User has read post1, but not the reply or second post in forum1.
-        readtracking::add_read_record($user->id, $f1p1->id);
+        readtracking::mark_post_read(post::from_record($f1p1), $user->id);
+
         // User has read post1 and its reply, but not the second post in forum2.
-        readtracking::add_read_record($user->id, $f2p1->id);
-        readtracking::add_read_record($user->id, $f2p1reply->id);
+        readtracking::mark_post_read(post::from_record($f2p1), $user->id);
+        readtracking::mark_post_read(post::from_record($f2p1reply), $user->id);
+
         // User has read post2 in forum3.
-        readtracking::add_read_record($user->id, $f3p2->id);
+        readtracking::mark_post_read(post::from_record($f3p2), $user->id);
         // Nothing has been read in forum4.
         // Run as the user under test.
         $this->setUser($user);
@@ -582,7 +586,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
             $discussion = $discussions[$post->discussion];
             $forum = $forums[$discussion->moodleoverflow];
             // Mark the post as being read by user.
-            readtracking::add_read_record($user->id, $post->id);
+            readtracking::mark_post_read(post::from_record($post), $user->id);
             // Rate the other users content.
             if ($post->userid != $user->id) {
                 $ratedposts[$post->id] = $post;
@@ -721,7 +725,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
             $discussion = $discussions[$post->discussion];
             $forum = $forums[$discussion->moodleoverflow];
             // Mark the post as being read by user1.
-            readtracking::add_read_record($user1->id, $post->id);
+            readtracking::mark_post_read(post::from_record($post), $user1->id);
         }
         // Rate and tag all posts.
         foreach ($users as $user) {
@@ -949,7 +953,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $user1 = reset($users);
         foreach ($posts as $post) {
             // Mark the post as being read by user1.
-            readtracking::add_read_record($user1->id, $post->id);
+            readtracking::mark_post_read(post::from_record($post), $user1->id);
         }
 
         // Rate all posts (Every user every post).
@@ -1194,8 +1198,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [, $ofp1] = $this->generator->post_to_forum($othermoodleoverflow, $author);
 
         // Add read information for those users.
-        readtracking::add_read_record($user->id, $fp1->id);
-        readtracking::add_read_record($otheruser->id, $ofp1->id);
+        readtracking::mark_post_read(post::from_record($fp1), $user->id);
+        readtracking::mark_post_read(post::from_record($ofp1), $otheruser->id);
 
         $userlist = new userlist(\context_module::instance($cm->id), 'mod_moodleoverflow');
         provider::get_users_in_context($userlist);

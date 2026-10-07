@@ -25,7 +25,7 @@ use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\review;
 use moodle_url;
 

@@ -23,8 +23,8 @@ use dml_exception;
 use Exception;
 use mod_moodleoverflow\event\discussion_deleted;
 use mod_moodleoverflow\event\discussion_viewed;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\ratings;
-use mod_moodleoverflow\readtracking;
 use moodle_exception;
 use moodle_url;
 

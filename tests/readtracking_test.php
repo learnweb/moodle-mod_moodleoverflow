@@ -26,6 +26,7 @@ namespace mod_moodleoverflow;
 use advanced_testcase;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service\readtracking;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,7 +39,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \readtracking
+ * @covers \mod_moodleoverflow\local\service\readtracking
  */
 final class readtracking_test extends advanced_testcase {
     /**
@@ -108,13 +109,14 @@ final class readtracking_test extends advanced_testcase {
     }
 
     /**
-     * Test the logic in the test_forum_tp_is_tracked() function.
+     * Test the logic in readtracking::is_tracked() and the user preference set by start_tracking() / stop_tracking().
+     * @covers \mod_moodleoverflow\local\service\readtracking::is_tracked
      */
-    public function test_moodleoverflow_is_tracked(): void {
-        global $USER;
+    public function test_is_tracked(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL];
         $mooptional = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
@@ -129,56 +131,81 @@ final class readtracking_test extends advanced_testcase {
         set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
-        $result = readtracking::moodleoverflow_is_tracked($mooff, $USER->id);
-        $this->assertEquals(false, $result);
+        $this->assertEquals(false, readtracking::is_tracked($mooff, $student->id));
 
-        // Moodleoverflow force, should be off.
-        $result = readtracking::moodleoverflow_is_tracked($moforce, $USER->id);
-        $this->assertEquals(false, $result);
+        // Moodleoverflow forced, should be on.
+        $this->assertEquals(true, readtracking::is_tracked($moforce, $student->id));
 
-        // Moodleoverflow optional, should be off.
-        $result = readtracking::moodleoverflow_is_tracked($mooptional, $USER->id);
-        $this->assertEquals(false, $result);
+        // Moodleoverflow optional, should be on.
+        $this->assertEquals(true, readtracking::is_tracked($mooptional, $student->id));
 
         // Don't allow force.
         set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
-        $result = readtracking::moodleoverflow_is_tracked($mooff, $USER->id);
-        $this->assertEquals(false, $result);
+        $this->assertEquals(false, readtracking::is_tracked($mooff, $student->id));
 
-        // Moodleoverflow force, should be off.
-        $result = readtracking::moodleoverflow_is_tracked($moforce, $USER->id);
-        $this->assertEquals(false, $result);
+        // Moodleoverflow forced, counts as optional now, should be on.
+        $this->assertEquals(true, readtracking::is_tracked($moforce, $student->id));
 
-        // Moodleoverflow optional, should be off.
-        $result = readtracking::moodleoverflow_is_tracked($mooptional, $USER->id);
-        $this->assertEquals(false, $result);
+        // Moodleoverflow optional, should be on.
+        $this->assertEquals(true, readtracking::is_tracked($mooptional, $student->id));
 
-        // Stop tracking so we can test again.
-        readtracking::stop_tracking($moforce, $USER->id);
-        readtracking::stop_tracking($mooptional, $USER->id);
+        // Stop tracking. While forcing is not allowed, the forced moodleoverflow can be untracked as well.
+        readtracking::stop_tracking($moforce, $student->id);
+        readtracking::stop_tracking($mooptional, $student->id);
 
         // Allow force.
         set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
-        // Preference off, moodleoverflow force, should be on.
-        $result = readtracking::moodleoverflow_is_tracked($moforce, $USER->id);
-        $this->assertEquals(false, $result);
+        // Preference off, moodleoverflow forced, should be on: forced tracking ignores the preference.
+        $this->assertEquals(true, readtracking::is_tracked($moforce, $student->id));
 
-        // Preference off, moodleoverflow optional, should be on.
-        $result = readtracking::moodleoverflow_is_tracked($mooptional, $USER->id);
-        $this->assertEquals(false, $result);
+        // Preference off, moodleoverflow optional, should be off.
+        $this->assertEquals(false, readtracking::is_tracked($mooptional, $student->id));
 
         // Don't allow force.
         set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
-        // Preference off, moodleoverflow force, should be on.
-        $result = readtracking::moodleoverflow_is_tracked($moforce, $USER->id);
-        $this->assertEquals(false, $result);
+        // Preference off, moodleoverflow forced (counts as optional), should be off.
+        $this->assertEquals(false, readtracking::is_tracked($moforce, $student->id));
 
-        // Preference off, moodleoverflow optional, should be on.
-        $result = readtracking::moodleoverflow_is_tracked($mooptional, $USER->id);
-        $this->assertEquals(false, $result);
+        // Preference off, moodleoverflow optional, should be off.
+        $this->assertEquals(false, readtracking::is_tracked($mooptional, $student->id));
+
+        // Start tracking again, should be on.
+        readtracking::start_tracking($mooptional, $student->id);
+        $this->assertEquals(true, readtracking::is_tracked($mooptional, $student->id));
+    }
+
+    /**
+     * Test that start_tracking() / stop_tracking() fire their events and check the permission.
+     * @covers \mod_moodleoverflow\local\service\readtracking::start_tracking
+     * @covers \mod_moodleoverflow\local\service\readtracking::stop_tracking
+     */
+    public function test_tracking_events(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL];
+        $modflow = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
+
+        $sink = $this->redirectEvents();
+        readtracking::stop_tracking($modflow, $student->id);
+        readtracking::start_tracking($modflow, $student->id);
+        $events = $sink->get_events();
+        $sink->close();
+
+        $this->assertCount(2, $events);
+        $this->assertInstanceOf(\mod_moodleoverflow\event\readtracking_disabled::class, $events[0]);
+        $this->assertInstanceOf(\mod_moodleoverflow\event\readtracking_enabled::class, $events[1]);
+        $this->assertEquals($student->id, $events[0]->relateduserid);
+
+        // Users that cannot change the tracking (here: tracking is off) get an exception.
+        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF];
+        $mooff = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
+        $this->expectException(\moodle_exception::class);
+        readtracking::stop_tracking($mooff, $student->id);
     }
 }

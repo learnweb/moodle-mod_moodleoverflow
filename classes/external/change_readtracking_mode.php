@@ -16,12 +16,11 @@
 
 namespace mod_moodleoverflow\external;
 
-use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\readtracking;
-use core_external\external_function_parameters;
 use core_external\external_api;
+use core_external\external_function_parameters;
 use core_external\external_value;
+use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\service\readtracking;
 
 
 defined('MOODLE_INTERNAL') || die();
@@ -71,17 +70,14 @@ class change_readtracking_mode extends external_api {
         global $USER;
         self::validate_parameters(self::execute_parameters(), ['tracked' => $tracked, 'moodleoverflowid' => $moodleoverflowid]);
 
-        $moodleoverflow = moodleoverflow::from_id($moodleoverflowid);
+        $modflow = moodleoverflow::from_id($moodleoverflowid);
+        self::validate_context($modflow->get_context());
 
-        // Security checks.
-        self::validate_context($moodleoverflow->get_context());
-        permissions::ensure(permissions::can_change_tracking($moodleoverflow, $USER->id), 'cannotchangetracking');
-
-        // Execute action.
         if ($tracked) {
-            return readtracking::stop_tracking($moodleoverflow, $USER->id);
+            readtracking::stop_tracking($modflow, $USER->id);
         } else {
-            return readtracking::start_tracking($moodleoverflow, $USER->id);
+            readtracking::start_tracking($modflow, $USER->id);
         }
+        return true;
     }
 }

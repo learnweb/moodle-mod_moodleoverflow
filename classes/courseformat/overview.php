@@ -27,7 +27,7 @@ use core_courseformat\activityoverviewbase;
 use core_courseformat\local\overview\overviewitem;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\subscriptions;
 
 /**
@@ -145,7 +145,7 @@ class overview extends activityoverviewbase {
             return new overviewitem(name: $name, value: null, content: '-');
         }
         // Check if the user tracks the moodleoverflow currently.
-        $tracked = readtracking::moodleoverflow_is_tracked($this->moodleoverflow, $USER->id);
+        $tracked = readtracking::is_tracked($this->moodleoverflow, $USER->id);
 
         // Build the content.
         $itemid = 'moodleoverflow-readtracking-toggle-' . $this->moodleoverflow->id;

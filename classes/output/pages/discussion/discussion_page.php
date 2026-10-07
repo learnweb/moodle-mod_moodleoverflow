@@ -23,7 +23,7 @@ use core\output\renderer_base;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\ratings;
 
 /**
@@ -66,7 +66,7 @@ class discussion_page implements named_templatable, renderable{
     public function export_for_template(renderer_base $output): object {
         global $USER, $OUTPUT;
         $context = context_module::instance($this->discussion->get_coursemodule()->id);
-        $firstunreadpost = readtracking::get_first_unread_post_id($this->discussion->get_id(), $USER->id);
+        $firstunreadpost = readtracking::get_first_unread_post_id($this->discussion, $USER->id);
         $answeramount = get_string(((count($this->answers) > 0) ? 'answers' : 'answer'), 'moodleoverflow', count($this->answers));
 
         // Get the rendered posts.

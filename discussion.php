@@ -26,8 +26,8 @@
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\output\pages\discussion\discussion_page;
-use mod_moodleoverflow\readtracking;
 
 require_once('../../config.php');
 global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
@@ -92,9 +92,7 @@ $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
 
 // Mark the discussion as read as the user entered the discussion.
-if (readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER->id)) {
-    readtracking::mark_discussion_read($discussion, $USER->id);
-}
+readtracking::mark_discussion_read($discussion, $USER->id);
 
 // Start the side-output.
 echo $OUTPUT->header();

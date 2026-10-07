@@ -17,14 +17,13 @@
 namespace mod_moodleoverflow\external;
 
 use coding_exception;
+use core_external\external_api;
+use core_external\external_function_parameters;
+use core_external\external_value;
+use dml_exception;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\readtracking;
-use dml_exception;
-use core_external\external_function_parameters;
-use core_external\external_api;
-use core_external\external_value;
+use mod_moodleoverflow\local\service\readtracking;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -35,7 +34,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
  * Class implementing the external API, esp. for AJAX functions.
- * Mark an discussion or whole moodleoverflow as read.
+ * Mark a discussion or whole moodleoverflow as read.
  *
  * @package    mod_moodleoverflow
  * @copyright  2026 Tamaro Walter
@@ -69,7 +68,7 @@ class mark_post_read extends external_api {
      * @param string $domain Can be "moodleoverflow" or "discussion"
      * @return int Return how many unread posts the user has in the discussion/moodleoverflow. JS uses it to update the unread info.
      *             (It should always be 0, otherwise an error ocurred. This is important for behat testing).
-     * @throws coding_exception|dml_exception
+     * @throws coding_exception|dml_exception|\moodle_exception
      */
     public static function execute(int $instanceid, string $domain): int {
         global $USER;
@@ -84,22 +83,20 @@ class mark_post_read extends external_api {
         $discussion = null;
         if ($params['domain'] === 'discussion') {
             $discussion = discussion::from_id($params['instanceid']);
-            permissions::ensure(permissions::can_view_discussion($discussion, $USER->id), 'markreadfailed');
             $moodleoverflow = $discussion->get_moodleoverflow();
         } else {
             $moodleoverflow = moodleoverflow::from_id($params['instanceid']);
         }
 
-        // Check activity access and permissions.
         self::validate_context($moodleoverflow->get_context());
-        permissions::ensure(permissions::can_track($moodleoverflow, $USER->id), 'markreadfailed');
 
         // Execute the readtracking action.
         if ($discussion === null) {
             readtracking::mark_moodleoverflow_read($moodleoverflow, $USER->id);
             return readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id);
+        } else {
+            readtracking::mark_discussion_read($discussion, $USER->id);
+            return readtracking::count_unread_posts_discussion($discussion, $USER->id);
         }
-        readtracking::mark_discussion_read($discussion, $USER->id);
-        return readtracking::count_unread_posts_discussion($discussion, $USER->id);
     }
 }

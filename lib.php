@@ -35,7 +35,7 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();
@@ -301,7 +301,7 @@ function moodleoverflow_delete_instance($id) {
     }
 
     // Delete the read records.
-    readtracking::delete_read_records(modflowid:  $moodleoverflow->id);
+    readtracking::delete_read_records(modflowid: $moodleoverflow->id);
 
     // Delete the moodleoverflow instance.
     if (!$DB->delete_records('moodleoverflow', ['id' => $moodleoverflow->id])) {

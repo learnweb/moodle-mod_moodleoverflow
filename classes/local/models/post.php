@@ -27,8 +27,8 @@ use dml_exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\form\post_form;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\ratings;
-use mod_moodleoverflow\readtracking;
 use moodle_exception;
 use moodle_url;
 use stdClass;
@@ -245,9 +245,7 @@ class post {
         }
 
         // Mark the created post as read if the user is tracking the discussion.
-        if (readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow(), $this->userid)) {
-            readtracking::add_read_record($this->userid, $this->id);
-        }
+        readtracking::mark_post_read($this, $this->userid);
         return $this->id;
     }
 
@@ -360,9 +358,7 @@ class post {
         $this->add_attachment();
 
         // Mark the post as read.
-        if (readtracking::moodleoverflow_is_tracked($this->get_moodleoverflow(), $userid)) {
-            readtracking::add_read_record($userid, $this->id);
-        }
+        readtracking::mark_post_read($this, $userid);
 
         // The post has been edited successfully.
         return true;

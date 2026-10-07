@@ -32,7 +32,7 @@ use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\post\post_control;
-use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 
@@ -613,11 +613,11 @@ class behat_mod_moodleoverflow extends behat_base {
         global $DB, $USER;
         $moodleoverflow = moodleoverflow::from_record($DB->get_record('moodleoverflow', ['name' => $modflowname]));
         if ($type == 'not') {
-            if (readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER->id)) {
+            if (readtracking::is_tracked($moodleoverflow, $USER->id)) {
                 throw new Exception("User should not have readtracking on but it is on");
             }
         } else {
-            if (!readtracking::moodleoverflow_is_tracked($moodleoverflow, $USER->id)) {
+            if (!readtracking::is_tracked($moodleoverflow, $USER->id)) {
                 throw new Exception("User should have readtracking on but it is off");
             }
         }
