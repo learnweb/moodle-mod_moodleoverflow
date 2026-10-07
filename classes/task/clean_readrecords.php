@@ -16,11 +16,13 @@
 
 namespace mod_moodleoverflow\task;
 
+use mod_moodleoverflow\local\service\readtracking;
+
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/../../locallib.php');
 
 /**
- * A scheduled task for moodleoverflow cron to clean up read records.
+ * A scheduled task for moodleoverflow cron to clean up old read records.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
@@ -34,11 +36,7 @@ class clean_readrecords extends \core\task\scheduled_task {
 
     #[\Override]
     public function execute() {
-
-        // Delete the old read records.
-        \mod_moodleoverflow\readtracking::clean_read_records();
-
-        // The cron is finished.
+        readtracking::clean_read_records();
         return true;
     }
 }

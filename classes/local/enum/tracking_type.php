@@ -50,7 +50,7 @@ enum tracking_type: int {
      *
      * @return bool
      */
-    public function tracks_by_default(): bool {
+    public function is_forced(): bool {
         return $this === self::FORCED;
     }
 }

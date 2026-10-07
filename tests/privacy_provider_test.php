@@ -28,8 +28,10 @@ use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\privacy\provider;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\privacy\data_export_helper;
+use mod_moodleoverflow\privacy\provider;
 
 /**
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
@@ -382,8 +384,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $forumon = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
         [$user] = $this->create_users($course, 1);
         // Set user tracking data.
-        readtracking::stop_tracking($forumoff->id, $user->id);
-        readtracking::start_tracking($forumon->id, $user->id);
+        readtracking::stop_tracking(moodleoverflow::from_record($forumoff), $user->id);
+        readtracking::start_tracking(moodleoverflow::from_record($forumon), $user->id);
         // Run as the user under test.
         $this->setUser($user);
         // Retrieve all contexts - only the forum tracking reads should be included.
@@ -426,12 +428,14 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         // Insert read info.
         // User has read post1, but not the reply or second post in forum1.
-        readtracking::add_read_record($user->id, $f1p1->id);
+        readtracking::mark_post_read(post::from_record($f1p1), $user->id);
+
         // User has read post1 and its reply, but not the second post in forum2.
-        readtracking::add_read_record($user->id, $f2p1->id);
-        readtracking::add_read_record($user->id, $f2p1reply->id);
+        readtracking::mark_post_read(post::from_record($f2p1), $user->id);
+        readtracking::mark_post_read(post::from_record($f2p1reply), $user->id);
+
         // User has read post2 in forum3.
-        readtracking::add_read_record($user->id, $f3p2->id);
+        readtracking::mark_post_read(post::from_record($f3p2), $user->id);
         // Nothing has been read in forum4.
         // Run as the user under test.
         $this->setUser($user);
@@ -582,7 +586,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
             $discussion = $discussions[$post->discussion];
             $forum = $forums[$discussion->moodleoverflow];
             // Mark the post as being read by user.
-            readtracking::add_read_record($user->id, $post->id);
+            readtracking::mark_post_read(post::from_record($post), $user->id);
             // Rate the other users content.
             if ($post->userid != $user->id) {
                 $ratedposts[$post->id] = $post;
@@ -721,7 +725,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
             $discussion = $discussions[$post->discussion];
             $forum = $forums[$discussion->moodleoverflow];
             // Mark the post as being read by user1.
-            readtracking::add_read_record($user1->id, $post->id);
+            readtracking::mark_post_read(post::from_record($post), $user1->id);
         }
         // Rate and tag all posts.
         foreach ($users as $user) {
@@ -949,7 +953,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $user1 = reset($users);
         foreach ($posts as $post) {
             // Mark the post as being read by user1.
-            readtracking::add_read_record($user1->id, $post->id);
+            readtracking::mark_post_read(post::from_record($post), $user1->id);
         }
 
         // Rate all posts (Every user every post).
@@ -1194,8 +1198,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [, $ofp1] = $this->generator->post_to_forum($othermoodleoverflow, $author);
 
         // Add read information for those users.
-        readtracking::add_read_record($user->id, $fp1->id);
-        readtracking::add_read_record($otheruser->id, $ofp1->id);
+        readtracking::mark_post_read(post::from_record($fp1), $user->id);
+        readtracking::mark_post_read(post::from_record($ofp1), $otheruser->id);
 
         $userlist = new userlist(\context_module::instance($cm->id), 'mod_moodleoverflow');
         provider::get_users_in_context($userlist);
@@ -1231,8 +1235,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [, $user, $otheruser] = $this->create_users($course, 3);
 
         // Stop tracking the read posts.
-        readtracking::stop_tracking($moodleoverflow->id, $user->id);
-        readtracking::stop_tracking($othermoodleoverflow->id, $otheruser->id);
+        readtracking::stop_tracking(moodleoverflow::from_record($moodleoverflow), $user->id);
+        readtracking::stop_tracking(moodleoverflow::from_record($othermoodleoverflow), $otheruser->id);
 
         $userlist = new userlist(\context_module::instance($cm->id), 'mod_moodleoverflow');
         provider::get_users_in_context($userlist);
@@ -1273,7 +1277,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [$user, $user2] = $this->create_and_enrol_users($course, 2);
         [ , $post] = $this->generator->post_to_forum($forum, $user);
         ratings::add_rating($forum, $post->id, RATING_UPVOTE, $cm, $user2->id);
-        moodleoverflow_update_all_grades_for_cm($forum->id);
+        moodleoverflow_update_all_grades_for_instance($forum);
         $grades = grade_get_grades($course->id, 'mod', 'moodleoverflow', $forum->id, [$user->id, $user2->id]);
         self::assertEquals("2.50", $grades->items[0]->grades[$user->id]->str_grade);
         self::assertEquals("0.50", $grades->items[0]->grades[$user2->id]->str_grade);
@@ -1290,14 +1294,14 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $contextlist = new approved_contextlist($user2, 'mod_moodleoverflow', $contextlist->get_contextids());
         self::assertContains("$context->id", $contextlist->get_contextids());
         provider::delete_data_for_user($contextlist);
-        moodleoverflow_update_all_grades_for_cm($forum->id);
+        moodleoverflow_update_all_grades_for_instance($forum);
         $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade');
         self::assertEquals(2.5, $grades[$user->id]->grade);
         self::assertArrayNotHasKey($user2->id, $grades);
 
         // Test delete context.
         provider::delete_data_for_all_users_in_context($context);
-        moodleoverflow_update_all_grades_for_cm($forum->id);
+        moodleoverflow_update_all_grades_for_instance($forum);
         self::assertEmpty($DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade'));
     }
 }

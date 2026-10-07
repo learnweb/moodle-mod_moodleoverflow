@@ -343,6 +343,14 @@ class moodleoverflow {
     }
 
     /**
+     * Whether users may change or remove their ratings (admin setting).
+     * @return bool
+     */
+    public function allows_rating_change(): bool {
+        return (bool) get_config('moodleoverflow', 'allowratingchange');
+    }
+
+    /**
      * Which mark is pinned first in a discussion: the helpful mark of the question author or a teacher's solution.
      * @return rating_preference
      */
@@ -406,6 +414,15 @@ class moodleoverflow {
             return tracking_type::OPTIONAL;
         }
         return $type;
+    }
+
+    /**
+     * Returns in seconds the time after a post is considered as "read" automatically. The "oldpostdays" config is stored in
+     * days for readability.
+     * @return int
+     */
+    public static function get_old_post_age(): int {
+        return (int) get_config('moodleoverflow', 'oldpostdays') * DAYSECS;
     }
 
     // Grading.

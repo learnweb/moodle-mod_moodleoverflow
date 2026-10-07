@@ -23,8 +23,8 @@ use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\ratings;
-use mod_moodleoverflow\readtracking;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 use moodle_exception;
@@ -121,7 +121,7 @@ class discussion_card implements named_templatable, renderable {
         $userrating = ratings::user_rated($this->firstpost->get_id());
 
         // Gather readtracking data for the readtracking template.
-        $unreadcount = readtracking::count_unread_posts_discussion($this->discussion);
+        $unreadcount = readtracking::count_unread_posts_discussion($this->discussion, $USER->id);
         $unreaddata = [
             'itemid' => 'moodleoverflow-markpostsread-' . $this->discussion->get_id(),
             'domain' => 'discussion',

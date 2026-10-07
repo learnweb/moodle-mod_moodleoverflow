@@ -14,22 +14,19 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I log in as "student1"
     And I am on "Course 1" course homepage
     Then I should not see "1 unread post"
-    And I follow "Test moodleoverflow name"
-    And I should not see "Track unread posts"
 
   Scenario: Tracking moodleoverflow posts optional
     When The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "1"
     And I log in as "student1"
     And I am on "Course 1" course homepage
     Then I should see "1 unread post"
-    And I click in moodleoverflow on "link" type:
-      | Test moodleoverflow name | Don't track unread posts |
-    And I wait to be redirected
+    And User "student1" has in "Test moodleoverflow name" subscription "off" and readtracking "off"
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
-    And I click in moodleoverflow on "link" type:
-      | Test moodleoverflow name | Track unread posts |
-    And I wait to be redirected
+    And User "student1" has in "Test moodleoverflow name" subscription "off" and readtracking "on"
+    And I am on "Course 1" course homepage
+    And I should see "1 unread post"
+    And I follow "Test moodleoverflow name"
     And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
@@ -42,7 +39,6 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I am on "Course 1" course homepage
     Then I should see "1 unread post"
     And I follow "1 unread post"
-    And I should not see "Don't track unread posts"
     And I follow "Test post subject"
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
@@ -56,14 +52,13 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     When I log in as "student1"
     And I am on "Course 1" course homepage
     Then I should see "1 unread post"
-    And I click in moodleoverflow on "link" type:
-      | Test moodleoverflow name | Don't track unread posts |
-    And I wait to be redirected
+    And User "student1" has in "Test moodleoverflow name" subscription "off" and readtracking "off"
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
-    And I click in moodleoverflow on "link" type:
-      | Test moodleoverflow name | Track unread posts |
-    And I wait to be redirected
+    And User "student1" has in "Test moodleoverflow name" subscription "off" and readtracking "on"
+    And I am on "Course 1" course homepage
+    And I should see "1 unread post"
+    And I follow "Test moodleoverflow name"
     And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage
     And I should not see "1 unread post"
@@ -77,6 +72,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I am on "Course 1" course homepage
     And I should see "2 unread post"
     And I follow "Test moodleoverflow name"
-    When I click on "Mark all posts as read" "link"
+    When I click on "Mark all posts as read" "button"
+    And "Mark all posts as read" "button" should not exist
     And I am on "Course 1" course homepage
     Then I should not see "2 unread post"

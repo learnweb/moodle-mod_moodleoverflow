@@ -22,8 +22,8 @@ use core\output\renderer_base;
 use html_writer;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\ratings;
-use mod_moodleoverflow\readtracking;
 use moodle_url;
 
 /**
@@ -73,7 +73,7 @@ class post_card implements named_templatable, renderable {
 
         // Build the postclass, which has additional css classes that show if a post solution/helpful marks and readtracking status.
         $ratings = ratings::moodleoverflow_get_rating($this->post->get_id());
-        $isread = readtracking::is_post_read($this->post->get_moodleoverflow(), $this->post->get_id(), $USER->id);
+        $isread = readtracking::is_post_read($this->post, $USER->id);
         $issolved = $ratings->issolved > 0 ? 'markedsolution' : '';
         $ishelpful = $ratings->ishelpful > 0 ? 'markedhelpful' : '';
 

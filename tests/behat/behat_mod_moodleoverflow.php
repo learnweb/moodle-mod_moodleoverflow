@@ -32,7 +32,7 @@ use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\post\post_control;
-use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 
@@ -610,14 +610,14 @@ class behat_mod_moodleoverflow extends behat_base {
      * @return void
      */
     public function should_be_tracking(string $type, string $modflowname) {
-        global $DB;
+        global $DB, $USER;
         $moodleoverflow = moodleoverflow::from_record($DB->get_record('moodleoverflow', ['name' => $modflowname]));
         if ($type == 'not') {
-            if (readtracking::moodleoverflow_is_tracked($moodleoverflow)) {
+            if (readtracking::is_tracked($moodleoverflow, $USER->id)) {
                 throw new Exception("User should not have readtracking on but it is on");
             }
         } else {
-            if (!readtracking::moodleoverflow_is_tracked($moodleoverflow)) {
+            if (!readtracking::is_tracked($moodleoverflow, $USER->id)) {
                 throw new Exception("User should have readtracking on but it is off");
             }
         }
@@ -636,7 +636,7 @@ class behat_mod_moodleoverflow extends behat_base {
         global $DB;
         $substype = $substype == "on" ? true : false;
         $readtype = $readtype == "on" ? true : false;
-        $modflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
+        $modflow = moodleoverflow::from_record($DB->get_record('moodleoverflow', ['name' => $modflowname]));
         $user = $DB->get_record('user', ['username' => $username]);
         $cm = get_coursemodule_from_instance('moodleoverflow', $modflow->id);
         $modcontext = context_module::instance($cm->id);
@@ -647,9 +647,9 @@ class behat_mod_moodleoverflow extends behat_base {
         }
 
         if ($readtype) {
-            readtracking::start_tracking($modflow->id, $user->id);
+            readtracking::start_tracking($modflow, $user->id);
         } else {
-            readtracking::start_tracking($modflow->id, $user->id);
+            readtracking::stop_tracking($modflow, $user->id);
         }
     }
 

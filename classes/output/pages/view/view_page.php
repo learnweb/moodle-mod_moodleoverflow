@@ -25,7 +25,7 @@ use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\review;
 use moodle_url;
 
@@ -87,16 +87,14 @@ class view_page implements named_templatable, renderable {
 
         // Check some capabilities and create other check variables.
         $canstartdiscussion = permissions::can_start_discussion($this->modflow, $USER->id);
-        $istracked = readtracking::moodleoverflow_is_tracked($this->modflow);
 
         // Create links.
         $startdiscussion = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $this->modflow->id]);
-        $markallreadlink = new moodle_url('/mod/moodleoverflow/markposts.php', ['m' => $this->modflow->id]);
         $userstatslink = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->cm->id]);
 
         // Get information about the moodleoverflow. This includes: discussioncount, unread posts, discussions its replies.
-        $discussioncount = moodleoverflow_get_discussions_count($this->cm);
-        $unreads = $istracked ? moodleoverflow_get_discussions_unread($this->cm) : false;
+        $discussioncount = moodleoverflow_get_discussions_count($this->modflow, $USER->id);
+        $unreads = readtracking::count_unread_posts_moodleoverflow($this->modflow, $USER->id) > 0;
         $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, "view.php?id={$this->cm->id}");
 
         // Get moodleoverflow where discussions can be moved.
@@ -140,7 +138,10 @@ class view_page implements named_templatable, renderable {
             'discussions' => $items,
             'hasdiscussions' => count($discussions) > 0,
             'startdiscussion' => $canstartdiscussion ? ['link' => $startdiscussion->out()] : [],
-            'markallread' => $unreads ? ['link' => $markallreadlink->out()] : [],
+            'markallread' => $unreads ? [
+                'itemid' => 'moodleoverflow-markallread-' . $this->modflow->id,
+                'instanceid' => $this->modflow->id,
+            ] : [],
             'stats' => permissions::can_view_userstats($this->modflow, $USER->id) ? ['link' => $userstatslink->out()] : [],
             'paging_bar' => ($this->page != -1) ? $pagingbar : false,
             'destinations' => $destinations,

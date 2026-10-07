@@ -35,7 +35,7 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\readtracking;
+use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();
@@ -215,7 +215,7 @@ function moodleoverflow_update_instance(stdClass $data): bool {
     moodleoverflow_grade_item_update($data);
 
     // Update all grades.
-    moodleoverflow_update_all_grades_for_cm($data->id);
+    moodleoverflow_update_all_grades_for_instance(moodleoverflow::from_id($data->id));
 
     $completiontime = !empty($data->completionexpected) ? $data->completionexpected : null;
     api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $data->id, $completiontime);
@@ -301,7 +301,7 @@ function moodleoverflow_delete_instance($id) {
     }
 
     // Delete the read records.
-    readtracking::delete_read_records(-1, -1, -1, $moodleoverflow->id);
+    readtracking::delete_read_records(modflowid: $moodleoverflow->id);
 
     // Delete the moodleoverflow instance.
     if (!$DB->delete_records('moodleoverflow', ['id' => $moodleoverflow->id])) {
@@ -524,19 +524,6 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
         $url = new moodle_url('/mod/moodleoverflow/subscribe.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
         $moodleoverflownode->add($linktext, $url, navigation_node::TYPE_SETTING);
     }
-
-    // Display a link to enable or disable readtracking.
-    if (permissions::can_change_tracking($moodleoverflow, $USER->id)) {
-        // Generate the text of the link depending on the current state.
-        $istracked = readtracking::moodleoverflow_is_tracked($moodleoverflow);
-        $linktext = get_string($istracked ? 'notrackmoodleoverflow' : 'trackmoodleoverflow', 'moodleoverflow');
-
-        // Generate the link.
-        $link = new moodle_url('/mod/moodleoverflow/tracking.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
-
-        // Add the link to the menu.
-        $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
-    }
 }
 
 /**
@@ -558,7 +545,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
         }
     }
     if (permissions::can_track($moodleoverflow, $USER->id)) {
-        $unread = readtracking::count_unread_posts_moodleoverflow($cm);
+        $unread = readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id);
         if ($unread) {
             $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {
