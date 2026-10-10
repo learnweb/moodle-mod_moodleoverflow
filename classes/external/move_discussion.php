@@ -23,7 +23,7 @@ use core_external\external_api;
 use core_external\external_value;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -78,13 +78,10 @@ class move_discussion extends external_api {
         self::validate_parameters(self::execute_parameters(), $params);
 
         $discussion = discussion::from_id($params['discussionid']);
-        $source = $discussion->get_moodleoverflow();
         $destination = moodleoverflow::from_id($params['moodleoverflowid']);
 
-        self::validate_context($source->get_context());
-        permissions::ensure(permissions::can_move_discussion($discussion, $destination, $USER->id), 'invalidmovedestination');
-
-        $discussion->move_dicussion($destination->id);
+        self::validate_context($discussion->get_moodleoverflow()->get_context());
+        service\discussion::move($discussion, $destination, $USER->id);
         return true;
     }
 }

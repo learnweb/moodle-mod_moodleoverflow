@@ -22,6 +22,7 @@ use coding_exception;
 use dml_exception;
 use Exception;
 use mod_moodleoverflow\event\discussion_deleted;
+use mod_moodleoverflow\event\discussion_moved;
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\ratings;
@@ -414,15 +415,58 @@ class discussion {
 
     /**
      * Moves discussion from one moodleoverflow to another.
-     * @param int $moodleoverflowid The moodleoverflow where the discussion is moved to.
+     * @param moodleoverflow $destination The moodleoverflow where the discussion is moved to.
      * @return void
      * @throws coding_exception|dml_exception|moodle_exception
      */
-    public function move_dicussion(int $moodleoverflowid): void {
+    public function move_discussion(moodleoverflow $destination): void {
         global $DB;
-        $this->moodleoverflow = $moodleoverflowid;
-        $this->moodleoverflowobject = moodleoverflow::from_id($moodleoverflowid);
-        $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+        $this->existence_check();
+        $source = $this->get_moodleoverflow();
+
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            // Files are stored per context, and both file areas use the post id as item id: 'attachment' for the
+            // attachments, 'post' for images embedded in the message. Moving per post id only touches this discussion.
+            $fs = get_file_storage();
+            foreach (array_keys($this->get_posts()) as $postid) {
+                foreach (['attachment', 'post'] as $filearea) {
+                    $fs->move_area_files_to_new_context(
+                        $source->get_context()->id,
+                        $destination->get_context()->id,
+                        'mod_moodleoverflow',
+                        $filearea,
+                        $postid
+                    );
+                }
+            }
+
+            // Adapt the following tables that store the moodleoverflow id of the discussion.
+            $DB->set_field('moodleoverflow_ratings', 'moodleoverflowid', $destination->id, ['discussionid' => $this->id]);
+            $DB->set_field('moodleoverflow_discuss_subs', 'moodleoverflow', $destination->id, ['discussion' => $this->id]);
+            $DB->set_field('moodleoverflow_mail_info', 'forumid', $destination->id, ['forumdiscussionid' => $this->id]);
+            $DB->set_field('moodleoverflow_read', 'moodleoverflowid', $destination->id, ['discussionid' => $this->id]);
+
+            // Adapt the discussion itself.
+            $this->moodleoverflow = $destination->id;
+            $this->moodleoverflowobject = $destination;
+            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+
+            // The loaded posts may still have the source cached as their moodleoverflow; load them again when needed.
+            $this->posts = [];
+            $this->postsbuild = false;
+
+            // Log the move. The event is only delivered to observers when the outermost transaction commits.
+            discussion_moved::create([
+                'objectid' => $this->id,
+                'context' => $destination->get_context(),
+                'other' => ['frommoodleoverflowid' => $source->id, 'tomoodleoverflowid' => $destination->id],
+            ])->trigger();
+
+            $transaction->allow_commit();
+        } catch (Exception $e) {
+            $transaction->rollback($e);
+        }
     }
 
     // Getter.
