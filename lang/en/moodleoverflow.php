@@ -146,6 +146,7 @@ $string['errorunknown'] = 'An unknown error occurred. Please try again later.';
 $string['errorwhiledelete'] = 'An error occurred while deleting record.';
 $string['eventdiscussioncreated'] = 'Discussion created';
 $string['eventdiscussiondeleted'] = 'Discussion deleted';
+$string['eventdiscussionmoved'] = 'Discussion moved';
 $string['eventdiscussionsubscriptioncreated'] = 'Discussion subscription created';
 $string['eventdiscussionsubscriptiondeleted'] = 'Discussion subscription deleted';
 $string['eventdiscussionviewed'] = 'Discussion viewed';
