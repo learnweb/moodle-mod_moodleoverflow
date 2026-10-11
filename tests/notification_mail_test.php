@@ -23,6 +23,7 @@ require_once($CFG->libdir . '/completionlib.php');
 
 use mod_moodleoverflow\local\manager\mail_manager;
 use mod_moodleoverflow\task\send_mails;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
@@ -45,6 +46,8 @@ use stdClass;
  */
 #[CoversClass(mail_manager::class)]
 final class notification_mail_test extends \advanced_testcase {
+    use moodleoverflow_test_trait;
+
     // Attributes.
 
     /** @var object The data that will be used for testing.
@@ -79,7 +82,7 @@ final class notification_mail_test extends \advanced_testcase {
      * @covers \mod_moodleoverflow\task\send_mails
      */
     public function test_sortorder(): void {
-        $this->helper_run_task();
+        $this->testdata->output = $this->run_task(new send_mails());
         $this->assertTrue(true);
         /* LEARNWEB-TODO: Add tests. A simple test coverage of the notification mails are in review_test.php for now.
                           They need to be removed from there and added here (+extending test cases). */
@@ -98,7 +101,7 @@ final class notification_mail_test extends \advanced_testcase {
     private function helper_course_set_up(): void {
         $datagenerator = $this->getDataGenerator();
         $plugingenerator = $datagenerator->get_plugin_generator('mod_moodleoverflow');
-        $this->testdata->mailsink = $this->redirectEmails();
+        $this->testdata->mailsink = $this->redirect_mails();
         $this->testdata->messagesink = $this->redirectMessages();
         // Create a new course.
         $this->testdata->course = $datagenerator->create_course();
@@ -115,28 +118,10 @@ final class notification_mail_test extends \advanced_testcase {
         $datagenerator->enrol_user($this->testdata->student1->id, $this->testdata->course->id, 'student');
         $datagenerator->enrol_user($this->testdata->student2->id, $this->testdata->course->id, 'student');
 
-        // Change configs so that mails will be sent immediately.
-        set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
-        set_config('maxeditingtime', -10, 'moodleoverflow');
-        unset_config('noemailever');
-
         // Create a moodleoverflow with a discussion from the teacher.
         $options = ['course' => $this->testdata->course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $this->testdata->moodleoverflow = $datagenerator->create_module('moodleoverflow', $options);
         $this->testdata->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->testdata->moodleoverflow->id);
         $this->testdata->discussion = $plugingenerator->post_to_forum($this->testdata->moodleoverflow, $this->testdata->teacher);
-    }
-
-    /**
-     * Runs the task to send notification mails.
-     * @return false|string
-     */
-    private function helper_run_task() {
-        $mailtask = new send_mails();
-        ob_start();
-        $mailtask->execute();
-        $this->testdata->output = ob_get_contents();
-        ob_end_clean();
-        return false;
     }
 }

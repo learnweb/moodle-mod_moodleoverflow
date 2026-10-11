@@ -24,7 +24,8 @@
 namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\local\models\discussion;
-use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 /**
  * Tests if the functions from the discussion class are working correctly.
@@ -36,41 +37,20 @@ use mod_moodleoverflow\local\models\post;
  * @covers \mod_moodleoverflow\local\models\discussion
  */
 final class discussion_test extends \advanced_testcase {
-    /** @var \stdClass test course */
-    private $course;
+    use moodleoverflow_test_trait;
 
-    /** @var \stdClass coursemodule */
-    private $coursemodule;
+    /** @var moodleoverflow test moodleoverflow */
+    private $modflow;
 
-    /** @var \stdClass modulecontext */
-    private $modulecontext;
-
-    /** @var \stdClass test moodleoverflow */
-    private $moodleoverflow;
-
-    /** @var \stdClass test teacher */
-    private $teacher;
-
-    /** @var discussion a discussion */
+    /** @var discussion a discussion of the student */
     private $discussion;
-
-    /** @var post the post from the discussion */
-    private $post;
-
-    /** @var \mod_moodleoverflow_generator $generator */
-    private $generator;
 
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
-        $this->helper_course_set_up();
-    }
-
-    public function tearDown(): void {
-        // Clear all caches.
-        subscriptions::reset_moodleoverflow_cache();
-        subscriptions::reset_discussion_cache();
-        parent::tearDown();
+        $this->setup_course();
+        $this->modflow = $this->create_moodleoverflow();
+        $this->discussion = $this->generator->create_question($this->modflow, $this->student)->get_discussion();
     }
 
     /**
@@ -82,27 +62,27 @@ final class discussion_test extends \advanced_testcase {
         // Build a prepost object with important information.
         $time = time();
         $prepost = new \stdClass();
-        $prepost->userid = $this->teacher->id;
+        $prepost->userid = $this->student->id;
         $prepost->timenow = $time;
         $prepost->message = 'a message';
         $prepost->messageformat = 1;
         $prepost->reviewed = 0;
         $prepost->formattachments = null;
-        $prepost->modulecontext = $this->modulecontext;
+        $prepost->modulecontext = $this->modflow->get_context();
 
-        // Log in as the teacher.
-        $this->setUser($this->teacher);
+        // Log in as the student.
+        $this->setUser($this->student);
 
         // Build a new discussion object.
         $discussion = discussion::construct_without_id(
             $this->course->id,
-            $this->moodleoverflow->id,
+            $this->modflow->id,
             'Discussion Topic',
             0,
-            $this->teacher->id,
+            $this->student->id,
             $time,
             $time,
-            $this->teacher->id
+            $this->student->id
         );
         $discussionid = $discussion->add($prepost);
         $posts = $discussion->get_posts();
@@ -127,7 +107,7 @@ final class discussion_test extends \advanced_testcase {
         global $DB;
         // Build the prepost object with necessary information.
         $prepost = new \stdClass();
-        $prepost->modulecontext = $this->modulecontext;
+        $prepost->modulecontext = $this->modflow->get_context();
 
         // Delete the discussion, but save the IDs first.
         $discussionid = $this->discussion->get_id();
@@ -140,35 +120,5 @@ final class discussion_test extends \advanced_testcase {
 
         $post = count($DB->get_records('moodleoverflow_posts', ['id' => $postid]));
         $this->assertEquals(0, $post);
-    }
-
-    /**
-     * This function creates:
-     * - a course with a moodleoverflow
-     * - a new discussion with a post. The post has an attachment.
-     */
-    private function helper_course_set_up() {
-        global $DB;
-        // Create a new course with a moodleoverflow forum.
-        $this->course = $this->getDataGenerator()->create_course();
-        $location = ['course' => $this->course->id];
-        $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
-        $this->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->moodleoverflow->id);
-        $this->modulecontext = \context_module::instance($this->coursemodule->id);
-
-        // Create a teacher.
-        $this->teacher = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'lastname' => 'Walter']);
-        $this->getDataGenerator()->enrol_user($this->teacher->id, $this->course->id, 'student');
-
-        // Create a discussion started from the teacher.
-        $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
-        $discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->teacher);
-
-        // Get the discussion and post object.
-        $discussionrecord = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion[0]->id]);
-        $postrecord = $DB->get_record('moodleoverflow_posts', ['id' => $discussion[1]->id]);
-
-        $this->discussion = discussion::from_record($discussionrecord);
-        $this->post = post::from_record($postrecord);
     }
 }

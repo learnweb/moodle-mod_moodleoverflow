@@ -23,8 +23,10 @@
  */
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_daily_mails;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -34,7 +36,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
 
 /**
- * Class mod_moodleoverflow_dailymail_testcase.
+ * PHPUnit tests for the daily mail digest.
  *
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
@@ -42,14 +44,16 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow\task\send_daily_mails::execute
  */
 final class dailymail_test extends \advanced_testcase {
-    /** @var stdClass test environment
-     * This Class contains the test environment:
-     * - the message sink to check if mails were sent.
-     * - a course, moodleoverflow, coursemodule (cm) and discussion instance.
-     * - a teacher and a student user.
-     * - the moodleoverflow generator.
-     */
-    private $env;
+    use moodleoverflow_test_trait;
+
+    /** @var \phpunit_phpmailer_sink catches the sent mails */
+    private $sink;
+
+    /** @var moodleoverflow the moodleoverflow with forced subscription */
+    private $modflow;
+
+    /** @var stdClass the discussion of the student */
+    private $discussion;
 
     /**
      * Test setUp.
@@ -57,28 +61,13 @@ final class dailymail_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
-        $this->env = new stdClass();
-
-        set_config('maxeditingtime', -10, 'moodleoverflow');
-        unset_config('noemailever');
-        $this->env->sink = $this->redirectEmails();
+        $this->sink = $this->redirect_mails();
         $this->preventResetByRollback();
 
         // Create a new course with a moodleoverflow forum.
-        $this->env->course = $this->getDataGenerator()->create_course();
-        $location = ['course' => $this->env->course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
-        $this->env->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
-        $this->env->cm = get_coursemodule_from_instance('moodleoverflow', $this->env->moodleoverflow->id);
-    }
-
-    /**
-     * Test tearDown.
-     */
-    public function tearDown(): void {
-        // Clear all caches.
-        subscriptions::reset_moodleoverflow_cache();
-        subscriptions::reset_discussion_cache();
-        parent::tearDown();
+        $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
+        $this->course = $this->getDataGenerator()->create_course();
+        $this->modflow = $this->create_moodleoverflow(['forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE]);
     }
 
     // Helper functions.
@@ -88,33 +77,25 @@ final class dailymail_test extends \advanced_testcase {
      * @param int $maildigest The maildigest setting: 0 = off , 1 = on
      */
     public function helper_test_set_up($maildigest) {
-        $this->env->generator = $this->getDataGenerator();
         // Create a user enrolled in the course as student.
-        $this->env->teacher = $this->env->generator->create_user(['firstname' => 'Tamaro', 'email' => 'tamaromail@example.com',
+        $this->teacher = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'email' => 'tamaromail@example.com',
                                                               'maildigest' => $maildigest, ]);
-        $this->env->student = $this->env->generator->create_user(['firstname' => 'Student1', 'email' => 'student1mail@example.com',
+        $this->student = $this->getDataGenerator()->create_user(['firstname' => 'Student1', 'email' => 'student1mail@example.com',
                                                               'maildigest' => $maildigest, ]);
-        $this->env->generator->enrol_user($this->env->teacher->id, $this->env->course->id, 'teacher');
-        $this->env->generator->enrol_user($this->env->student->id, $this->env->course->id, 'teacher');
+        $this->getDataGenerator()->enrol_user($this->teacher->id, $this->course->id, 'teacher');
+        $this->getDataGenerator()->enrol_user($this->student->id, $this->course->id, 'teacher');
 
         // Create a new discussion and post within the moodleoverflow.
-        $this->env->plugingenerator = $this->env->generator->get_plugin_generator('mod_moodleoverflow');
-        $this->env->discussions = $this->env->plugingenerator->post_to_forum($this->env->moodleoverflow, $this->env->student);
+        [$this->discussion] = $this->generator->post_to_forum($this->modflow, $this->student);
     }
 
     /**
      * Run the send daily mail task.
-     * @return false|string
+     * @return string
      */
     private function helper_run_send_daily_mails() {
-        $dailymailtask = new send_daily_mails();
-        $notificationmailtask = new send_mails();
-        $notificationmailtask->execute();
-        ob_start();
-        $dailymailtask->execute();
-        $output = ob_get_contents();
-        ob_end_clean();
-        return $output;
+        $this->run_task(new send_mails());
+        return $this->run_task(new send_daily_mails());
     }
 
     // Begin of test functions.
@@ -128,7 +109,7 @@ final class dailymail_test extends \advanced_testcase {
 
         // Send a mail and test if the mail was sent.
         $this->helper_run_send_daily_mails();
-        $messages = $this->env->sink->count();
+        $messages = $this->sink->count();
 
         $this->assertEquals(1, $messages);
     }
@@ -141,21 +122,21 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_test_set_up('1');
 
         // Create another user, course and a moodleoverflow post.
-        $course = $this->env->generator->create_course();
+        $course = $this->getDataGenerator()->create_course();
         $location = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
-        $moodleoverflow = $this->env->generator->create_module('moodleoverflow', $location);
-        $student = $this->env->generator->create_user(['firstname' => 'Student2', 'email' => 'student2@example.com',
+        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
+        $student = $this->getDataGenerator()->create_user(['firstname' => 'Student2', 'email' => 'student2@example.com',
                                                            'maildigest' => '1', ]);
-        $teacher = $this->env->generator->create_user(['firstname' => 'Teacher2', 'email' => 'teacher2@example.com',
+        $teacher = $this->getDataGenerator()->create_user(['firstname' => 'Teacher2', 'email' => 'teacher2@example.com',
                                                             'maildigest' => '1', ]);
-        $this->env->generator->enrol_user($student->id, $course->id, 'student');
-        $this->env->generator->enrol_user($teacher->id, $course->id, 'teacher');
-        $discussion = $this->env->plugingenerator->post_to_forum($moodleoverflow, $student);
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'teacher');
+        $discussion = $this->generator->post_to_forum($moodleoverflow, $student);
 
         // Send the mails.
         $this->helper_run_send_daily_mails();
-        $messages = $this->env->sink->count();
-        $content = $this->env->sink->get_messages();
+        $messages = $this->sink->count();
+        $content = $this->sink->get_messages();
 
         // There should be 2 mails.
         $this->assertEquals(2, $messages);
@@ -165,17 +146,17 @@ final class dailymail_test extends \advanced_testcase {
         $secondmail = $content[1];
         // Depending on the order of the mails, check the recipient and the discussion that is addressed.
         if ($firstmail->to == "tamaromail@example.com") {
-            $this->assertStringContainsString($this->env->discussions[0]->name, $firstmail->body);
+            $this->assertStringContainsString($this->discussion->name, $firstmail->body);
             $this->assertStringNotContainsString($discussion[0]->name, $firstmail->body);
             $this->assertEquals('teacher2@example.com', $secondmail->to);
             $this->assertStringContainsString($discussion[0]->name, $secondmail->body);
-            $this->assertStringNotContainsString($this->env->discussions[0]->name, $secondmail->body);
+            $this->assertStringNotContainsString($this->discussion->name, $secondmail->body);
         } else {
             $this->assertEquals('teacher2@example.com', $firstmail->to);
             $this->assertStringContainsString($discussion[0]->name, $firstmail->body);
-            $this->assertStringNotContainsString($this->env->discussions[0]->name, $firstmail->body);
+            $this->assertStringNotContainsString($this->discussion->name, $firstmail->body);
             $this->assertEquals('tamaromail@example.com', $secondmail->to);
-            $this->assertStringContainsString($this->env->discussions[0]->name, $secondmail->body);
+            $this->assertStringContainsString($this->discussion->name, $secondmail->body);
             $this->assertStringNotContainsString($discussion[0]->name, $secondmail->body);
         }
     }
@@ -191,17 +172,17 @@ final class dailymail_test extends \advanced_testcase {
 
         // Send the mails and count the messages.
         $this->helper_run_send_daily_mails();
-        $content = $this->env->sink->get_messages();
+        $content = $this->sink->get_messages();
         $message = $content[0]->body;
         $message = str_replace(["\n\r", "\n", "\r"], '', $message);
-        $messagecount = $this->env->sink->count();
+        $messagecount = $this->sink->count();
 
         // Build the text that the mail should have.
         // Text structure at get_string('digestunreadpost', moodleoverflow).
-        $linktocourse = '<a href=3D"https://www.example.com/mood=le/course/view.php?id=3D' . $this->env->course->id;
-        $linktoforum = '<a href=3D"https://www.=example.com/moodle/mod/moodleoverflow/view.php?m=3D' . $this->env->cm->instance;
+        $linktocourse = '<a href=3D"https://www.example.com/mood=le/course/view.php?id=3D' . $this->course->id;
+        $linktoforum = '<a href=3D"https://www.=example.com/moodle/mod/moodleoverflow/view.php?m=3D' . $this->modflow->id;
         $linktodiscussion = '<a href=3D"https://www.example.com/moodle/mod/moodleoverflow/d=iscussion.php?d=3D'
-                            . $this->env->discussions[0]->id;
+                            . $this->discussion->id;
 
         $this->assertStringContainsString($linktocourse, $message);
         $this->assertStringContainsString($linktoforum, $message);
@@ -219,7 +200,7 @@ final class dailymail_test extends \advanced_testcase {
 
         // Now send the mails and test if no mail was sent.
         $this->helper_run_send_daily_mails();
-        $messages = $this->env->sink->get_messages()[0];
+        $messages = $this->sink->get_messages()[0];
 
         // The teacher now gets a notification mail. The subject of the mail is now different.
         $this->assertNotEquals($messages->subject, get_string('tasksenddailymails', 'mod_moodleoverflow'));
@@ -237,7 +218,7 @@ final class dailymail_test extends \advanced_testcase {
         $this->helper_run_send_daily_mails();
 
         // Now check the database if the records of the users are deleted.
-        $records = $DB->get_records('moodleoverflow_mail_info', ['userid' => $this->env->teacher->id]);
+        $records = $DB->get_records('moodleoverflow_mail_info', ['userid' => $this->teacher->id]);
         $this->assertEmpty($records);
     }
 }

@@ -18,7 +18,7 @@ namespace mod_moodleoverflow;
 
 
 use dml_exception;
-use stdClass;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 /**
  * Unit tests for mod_moodleoverflow.
@@ -38,23 +38,13 @@ use stdClass;
  * @covers \mod_moodleoverflow\
  */
 final class activity_completion_test extends \advanced_testcase {
-    /**
-     * @var stdClass The test environment data.
-     * This Class contains the test data:
-     */
-    private stdClass $env;
+    use moodleoverflow_test_trait;
 
     // Construct functions.
     public function setUp(): void {
         parent::setUp();
-
-        // Build the test data.
-        $this->env = new stdClass();
-        $this->env->course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
-        $this->env->teacher = $this->getDataGenerator()->create_user();
-        $this->getDataGenerator()->enrol_user($this->env->teacher->id, $this->env->course->id, 'teacher');
-
         $this->resetAfterTest();
+        $this->setup_course(['enablecompletion' => 1]);
     }
 
     // Tests.
@@ -69,13 +59,13 @@ final class activity_completion_test extends \advanced_testcase {
         global $DB;
         // Create a moodleoverflow with an activity completion that has a reminder for the next day.
 
-        $this->env->date = time() + 86400;
+        $date = time() + DAYSECS;
         $this->getDataGenerator()->create_module('moodleoverflow', [
-            'course' => $this->env->course->id,
-            'courseid' => $this->env->course->id,
+            'course' => $this->course->id,
+            'courseid' => $this->course->id,
             'name' => "Modflow1",
             'intro' => "Moodleoverflow with activity completion",
-        ], ['completion' => COMPLETION_TRACKING_MANUAL, 'completionexpected' => $this->env->date]);
+        ], ['completion' => COMPLETION_TRACKING_MANUAL, 'completionexpected' => $date]);
 
         $result = $DB->get_records('event');
 
@@ -83,6 +73,6 @@ final class activity_completion_test extends \advanced_testcase {
         $this->assertEquals(1, count($result));
         $this->assertEquals("Modflow1 should be completed", array_values($result)[0]->name);
         $this->assertEquals("expectcompletionon", array_values($result)[0]->eventtype);
-        $this->assertEquals($this->env->date, array_values($result)[0]->timestart);
+        $this->assertEquals($date, array_values($result)[0]->timestart);
     }
 }

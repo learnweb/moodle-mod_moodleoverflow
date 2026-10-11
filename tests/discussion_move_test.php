@@ -21,6 +21,7 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -38,17 +39,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @covers \mod_moodleoverflow\local\models\discussion
  */
 final class discussion_move_test extends \advanced_testcase {
-    /** @var \stdClass The course of both moodleoverflows. */
-    private \stdClass $course;
-
-    /** @var \stdClass A teacher who may move discussions and rates the answer. */
-    private \stdClass $teacher;
-
-    /** @var \stdClass A student who asks the question. */
-    private \stdClass $student;
-
-    /** @var \stdClass A student who answers the question. */
-    private \stdClass $answerer;
+    use moodleoverflow_test_trait;
 
     /** @var moodleoverflow The moodleoverflow the discussion is moved from. */
     private moodleoverflow $source;
@@ -59,47 +50,42 @@ final class discussion_move_test extends \advanced_testcase {
     /** @var discussion The discussion that is moved. */
     private discussion $discussion;
 
-    /** @var \stdClass The question with an embedded image. */
-    private \stdClass $question;
+    /** @var post The question with an embedded image. */
+    private post $question;
 
-    /** @var \stdClass The answer with an attachment, upvoted by the teacher. */
-    private \stdClass $answer;
+    /** @var post The answer of the other student with an attachment, upvoted by the teacher. */
+    private post $answer;
 
     public function setUp(): void {
         global $DB;
         parent::setUp();
         $this->resetAfterTest();
 
-        $this->course = $this->getDataGenerator()->create_course();
-        $this->teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
-        $this->student = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
-        $this->answerer = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
-        $this->source = $this->helper_create_moodleoverflow();
-        $this->destination = $this->helper_create_moodleoverflow();
+        $this->setup_course();
+        $options = ['grademaxgrade' => 100, 'gradescalefactor' => 1];
+        $this->source = $this->create_moodleoverflow($options);
+        $this->destination = $this->create_moodleoverflow($options);
 
         // A question with an embedded image and an answer with an attachment.
-        $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
-        [$discussionrecord, $this->question] = $generator->post_to_forum($this->source->get_db_object(), $this->student);
-        $this->answer = $generator->reply_to_post($this->question, $this->answerer);
-        $this->helper_create_file('post', $this->question->id);
-        $this->helper_create_file('attachment', $this->answer->id);
-        $DB->set_field('moodleoverflow_posts', 'attachment', 1, ['id' => $this->answer->id]);
+        $this->question = $this->generator->create_question($this->source, $this->student);
+        $this->answer = $this->generator->create_reply($this->question, $this->otherstudent);
+        $this->discussion = $this->question->get_discussion();
+        $this->generator->create_post_file($this->question, 'post', 'post.txt');
+        $this->generator->create_post_file($this->answer, 'attachment', 'attachment.txt');
 
         // The teacher upvotes the answer; the answerer's grade in the source is based on it.
-        $generator->create_rating(['moodleoverflowid' => $this->source->id, 'discussionid' => $discussionrecord->id,
-            'userid' => $this->teacher->id, 'postid' => $this->answer->id, 'rating' => RATING_UPVOTE]);
+        $this->generator->create_rating($this->answer, $this->teacher, RATING_UPVOTE);
         moodleoverflow_update_all_grades_for_instance($this->source);
 
         // Rows of other tables that store the moodleoverflow of the discussion.
-        $DB->insert_record('moodleoverflow_read', ['userid' => $this->student->id, 'postid' => $this->answer->id,
-            'discussionid' => $discussionrecord->id, 'moodleoverflowid' => $this->source->id, 'firstread' => time(),
+        $discussionid = $this->discussion->get_id();
+        $DB->insert_record('moodleoverflow_read', ['userid' => $this->student->id, 'postid' => $this->answer->get_id(),
+            'discussionid' => $discussionid, 'moodleoverflowid' => $this->source->id, 'firstread' => time(),
             'lastread' => time(), ]);
-        $DB->insert_record('moodleoverflow_discuss_subs', ['userid' => $this->answerer->id,
-            'moodleoverflow' => $this->source->id, 'discussion' => $discussionrecord->id, 'preference' => time(), ]);
+        $DB->insert_record('moodleoverflow_discuss_subs', ['userid' => $this->otherstudent->id,
+            'moodleoverflow' => $this->source->id, 'discussion' => $discussionid, 'preference' => time(), ]);
         $DB->insert_record('moodleoverflow_mail_info', ['userid' => $this->student->id, 'courseid' => $this->course->id,
-            'forumid' => $this->source->id, 'forumdiscussionid' => $discussionrecord->id, 'numberofposts' => 1, ]);
-
-        $this->discussion = discussion::from_id($discussionrecord->id);
+            'forumid' => $this->source->id, 'forumdiscussionid' => $discussionid, 'numberofposts' => 1, ]);
     }
 
     /**
@@ -109,7 +95,7 @@ final class discussion_move_test extends \advanced_testcase {
         global $DB;
         $sink = $this->redirectEvents();
         $upvote = (int) get_config('moodleoverflow', 'votescaleupvote');
-        $this->assertEquals($upvote, $this->helper_get_grade($this->source, $this->answerer));
+        $this->assertEquals($upvote, $this->helper_get_grade($this->source, $this->otherstudent));
 
         service\discussion::move($this->discussion, $this->destination, $this->teacher->id);
 
@@ -119,23 +105,23 @@ final class discussion_move_test extends \advanced_testcase {
         $this->assertEquals($this->destination->id, $modflowid);
 
         // Files: the posts find them in the destination, nothing is left in the source.
-        $attachments = post::from_id($this->answer->id)->get_attachment_files();
+        $attachments = post::from_id($this->answer->get_id())->get_attachment_files();
         $this->assertCount(1, $attachments);
         $this->assertEquals('attachment.txt', reset($attachments)->get_filename());
         $fs = get_file_storage();
         $destinationcontextid = $this->destination->get_context()->id;
-        $this->assertFalse($fs->is_area_empty($destinationcontextid, 'mod_moodleoverflow', 'post', $this->question->id));
-        foreach (['post' => $this->question->id, 'attachment' => $this->answer->id] as $filearea => $postid) {
+        $this->assertFalse($fs->is_area_empty($destinationcontextid, 'mod_moodleoverflow', 'post', $this->question->get_id()));
+        foreach (['post' => $this->question->get_id(), 'attachment' => $this->answer->get_id()] as $filearea => $postid) {
             $this->assertTrue($fs->is_area_empty($this->source->get_context()->id, 'mod_moodleoverflow', $filearea, $postid));
         }
 
         // Ratings, and with them reputation and grades.
         $this->assertTrue($DB->record_exists('moodleoverflow_ratings', ['discussionid' => $id,
             'moodleoverflowid' => $this->destination->id]));
-        $this->assertEquals(0, ratings::get_reputation_instance($this->source->id, $this->answerer->id));
-        $this->assertEquals($upvote, ratings::get_reputation_instance($this->destination->id, $this->answerer->id));
-        $this->assertEquals(0, $this->helper_get_grade($this->source, $this->answerer));
-        $this->assertEquals($upvote, $this->helper_get_grade($this->destination, $this->answerer));
+        $this->assertEquals(0, ratings::get_reputation_instance($this->source->id, $this->otherstudent->id));
+        $this->assertEquals($upvote, ratings::get_reputation_instance($this->destination->id, $this->otherstudent->id));
+        $this->assertEquals(0, $this->helper_get_grade($this->source, $this->otherstudent));
+        $this->assertEquals($upvote, $this->helper_get_grade($this->destination, $this->otherstudent));
 
         // Read records, discussion subscriptions and the digest queue.
         $this->assertTrue($DB->record_exists('moodleoverflow_read', ['discussionid' => $id,
@@ -174,36 +160,7 @@ final class discussion_move_test extends \advanced_testcase {
         $this->assertEquals($this->source->id, $DB->get_field('moodleoverflow_discussions', 'moodleoverflow', ['id' => $id]));
         $this->assertTrue($DB->record_exists('moodleoverflow_ratings', ['discussionid' => $id,
             'moodleoverflowid' => $this->source->id]));
-        $this->assertCount(1, post::from_id($this->answer->id)->get_attachment_files());
-    }
-
-    /**
-     * Creates a graded moodleoverflow in the course.
-     *
-     * @return moodleoverflow
-     */
-    private function helper_create_moodleoverflow(): moodleoverflow {
-        $options = ['course' => $this->course->id, 'grademaxgrade' => 100, 'gradescalefactor' => 1];
-        $record = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-        return moodleoverflow::from_id($record->id);
-    }
-
-    /**
-     * Creates a text file in a file area of a post in the source.
-     *
-     * @param string $filearea 'attachment' or 'post'
-     * @param int $postid The post id, used as item id
-     * @return void
-     */
-    private function helper_create_file(string $filearea, int $postid): void {
-        get_file_storage()->create_file_from_string([
-            'contextid' => $this->source->get_context()->id,
-            'component' => 'mod_moodleoverflow',
-            'filearea' => $filearea,
-            'itemid' => $postid,
-            'filepath' => '/',
-            'filename' => "$filearea.txt",
-        ], 'content');
+        $this->assertCount(1, post::from_id($this->answer->get_id())->get_attachment_files());
     }
 
     /**

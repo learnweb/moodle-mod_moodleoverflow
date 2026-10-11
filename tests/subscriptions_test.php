@@ -25,6 +25,7 @@ namespace mod_moodleoverflow;
 
 use advanced_testcase;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -32,7 +33,7 @@ global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
 /**
- * Class mod_moodleoverflow_subscriptions_testcase.
+ * PHPUnit tests for the subscriptions class.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
@@ -40,73 +41,15 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \subscriptions
  */
 final class subscriptions_test extends advanced_testcase {
+    use moodleoverflow_test_trait;
+
     /**
      * Test setUp.
      */
     public function setUp(): void {
         parent::setUp();
-        // Clear all caches.
-        subscriptions::reset_moodleoverflow_cache();
-        subscriptions::reset_discussion_cache();
-    }
-
-    /**
-     * Test tearDown.
-     */
-    public function tearDown(): void {
-        // Clear all caches.
-        subscriptions::reset_moodleoverflow_cache();
-        subscriptions::reset_discussion_cache();
-        parent::tearDown();
-    }
-
-    /**
-     * Helper to create the required number of users in the specified course.
-     * Users are enrolled as students.
-     *
-     * @param  \stdClass $course The course object
-     * @param int      $count  The number of users to create
-     *
-     * @return array The users created
-     */
-    protected function helper_create_users($course, $count) {
-        $users = [];
-
-        for ($i = 0; $i < $count; $i++) {
-            $user = $this->getDataGenerator()->create_user();
-            $this->getDataGenerator()->enrol_user($user->id, $course->id);
-            $users[] = $user;
-        }
-
-        return $users;
-    }
-
-    /**
-     * Crate a new discussion and post within the moodleoverflow.
-     *
-     * @param  \stdClass $moodleoverflow The moodleoverflow to post in
-     * @param  \stdClass $author         The author to post as
-     *
-     * @return array Array containing the discussion object and the post object.
-     */
-    protected function helper_post_to_moodleoverflow($moodleoverflow, $author) {
-        global $DB;
-
-        // Retrieve the generator.
-        $generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
-
-        // Create a discussion in the moodleoverflow, add a post to that discussion.
-        $record = new  \stdClass();
-        $record->course = $moodleoverflow->course;
-        $record->userid = $author->id;
-        $record->moodleoverflow = $moodleoverflow->id;
-        $discussion = $generator->create_discussion($record, $moodleoverflow);
-
-        // Retrieve the post which was created.
-        $post = $DB->get_record('moodleoverflow_posts', ['discussion' => $discussion->id]);
-
-        // Return the discussion and the post.
-        return [$discussion->id, $post];
+        $this->resetAfterTest();
+        $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
     }
 
     /**
@@ -115,9 +58,6 @@ final class subscriptions_test extends advanced_testcase {
     public function test_subscription_modes(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id];
@@ -125,7 +65,7 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($moodleoverflow->cmid);
 
         // Create a user enrolled in the course as a student.
-         [$user] = $this->helper_create_users($course, 1);
+         [$user] = $this->create_students(1, $course);
 
         // Must be logged in as the current user.
         $this->setUser($user);
@@ -167,9 +107,6 @@ final class subscriptions_test extends advanced_testcase {
      * Test fetching unsubscribable moodleoverflows.
      */
     public function test_unsubscribable_moodleoverflows(): void {
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id];
@@ -180,7 +117,7 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create a user enrolled in the course as a student.
-         [$user] = $this->helper_create_users($course, 1);
+         [$user] = $this->create_students(1, $course);
 
         // Must be logged in as the current user.
         $this->setUser($user);
@@ -218,22 +155,16 @@ final class subscriptions_test extends advanced_testcase {
     public function test_moodleoverflow_toggle_as_other(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course with a moodleoverflow. Get the module context and enroll a user in the course as a student.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
-         [$author] = $this->helper_create_users($course, 1);
+         [$author] = $this->create_students(1, $course);
 
         // Post a discussion to the moodleoverflow.
-        $discussion = new \stdClass();
-        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-        unset($post);
-        $discussion->moodleoverflow = $moodleoverflow->id;
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
 
         // Check that the user is currently not subscribed to the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
@@ -319,30 +250,26 @@ final class subscriptions_test extends advanced_testcase {
      * Test that a user unsubscribed from a moodleoverflow is not subscribed to it's discussions by default.
      */
     public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed(): void {
-        // Reset the database after the test.
-        $this->resetAfterTest(true);
-
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create users enrolled in the course as students.
-        [$author] = $this->helper_create_users($course, 1);
+        [$author] = $this->create_students(1, $course);
 
         // Check that the user is currently not subscribed to the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $moodleoverflow));
 
         // Post a discussion to the moodleoverflow.
-        [$discussion, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-        unset($post);
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
 
         // Check that the user is unsubscribed from the discussion too.
         $this->assertFalse(subscriptions::is_subscribed(
             $author->id,
             $moodleoverflow,
             $moodleoverflow,
-            $discussion
+            $discussion->id
         ));
     }
 
@@ -350,9 +277,6 @@ final class subscriptions_test extends advanced_testcase {
      * Test that the act of subscribing to a moodleoverflow subscribes the user to it's discussions by default.
      */
     public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed(): void {
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
@@ -363,7 +287,7 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create users enrolled in the course as students.
-        [$author] = $this->helper_create_users($course, 1);
+        [$author] = $this->create_students(1, $course);
 
         // Enrol the user in the moodleoverflow.
         $this->assertTrue(subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext));
@@ -372,20 +296,16 @@ final class subscriptions_test extends advanced_testcase {
         $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // Post a discussion to the moodleoverflow.
-        [$discussion, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-        unset($post);
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
 
         // Check that the user is subscribed to the discussion too.
-        $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion));
+        $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext, $discussion->id));
     }
 
     /**
      * Test that a user unsubscribed from a moodleoverflow can be subscribed to a discussion.
      */
     public function test_moodleoverflow_discussion_subscription_moodleoverflow_unsubscribed_discussion_subscribed(): void {
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course and a new moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
@@ -396,16 +316,13 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create a user enrolled in the course as a student.
-        [$author] = $this->helper_create_users($course, 1);
+        [$author] = $this->create_students(1, $course);
 
         // Check that the user is currently not subscribed to the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $moodleoverflow));
 
         // Post a discussion to the moodleoverflow.
-        $discussion = new \stdClass();
-        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-        unset($post);
-        $discussion->moodleoverflow = $moodleoverflow->id;
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
 
         // Attempting to unsubscribe from the discussion should not make a change.
         $this->assertFalse(subscriptions::unsubscribe_user_from_discussion(
@@ -437,9 +354,6 @@ final class subscriptions_test extends advanced_testcase {
      * Test that a user subscribed to a moodleoverflow can be unsubscribed from a discussion.
      */
     public function test_moodleoverflow_discussion_subscription_moodleoverflow_subscribed_discussion_unsubscribed(): void {
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
@@ -450,7 +364,7 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create two users enrolled in the course as students.
-        [$author] = $this->helper_create_users($course, 2);
+        [$author] = $this->create_students(2, $course);
 
         // Enrol the student in the moodleoverflow.
         subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
@@ -459,10 +373,7 @@ final class subscriptions_test extends advanced_testcase {
         $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // Post a discussion to the moodleoverflow.
-        $discussion = new \stdClass();
-        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-        unset($post);
-        $discussion->moodleoverflow = $moodleoverflow->id;
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
 
         // Then unsubscribe them from the discussion.
         subscriptions::unsubscribe_user_from_discussion($author->id, $discussion, $modulecontext);
@@ -484,23 +395,17 @@ final class subscriptions_test extends advanced_testcase {
      */
     public function test_moodleoverflow_discussion_toggle_moodleoverflow_subscribed(): void {
         global $DB;
-        // Reset the database after testing.
-        $this->resetAfterTest();
-
         // Create a course with a moodleoverflow and enroll two users in the course as students and in the moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
-        [$author] = $this->helper_create_users($course, 2);
+        [$author] = $this->create_students(2, $course);
         subscriptions::subscribe_user($author->id, $moodleoverflow, $modulecontext);
 
         // Post a discussion to the moodleoverflow.
-        $discussion = new \stdClass();
-        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-        unset($post);
-        $discussion->moodleoverflow = $moodleoverflow->id;
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
 
         // Check that the user is currently subscribed to the moodleoverflow and initially subscribed to that discussion.
         $this->assertTrue(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
@@ -588,25 +493,19 @@ final class subscriptions_test extends advanced_testcase {
     public function test_moodleoverflow_discussion_toggle_moodleoverflow_unsubscribed(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow and get the module context. Create two users enrolled inthe course as students.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
-        [$author] = $this->helper_create_users($course, 2);
+        [$author] = $this->create_students(2, $course);
 
         // Check that the user is currently unsubscribed to the moodleoverflow.
         $this->assertFalse(subscriptions::is_subscribed($author->id, $moodleoverflow, $modulecontext));
 
         // Post a discussion to the moodleoverflow.
-        $discussion = new \stdClass();
-        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-        unset($post);
-        $discussion->moodleoverflow = $moodleoverflow->id;
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
 
         // Declare the options for the subscription tables.
         $discussoptions = ['userid' => $author->id, 'discussion' => $discussion->id];
@@ -677,9 +576,6 @@ final class subscriptions_test extends advanced_testcase {
     public function test_fetch_subscribed_users_subscriptions(): void {
         global $CFG;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow. where users are initially subscribed and get the module context.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
@@ -689,7 +585,7 @@ final class subscriptions_test extends advanced_testcase {
 
         // Create five user enrolled in the course as a student.
         $usercount = 5;
-        $users = $this->helper_create_users($course, $usercount);
+        $users = $this->create_students($usercount, $course);
 
         // All users should be subscribed.
         $subscribers = subscriptions::get_subscribed_users($moodleoverflow, $modulecontext);
@@ -715,9 +611,6 @@ final class subscriptions_test extends advanced_testcase {
      * subscribed.
      */
     public function test_fetch_subscribed_users_forced(): void {
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow. where users are initially subscribed.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
@@ -729,7 +622,7 @@ final class subscriptions_test extends advanced_testcase {
 
         // Create some user enrolled in the course as a student.
         $usercount = 5;
-        $this->helper_create_users($course, $usercount);
+        $this->create_students($usercount, $course);
 
         // All users should be subscribed.
         $subscribers = subscriptions::get_subscribed_users($moodleoverflow, $modulecontext);
@@ -742,9 +635,6 @@ final class subscriptions_test extends advanced_testcase {
     public function test_fetch_subscribed_users_discussion_subscriptions(): void {
         global $DB;
 
-        // Reset after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow. where users are initially subscribed.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
@@ -756,13 +646,10 @@ final class subscriptions_test extends advanced_testcase {
 
         // Create some user enrolled in the course as a student.
         $usercount = 5;
-        $users = $this->helper_create_users($course, $usercount);
+        $users = $this->create_students($usercount, $course);
 
         // Create the discussion.
-        $discussion = new \stdClass();
-        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $users[0]);
-        unset($post);
-        $discussion->moodleoverflow = $moodleoverflow->id;
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $users[0]);
 
         // All users should be subscribed.
         $subscribers = subscriptions::get_subscribed_users($moodleoverflow, $modulecontext);
@@ -818,8 +705,6 @@ final class subscriptions_test extends advanced_testcase {
     public function test_force_subscribed_to_moodleoverflow(): void {
         global $DB;
         // Reset database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
 
@@ -854,16 +739,13 @@ final class subscriptions_test extends advanced_testcase {
     public function test_subscription_cache_prefill(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create some users.
-        $users = $this->helper_create_users($course, 20);
+        $users = $this->create_students(20, $course);
 
         // Reset the subscription cache.
         subscriptions::reset_moodleoverflow_cache();
@@ -888,9 +770,6 @@ final class subscriptions_test extends advanced_testcase {
     public function test_subscription_cache_fill(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
 
@@ -898,7 +777,7 @@ final class subscriptions_test extends advanced_testcase {
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create some users.
-        $users = $this->helper_create_users($course, 20);
+        $users = $this->create_students(20, $course);
 
         // Reset the subscription cache.
         subscriptions::reset_moodleoverflow_cache();
@@ -920,9 +799,6 @@ final class subscriptions_test extends advanced_testcase {
     public function test_discussion_subscription_cache_fill_for_course(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
 
@@ -935,7 +811,7 @@ final class subscriptions_test extends advanced_testcase {
         $initialobject = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create some users and keep a reference to the first user.
-        $users = $this->helper_create_users($course, 20);
+        $users = $this->create_students(20, $course);
         $user = reset($users);
 
         // Reset the subscription caches.
@@ -974,9 +850,6 @@ final class subscriptions_test extends advanced_testcase {
     public function test_discussion_subscription_cache_prefill(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
@@ -987,16 +860,13 @@ final class subscriptions_test extends advanced_testcase {
         $modulecontext = \context_module::instance($cm->id);
 
         // Create some users.
-        $users = $this->helper_create_users($course, 20);
+        $users = $this->create_students(20, $course);
 
         // Post some discussions to the moodleoverflow.
         $discussions = [];
         $author = $users[0];
         for ($i = 0; $i < 20; $i++) {
-            $discussion = new \stdClass();
-            [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-            unset($post);
-            $discussion->moodleoverflow = $moodleoverflow->id;
+            [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
             $discussions[] = $discussion;
         }
 
@@ -1041,25 +911,19 @@ final class subscriptions_test extends advanced_testcase {
     public function test_discussion_subscription_cache_fill(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_INITIALSUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
 
         // Create some users.
-        $users = $this->helper_create_users($course, 20);
+        $users = $this->create_students(20, $course);
 
         // Post some discussions to the moodleoverflow.
         $discussions = [];
         $author = $users[0];
         for ($i = 0; $i < 20; $i++) {
-            $discussion = new \stdClass();
-            [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $author);
-            unset($post);
-            $discussion->moodleoverflow = $moodleoverflow->id;
+            [$discussion] = $this->generator->post_to_forum($moodleoverflow, $author);
             $discussions[] = $discussion;
         }
 
@@ -1113,22 +977,16 @@ final class subscriptions_test extends advanced_testcase {
     public function test_moodleoverflow_subscribe_toggle_as_other_repeat_subscriptions(): void {
         global $DB;
 
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow and get the module context. Create a user enrolled in the course as a student.
         $course = $this->getDataGenerator()->create_course();
         $options = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
         $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
         $modulecontext = \context_module::instance($cm->id);
-        [$user] = $this->helper_create_users($course, 1);
+        [$user] = $this->create_students(1, $course);
 
         // Post a discussion to the moodleoverflow.
-        $discussion = new \stdClass();
-        [$discussion->id, $post] = $this->helper_post_to_moodleoverflow($moodleoverflow, $user);
-        unset($post);
-        $discussion->moodleoverflow = $moodleoverflow->id;
+        [$discussion] = $this->generator->post_to_forum($moodleoverflow, $user);
 
         // Declare the options for the subscription tables.
         $discussoptions = ['userid' => $user->id, 'discussion' => $discussion->id];
@@ -1210,8 +1068,6 @@ final class subscriptions_test extends advanced_testcase {
      * @return void
      */
     public function test_is_subscribable_logged_out($options): void {
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options['course'] = $course->id;
@@ -1230,8 +1086,6 @@ final class subscriptions_test extends advanced_testcase {
      */
     public function test_is_subscribable_is_guest($options): void {
         global $DB;
-        $this->resetAfterTest(true);
-
         // Create a guest user.
         $guest = $DB->get_record('user', ['username' => 'guest']);
         $this->setUser($guest);
@@ -1267,9 +1121,6 @@ final class subscriptions_test extends advanced_testcase {
      * @return void
      */
     public function test_is_subscribable_loggedin($options, $expect): void {
-        // Reset the database after testing.
-        $this->resetAfterTest(true);
-
         // Create a course, with a moodleoverflow.
         $course = $this->getDataGenerator()->create_course();
         $options['course'] = $course->id;

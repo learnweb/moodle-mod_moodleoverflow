@@ -26,8 +26,10 @@ namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\external\review_approve_post;
 use mod_moodleoverflow\external\review_reject_post;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_review_mails;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -35,7 +37,7 @@ global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
 /**
- * PHPUnit Tests for testing readtracking.
+ * PHPUnit tests for reviewing posts and the review mails.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
@@ -46,20 +48,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow\external\review_reject_post::execute
  */
 final class review_test extends \advanced_testcase {
-    /** @var \mod_moodleoverflow_generator $generator */
-    private $generator;
-    /**
-     * @var  \stdClass
-     */
-    private $teacher;
-    /**
-     * @var  \stdClass
-     */
-    private $student;
-    /**
-     * @var  \stdClass
-     */
-    private $course;
+    use moodleoverflow_test_trait;
+
     /**
      * @var \phpunit_message_sink
      */
@@ -74,9 +64,6 @@ final class review_test extends \advanced_testcase {
         parent::setUp();
         $this->resetAfterTest();
 
-        set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
-        set_config('maxeditingtime', -10, 'moodleoverflow');
-
         $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
 
         $this->course = $this->getDataGenerator()->create_course();
@@ -84,8 +71,7 @@ final class review_test extends \advanced_testcase {
         $this->teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $this->student = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
 
-        unset_config('noemailever');
-        $this->mailsink = $this->redirectEmails();
+        $this->mailsink = $this->redirect_mails();
     }
 
     /**
@@ -107,8 +93,7 @@ final class review_test extends \advanced_testcase {
     public function test_forum_review_everything(): void {
         global $DB;
 
-        $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
+        $options = ['needsreview' => review::EVERYTHING, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
 
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
@@ -119,12 +104,13 @@ final class review_test extends \advanced_testcase {
 
         $this->mailsink->clear();
 
-        $this->assertNull(review_approve_post::execute($posts['studentpost']->id));
+        $this->setUser($this->teacher);
+        $this->assertNull(review_approve_post::execute($posts['studentpost']->get_id()));
 
-        $this->run_send_notification_mails();
-        $this->run_send_review_mails();
+        $this->run_task(new send_mails());
+        $this->run_task(new send_review_mails());
 
-        $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->id]);
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->get_id()]);
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
         $this->assertNotNull($post->timereviewed ?? null);
 
@@ -133,23 +119,23 @@ final class review_test extends \advanced_testcase {
         $this->mailsink->clear();
 
         $this->setUser($this->student);
-        $studentanswer1 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
-        $studentanswer2 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
+        $studentanswer1 = $this->generator->create_reply($posts['teacherpost'], $this->student);
+        $studentanswer2 = $this->generator->create_reply($posts['teacherpost'], $this->student);
         $this->setAdminUser();
 
-        $this->run_send_notification_mails();
-        $this->run_send_review_mails();
+        $this->run_task(new send_mails());
+        $this->run_task(new send_review_mails());
 
         // There should be two review mails for the teacher.
         $this->assertEquals(2, $this->mailsink->count());
 
         $this->mailsink->clear();
 
-        $this->assertNotNull(review_approve_post::execute($studentanswer1->id));
-        $this->assertNull(review_reject_post::execute($studentanswer2->id, 'This post was not good!'));
+        $this->assertNotNull(review_approve_post::execute($studentanswer1->get_id()));
+        $this->assertNull(review_reject_post::execute($studentanswer2->get_id(), 'This post was not good!'));
 
-        $this->run_send_notification_mails();
-        $this->run_send_review_mails();
+        $this->run_task(new send_mails());
+        $this->run_task(new send_review_mails());
 
         // One review mail for the teacher and one notification mail for the student.
         $this->assertEquals(2, $this->mailsink->count());
@@ -161,7 +147,7 @@ final class review_test extends \advanced_testcase {
         $this->assertEquals($this->student->email, $rejectionmessage->to);
 
         // Check post was deleted.
-        $this->assertEquals(0, $DB->count_records('moodleoverflow_posts', ['id' => $studentanswer2->id]));
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_posts', ['id' => $studentanswer2->get_id()]));
     }
 
     /**
@@ -172,8 +158,7 @@ final class review_test extends \advanced_testcase {
     public function test_forum_review_only_questions(): void {
         global $DB;
 
-        $options = ['course' => $this->course->id, 'needsreview' => review::QUESTIONS,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
+        $options = ['needsreview' => review::QUESTIONS, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
@@ -182,20 +167,21 @@ final class review_test extends \advanced_testcase {
 
         $this->mailsink->clear();
 
-        $this->assertNull(review_approve_post::execute($posts['studentpost']->id));
+        $this->setUser($this->teacher);
+        $this->assertNull(review_approve_post::execute($posts['studentpost']->get_id()));
 
-        $this->run_send_notification_mails();
-        $this->run_send_review_mails();
+        $this->run_task(new send_mails());
+        $this->run_task(new send_review_mails());
 
-        $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->id]);
+        $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->get_id()]);
         $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
         $this->assertNotNull($post->timereviewed ?? null);
 
         // There should be one notification mail for the student for the approved post.
         $this->assertEquals(1, $this->mailsink->count());
 
-        $studentanswer1 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
-        $studentanswer2 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
+        $studentanswer1 = $this->generator->create_reply($posts['teacherpost'], $this->student);
+        $studentanswer2 = $this->generator->create_reply($posts['teacherpost'], $this->student);
 
         $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
     }
@@ -204,8 +190,7 @@ final class review_test extends \advanced_testcase {
      * Test reviews functionality when reviewing is allowed in admin settings.
      */
     public function test_forum_review_disallowed(): void {
-        $options = ['course' => $this->course->id, 'needsreview' => review::EVERYTHING,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE, ];
+        $options = ['needsreview' => review::EVERYTHING, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
 
         set_config('allowreview', 0, 'moodleoverflow');
 
@@ -218,37 +203,11 @@ final class review_test extends \advanced_testcase {
         $this->mailsink->clear();
 
         $this->setUser($this->student);
-        $studentanswer1 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
-        $studentanswer2 = $this->generator->reply_to_post($posts['teacherpost'], $this->student, false);
+        $studentanswer1 = $this->generator->create_reply($posts['teacherpost'], $this->student);
+        $studentanswer2 = $this->generator->create_reply($posts['teacherpost'], $this->student);
         $this->setAdminUser();
 
         $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
-    }
-
-    /**
-     * Run the send mails task.
-     * @return false|string
-     */
-    private function run_send_review_mails() {
-        $mailtask = new send_review_mails();
-        ob_start();
-        $mailtask->execute();
-        $output = ob_get_contents();
-        ob_end_clean();
-        return $output;
-    }
-
-    /**
-     * Run the send mails task.
-     * @return false|string
-     */
-    private function run_send_notification_mails() {
-        $mailtask = new send_mails();
-        ob_start();
-        $mailtask->execute();
-        $output = ob_get_contents();
-        ob_end_clean();
-        return $output;
     }
 
     /**
@@ -266,23 +225,22 @@ final class review_test extends \advanced_testcase {
     }
 
     /**
-     * Create two posts.
-     * @param array $options
-     * @return array the teacher and the studentpost.
+     * Creates a moodleoverflow with a question of the teacher and a question of the student.
+     * @param array $options Settings of the moodleoverflow.
+     * @return post[] The questions, keyed by 'teacherpost' and 'studentpost'.
      */
-    private function create_post($options) {
-        $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $options);
-
-        [, $teacherpost] = $this->generator->post_to_forum($moodleoverflow, $this->teacher);
-        [, $studentpost] = $this->generator->post_to_forum($moodleoverflow, $this->student);
-
-        return ['teacherpost' => $teacherpost, 'studentpost' => $studentpost];
+    private function create_post(array $options): array {
+        $modflow = $this->create_moodleoverflow($options);
+        return [
+            'teacherpost' => $this->generator->create_question($modflow, $this->teacher),
+            'studentpost' => $this->generator->create_question($modflow, $this->student),
+        ];
     }
 
     /**
      * Check Mail object before and after sending.
-     * @param \stdClass $teacherpost
-     * @param \stdClass $studentpost
+     * @param post $teacherpost
+     * @param post $studentpost
      * @param int $review1
      * @param int $review2
      * @param int $mailed
@@ -295,25 +253,25 @@ final class review_test extends \advanced_testcase {
         $this->assert_matches_properties(
             ['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
                                           'reviewed' => $review1, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id])
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->get_id()])
         );
         $this->assert_matches_properties(
             ['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
                                           'reviewed' => $review2, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id])
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->get_id()])
         );
 
-        $this->run_send_notification_mails();
-        $this->run_send_review_mails();
+        $this->run_task(new send_mails());
+        $this->run_task(new send_review_mails());
 
         $this->assert_matches_properties(
             ['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS,
                                           'reviewed' => $review1, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->id])
+            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->get_id()])
         );
         $this->assert_matches_properties(
             ['mailed' => $mailed, 'reviewed' => $review2, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->id])
+            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->get_id()])
         );
     }
 }

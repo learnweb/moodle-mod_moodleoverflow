@@ -22,7 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_moodleoverflow;
+use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\tables\userstats_table;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -40,44 +43,22 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow\local\tables\userstats_table
  */
 final class userstats_test extends \advanced_testcase {
-    /** @var \stdClass test course */
-    private $course;
+    use moodleoverflow_test_trait;
 
-    /** @var \stdClass coursemodule */
-    private $coursemodule;
+    /** @var moodleoverflow test moodleoverflow */
+    private $modflow;
 
-    /** @var \stdClass test moodleoverflow */
-    private $moodleoverflow;
+    /** @var post the question of the student */
+    private $question1;
 
-    /** @var \stdClass test teacher */
-    private $teacher;
+    /** @var post the question of the other student */
+    private $question2;
 
-    /** @var \stdClass test user */
-    private $user1;
-
-    /** @var \stdClass another test user */
-    private $user2;
-
-    /** @var \stdClass a discussion */
-    private $discussion1;
-
-    /** @var \stdClass another faked discussion */
-    private $discussion2;
-
-    /** @var \stdClass a post */
-    private $post1;
-
-    /** @var \stdClass another post */
-    private $post2;
-
-    /** @var \stdClass answer to a post */
+    /** @var post the answer of the other student to the question of the student */
     private $answer1;
 
-    /** @var \stdClass another answer to a post */
+    /** @var post the answer of the student to the question of the other student */
     private $answer2;
-
-    /** @var \mod_moodleoverflow_generator $generator */
-    private $generator;
 
     /**
      * Test setUp.
@@ -88,16 +69,6 @@ final class userstats_test extends \advanced_testcase {
         $this->helper_course_set_up();
     }
 
-    /**
-     * Test tearDown.
-     */
-    public function tearDown(): void {
-        // Clear all caches.
-        subscriptions::reset_moodleoverflow_cache();
-        subscriptions::reset_discussion_cache();
-        parent::tearDown();
-    }
-
     // Begin of test functions.
 
     /**
@@ -105,12 +76,12 @@ final class userstats_test extends \advanced_testcase {
      * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_upvote(): void {
-        // Teacher upvotes the discussion and the answer of user2.
-        $this->create_upvote($this->teacher, $this->discussion1[1], $this->answer1);
+        // Teacher upvotes the answer of the other student.
+        $this->generator->create_rating($this->answer1, $this->teacher, RATING_UPVOTE);
 
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        $upvotes = $this->get_specific_userstats($data, $this->user2, 'receivedupvotes');
+        $upvotes = $this->get_specific_userstats($data, $this->otherstudent, 'receivedupvotes');
         $this->assertEquals(1, $upvotes);
     }
 
@@ -119,12 +90,12 @@ final class userstats_test extends \advanced_testcase {
      * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_downvote(): void {
-        // Teacher downvotes the discussion and the answer of user1.
-        $this->create_downvote($this->teacher, $this->discussion2[1], $this->answer2);
+        // Teacher downvotes the answer of the student.
+        $this->generator->create_rating($this->answer2, $this->teacher, RATING_DOWNVOTE);
 
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        $downvotes = $this->get_specific_userstats($data, $this->user1, 'receiveddownvotes');
+        $downvotes = $this->get_specific_userstats($data, $this->student, 'receiveddownvotes');
         $this->assertEquals(1, $downvotes);
     }
 
@@ -133,15 +104,15 @@ final class userstats_test extends \advanced_testcase {
      * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_activity(): void {
-        // User1 will rates 3 times.
-        $this->create_helpful($this->user1, $this->discussion1[1], $this->answer1);
-        $this->create_upvote($this->user1, $this->discussion1[1], $this->answer1);
-        $this->create_downvote($this->user1, $this->discussion2[1], $this->post2);
-        // User1 created 2 posts (1 discussion, 1 answer).
+        // The student rates 3 times.
+        $this->generator->create_rating($this->answer1, $this->student, RATING_HELPFUL);
+        $this->generator->create_rating($this->answer1, $this->student, RATING_UPVOTE);
+        $this->generator->create_rating($this->question2, $this->student, RATING_DOWNVOTE);
+        // The student created 2 posts (1 discussion, 1 answer).
         // Activity = 5.
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        $activity = $this->get_specific_userstats($data, $this->user1, 'forumactivity');
+        $activity = $this->get_specific_userstats($data, $this->student, 'forumactivity');
         $this->assertEquals(5, $activity);
     }
     /**
@@ -149,20 +120,17 @@ final class userstats_test extends \advanced_testcase {
      * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_reputation(): void {
-        // User1 creates some ratings for user2, Teacher creates some ratings for user2.
-        $this->create_helpful($this->user1, $this->discussion1[1], $this->answer1);
-        $this->create_upvote($this->user1, $this->discussion1[1], $this->answer1);
-        $this->create_downvote($this->user1, $this->discussion2[1], $this->post2);
-        $this->create_solution($this->teacher, $this->discussion1[1], $this->answer1);
+        // The student and the teacher rate the other student.
+        $this->generator->create_rating($this->answer1, $this->student, RATING_HELPFUL);
+        $this->generator->create_rating($this->answer1, $this->student, RATING_UPVOTE);
+        $this->generator->create_rating($this->question2, $this->student, RATING_DOWNVOTE);
+        $this->generator->create_rating($this->answer1, $this->teacher, RATING_SOLVED);
 
-        // Calculate the forum reputation of user2.
-        $reputation = \mod_moodleoverflow\ratings::get_reputation_instance(
-            $this->moodleoverflow->id,
-            $this->user2->id
-        );
+        // Calculate the forum reputation of the other student.
+        $reputation = ratings::get_reputation_instance($this->modflow->id, $this->otherstudent->id);
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        $reputation2 = $this->get_specific_userstats($data, $this->user2, 'forumreputation');
+        $reputation2 = $this->get_specific_userstats($data, $this->otherstudent, 'forumreputation');
         $this->assertEquals($reputation, $reputation2);
     }
 
@@ -171,53 +139,51 @@ final class userstats_test extends \advanced_testcase {
      * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_partial_anonymous(): void {
-        global $DB;
         // Test case: Only topic startes are anonymous.
         $this->make_anonymous(1);
 
         // Get the current userstats to compare later.
         $olduserstats = $this->create_statstable();
-        $oldupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'receivedupvotes');
-        $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'forumactivity');
+        $oldupvotesuser1 = $this->get_specific_userstats($olduserstats, $this->student, 'receivedupvotes');
+        $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->student, 'forumactivity');
 
-        $oldupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
-        $oldactivityuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'forumactivity');
+        $oldupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->otherstudent, 'receivedupvotes');
+        $oldactivityuser2 = $this->get_specific_userstats($olduserstats, $this->otherstudent, 'forumactivity');
 
-        // User1 starts a new discussion, the forum activity shouldn't change.
-        $discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->user1);
-        $starterpost = $DB->get_record('moodleoverflow_posts', ['id' => $discussion[0]->firstpost], '*');
+        // The student starts a new discussion, the forum activity shouldn't change.
+        $starterpost = $this->generator->create_question($this->modflow, $this->student);
         $newuserstats = $this->create_statstable();
-        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
         $this->assertEquals($oldactivityuser1, $newactivityuser1);
 
-        // User2 now gives an answer to user1, his activity should change.
-        $answeruser2 = $this->generator->reply_to_post($discussion[1], $this->user2, true);
+        // The other student now gives an answer to the student, the activity should change.
+        $answeruser2 = $this->generator->create_reply($starterpost, $this->otherstudent);
         $newuserstats = $this->create_statstable();
-        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'forumactivity');
+        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->otherstudent, 'forumactivity');
         $this->assertEquals($oldactivityuser2 + 1, $newactivityuser2);
         $oldactivityuser2 = $newactivityuser2;  // Update it for further comparisons.
 
-        // User1 rates the answer from user2 as helpful an gives it an upvote.
-        // The activity of user1 should only change when he gives an upvote.
-        // The received upvotes from user2 should change.
-        $this->create_helpful($this->user1, $discussion[1], $answeruser2);
+        // The student rates the answer of the other student as helpful and gives it an upvote.
+        // The activity of the student should only change with the upvote.
+        // The received upvotes of the other student should change.
+        $this->generator->create_rating($answeruser2, $this->student, RATING_HELPFUL);
         $newuserstats = $this->create_statstable();
-        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
         $this->assertEquals($oldactivityuser1, $newactivityuser1);
 
-        $this->create_upvote($this->user1, $discussion[1], $answeruser2);
+        $this->generator->create_rating($answeruser2, $this->student, RATING_UPVOTE);
         $newuserstats = $this->create_statstable();
-        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
-        $newupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'receivedupvotes');
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
+        $newupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->otherstudent, 'receivedupvotes');
         $this->assertEquals($oldactivityuser1 + 1, $newactivityuser1);
         $this->assertEquals($oldupvotesuser2 + 1, $newupvotesuser2);
 
-        // User2 gives the discussion starter post an upvote.
-        // Activity of User2 should change, the receivedupvotes from user1 shouln't change.
-        $this->create_upvote($this->user2, $discussion[1], $starterpost);
+        // The other student gives the discussion starter post an upvote.
+        // The activity of the other student should change, the received upvotes of the student shouldn't change.
+        $this->generator->create_rating($starterpost, $this->otherstudent, RATING_UPVOTE);
         $newuserstats = $this->create_statstable();
-        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'forumactivity');
-        $newupvotesuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'receivedupvotes');
+        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->otherstudent, 'forumactivity');
+        $newupvotesuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'receivedupvotes');
         $this->assertEquals($oldactivityuser2 + 1, $newactivityuser2);
         $this->assertEquals($oldupvotesuser1, $newupvotesuser1);
     }
@@ -232,35 +198,35 @@ final class userstats_test extends \advanced_testcase {
 
         // Get the current userstats to compare later.
         $olduserstats = $this->create_statstable();
-        $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->user1, 'forumactivity');
+        $oldactivityuser1 = $this->get_specific_userstats($olduserstats, $this->student, 'forumactivity');
 
-        $oldupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'receivedupvotes');
-        $oldactivityuser2 = $this->get_specific_userstats($olduserstats, $this->user2, 'forumactivity');
+        $oldupvotesuser2 = $this->get_specific_userstats($olduserstats, $this->otherstudent, 'receivedupvotes');
+        $oldactivityuser2 = $this->get_specific_userstats($olduserstats, $this->otherstudent, 'forumactivity');
 
-        // User1 starts a new discussion, the forum activity shouldn't change.
-        $discussion = $this->generator->post_to_forum($this->moodleoverflow, $this->user1);
+        // The student starts a new discussion, the forum activity shouldn't change.
+        $starterpost = $this->generator->create_question($this->modflow, $this->student);
         $newuserstats = $this->create_statstable();
-        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
         $this->assertEquals($oldactivityuser1, $newactivityuser1);
 
-        // User2 now gives an answer to user1, his activity shouldn't change.
-        $answeruser2 = $this->generator->reply_to_post($discussion[1], $this->user2, true);
+        // The other student now gives an answer to the student, the activity shouldn't change.
+        $answeruser2 = $this->generator->create_reply($starterpost, $this->otherstudent);
         $newuserstats = $this->create_statstable();
-        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'forumactivity');
+        $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->otherstudent, 'forumactivity');
         $this->assertEquals($oldactivityuser2, $newactivityuser2);
 
-        // User1 rates the answer from user2 as helpful an gives it an upvote.
-        // The activity of user1 should only change when he gives an upvote.
-        // User2 received upvotes should not change.
-        $this->create_helpful($this->user1, $discussion[1], $answeruser2);
+        // The student rates the answer of the other student as helpful and gives it an upvote.
+        // The activity of the student should only change with the upvote.
+        // The received upvotes of the other student should not change.
+        $this->generator->create_rating($answeruser2, $this->student, RATING_HELPFUL);
         $newuserstats = $this->create_statstable();
-        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
         $this->assertEquals($oldactivityuser1, $newactivityuser1);
 
-        $this->create_upvote($this->user1, $discussion[1], $answeruser2);
+        $this->generator->create_rating($answeruser2, $this->student, RATING_UPVOTE);
         $newuserstats = $this->create_statstable();
-        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->user1, 'forumactivity');
-        $newupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->user2, 'receivedupvotes');
+        $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
+        $newupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->otherstudent, 'receivedupvotes');
         $this->assertEquals($oldactivityuser1 + 1, $newactivityuser1);
         $this->assertEquals($oldupvotesuser2, $newupvotesuser2);
     }
@@ -271,33 +237,15 @@ final class userstats_test extends \advanced_testcase {
      * This function creates:
      * - a course with a moodleoverflow
      * - a teacher
-     * - 2 users, which create a discussion and a post in the discussion of the other user.
+     * - 2 students, who create a discussion and a post in the discussion of the other student.
      */
     private function helper_course_set_up() {
-        global $DB;
-        // Create a new course with a moodleoverflow forum.
-        $this->course = $this->getDataGenerator()->create_course();
-        $location = ['course' => $this->course->id];
-        $this->moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
-        $this->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->moodleoverflow->id);
-
-        // Create a teacher.
-        $this->teacher = $this->getDataGenerator()->create_user(['firstname' => 'Tamaro', 'lastname' => 'Walter']);
-        $this->getDataGenerator()->enrol_user($this->teacher->id, $this->course->id, 'student');
-
-        // Create 2 users and their discussions and posts.
-        $this->user1 = $this->getDataGenerator()->create_user(['firstname' => 'Ava', 'lastname' => 'Davis']);
-        $this->getDataGenerator()->enrol_user($this->user1->id, $this->course->id, 'student');
-        $this->user2 = $this->getDataGenerator()->create_user(['firstname' => 'Ethan', 'lastname' => 'Brown']);
-        $this->getDataGenerator()->enrol_user($this->user2->id, $this->course->id, 'student');
-
-        $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
-        $this->discussion1 = $this->generator->post_to_forum($this->moodleoverflow, $this->user1);
-        $this->discussion2 = $this->generator->post_to_forum($this->moodleoverflow, $this->user2);
-        $this->post1 = $DB->get_record('moodleoverflow_posts', ['id' => $this->discussion1[0]->firstpost], '*');
-        $this->post2 = $DB->get_record('moodleoverflow_posts', ['id' => $this->discussion1[0]->firstpost], '*');
-        $this->answer1 = $this->generator->reply_to_post($this->discussion1[1], $this->user2, true);
-        $this->answer2 = $this->generator->reply_to_post($this->discussion2[1], $this->user1, true);
+        $this->setup_course();
+        $this->modflow = $this->create_moodleoverflow();
+        $this->question1 = $this->generator->create_question($this->modflow, $this->student);
+        $this->question2 = $this->generator->create_question($this->modflow, $this->otherstudent);
+        $this->answer1 = $this->generator->create_reply($this->question1, $this->otherstudent);
+        $this->answer2 = $this->generator->create_reply($this->question2, $this->student);
     }
 
     /**
@@ -311,8 +259,7 @@ final class userstats_test extends \advanced_testcase {
     private function make_anonymous($anonymoussetting) {
         global $DB;
         if ($anonymoussetting == 1 || $anonymoussetting == 2) {
-            $this->moodleoverflow->anonymous = $anonymoussetting;
-            $DB->update_record('moodleoverflow', $this->moodleoverflow);
+            $DB->set_field('moodleoverflow', 'anonymous', $anonymoussetting, ['id' => $this->modflow->id]);
         } else {
             throw new \Exception('invalid parameter, anonymoussetting should be 1 or 2');
         }
@@ -322,98 +269,10 @@ final class userstats_test extends \advanced_testcase {
      * Create a usertable and return it.
      */
     private function create_statstable() {
-        $url = new \moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->coursemodule->id]);
-        $userstatstable = new userstats_table('testtable', $this->course->id, $this->moodleoverflow->id, $url);
+        $url = new \moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->modflow->get_cm()->id]);
+        $userstatstable = new userstats_table('testtable', $this->course->id, $this->modflow->id, $url);
         $userstatstable->get_table_data();
         return $userstatstable->get_usertable();
-    }
-
-    /**
-     * Create a upvote to a post in an existing discussion.
-     *
-     * @param object $author       // The creator of the rating.
-     * @param object $discussion   // Discussion object.
-     * @param object $post         // Post that is being rated.
-     *
-     * @return $rating
-     */
-    private function create_upvote($author, $discussion, $post) {
-        $record = (object) [
-            'moodleoverflowid' => $this->moodleoverflow->id,
-            'discussionid' => $discussion->id,
-            'userid' => $author->id,
-            'postid' => $post->id,
-            'rating' => 2,
-            'firstrated' => time(),
-            'lastchanged' => time(),
-        ];
-        return $this->generator->create_rating($record);
-    }
-
-    /**
-     * Create a downvote to a post in an existing discussion.
-     *
-     * @param object $author       // The creator of the rating.
-     * @param object $discussion   // Discussion object.
-     * @param object $post         // Post that is being rated.
-     *
-     * @return $rating
-     */
-    private function create_downvote($author, $discussion, $post) {
-        $record = (object) [
-            'moodleoverflowid' => $this->moodleoverflow->id,
-            'discussionid' => $discussion->id,
-            'userid' => $author->id,
-            'postid' => $post->id,
-            'rating' => 1,
-            'firstrated' => time(),
-            'lastchanged' => time(),
-        ];
-        return $this->generator->create_rating($record);
-    }
-
-    /**
-     * Create a helpful rating to a post in an existing discussion.
-     *
-     * @param object $author       // The creator of the rating.
-     * @param object $discussion   // Discussion object.
-     * @param object $post         // Post that is being rated.
-     *
-     * @return $rating
-     */
-    private function create_helpful($author, $discussion, $post) {
-        $record = (object) [
-            'moodleoverflowid' => $this->moodleoverflow->id,
-            'discussionid' => $discussion->id,
-            'userid' => $author->id,
-            'postid' => $post->id,
-            'rating' => 4,
-            'firstrated' => time(),
-            'lastchanged' => time(),
-        ];
-        return $this->generator->create_rating($record);
-    }
-
-    /**
-     * Create a solution rating to a post in an existing discussion.
-     *
-     * @param object $author       // The creator of the rating.
-     * @param object $discussion   // Discussion object.
-     * @param object $post         // Post that is being rated.
-     *
-     * @return $rating
-     */
-    private function create_solution($author, $discussion, $post) {
-        $record = (object) [
-            'moodleoverflowid' => $this->moodleoverflow->id,
-            'discussionid' => $discussion->id,
-            'userid' => $author->id,
-            'postid' => $post->id,
-            'rating' => 3,
-            'firstrated' => time(),
-            'lastchanged' => time(),
-        ];
-        return $this->generator->create_rating($record);
     }
 
     /**
