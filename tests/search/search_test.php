@@ -22,6 +22,7 @@ use core_search\document;
 use core_search\manager;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\review;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use moodle_url;
 use stdClass;
 
@@ -44,26 +45,13 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow\search\activity
  */
 final class search_test extends \advanced_testcase {
+    use moodleoverflow_test_trait;
+
     /** @var string The area id of the post search area. */
     private string $postareaid;
 
     /** @var string The area id of the activity search area. */
     private string $activityareaid;
-
-    /** @var \mod_moodleoverflow_generator The plugin generator. */
-    private $generator;
-
-    /** @var stdClass The course every moodleoverflow of these tests lives in. */
-    private stdClass $course;
-
-    /** @var stdClass A student, the author of most posts below. */
-    private stdClass $student;
-
-    /** @var stdClass A second student, without the review capability. */
-    private stdClass $otherstudent;
-
-    /** @var stdClass A teacher, who is allowed to review posts. */
-    private stdClass $teacher;
 
     /**
      * Set up the course, its users and the search areas.
@@ -80,11 +68,7 @@ final class search_test extends \advanced_testcase {
         // Set \core_search::instance to the mock_search_engine, a working engine is not needed here.
         \testable_core_search::instance();
 
-        $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
-        $this->course = $this->getDataGenerator()->create_course();
-        $this->student = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
-        $this->otherstudent = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
-        $this->teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
+        $this->setup_course();
     }
 
     /**

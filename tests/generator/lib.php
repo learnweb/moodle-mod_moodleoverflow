@@ -18,17 +18,16 @@
  * mod_moodleoverflow data generator
  *
  * @package    mod_moodleoverflow
- * @copyright  2016 Your Name <your@email.address>
+ * @copyright  2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-
-defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/../../locallib.php');
+use mod_moodleoverflow\subscriptions;
 
 /**
  * Moodleoverflow module data generator class
@@ -56,7 +55,9 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     public function reset() {
         $this->discussioncount = 0;
         $this->postcount = 0;
-
+        // The static caches of subscriptions survive between tests.
+        subscriptions::reset_moodleoverflow_cache();
+        subscriptions::reset_discussion_cache();
         parent::reset();
     }
 
@@ -76,283 +77,197 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             'introformat' => 1,
             'timecreated' => time(),
             'timemodified' => time(),
-            'forcesubscribe' => MOODLEOVERFLOW_CHOOSESUBSCRIBE,
+            'forcesubscribe' => subscription_mode::OPTIONAL->value,
         ], (array) $record);
 
         return parent::create_instance($record, (array) $options);
     }
 
     /**
-     * Creates a moodleoverflow discussion.
+     * Creates a discussion with its question.
      *
-     * @param null $record The discussion record.
-     * @param null $forum The moodleoverflow to insert the discussion.
-     *
-     * @return mixed The new discussion record.
-     * @throws coding_exception
+     * @param moodleoverflow|stdClass $modflow The moodleoverflow to post in.
+     * @param stdClass $author The author of the question.
+     * @param array $record Further fields for the discussion: 'name' and 'message'.
+     * @return post The question, the first post of the discussion.
      */
-    public function create_discussion($record = null, $forum = null) {
-        global $DB;
-
-        // Increment the discussion count.
+    public function create_question(moodleoverflow|stdClass $modflow, stdClass $author, array $record = []): post {
         $this->discussioncount++;
-        $record = (array) $record;
-        // Ensure required fields are set.
-        foreach (['course', 'moodleoverflow', 'userid'] as $field) {
-            if (empty($record[$field])) {
-                throw new coding_exception("$field must be present in phpunit_util:create_discussion() $record");
-            }
-        }
-        $this->set_user($DB->get_record('user', ['id' => $record['userid']]));
-        // Set default values.
-        $record = array_merge([
-            'name' => 'Discussion ' . $this->discussioncount,
-            'message' => html_writer::tag('p', 'Message for discussion ' . $this->discussioncount),
-            'messageformat' => editors_get_preferred_format(),
-            'timestart' => "0",
-            'timeend' => "0",
-            'attachments' => null,
-            'draftideditor' => -1,
-        ], (array) $record);
-
-        // Extract optional fields.
-        $mailed = $record['mailed'] ?? null;
-        $timemodified = $record['timemodified'] ?? null;
-
-        // Convert the record to an object.
-        $record = (object) $record;
-
-        // Use current time for post creation; timestart is only the discussion availability period.
-        $timenow = time();
-
-        // Determine reviewed status based on the user's review capability.
-        $modflow = moodleoverflow::from_id($record->moodleoverflow);
-
-        // Add the discussion.
+        $modflow = moodleoverflow::from_id($modflow->id);
+        $time = time();
         $discussion = discussion::construct_without_id(
-            $record->course,
-            $record->moodleoverflow,
-            $record->name,
+            $modflow->course,
+            $modflow->id,
+            $record['name'] ?? 'Discussion ' . $this->discussioncount,
             0,
-            $record->userid,
-            $timenow,
-            (int)$record->timestart,
-            $record->userid
+            $author->id,
+            $time,
+            0,
+            $author->id
         );
         $prepost = (object) [
-            'userid' => $record->userid,
-            'timenow' => $timenow,
-            'message' => $record->message,
-            'messageformat' => $record->messageformat,
-            'reviewed' => (int) (!$modflow->requires_review(true) || permissions::can_review_posts($modflow, $record->userid)),
+            'userid' => $author->id,
+            'timenow' => $time,
+            'message' => $record['message'] ?? '<p>Message for discussion ' . $this->discussioncount . '</p>',
+            'messageformat' => FORMAT_HTML,
+            'reviewed' => $this->is_reviewed($modflow, $author, true),
             'formattachments' => null,
             'modulecontext' => $modflow->get_context(),
         ];
-        $record->id = $discussion->add($prepost);
-
-        if (isset($timemodified) || isset($mailed)) {
-            $post = $DB->get_record('moodleoverflow_posts', ['discussion' => $record->id]);
-
-            if (isset($mailed)) {
-                $post->mailed = $mailed;
-            }
-
-            if (isset($timemodified)) {
-                $record->timemodified = $timemodified;
-                $post->modified = $post->created = $timemodified;
-            }
-
-            $DB->update_record('moodleoverflow_posts', $post);
-            $DB->update_record('moodleoverflow_discussions', $record);
-        }
-
-        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $record->id]);
-        // Return the discussion object.
-        return $discussion;
+        $this->as_user($author, fn() => $discussion->add($prepost));
+        return post::from_id($discussion->get_firstpostid());
     }
 
     /**
-     * Function to create a dummy post.
+     * Creates a reply to a post.
      *
-     * @param array|stdClass $record
-     * @param bool $straighttodb
-     *
-     * @return stdClass the post object
+     * @param post $parent The post to reply to.
+     * @param stdClass $author The author of the reply.
+     * @param array $record Further fields for the post: 'message'.
+     * @return post
      */
-    public function create_post($record = null, $straighttodb = true) {
-        global $DB, $USER;
-
-        // Increment the forum post count and set the current time.
+    public function create_reply(post $parent, stdClass $author, array $record = []): post {
         $this->postcount++;
+        // Replies are created one second apart, so they have a stable order.
         $time = time() + $this->postcount;
-        $this->set_user($USER);
-        // Ensure required fields are set and provide default values.
-        $record = (object) array_merge([
-            'parent' => 0,
-            'userid' => $USER->id,
-            'message' => html_writer::tag('p', 'Forum message post ' . $this->postcount),
-            'created' => $time,
-            'modified' => $time,
-            'mailed' => 0,
-            'messageformat' => 0,
-            'attachment' => "",
-            'draftideditor' => -1,
-        ], (array) $record);
-
-        if (empty($record->discussion)) {
-            throw new coding_exception('discussion must be present in phpunit_util::create_post() $record');
-        }
-        $discussion = discussion::from_record($DB->get_record('moodleoverflow_discussions', ['id' => $record->discussion]));
-        $modflow = $discussion->get_moodleoverflow();
-
-        $post = post::construct_without_id(
-            $record->discussion,
-            $record->parent ?? $discussion->get_firstpostid(),
-            $record->userid,
-            $record->created,
-            $record->modified,
-            $record->message,
-            $record->messageformat,
-            $record->attachment ?? '',
-            $record->mailed,
-            (int) !$modflow->requires_review(false) || permissions::can_review_posts($modflow, $record->userid),
+        $reply = post::construct_without_id(
+            $parent->get_discussionid(),
+            $parent->get_id(),
+            $author->id,
+            $time,
+            $time,
+            $record['message'] ?? '<p>Forum message post ' . $this->postcount . '</p>',
+            FORMAT_MOODLE,
+            '',
+            0,
+            $this->is_reviewed($this->get_moodleoverflow($parent), $author, false),
             null
         );
-
-        // Add the post to the database.
-        $record->id = $post->add();
-        return $record;
+        return post::from_id($this->as_user($author, fn() => $reply->add()));
     }
 
     /**
-     * Function to create a dummy rating.
+     * Creates a rating of a post.
      *
-     * @param array|stdClass $record
-     *
-     * @return stdClass the post object
+     * @param post $post The rated post.
+     * @param stdClass $rater The user who rates.
+     * @param int $rating One of the RATING_* constants.
+     * @return stdClass The rating record.
      */
-    public function create_rating($record = null) {
+    public function create_rating(post $post, stdClass $rater, int $rating): stdClass {
         global $DB;
-
         $time = time();
-        $record = array_merge([
-            'rating' => 1,
+        $record = (object) [
+            'rating' => $rating,
+            'postid' => $post->get_id(),
+            'discussionid' => $post->get_discussionid(),
+            'moodleoverflowid' => $this->get_moodleoverflow($post)->id,
+            'userid' => $rater->id,
             'firstrated' => $time,
             'lastchanged' => $time,
-        ], (array) $record);
-
-        // Ensure required fields are set.
-        foreach (['moodleoverflowid', 'discussionid', 'userid', 'postid'] as $field) {
-            if (empty($record[$field])) {
-                throw new coding_exception("$field must be present in phpunit_util::create_rating() \$record");
-            }
-        }
-
-        $record = (object) $record;
-        // Add the rating.
+        ];
         $record->id = $DB->insert_record('moodleoverflow_ratings', $record);
-
         return $record;
     }
 
-
     /**
-     * Create a new discussion and post within the specified forum, as the
-     * specified author.
+     * Creates a file of a post. For the attachment area the post is marked as having attachments; load the post again
+     * to see the flag.
      *
-     * @param stdClass $forum  The forum to post in
-     * @param stdClass $author The author to post as
-     * @param          array   An array containing the discussion object, and the post object
+     * @param post $post The post the file belongs to.
+     * @param string $filearea 'attachment' or 'post' (embedded in the message).
+     * @param string $filename
+     * @param string $content
+     * @return stored_file
      */
-    /**
-     * Create a new discussion and post within the specified forum, as the
-     * specified author.
-     *
-     * @param stdClass|moodleoverflow $forum   The moodleoverflow to post in
-     * @param stdClass $author  The author to post as
-     * @param stdClass|null $record Fields for the discussion
-     *
-     * @return array The discussion and the post record.
-     */
-    public function post_to_forum($forum, $author, $record = null) {
+    public function create_post_file(
+        post $post,
+        string $filearea,
+        string $filename = 'file.txt',
+        string $content = 'content'
+    ): stored_file {
         global $DB;
-        // Create a discussion in the forum, and then add a post to that discussion.
-        if (!$record) {
-            $record = new stdClass();
+        $file = get_file_storage()->create_file_from_string([
+            'contextid' => $this->get_moodleoverflow($post)->get_context()->id,
+            'component' => 'mod_moodleoverflow',
+            'filearea' => $filearea,
+            'itemid' => $post->get_id(),
+            'filepath' => '/',
+            'filename' => $filename,
+        ], $content);
+        if ($filearea === 'attachment') {
+            $DB->set_field('moodleoverflow_posts', 'attachment', 1, ['id' => $post->get_id()]);
         }
-        $record->course = $forum->course;
-        $record->userid = $author->id;
-        $record->moodleoverflow = $forum->id;
-        $discussion = $this->create_discussion($record, $forum, $record);
-        // Retrieve the post which was created by create_discussion.
-        $post = $DB->get_record('moodleoverflow_posts', ['discussion' => $discussion->id]);
-
-        return [$discussion, $post];
+        return $file;
     }
 
     /**
-     * Update the post time for the specified post by $factor.
+     * Record variant of create_question() for tests that work with database records.
      *
-     * @param stdClass $post   The post to update
-     * @param int      $factor The amount to update by
+     * @param moodleoverflow|stdClass $modflow The moodleoverflow to post in.
+     * @param stdClass $author The author of the question.
+     * @param array|stdClass|null $record Further fields for the discussion.
+     * @return stdClass[] The discussion record and the record of its question.
      */
-    public function update_post_time($post, $factor) {
+    public function post_to_forum(moodleoverflow|stdClass $modflow, stdClass $author, array|stdClass|null $record = null): array {
+        $question = $this->create_question($modflow, $author, (array) $record);
+        return [$question->get_discussion()->get_db_object(), $question->get_db_object()];
+    }
+
+    /**
+     * Record variant of create_reply() for tests that work with database records.
+     *
+     * @param stdClass $parent The record of the post to reply to.
+     * @param stdClass $author The author of the reply.
+     * @return stdClass The record of the reply.
+     */
+    public function reply_to_post(stdClass $parent, stdClass $author): stdClass {
+        return $this->create_reply(post::from_id($parent->id), $author)->get_db_object();
+    }
+
+    /**
+     * Whether a new post starts as reviewed: if the moodleoverflow does not require a review for it, or if the author is
+     * a reviewer.
+     *
+     * @param moodleoverflow $modflow
+     * @param stdClass $author
+     * @param bool $isquestion
+     * @return int 1 or 0, as stored in the reviewed column.
+     */
+    private function is_reviewed(moodleoverflow $modflow, stdClass $author, bool $isquestion): int {
+        return (int) (!$modflow->requires_review($isquestion) || permissions::can_review_posts($modflow, $author->id));
+    }
+
+    /**
+     * Loads the moodleoverflow of a post without using the post's getters: they cache a discussion on the post, whose
+     * list of posts would lack the posts created afterwards.
+     *
+     * @param post $post
+     * @return moodleoverflow
+     */
+    private function get_moodleoverflow(post $post): moodleoverflow {
         global $DB;
-        // Update the post to have a created in the past.
-        $DB->set_field('moodleoverflow_posts', 'created', $post->created + $factor, ['id' => $post->id]);
+        $conditions = ['id' => $post->get_discussionid()];
+        return moodleoverflow::from_id($DB->get_field('moodleoverflow_discussions', 'moodleoverflow', $conditions, MUST_EXIST));
     }
 
     /**
-     * Update the subscription time for the specified user/discussion by $factor.
+     * Runs a function as another user and restores the user of the test afterwards.
      *
-     * @param stdClass $user       The user to update
-     * @param stdClass $discussion The discussion to update for this user
-     * @param int      $factor     The amount to update by
+     * Needed because post::add() saves the draft files of the message in the user context of $USER.
+     *
+     * @param stdClass $user
+     * @param callable $function
+     * @return mixed What the function returns.
      */
-    public function update_subscription_time($user, $discussion, $factor) {
-        global $DB;
-        $sub = $DB->get_record('moodleoverflow_discuss_subs', ['userid' => $user->id, 'discussion' => $discussion->id]);
-        // Update the subscription to have a preference in the past.
-        $DB->set_field('moodleoverflow_discuss_subs', 'preference', $sub->preference + $factor, ['id' => $sub->id]);
-    }
-
-    /**
-     * Create a new post within an existing discussion, as the specified author.
-     *
-     * @param stdClass $forum      The forum to post in
-     * @param stdClass $discussion The discussion to post in
-     * @param stdClass $author     The author to post as
-     *
-     * @return stdClass The forum post
-     */
-    public function post_to_discussion($forum, $discussion, $author) {
-        // Add a post to the discussion.
-        $record = new stdClass();
-        $record->course = $forum->course;
-        $record->userid = $author->id;
-        $record->moodleoverflow = $forum->id;
-        $record->discussion = $discussion->id;
-        $post = $this->create_post($record);
-
-        return $post;
-    }
-
-    /**
-     * Create a new post within an existing discussion, as the specified author.
-     *
-     * @param stdClass $parent  The parent post
-     * @param stdClass $author  The author to post as
-     * @param bool $straighttodb
-     *
-     * @return stdClass The new moodleoverflow post
-     */
-    public function reply_to_post($parent, $author, $straighttodb = true) {
-        // Add a post to the discussion.
-        $record = (object) [
-            'discussion' => $parent->discussion,
-            'parent' => $parent->id,
-            'userid' => $author->id,
-        ];
-        return $this->create_post($record, $straighttodb);
+    private function as_user(stdClass $user, callable $function): mixed {
+        global $USER;
+        $previous = empty($USER->id) ? null : clone($USER);
+        $this->set_user($user);
+        try {
+            return $function();
+        } finally {
+            $this->set_user($previous);
+        }
     }
 }
