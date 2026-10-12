@@ -17,22 +17,18 @@
 /**
  * Prints a particular instance of moodleoverflow
  *
- * You can have a rather longer description of the file as well,
- * if you like, and it can span multiple lines.
- *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Include config and locallib.
 use mod_moodleoverflow\event\course_module_viewed;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\output\pages\view\view_page;
 
 require_once(__DIR__ . '/../../config.php');
-global $CFG, $PAGE, $DB, $OUTPUT, $SESSION, $USER;
+global $CFG, $PAGE, $OUTPUT, $SESSION, $USER;
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare optional parameters.
@@ -40,47 +36,20 @@ $id = optional_param('id', 0, PARAM_INT);       // Course Module ID.
 $m = optional_param('m', 0, PARAM_INT);        // MoodleOverflow ID.
 $page = optional_param('page', 0, PARAM_INT);     // Which page to show.
 
-// Set the parameters.
-$params = [];
-if ($id) {
-    $params['id'] = $id;
-} else {
-    $params['m'] = $m;
-}
-if ($page) {
-    $params['page'] = $page;
-}
-$PAGE->set_url('/mod/moodleoverflow/view.php', $params);
-
-// Check for the course and module.
-if ($id) {
-    $moodleoverflow = moodleoverflow::from_cmid($id);
-} else if ($m) {
-    $moodleoverflow = moodleoverflow::from_id($m);
-} else {
-    throw new moodle_exception('missingparameter');
-}
-
-$cm = $moodleoverflow->get_cm();
+// Fetch the moodleoverflow instance.
+$moodleoverflow = match (true) {
+    $id > 0 => moodleoverflow::from_cmid($id),
+    $m > 0 => moodleoverflow::from_id($m),
+    default => throw new moodle_exception('missingparameter'),
+};
 $course = $moodleoverflow->get_course();
-$context = $moodleoverflow->get_context();
 
-// Require a login.
-require_login($course, true, $cm);
-
-$PAGE->set_context($context);
-
-// Check some capabilities.
-if (!permissions::can_view_moodleoverflow($moodleoverflow, $USER->id)) {
-    notice(get_string('noviewdiscussionspermission', 'moodleoverflow'));
-}
-
-// Mark the activity completed (if required) and trigger the course_module_viewed event.
-$event = course_module_viewed::create(['objectid' => $PAGE->cm->instance, 'context' => $PAGE->context]);
-$event->trigger();
+// System checks: require a login and the permission to see the page.
+require_login($course, true, $moodleoverflow->get_cm());
+permissions::ensure(permissions::can_view_moodleoverflow($moodleoverflow, $USER->id), 'noviewdiscussionspermission');
 
 // Print the page header.
-$PAGE->set_url('/mod/moodleoverflow/view.php', ['m' => $moodleoverflow->id]);
+$PAGE->set_url(new moodle_url($moodleoverflow->get_link(), ['page' => $page]));
 $PAGE->set_title(format_string($moodleoverflow->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->add_body_class('limitedwidth');
@@ -88,8 +57,10 @@ $PAGE->add_body_class('limitedwidth');
 $PAGE->requires->js_call_amd('mod_moodleoverflow/topicmove', 'init');
 $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $moodleoverflow->allows_multiple_marks()]);
 
-// Return here after posting, etc.
 $SESSION->fromdiscussion = qualified_me();
+
+$event = course_module_viewed::create(['objectid' => $moodleoverflow->id, 'context' => $moodleoverflow->get_context()]);
+$event->trigger();
 
 // Output starts here.
 echo $OUTPUT->header();

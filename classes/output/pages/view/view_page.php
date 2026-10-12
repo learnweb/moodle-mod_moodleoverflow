@@ -16,23 +16,16 @@
 
 namespace mod_moodleoverflow\output\pages\view;
 
-use context_module;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
 use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\review_level;
-use mod_moodleoverflow\local\models\discussion;
-use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\local\service\readtracking;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\review;
 use moodle_url;
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
  * This class represents the output of the view page (view.php). It shows a collection of discussion cards.
@@ -42,8 +35,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class view_page implements named_templatable, renderable {
-    /** @var moodleoverflow The moodleoverflow that gets shown */
-    public moodleoverflow $modflow;
+    /** @var models\moodleoverflow The moodleoverflow that gets shown */
+    public models\moodleoverflow $modflow;
 
     /** @var int Which page gets shown */
     public int $page;
@@ -53,14 +46,13 @@ class view_page implements named_templatable, renderable {
 
     /**
      * Constructor.
-     * @param moodleoverflow $moodleoverflow The moodleoverflow DB object
+     * @param models\moodleoverflow $moodleoverflow The moodleoverflow DB object
      * @param int $page Which "page" should get
      */
-    public function __construct(moodleoverflow $moodleoverflow, int $page = -1) {
+    public function __construct(models\moodleoverflow $moodleoverflow, int $page = -1) {
         $this->modflow = $moodleoverflow;
         $this->page = $page;
-        $module = 'moodleoverflow';
-        $this->cm = get_coursemodule_from_instance($module, $this->modflow->id, $this->modflow->course, false, MUST_EXIST);
+        $this->cm = $moodleoverflow->get_cm();
     }
 
     #[\Override]
@@ -73,9 +65,6 @@ class view_page implements named_templatable, renderable {
         global $OUTPUT, $DB, $USER;
         $perpage = get_config('moodleoverflow', 'manydiscussions');
 
-        // Set the context.
-        $context = context_module::instance($this->cm->id);
-
         // If the perpage value is invalid, deactivate paging.
         if ($perpage <= 0) {
             $perpage = 0;
@@ -83,43 +72,30 @@ class view_page implements named_templatable, renderable {
         }
         $usepaging = ($perpage > 0 && $this->page !== -1);
         $limitfrom = $usepaging ? $this->page * $perpage : 0;
-        $limitamount = $usepaging ? $perpage : 0;
-
-        // Check some capabilities and create other check variables.
-        $canstartdiscussion = permissions::can_start_discussion($this->modflow, $USER->id);
+        $limitamount = $usepaging ? $perpage : null;
 
         // Create links.
         $startdiscussion = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $this->modflow->id]);
         $userstatslink = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->cm->id]);
 
-        // Get information about the moodleoverflow. This includes: discussioncount, unread posts, discussions its replies.
-        $discussioncount = moodleoverflow_get_discussions_count($this->modflow, $USER->id);
-        $unreads = readtracking::count_unread_posts_moodleoverflow($this->modflow, $USER->id) > 0;
-        $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, "view.php?id={$this->cm->id}");
-
         // Get moodleoverflow where discussions can be moved.
         $destinations = [];
         foreach ($DB->get_records('moodleoverflow', ['course' => $this->modflow->course]) as $record) {
-            $destination = moodleoverflow::from_record($record);
+            $destination = models\moodleoverflow::from_record($record);
             if (permissions::can_move_discussions($this->modflow, $destination, $USER->id)) {
                 $destinations[] = ['name' => $destination->name, 'modflowid' => $destination->id];
             }
         }
 
-        // Iterate through every visible discussion and build the discussion card.
-        $canreview = permissions::can_review_posts($this->modflow, $USER->id);
-        $items = [];
-        $sql = "SELECT d.*
-            FROM {moodleoverflow_discussions} d
-            JOIN {moodleoverflow_posts} p ON p.discussion = d.id
-            WHERE d.moodleoverflow = ?
-                AND p.parent = 0
-                AND (? = 1 OR (p.reviewed = 1 OR p.userid = ?))
-            ORDER BY d.timestart DESC, d.id DESC";
-        $discussions = $DB->get_records_sql($sql, [$this->modflow->id, $canreview ? 1 : 0, $USER->id], $limitfrom, $limitamount);
-        foreach ($discussions as $discussion) {
-            $items[] = $OUTPUT->render(new discussion_card(discussion::from_record($discussion), $context, !empty($destinations)));
-        }
+        // Load the visible discussions and cut out the current page.
+        $discussions = service\discussion::get_discussions($this->modflow, $USER->id);
+        $discussioncount = count($discussions);
+        $context = $this->modflow->get_context();
+
+        $items = array_map(
+            fn(models\discussion $discussion) => $OUTPUT->render(new discussion_card($discussion, $context, !empty($destinations))),
+            array_slice($discussions, $limitfrom, $limitamount)
+        );
 
         // Anonymous mode and Review mod description string identifier.
         $anonymousdesc = match ($this->modflow->get_anonymity()) {
@@ -134,11 +110,14 @@ class view_page implements named_templatable, renderable {
         };
 
         // Collect the needed data being submitted to the template.
+        $canreview = permissions::can_review_posts($this->modflow, $USER->id);
+        $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, "view.php?id={$this->cm->id}");
+        $canstartdiscussion = permissions::can_start_discussion($this->modflow, $USER->id);
         return (object) [
             'discussions' => $items,
-            'hasdiscussions' => count($discussions) > 0,
+            'hasdiscussions' => $discussioncount > 0,
             'startdiscussion' => $canstartdiscussion ? ['link' => $startdiscussion->out()] : [],
-            'markallread' => $unreads ? [
+            'markallread' => service\readtracking::count_unread_posts_moodleoverflow($this->modflow, $USER->id) > 0 ? [
                 'itemid' => 'moodleoverflow-markallread-' . $this->modflow->id,
                 'instanceid' => $this->modflow->id,
             ] : [],
