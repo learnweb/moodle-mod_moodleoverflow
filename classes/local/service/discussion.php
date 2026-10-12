@@ -38,6 +38,22 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  */
 class discussion {
     /**
+     * Returns all discussions in a moodleoverflow that the user can see.
+     * @param models\moodleoverflow $modflow
+     * @param int $userid
+     * @return models\discussion[]
+     * @throws moodle_exception
+     */
+    public static function get_discussions(models\moodleoverflow $modflow, int $userid): array {
+        global $DB;
+        $records = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $modflow->id], 'timestart DESC, id DESC');
+        return array_filter(
+            array_map(fn($record) => models\discussion::from_record($record), $records),
+            fn(models\discussion $discussion) => permissions::can_view_discussion($discussion, $userid)
+        );
+    }
+
+    /**
      * Moves a discussion to another moodleoverflow of the same course.
      *
      * The discussion model moves its own data (files, ratings, read records, discussion subscriptions, mail digest quere)

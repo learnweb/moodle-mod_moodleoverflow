@@ -25,34 +25,13 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\ratings;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
-
-/**
- * Returns the number of discussions a user can see in a moodleoverflow.
- * @param moodleoverflow $modflow
- * @param int $userid
- * @return int
- * @throws dml_exception|moodle_exception
- */
-function moodleoverflow_get_discussions_count(moodleoverflow $modflow, int $userid): int {
-    global $DB;
-    if (!permissions::can_view_moodleoverflow($modflow, $userid)) {
-        return 0;
-    }
-
-    return count(array_filter(
-        $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $modflow->id]),
-        fn($discussion) => permissions::can_view_discussion(discussion::from_record($discussion), $userid)
-    ));
-}
 
 /**
  * Modifies the session to return back to where the user is coming from.

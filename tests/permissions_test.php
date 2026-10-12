@@ -89,6 +89,64 @@ final class permissions_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if a user with a suspended enrolment can not see the moodleoverflow; the mail cron relies on it.
+     */
+    public function test_can_view_moodleoverflow_suspended_enrolment(): void {
+        global $DB;
+        $modflow = $this->create_moodleoverflow();
+
+        $instance = $DB->get_record('enrol', ['courseid' => $this->course->id, 'enrol' => 'manual'], '*', MUST_EXIST);
+        enrol_get_plugin('manual')->update_user_enrol($instance, $this->student->id, ENROL_USER_SUSPENDED);
+        $this->assertFalse(permissions::can_view_moodleoverflow($modflow, $this->student->id));
+        $this->assertTrue(permissions::can_view_moodleoverflow($modflow, $this->otherstudent->id));
+    }
+
+    /**
+     * Test, if only users that can see hidden courses can see a moodleoverflow in a hidden course.
+     */
+    public function test_can_view_moodleoverflow_hidden_course(): void {
+        global $DB;
+        $modflow = $this->create_moodleoverflow();
+
+        $DB->set_field('course', 'visible', 0, ['id' => $this->course->id]);
+        rebuild_course_cache($this->course->id, true);
+        $modflow = moodleoverflow::from_id($modflow->id);
+        $this->assertFalse(permissions::can_view_moodleoverflow($modflow, $this->student->id));
+        $this->assertTrue(permissions::can_view_moodleoverflow($modflow, $this->teacher->id));
+    }
+
+    /**
+     * Test, if only users that ignore availability restrictions can see a moodleoverflow that is not available yet.
+     */
+    public function test_can_view_moodleoverflow_availability(): void {
+        global $DB;
+        set_config('enableavailability', 1);
+        $modflow = $this->create_moodleoverflow();
+
+        $availability = \core_availability\tree::get_root_json([
+            \availability_date\condition::get_json('>=', time() + DAYSECS),
+        ]);
+        $DB->set_field('course_modules', 'availability', json_encode($availability), ['id' => $modflow->get_cm()->id]);
+        rebuild_course_cache($this->course->id, true);
+        $modflow = moodleoverflow::from_id($modflow->id);
+        $this->assertFalse(permissions::can_view_moodleoverflow($modflow, $this->student->id));
+        $this->assertTrue(permissions::can_view_moodleoverflow($modflow, $this->teacher->id));
+    }
+
+    /**
+     * Test, if a user without the capability to view discussions can not see the moodleoverflow.
+     */
+    public function test_can_view_moodleoverflow_without_viewdiscussion(): void {
+        global $DB;
+        $modflow = $this->create_moodleoverflow();
+
+        $studentrole = $DB->get_field('role', 'id', ['shortname' => 'student'], MUST_EXIST);
+        assign_capability('mod/moodleoverflow:viewdiscussion', CAP_PROHIBIT, $studentrole, $modflow->get_context()->id);
+        $this->assertFalse(permissions::can_view_moodleoverflow($modflow, $this->student->id));
+        $this->assertTrue(permissions::can_view_moodleoverflow($modflow, $this->teacher->id));
+    }
+
+    /**
      * Test, if questions that need a review are hidden and their answers are hidden too.
      */
     public function test_can_view_discussion_and_post(): void {
