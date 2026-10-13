@@ -378,9 +378,7 @@ class discussion {
     }
 
     /**
-     * This Function checks, what the last added or edited post is. If it changed by a delete function,
-     * the timemodified and the usermodified need to be adapted to the last added or edited post.
-     *
+     * Sets timemodified and usermodified of the discussion to the newest reviewed post.
      * @return bool true if the DB needed to be adapted. false if it didn't change.
      * @throws dml_exception|moodle_exception
      */
@@ -388,28 +386,27 @@ class discussion {
         global $DB;
         $this->existence_check();
 
-        // Find the last reviewed post of the discussion (even if the user has review capability, because it's written to DB).
-        $sql = 'SELECT *
-                FROM {moodleoverflow_posts}
-                WHERE discussion = ' . $this->id .
-                  ' AND reviewed = 1
-                    AND modified = (SELECT MAX(modified) as modified
-                                    FROM {moodleoverflow_posts}
-                                    WHERE discussion = ' . $this->id . ');';
-        $record = $DB->get_record_sql($sql);
-        $lastpost = post::from_record($record);
-
-        // Check if the last post changed. If it changed, then update the DB-record of this discussion.
-        if ($lastpost->modified != $this->timemodified || $lastpost->get_userid() != $this->usermodified) {
-            $this->timemodified = $lastpost->modified;
-            $this->usermodified = $lastpost->get_userid();
-            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
-
-            // Return that the discussion needed an update.
-            return true;
+        // Only reviewed posts count as activity of the discussion.
+        $records = $DB->get_records(
+            'moodleoverflow_posts',
+            ['discussion' => $this->id, 'reviewed' => 1],
+            'modified DESC, id DESC',
+            'id, modified, userid',
+            0,
+            1
+        );
+        $lastpost = reset($records);
+        if (!$lastpost) {
+            return false;
         }
 
-        // Return that the discussion didn't need an update.
+        // Check if the last post changed. If it changed, then update the DB-record of this discussion.
+        if ($lastpost->modified != $this->timemodified || $lastpost->userid != $this->usermodified) {
+            $this->timemodified = $lastpost->modified;
+            $this->usermodified = $lastpost->userid;
+            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+            return true;
+        }
         return false;
     }
 

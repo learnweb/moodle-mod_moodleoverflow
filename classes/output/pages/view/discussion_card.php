@@ -24,8 +24,8 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\readtracking;
+use mod_moodleoverflow\local\service\review;
 use mod_moodleoverflow\ratings;
-use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 use moodle_exception;
 use moodle_url;
@@ -132,8 +132,10 @@ class discussion_card implements named_templatable, renderable {
         ];
 
         // Gather review data.
-        $reviewinfo = review::get_short_review_info_for_discussion($this->discussion->get_id());
-        $reviewlink = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], 'p' . $reviewinfo->first);
+        $reviewposts = review::get_posts_to_review_in_discussion($this->discussion, $USER->id);
+        $reviewpostcount = count($reviewposts);
+        $firsttoreview = reset($reviewposts) ?: null;
+        $reviewlink = $firsttoreview ? $firsttoreview->get_link() : null;
 
         // Miscellaneous data.
         $topicmove = ['name' => $this->discussion->name, 'id' => $this->discussion->get_id()];
@@ -154,8 +156,8 @@ class discussion_card implements named_templatable, renderable {
             'replyamount' => count($this->discussion->get_posts()),
             'unread' => $unreadcount > 0 ? $unreaddata : [],
             'canreview' => permissions::can_review_posts($this->modflow, $USER->id),
-            'needreview' => $reviewinfo->count > 0,
-            'reviewlink' => $reviewlink->out(),
+            'needreview' => $reviewpostcount,
+            'reviewlink' => $reviewlink?->out(),
             'questionunderreview' => $this->firstpost->reviewed == 0,
             'canmovetopic' => $this->movepossible ? $topicmove : [],
             'cansubtodiscussion' => ($isloggedin && subscriptions::is_subscribable($this->modflow, $this->context)) ? [

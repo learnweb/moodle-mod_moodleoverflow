@@ -21,7 +21,7 @@ use context_module;
 use core_search\document;
 use core_search\manager;
 use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\review;
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use moodle_url;
 use stdClass;
@@ -306,7 +306,7 @@ final class search_test extends \advanced_testcase {
 
         $searcharea = manager::get_search_area($this->postareaid);
 
-        $modflow = $this->create_instance(['needsreview' => review::EVERYTHING]);
+        $modflow = $this->create_instance(['needsreview' => review_level::EVERYTHING->value]);
 
         // The student cannot review, so their question starts out unreviewed.
         [$discussion, $firstpost] = $this->generator->post_to_forum($modflow, $this->student);

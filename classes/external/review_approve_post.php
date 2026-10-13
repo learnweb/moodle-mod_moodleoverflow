@@ -17,8 +17,7 @@
 namespace mod_moodleoverflow\external;
 
 use mod_moodleoverflow\local\models\post;
-use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\review;
+use mod_moodleoverflow\local\service;
 use core_external\external_function_parameters;
 use core_external\external_api;
 use core_external\external_value;
@@ -26,8 +25,6 @@ use core_external\external_value;
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/lib/externallib.php');
-require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
@@ -61,29 +58,20 @@ class review_approve_post extends external_api {
      * Approve a post.
      *
      * @param int $postid ID of post to approve.
-     * @return string|null Url of next post to review.
+     * @return string Url of next post to review, empty if there is none.
      */
     public static function execute($postid) {
-        global $DB, $USER;
-
+        global $USER;
         $params = self::validate_parameters(self::execute_parameters(), ['postid' => $postid]);
         $post = post::from_id($params['postid']);
-        $discussion = $post->get_discussion();
-        $moodleoverflow = $discussion->get_moodleoverflow();
+
+        $moodleoverflow = $post->get_moodleoverflow();
         self::validate_context($moodleoverflow->get_context());
-        permissions::ensure(permissions::can_review_post($post, $USER->id), 'cannotreviewpost');
 
-        $post->reviewed = 1;
-        $post->timereviewed = time();
+        service\review::approve($post, $USER->id);
 
-        $DB->update_record('moodleoverflow_posts', $post->get_db_object());
-
-        if ($post->modified > $discussion->timemodified) {
-            $discussion->timemodified = $post->modified;
-            $discussion->usermodified = $post->get_userid();
-            $DB->update_record('moodleoverflow_discussions', $discussion->get_db_object());
-        }
-
-        return review::get_first_review_post($moodleoverflow->id, $post->get_id());
+        // Get the next post to be reviewed.
+        $nextpost = service\review::get_next_post_to_review($moodleoverflow, $USER->id);
+        return $nextpost?->get_link()->out(false) ?? '';
     }
 }

@@ -393,6 +393,24 @@ class post {
     }
 
     /**
+     * Marks the post as reviewed.
+     * @return void
+     * @throws moodle_exception|dml_exception
+     */
+    public function mark_reviewed(): void {
+        global $DB;
+        $this->existence_check();
+        $this->reviewed = 1;
+        $this->timereviewed = time();
+        // Only write the review fields, so a concurrent edit of the post is not overwritten.
+        $DB->update_record('moodleoverflow_posts', (object) [
+            'id' => $this->id,
+            'reviewed' => $this->reviewed,
+            'timereviewed' => $this->timereviewed,
+        ]);
+    }
+
+    /**
      * Returns the module context of this post.
      *
      * @return context_module
@@ -515,6 +533,18 @@ class post {
             return $OUTPUT->user_picture($user, ['courseid' => $this->moodleoverflowobject->course, 'link' => false]);
         }
         return '';
+    }
+
+    /**
+     * Return the link to the post inside the discussion view.
+     * Note: this is not the link to make an action, as it directs to the discussion.php, not the post.php.
+     * @throws \core\exception\moodle_exception
+     * @throws moodle_exception
+     * @return moodle_url
+     */
+    public function get_link(): moodle_url {
+        $this->existence_check();
+        return new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $this->discussion], 'p' . $this->id);
     }
 
     /**

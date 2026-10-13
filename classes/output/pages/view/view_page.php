@@ -24,7 +24,6 @@ use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
-use mod_moodleoverflow\review;
 use moodle_url;
 
 /**
@@ -109,8 +108,10 @@ class view_page implements named_templatable, renderable {
             default => ''
         };
 
+        // Get the link to the next posts that needs to be reviewed.
+        $nextpost = service\review::get_next_post_to_review($this->modflow, $USER->id);
+
         // Collect the needed data being submitted to the template.
-        $canreview = permissions::can_review_posts($this->modflow, $USER->id);
         $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, "view.php?id={$this->cm->id}");
         $canstartdiscussion = permissions::can_start_discussion($this->modflow, $USER->id);
         return (object) [
@@ -126,7 +127,7 @@ class view_page implements named_templatable, renderable {
             'destinations' => $destinations,
             'anonymous_desc' => $anonymousdesc,
             'review_desc' => $reviewdesc,
-            'review_link' => $canreview ? review::get_first_review_post($this->modflow->id) : false,
+            'review_link' => $nextpost ? $nextpost->get_link()->out(false) : false,
         ];
     }
 }

@@ -29,8 +29,6 @@ use moodle_exception;
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/lib/externallib.php');
-require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**

@@ -30,10 +30,10 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\post\post_control;
 use mod_moodleoverflow\local\service\readtracking;
-use mod_moodleoverflow\review;
 use mod_moodleoverflow\subscriptions;
 
 /**
@@ -171,7 +171,7 @@ class behat_mod_moodleoverflow extends behat_base {
         // Create a moodleoverflow that requires every post to be reviewed.
         $this->execute('behat_data_generators::the_following_entities_exist', ['activities', new TableNode([
             ['activity', 'course', 'name', 'needsreview'],
-            ['moodleoverflow', 'C1', 'Moodleoverflow 1', review::EVERYTHING],
+            ['moodleoverflow', 'C1', 'Moodleoverflow 1', review_level::EVERYTHING->value],
         ])]);
         $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => 'Moodleoverflow 1']);
 

@@ -18,9 +18,8 @@ namespace mod_moodleoverflow\external;
 
 use core_user;
 use mod_moodleoverflow\local\models\post;
-use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\output\moodleoverflow_email;
-use mod_moodleoverflow\review;
 use core_external\external_function_parameters;
 use core_external\external_api;
 use core_external\external_value;
@@ -28,8 +27,6 @@ use core_external\external_value;
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/lib/externallib.php');
-require_once($CFG->libdir . '/externallib.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
@@ -65,7 +62,7 @@ class review_reject_post extends external_api {
      *
      * @param int $postid ID of post to reject.
      * @param string|null $reason The reason for rejection.
-     * @return string|null Url of next post to review.
+     * @return string Url of next post to review, empty if there is none.
      */
     public static function execute($postid, $reason = null) {
         global $PAGE, $OUTPUT, $USER;
@@ -77,9 +74,9 @@ class review_reject_post extends external_api {
         $context = $moodleoverflow->get_context();
         self::validate_context($context);
         $PAGE->set_context($context);
-        permissions::ensure(permissions::can_review_post($post, $USER->id), 'cannotreviewpost');
 
-        // Has to be done before deleting the post.
+        // The mail is rendered before the post is deleted, but only sent once the rejection succeeded.
+        $mail = null;
         if ($post->get_userid() != 0) {
             $rendererhtml = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'htmlemail');
             $renderertext = $PAGE->get_renderer('mod_moodleoverflow', 'email', 'textemail');
@@ -106,23 +103,22 @@ class review_reject_post extends external_api {
                 $textcontext['reason'] = $htmlcontext['reason'];
             }
 
-            email_to_user(
+            $mail = [
                 $userto,
                 core_user::get_noreply_user(),
                 get_string('email_rejected_subject', 'moodleoverflow', $textcontext),
                 $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_text', $textcontext),
-                $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_html', $htmlcontext)
-            );
-        }
-        $url = review::get_first_review_post($moodleoverflow->id, $post->get_id());
-
-        if (!$post->get_parentid()) {
-            // Delete discussion, if this is the question.
-            $discussion->delete((object) ['modulecontext' => $context]);
-        } else {
-            $discussion->delete_post_from_discussion((object) ['postid' => $post->get_id(), 'deletechildren' => true]);
+                $OUTPUT->render_from_template('mod_moodleoverflow/email_rejected_html', $htmlcontext),
+            ];
         }
 
-        return $url;
+        service\review::reject($post, $USER->id);
+        $nextpost = service\review::get_next_post_to_review($moodleoverflow, $USER->id);
+
+        if ($mail) {
+            email_to_user(...$mail);
+        }
+
+        return $nextpost?->get_link()->out(false) ?? '';
     }
 }
