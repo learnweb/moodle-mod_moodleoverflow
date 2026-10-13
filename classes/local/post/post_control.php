@@ -17,7 +17,7 @@
 namespace mod_moodleoverflow\local\post;
 
 // Import namespace from the locallib, needs a check later which namespaces are really needed.
-use coding_exception;
+use core\exception\coding_exception;
 use core\notification;
 use dml_exception;
 use html_writer;
@@ -30,7 +30,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\subscriptions;
 use mod_moodleoverflow\form\post_form;
-use moodle_exception;
+use core\exception\moodle_exception;
 use moodle_url;
 use stdClass;
 

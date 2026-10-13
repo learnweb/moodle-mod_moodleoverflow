@@ -23,10 +23,12 @@
  */
 namespace mod_moodleoverflow;
 
+use core\exception\coding_exception;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use dml_exception;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service\readtracking;
@@ -123,7 +125,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
      * that context.
      *
      * @return void
-     * @throws \coding_exception
+     * @throws coding_exception
      */
     public function test_user_has_never_posted(): void {
         // Create a course with moodleoverflow forums.

@@ -16,7 +16,7 @@
 
 namespace mod_moodleoverflow\external;
 
-use coding_exception;
+use core\exception\coding_exception;
 use dml_exception;
 use core_external\external_function_parameters;
 use core_external\external_api;
@@ -24,7 +24,7 @@ use core_external\external_value;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\service;
-use moodle_exception;
+use core\exception\moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
 

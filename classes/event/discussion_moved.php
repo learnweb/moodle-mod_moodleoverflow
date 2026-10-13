@@ -16,7 +16,7 @@
 
 namespace mod_moodleoverflow\event;
 
-use coding_exception;
+use core\exception\coding_exception;
 use moodle_url;
 
 /**

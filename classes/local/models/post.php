@@ -17,7 +17,7 @@
 namespace mod_moodleoverflow\local\models;
 
 use cm_info;
-use coding_exception;
+use core\exception\coding_exception;
 use context_module;
 use core\output\html_writer;
 use core\output\renderer_base;
@@ -29,7 +29,7 @@ use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\form\post_form;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\ratings;
-use moodle_exception;
+use core\exception\moodle_exception;
 use moodle_url;
 use stdClass;
 

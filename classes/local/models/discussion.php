@@ -18,7 +18,7 @@ namespace mod_moodleoverflow\local\models;
 
 // Important namespaces.
 use cm_info;
-use coding_exception;
+use core\exception\coding_exception;
 use dml_exception;
 use Exception;
 use mod_moodleoverflow\event\discussion_deleted;
@@ -26,7 +26,7 @@ use mod_moodleoverflow\event\discussion_moved;
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\ratings;
-use moodle_exception;
+use core\exception\moodle_exception;
 use moodle_url;
 
 defined('MOODLE_INTERNAL') || die();

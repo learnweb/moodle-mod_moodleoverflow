@@ -27,7 +27,7 @@ use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\local\service\review;
 use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\subscriptions;
-use moodle_exception;
+use core\exception\moodle_exception;
 use moodle_url;
 
 /**

@@ -17,7 +17,7 @@
 namespace mod_moodleoverflow\local\models;
 
 use cm_info;
-use coding_exception;
+use core\exception\coding_exception;
 use context_module;
 use dml_exception;
 use moodle_url;

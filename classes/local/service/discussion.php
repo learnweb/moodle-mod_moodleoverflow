@@ -22,7 +22,7 @@ use Exception;
 use mod_moodleoverflow\local\models;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\ratings;
-use moodle_exception;
+use core\exception\moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
 

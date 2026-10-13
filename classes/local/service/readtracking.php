@@ -16,7 +16,7 @@
 
 namespace mod_moodleoverflow\local\service;
 
-use coding_exception;
+use core\exception\coding_exception;
 use dml_exception;
 use mod_moodleoverflow\event\readtracking_disabled;
 use mod_moodleoverflow\event\readtracking_enabled;
@@ -24,7 +24,7 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use moodle_exception;
+use core\exception\moodle_exception;
 
 /**
  * Service class for moodleoverflow actions regarding the tracking or read posts and discussions.
