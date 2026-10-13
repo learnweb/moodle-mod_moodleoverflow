@@ -26,7 +26,7 @@
  */
 
 use mod_moodleoverflow\anonymous;
-use mod_moodleoverflow\review;
+use mod_moodleoverflow\local\enum\review_level;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -94,14 +94,14 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         if (get_config('moodleoverflow', 'allowreview') == 1) {
             $possiblesettings = [
-                    review::NOTHING => get_string('nothing', 'moodleoverflow'),
-                    review::QUESTIONS => get_string('questions', 'moodleoverflow'),
-                    review::EVERYTHING => get_string('questions_and_posts', 'moodleoverflow'),
+                    review_level::NONE->value => get_string('nothing', 'moodleoverflow'),
+                    review_level::QUESTIONS->value => get_string('questions', 'moodleoverflow'),
+                    review_level::EVERYTHING->value => get_string('questions_and_posts', 'moodleoverflow'),
             ];
 
             $mform->addElement('select', 'needsreview', get_string('review', 'moodleoverflow'), $possiblesettings);
             $mform->addHelpButton('needsreview', 'review', 'moodleoverflow');
-            $mform->setDefault('needsreview', review::NOTHING);
+            $mform->setDefault('needsreview', review_level::NONE->value);
         }
 
         // Attachments.

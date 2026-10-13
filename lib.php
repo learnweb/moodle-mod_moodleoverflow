@@ -36,6 +36,7 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\readtracking;
+use mod_moodleoverflow\local\service\review;
 use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();
@@ -536,14 +537,13 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
     global $USER;
     $moodleoverflow = moodleoverflow::from_id($cm->instance);
     $out = "";
-    if (permissions::can_review_posts($moodleoverflow, $USER->id)) {
-        $reviewcount = \mod_moodleoverflow\review::count_outstanding_reviews_in_moodleoverflow($cm->instance);
-        if ($reviewcount) {
-            $out .= '<span class="mod_moodleoverflow-label-review"><a href="' . $cm->url . '">';
-            $out .= get_string('amount_waiting_for_review', 'mod_moodleoverflow', $reviewcount);
-            $out .= '</a></span> ';
-        }
+    $reviewcount = count(review::get_posts_to_review($moodleoverflow, $USER->id));
+    if ($reviewcount) {
+        $out .= '<span class="mod_moodleoverflow-label-review"><a href="' . $cm->url . '">';
+        $out .= get_string('amount_waiting_for_review', 'mod_moodleoverflow', $reviewcount);
+        $out .= '</a></span> ';
     }
+
     if (permissions::can_track($moodleoverflow, $USER->id)) {
         $unread = readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id);
         if ($unread) {
