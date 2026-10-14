@@ -52,16 +52,24 @@ function showReputations(postid, userid, response) {
 }
 
 /**
- * Shows the vote of the user on both vote buttons of a post.
+ * Shows the vote of the user on both vote buttons of a post, like the template postvoting does.
  * @param {HTMLElement} postElement
  * @param {int} uservote The rating of the vote, 0 if the user has not voted.
+ * @param {boolean} canchange Whether the user can still change the vote. If not, the buttons stay visible but
+ *                            cannot be clicked any more.
  */
-async function showVote(postElement, uservote) {
+async function showVote(postElement, uservote, canchange) {
     for (const action of ['upvote', 'downvote']) {
         const button = postElement.querySelector(`[data-moodleoverflow-action="${action}"]`);
         const clicked = uservote === RATINGS[action];
-        button.setAttribute('data-moodleoverflow-state', clicked ? 'clicked' : 'notclicked');
-        button.title = await getString(clicked ? `action_remove_${action}` : `action_${action}`, 'mod_moodleoverflow');
+        if (canchange) {
+            button.setAttribute('data-moodleoverflow-state', clicked ? 'clicked' : 'notclicked');
+            button.title = await getString(clicked ? `action_remove_${action}` : `action_${action}`, 'mod_moodleoverflow');
+        } else {
+            button.removeAttribute('data-moodleoverflow-action');
+            button.setAttribute('data-moodleoverflow-state', clicked ? 'clicked' : 'disabled');
+            button.title = await getString(`${action}notchangeable`, 'mod_moodleoverflow');
+        }
     }
 }
 
@@ -93,6 +101,7 @@ async function showMarks(action, markedposts, allowmultiplemarks) {
 export function init(userid, allowmultiplemarks) {
     Prefetch.prefetchStrings('mod_moodleoverflow', [
         'action_upvote', 'action_remove_upvote', 'action_downvote', 'action_remove_downvote',
+        'upvotenotchangeable', 'downvotenotchangeable',
         'marksolved', 'marknotsolved', 'alsomarksolved', 'markhelpful', 'marknothelpful', 'alsomarkhelpful',
     ]);
 
@@ -117,7 +126,7 @@ export function init(userid, allowmultiplemarks) {
             if (ismark) {
                 await showMarks(action, response.markedposts, allowmultiplemarks);
             } else {
-                await showVote(postElement, response.uservote);
+                await showVote(postElement, response.uservote, response.canchange);
             }
         } catch (error) {
             Notification.exception(error);

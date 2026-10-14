@@ -237,6 +237,19 @@ class rating {
     }
 
     /**
+     * Whether the user can still use the vote buttons of a post: they may vote and have not voted yet, or may change
+     * their vote (allowratingchange).
+     * @param post $post
+     * @param int $userid
+     * @return bool
+     * @throws dml_exception|moodle_exception
+     */
+    public static function can_change_vote(post $post, int $userid): bool {
+        return permissions::can_vote($post, $userid)
+            && ($post->get_moodleoverflow()->allows_rating_change() || !self::get_vote_record($post, $userid));
+    }
+
+    /**
      * Returns the vote of a user on a post.
      * @param post $post
      * @param int $userid

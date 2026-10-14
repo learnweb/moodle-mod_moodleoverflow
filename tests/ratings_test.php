@@ -148,8 +148,11 @@ final class ratings_test extends \advanced_testcase {
      */
     public function test_allowratingchange(): void {
         set_config('allowratingchange', 0, 'moodleoverflow');
+        $this->assertTrue(service\rating::can_change_vote($this->answer, $this->student->id));
 
         service\rating::vote($this->answer, $this->student->id, rating_type::UPVOTE);
+        $this->assertFalse(service\rating::can_change_vote($this->answer, $this->student->id));
+        $this->assertTrue(service\rating::can_change_vote($this->teacheranswer, $this->student->id));
         $change = fn() => service\rating::vote($this->answer, $this->student->id, rating_type::DOWNVOTE);
         $remove = fn() => service\rating::remove_vote($this->answer, $this->student->id);
         $this->assert_refused($change, 'noratingchangeallowed');
@@ -159,6 +162,11 @@ final class ratings_test extends \advanced_testcase {
         service\rating::mark($this->answer, $this->teacher->id, rating_type::SOLVED);
         service\rating::unmark($this->answer, $this->teacher->id, rating_type::SOLVED);
         $this->assertEquals([], service\rating::get_marked_post_ids($this->get_discussion(), rating_type::SOLVED));
+
+        // With rating changes, a vote can always be changed. Nobody can change a vote they may not give.
+        set_config('allowratingchange', 1, 'moodleoverflow');
+        $this->assertTrue(service\rating::can_change_vote($this->answer, $this->student->id));
+        $this->assertFalse(service\rating::can_change_vote($this->answer, $this->otherstudent->id));
     }
 
     /**
@@ -220,9 +228,9 @@ final class ratings_test extends \advanced_testcase {
      */
     public function test_unmark(): void {
         // Earlier versions could store the same mark twice.
-        $this->generator->create_rating($this->answer, $this->teacher, rating_type::SOLVED->value);
-        $this->generator->create_rating($this->answer, $this->teacher, rating_type::SOLVED->value);
-        $this->generator->create_rating($this->answer, $this->student, rating_type::HELPFUL->value);
+        $this->generator->create_rating($this->answer, $this->teacher, rating_type::SOLVED);
+        $this->generator->create_rating($this->answer, $this->teacher, rating_type::SOLVED);
+        $this->generator->create_rating($this->answer, $this->student, rating_type::HELPFUL);
         $otherteacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $sink = $this->redirectEvents();
 
@@ -292,14 +300,14 @@ final class ratings_test extends \advanced_testcase {
             $ownanswer = $this->generator->create_reply($ownquestion, $this->student);
             $otherquestion = $this->generator->create_question($modflow, $this->otherstudent);
             $answer = $this->generator->create_reply($otherquestion, $this->student);
-            $this->generator->create_rating($ownquestion, $this->teacher, rating_type::UPVOTE->value);
-            $this->generator->create_rating($ownanswer, $this->teacher, rating_type::UPVOTE->value);
-            $this->generator->create_rating($answer, $this->teacher, rating_type::DOWNVOTE->value);
-            $this->generator->create_rating($answer, $this->teacher, rating_type::SOLVED->value);
-            $this->generator->create_rating($answer, $this->otherstudent, rating_type::HELPFUL->value);
-            $this->generator->create_rating($otherquestion, $this->student, rating_type::UPVOTE->value);
+            $this->generator->create_rating($ownquestion, $this->teacher, rating_type::UPVOTE);
+            $this->generator->create_rating($ownanswer, $this->teacher, rating_type::UPVOTE);
+            $this->generator->create_rating($answer, $this->teacher, rating_type::DOWNVOTE);
+            $this->generator->create_rating($answer, $this->teacher, rating_type::SOLVED);
+            $this->generator->create_rating($answer, $this->otherstudent, rating_type::HELPFUL);
+            $this->generator->create_rating($otherquestion, $this->student, rating_type::UPVOTE);
             // Marking gives the marker no reputation.
-            $this->generator->create_rating($ownanswer, $this->student, rating_type::HELPFUL->value);
+            $this->generator->create_rating($ownanswer, $this->student, rating_type::HELPFUL);
 
             $actual = service\rating::get_instance_reputation($modflow, $this->student->id);
             $this->assertEquals($reputation, $actual, anonymity::from($anonymous)->name);
@@ -312,7 +320,7 @@ final class ratings_test extends \advanced_testcase {
     public function test_negative_reputation(): void {
         foreach ([0 => 0, 1 => -5] as $allownegative => $reputation) {
             [$modflow, , $answer] = $this->create_discussion(['allownegativereputation' => $allownegative]);
-            $this->generator->create_rating($answer, $this->teacher, rating_type::DOWNVOTE->value);
+            $this->generator->create_rating($answer, $this->teacher, rating_type::DOWNVOTE);
             $this->assertEquals($reputation, service\rating::get_instance_reputation($modflow, $this->otherstudent->id));
         }
     }
@@ -382,7 +390,7 @@ final class ratings_test extends \advanced_testcase {
         $this->assertFalse($DB->record_exists('moodleoverflow_grades', []));
 
         [$modflow, $question, $answer] = $this->create_discussion(['grademaxgrade' => 50, 'gradescalefactor' => 1]);
-        $this->generator->create_rating($answer, $this->student, rating_type::UPVOTE->value);
+        $this->generator->create_rating($answer, $this->student, rating_type::UPVOTE);
         // The privacy provider sets the author of deleted posts to 0; nobody gets their grade.
         $authorless = $this->generator->create_reply($question, $this->teacher);
         $DB->set_field('moodleoverflow_posts', 'userid', 0, ['id' => $authorless->get_id()]);
@@ -408,7 +416,8 @@ final class ratings_test extends \advanced_testcase {
         $this->setUser($this->student);
         $result = $call($postid, rating_type::UPVOTE->value);
         $this->assertEquals(['postrating' => 1, 'ownerreputation' => 10, 'raterreputation' => 1,
-            'ownerid' => $this->otherstudent->id, 'uservote' => rating_type::UPVOTE->value, 'markedposts' => [], ], $result);
+            'ownerid' => $this->otherstudent->id, 'uservote' => rating_type::UPVOTE->value, 'canchange' => true,
+            'markedposts' => [], ], $result);
 
         $result = $call($postid, rating_type::UPVOTE->value, true);
         $this->assertEquals(0, $result['postrating']);
@@ -610,7 +619,7 @@ final class ratings_test extends \advanced_testcase {
      */
     private function create_upvoted_discussion(array $options): array {
         $created = $this->create_discussion($options);
-        $this->generator->create_rating($created[2], $this->teacher, rating_type::UPVOTE->value);
+        $this->generator->create_rating($created[2], $this->teacher, rating_type::UPVOTE);
         return $created;
     }
 

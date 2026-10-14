@@ -147,7 +147,7 @@ class discussion_card implements named_templatable, renderable {
             'votes' => $ratings->upvotes - $ratings->downvotes,
             'userupvoted' => $vote === rating_type::UPVOTE,
             'userdownvoted' => $vote === rating_type::DOWNVOTE,
-            'canchange' => permissions::can_vote($this->firstpost, $USER->id),
+            'canchange' => rating::can_change_vote($this->firstpost, $USER->id),
             'markedhelpful' => $helpful,
             'markedsolution' => $solution,
             'subjecttext' => format_string($this->discussion->name), // The discussion name, use format_text perhaps.

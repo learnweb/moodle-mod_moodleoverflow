@@ -68,6 +68,7 @@ class record_vote extends external_api {
                 'raterreputation' => new external_value(PARAM_INT, 'new reputation of rater'),
                 'ownerid' => new external_value(PARAM_INT, 'user id of post owner'),
                 'uservote' => new external_value(PARAM_INT, 'vote of the rater on the post, 0 if none'),
+                'canchange' => new external_value(PARAM_BOOL, 'whether the rater can still change the vote'),
                 'markedposts' => new external_multiple_structure(
                     new external_value(PARAM_INT, 'id of a post'),
                     'posts of the discussion with the mark of the rating, empty for votes'
@@ -112,6 +113,7 @@ class record_vote extends external_api {
             'raterreputation' => service\rating::get_reputation($modflow, $USER->id),
             'ownerid' => permissions::can_view_author($post, $USER->id) ? $post->get_userid() : null,
             'uservote' => service\rating::get_user_vote($post, $USER->id)?->value ?? 0,
+            'canchange' => service\rating::can_change_vote($post, $USER->id),
             'markedposts' => $type->is_mark() ? service\rating::get_marked_post_ids($discussion, $type) : [],
         ];
     }

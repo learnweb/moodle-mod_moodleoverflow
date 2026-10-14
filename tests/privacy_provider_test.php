@@ -310,7 +310,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [$discussion, $post] = $this->generator->post_to_forum($forum, $otheruser);
         $context = \context_module::instance($forum->cmid);
         // Rate the other users content.
-        $this->generator->create_rating(post::from_id($post->id), $user, RATING_DOWNVOTE);
+        $this->generator->create_rating(post::from_id($post->id), $user, rating_type::DOWNVOTE);
 
         // Run as the user under test.
         $this->setUser($user);
@@ -344,7 +344,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $context = \context_module::instance($forum->cmid);
         // Other users rate my content.
         // Rate the other users content.
-        $this->generator->create_rating(post::from_id($post->id), $otheruser, RATING_DOWNVOTE);
+        $this->generator->create_rating(post::from_id($post->id), $otheruser, rating_type::DOWNVOTE);
 
         // Run as the user under test.
         $this->setUser($user);
@@ -571,7 +571,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
             // Rate the other users content.
             if ($post->userid != $user->id) {
                 $ratedposts[$post->id] = $post;
-                $this->generator->create_rating(post::from_id($post->id), $user, RATING_DOWNVOTE);
+                $this->generator->create_rating(post::from_id($post->id), $user, rating_type::DOWNVOTE);
             }
         }
         // Run as the user under test.
@@ -707,7 +707,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
             foreach ($posts as $post) {
                 // Rate the other users content.
                 if ($post->userid != $user->id) {
-                    $this->generator->create_rating(post::from_id($post->id), $user, RATING_DOWNVOTE);
+                    $this->generator->create_rating(post::from_id($post->id), $user, rating_type::DOWNVOTE);
                 }
             }
         }

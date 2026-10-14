@@ -75,7 +75,7 @@ final class discussion_move_test extends \advanced_testcase {
         $this->generator->create_post_file($this->answer, 'attachment', 'attachment.txt');
 
         // The teacher upvotes the answer; the answerer's grade in the source is based on it.
-        $this->generator->create_rating($this->answer, $this->teacher, rating_type::UPVOTE->value);
+        $this->generator->create_rating($this->answer, $this->teacher, rating_type::UPVOTE);
         service\rating::update_all_grades($this->source);
 
         // Rows of other tables that store the moodleoverflow of the discussion.

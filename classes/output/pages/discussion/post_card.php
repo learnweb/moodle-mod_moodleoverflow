@@ -84,7 +84,7 @@ class post_card implements named_templatable, renderable {
             'votes' => $ratings->upvotes - $ratings->downvotes,
             'userupvoted' => $vote === rating_type::UPVOTE,
             'userdownvoted' => $vote === rating_type::DOWNVOTE,
-            'canchange' => permissions::can_vote($this->post, $USER->id),
+            'canchange' => service\rating::can_change_vote($this->post, $USER->id),
         ] : [];
         $showreputation = permissions::can_view_reputation($this->post, $USER->id) ? [
             'userid' => $this->post->get_userid(),
