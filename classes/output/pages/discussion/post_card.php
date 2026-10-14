@@ -20,10 +20,10 @@ use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
 use html_writer;
+use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\local\service\readtracking;
-use mod_moodleoverflow\ratings;
+use mod_moodleoverflow\local\service;
 use moodle_url;
 
 /**
@@ -72,24 +72,23 @@ class post_card implements named_templatable, renderable {
         $moodleoverflow = $discussion->get_moodleoverflow();
 
         // Build the postclass, which has additional css classes that show if a post solution/helpful marks and readtracking status.
-        $ratings = ratings::moodleoverflow_get_rating($this->post->get_id());
-        $isread = readtracking::is_post_read($this->post, $USER->id);
+        $ratings = service\rating::get_post_ratings($discussion)[$this->post->get_id()];
+        $isread = service\readtracking::is_post_read($this->post, $USER->id);
         $issolved = $ratings->issolved > 0 ? 'markedsolution' : '';
         $ishelpful = $ratings->ishelpful > 0 ? 'markedhelpful' : '';
 
         // Get voting data for the voting template as well as reputation rating.
-        $ratings = $this->post->get_ratings();
-        $userrating = ratings::user_rated($this->post->get_id());
+        $vote = service\rating::get_user_vote($this->post, $USER->id);
         $showvotes = $moodleoverflow->is_rating_enabled() ? [
             'postid' => $this->post->get_id(),
-            'votes' => $ratings->votesdifference,
-            'userupvoted' => $userrating && $userrating->rating == RATING_UPVOTE,
-            'userdownvoted' => $userrating && $userrating->rating == RATING_DOWNVOTE,
+            'votes' => $ratings->upvotes - $ratings->downvotes,
+            'userupvoted' => $vote === rating_type::UPVOTE,
+            'userdownvoted' => $vote === rating_type::DOWNVOTE,
             'canchange' => permissions::can_vote($this->post, $USER->id),
         ] : [];
         $showreputation = permissions::can_view_reputation($this->post, $USER->id) ? [
             'userid' => $this->post->get_userid(),
-            'userreputation' => ratings::get_reputation($moodleoverflow->id, $this->post->get_userid()),
+            'userreputation' => service\rating::get_reputation($moodleoverflow, $this->post->get_userid()),
         ] : [];
 
         // Review data.
@@ -134,18 +133,18 @@ class post_card implements named_templatable, renderable {
     private function build_commands(): string {
         global $USER, $OUTPUT;
 
-        $discussion   = $this->post->get_discussion();
+        $discussion = $this->post->get_discussion();
         $moodleoverflow = $discussion->get_moodleoverflow();
-        $parentpost   = $this->post->get_parentpost();
-        $ratings       = $this->post->get_ratings();
+        $parentpost = $this->post->get_parentpost();
+        $ratings = service\rating::get_post_ratings($discussion)[$this->post->get_id()];
 
         $commands = [];
 
         // Mark helpful — discussion starter only, direct answers only.
         if (permissions::can_mark_helpful($this->post, $USER->id)) {
-            if ($ratings->markedhelpful) {
+            if ($ratings->ishelpful) {
                 $label = get_string('marknothelpful', 'moodleoverflow');
-            } else if (ratings::discussion_is_solved($discussion->get_id(), false)) {
+            } else if (service\rating::get_marked_post_ids($discussion, rating_type::HELPFUL)) {
                 $label = get_string('alsomarkhelpful', 'moodleoverflow');
             } else {
                 $label = get_string('markhelpful', 'moodleoverflow');
@@ -159,9 +158,9 @@ class post_card implements named_templatable, renderable {
 
         // Mark solved — teachers only, direct answers only.
         if (permissions::can_mark_solved($this->post, $USER->id)) {
-            if ($ratings->markedsolution) {
+            if ($ratings->issolved) {
                 $label = get_string('marknotsolved', 'moodleoverflow');
-            } else if (ratings::discussion_is_solved($discussion->get_id(), true)) {
+            } else if (service\rating::get_marked_post_ids($discussion, rating_type::SOLVED)) {
                 $label = get_string('alsomarksolved', 'moodleoverflow');
             } else {
                 $label = get_string('marksolved', 'moodleoverflow');

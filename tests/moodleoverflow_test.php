@@ -214,6 +214,16 @@ final class moodleoverflow_test extends \advanced_testcase {
         $this->assertFalse($moodleoverflow->is_rating_enabled());
         $this->assertFalse($moodleoverflow->is_reputation_enabled());
 
+        // Reputation is only shown where voting is possible, and only if the instance shows it.
+        $reputation = function (int $allowrating, int $allowreputation) use ($moodleoverflow): bool {
+            $settings = ['allowrating' => $allowrating, 'allowreputation' => $allowreputation];
+            return moodleoverflow::from_record((object) ($settings + (array) $moodleoverflow->get_db_object()))
+                ->is_reputation_enabled();
+        };
+        $this->assertFalse($reputation(0, 1));
+        $this->assertTrue($reputation(1, 1));
+        $this->assertFalse($reputation(1, 0));
+
         // Disabling disallowed by the admin: rating and reputation are always enabled.
         set_config('allowdisablerating', 0, 'moodleoverflow');
         $this->assertTrue($moodleoverflow->is_rating_enabled());

@@ -29,8 +29,10 @@ use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 use dml_exception;
+use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\privacy\data_export_helper;
 use mod_moodleoverflow\privacy\provider;
@@ -1195,8 +1197,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
 
         [$user, $user2] = $this->create_students(2, $course);
         [ , $post] = $this->generator->post_to_forum($forum, $user);
-        ratings::add_rating($forum, $post->id, RATING_UPVOTE, $cm, $user2->id);
-        moodleoverflow_update_all_grades_for_instance($forum);
+        service\rating::vote(post::from_id($post->id), $user2->id, rating_type::UPVOTE);
+        service\rating::update_all_grades($forum);
         $grades = grade_get_grades($course->id, 'mod', 'moodleoverflow', $forum->id, [$user->id, $user2->id]);
         self::assertEquals("2.50", $grades->items[0]->grades[$user->id]->str_grade);
         self::assertEquals("0.50", $grades->items[0]->grades[$user2->id]->str_grade);
@@ -1213,14 +1215,14 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $contextlist = new approved_contextlist($user2, 'mod_moodleoverflow', $contextlist->get_contextids());
         self::assertContains("$context->id", $contextlist->get_contextids());
         provider::delete_data_for_user($contextlist);
-        moodleoverflow_update_all_grades_for_instance($forum);
+        service\rating::update_all_grades($forum);
         $grades = $DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade');
         self::assertEquals(2.5, $grades[$user->id]->grade);
         self::assertArrayNotHasKey($user2->id, $grades);
 
         // Test delete context.
         provider::delete_data_for_all_users_in_context($context);
-        moodleoverflow_update_all_grades_for_instance($forum);
+        service\rating::update_all_grades($forum);
         self::assertEmpty($DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade'));
     }
 }

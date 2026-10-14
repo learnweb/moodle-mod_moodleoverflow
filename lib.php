@@ -35,8 +35,7 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\local\service\readtracking;
-use mod_moodleoverflow\local\service\review;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\subscriptions;
 
 defined('MOODLE_INTERNAL') || die();
@@ -216,8 +215,7 @@ function moodleoverflow_update_instance(stdClass $data): bool {
     moodleoverflow_grade_item_update($data);
 
     // Update all grades.
-    moodleoverflow_update_all_grades_for_instance(moodleoverflow::from_id($data->id));
-
+    service\rating::update_all_grades(moodleoverflow::from_id($data->id));
     $completiontime = !empty($data->completionexpected) ? $data->completionexpected : null;
     api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $data->id, $completiontime);
 
@@ -302,7 +300,7 @@ function moodleoverflow_delete_instance($id) {
     }
 
     // Delete the read records.
-    readtracking::delete_read_records(modflowid: $moodleoverflow->id);
+    service\readtracking::delete_read_records(modflowid: $moodleoverflow->id);
 
     // Delete the moodleoverflow instance.
     if (!$DB->delete_records('moodleoverflow', ['id' => $moodleoverflow->id])) {
@@ -537,7 +535,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
     global $USER;
     $moodleoverflow = moodleoverflow::from_id($cm->instance);
     $out = "";
-    $reviewcount = count(review::get_posts_to_review($moodleoverflow, $USER->id));
+    $reviewcount = count(service\review::get_posts_to_review($moodleoverflow, $USER->id));
     if ($reviewcount) {
         $out .= '<span class="mod_moodleoverflow-label-review"><a href="' . $cm->url . '">';
         $out .= get_string('amount_waiting_for_review', 'mod_moodleoverflow', $reviewcount);
@@ -545,7 +543,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
     }
 
     if (permissions::can_track($moodleoverflow, $USER->id)) {
-        $unread = readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id);
+        $unread = service\readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id);
         if ($unread) {
             $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {

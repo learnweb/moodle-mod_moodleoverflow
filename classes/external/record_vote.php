@@ -20,10 +20,11 @@ use core_external\external_single_structure;
 use core_external\external_function_parameters;
 use core_external\external_api;
 use core_external\external_value;
-use mod_moodleoverflow\local\models\moodleoverflow;
+use core_external\restricted_context_exception;
+use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\ratings;
+use mod_moodleoverflow\local\service;
 use core\exception\moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -74,47 +75,33 @@ class record_vote extends external_api {
      * @param int $postid ID of post
      * @param int $ratingid Rating value
      * @return array with updated information about rating /reputation
+     * @throws \invalid_parameter_exception|\dml_exception|moodle_exception|restricted_context_exception
      */
-    public static function execute($postid, $ratingid) {
-        global $DB, $USER;
-
-        // Parameter validation.
+    public static function execute(int $postid, int $ratingid): array {
+        global $USER;
         $params = self::validate_parameters(self::execute_parameters(), ['postid' => $postid, 'ratingid' => $ratingid]);
+        $post = post::from_id($params['postid']);
+        $modflow = $post->get_moodleoverflow();
+        self::validate_context($modflow->get_context());
 
-        $transaction = $DB->start_delegated_transaction();
+        // The JS sends removals as the rating value × 10.
+        $remove = $params['ratingid'] >= 10 && $params['ratingid'] % 10 === 0;
+        $type = rating_type::tryFrom($remove ? intdiv($params['ratingid'], 10) : $params['ratingid'])
+            ?? throw new moodle_exception('invalidratingid', 'moodleoverflow');
+        match (true) {
+            $type->is_vote() && !$remove => service\rating::vote($post, $USER->id, $type),
+            $type->is_vote() => service\rating::remove_vote($post, $USER->id),
+            !$remove => service\rating::mark($post, $USER->id, $type),
+            default => service\rating::unmark($post, $USER->id, $type),
+        };
 
-        $post = post::from_id($postid);
-        $discussion = $post->get_discussion()->get_db_object();
-        $moodleoverflow = moodleoverflow::from_id($discussion->moodleoverflow);
-        $cm = $moodleoverflow->get_cm();
-
-        // Security checks.
-        $context = $moodleoverflow->get_context();
-        self::validate_context($context);
-
-        // Rate the post.
-        permissions::ensure(permissions::can_view_post($post, $USER->id), 'ratingfailed');
-        if (!ratings::add_rating($moodleoverflow, $postid, $ratingid, $cm, $USER->id)) {
-            throw new moodle_exception('ratingfailed', 'moodleoverflow');
-        }
-
-        $postownerid = $post->get_userid();
-        $rating = ratings::get_ratings_by_discussion($discussion->id, $postid);
-        $ownerrating = ratings::get_reputation($moodleoverflow->id, $postownerid);
-        $raterrating = ratings::get_reputation($moodleoverflow->id, $USER->id);
-
-        $cannotseeowner = !permissions::can_view_author($post, $USER->id);
-
-        $params['postrating'] = $rating->upvotes - $rating->downvotes;
-        $params['ownerreputation'] = permissions::can_view_reputation($post, $USER->id) ? $ownerrating : null;
-        $params['raterreputation'] = $raterrating;
-        $params['ownerid'] = $cannotseeowner ? null : $postownerid;
-
-        $transaction->allow_commit();
-
-        moodleoverflow_update_user_grade($moodleoverflow, $ownerrating, $postownerid);
-        moodleoverflow_update_user_grade($moodleoverflow, $raterrating, $USER->id);
-
-        return $params;
+        $ratings = service\rating::get_post_ratings($post->get_discussion())[$post->get_id()];
+        return [
+            'postrating' => $ratings->upvotes - $ratings->downvotes,
+            'ownerreputation' => permissions::can_view_reputation($post, $USER->id)
+                ? service\rating::get_reputation($modflow, $post->get_userid()) : null,
+            'raterreputation' => service\rating::get_reputation($modflow, $USER->id),
+            'ownerid' => permissions::can_view_author($post, $USER->id) ? $post->get_userid() : null,
+        ];
     }
 }

@@ -21,7 +21,6 @@ use dml_exception;
 use Exception;
 use mod_moodleoverflow\local\models;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\ratings;
 use core\exception\moodle_exception;
 
 defined('MOODLE_INTERNAL') || die();
@@ -75,18 +74,14 @@ class discussion {
             $discussion->move_discussion($destination);
 
             // The reputation of authors and raters changes in both instances, so their grades change as well.
-            $affectedusers = array_filter(
-                array_unique(array_merge(
+            $affectedusers = array_unique(
+                array_merge(
                     $DB->get_fieldset_select('moodleoverflow_posts', 'userid', 'discussion = ?', [$discussion->get_id()]),
                     $DB->get_fieldset_select('moodleoverflow_ratings', 'userid', 'discussionid = ?', [$discussion->get_id()])
-                )),
-                fn($userid) => $userid != 0,
+                )
             );
             foreach ([$source, $destination] as $modflow) {
-                foreach ($affectedusers as $affecteduserid) {
-                    $reputation = ratings::get_reputation($modflow->id, $affecteduserid, true);
-                    moodleoverflow_update_user_grade($modflow, $reputation, $affecteduserid);
-                }
+                rating::update_grades($modflow, $affectedusers);
             }
             $transaction->allow_commit();
         } catch (Exception $e) {

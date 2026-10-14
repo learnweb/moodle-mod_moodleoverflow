@@ -339,7 +339,7 @@ class moodleoverflow {
      * @return bool
      */
     public function is_reputation_enabled(): bool {
-        return $this->can_disable_rating() ? $this->allowreputation : true;
+        return $this->is_rating_enabled() && (!$this->can_disable_rating() || $this->allowreputation);
     }
 
     /**
@@ -375,7 +375,7 @@ class moodleoverflow {
     }
 
     /**
-     * Whether several answers can be marked as solved or helpful.
+     * Whether several answers can be marked as solved or helpful (e.g. 2 posts in a discussion are both helpful).
      * @return bool
      */
     public function allows_multiple_marks(): bool {

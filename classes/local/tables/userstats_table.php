@@ -18,7 +18,10 @@ namespace mod_moodleoverflow\local\tables;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_moodleoverflow\ratings;
+use core\exception\coding_exception;
+use mod_moodleoverflow\local\enum\rating_type;
+use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\service;
 global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
@@ -92,11 +95,14 @@ class userstats_table extends \flexible_table {
      * Method to collect all the data.
      * Method will collect all users from the given course and will determine the user statistics
      * Builds an 2d-array with user statistic
+     * @throws \dml_exception
+     * @throws coding_exception
      */
-    public function get_table_data() {
+    public function get_table_data(): void {
         // Get all userdata from a course.
         $context = \context_course::instance($this->courseid);
         $users = get_enrolled_users($context, '', 0, 'u.id, u.firstname, u.lastname');
+        $modflow = moodleoverflow::from_id($this->moodleoverflowid);
 
         // Step 1.0: Build the datatable with all relevant information.
         $ratingdata = $this->get_rating_data();
@@ -122,8 +128,8 @@ class userstats_table extends \flexible_table {
                 }
             }
             // Get the user reputation from the course.
-            $student->forumreputation = ratings::get_reputation_instance($this->moodleoverflowid, $student->id);
-            $student->coursereputation = ratings::get_reputation_course($this->courseid, $student->id);
+            $student->forumreputation = service\rating::get_instance_reputation($modflow, $student->id);
+            $student->coursereputation = service\rating::get_course_reputation($this->courseid, $student->id);
             $this->userstatsdata[] = $student;
         }
     }
@@ -273,9 +279,9 @@ class userstats_table extends \flexible_table {
     private function process_received_votes(object $student, object $row) {
         // Only count received votes if the post is not anonymous (no anonymous setting or only questioner anonymous discussion).
         if ((($row->anonymoussetting == 0) || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
-            if ($row->rating == RATING_UPVOTE) {
+            if ($row->rating == rating_type::UPVOTE->value) {
                 $student->receivedupvotes += 1;
-            } else if ($row->rating == RATING_DOWNVOTE) {
+            } else if ($row->rating == rating_type::DOWNVOTE->value) {
                 $student->receiveddownvotes += 1;
             }
         }
@@ -290,9 +296,9 @@ class userstats_table extends \flexible_table {
         // For solution marks: only count a solution if the discussion is not completely anonymous.
         // For helpful marks: only count helpful marks if the discussion is not any kind of anonymous.
         // Up and downvotes are always counted.
-        $solvedcheck = ($row->rating == RATING_SOLVED && $row->anonymoussetting != 2);
-        $helpfulcheck = ($row->rating == RATING_HELPFUL && $row->anonymoussetting == 0);
-        $isvote = ($row->rating == RATING_UPVOTE || $row->rating == RATING_DOWNVOTE);
+        $solvedcheck = ($row->rating == rating_type::SOLVED->value && $row->anonymoussetting != 2);
+        $helpfulcheck = ($row->rating == rating_type::HELPFUL->value && $row->anonymoussetting == 0);
+        $isvote = ($row->rating == rating_type::UPVOTE->value || $row->rating == rating_type::DOWNVOTE->value);
 
         if (!array_key_exists($row->rateid, $student->ratedposts)) {
             if ($solvedcheck || $helpfulcheck || $isvote) {

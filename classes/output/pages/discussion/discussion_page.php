@@ -23,8 +23,7 @@ use core\output\renderer_base;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\local\service\readtracking;
-use mod_moodleoverflow\ratings;
+use mod_moodleoverflow\local\service;
 
 /**
  * This class presents the output of the discussion page (discussion.php). The discussion page shows all discussion
@@ -66,7 +65,7 @@ class discussion_page implements named_templatable, renderable{
     public function export_for_template(renderer_base $output): object {
         global $USER, $OUTPUT;
         $context = context_module::instance($this->discussion->get_coursemodule()->id);
-        $firstunreadpost = readtracking::get_first_unread_post_id($this->discussion, $USER->id);
+        $firstunreadpost = service\readtracking::get_first_unread_post_id($this->discussion, $USER->id);
         $answeramount = get_string(((count($this->answers) > 0) ? 'answers' : 'answer'), 'moodleoverflow', count($this->answers));
 
         // Get the rendered posts.
@@ -78,23 +77,23 @@ class discussion_page implements named_templatable, renderable{
 
         // Rank the direct answers by marks and votes, depending on the "Display first" setting.
         $moodleoverflow = $this->discussion->get_moodleoverflow();
-        $discussionratings = ratings::get_ratings_by_discussion($this->discussion->get_id());
+        $discussionratings = service\rating::get_post_ratings($this->discussion);
         $sortdata = [];
-        foreach ([$this->firstpost, ...$this->answers] as $post) {
-            if ($post !== $this->firstpost && $post->get_parentid() != $firstpostid) {
+        foreach ($this->answers as $post) {
+            if ($post->get_parentid() != $firstpostid) {
                 continue;
             }
             $rating = $discussionratings[$post->get_id()];
             $sortdata[] = (object) [
                 'id' => $post->get_id(),
                 'modified' => $post->modified,
-                'ratingpreference' => $moodleoverflow->ratingpreference,
                 'votesdifference' => $rating->upvotes - $rating->downvotes,
                 'markedsolution' => $rating->issolved,
                 'markedhelpful' => $rating->ishelpful,
             ];
         }
-        $rank = array_flip(array_keys(ratings::sort_answers_by_ratings($sortdata)));
+        $sorted = service\rating::sort_answers($sortdata, $moodleoverflow->get_rating_preference());
+        $rank = array_flip(array_keys($sorted));
 
         // Sort direct answers by their rank. Put comments of an answer after the answer, sorted by date.
         usort($answersorganized, function ($a, $b) use ($answersorganized, $firstpostid, $rank) {

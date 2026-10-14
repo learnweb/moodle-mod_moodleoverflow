@@ -17,7 +17,8 @@
 namespace mod_moodleoverflow\privacy;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\writer;
-use mod_moodleoverflow\ratings;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\service;
 
 /**
  * Privacy Subsystem implementation for mod_moodleoverflow.
@@ -280,9 +281,7 @@ class data_export_helper {
      */
     protected static function export_rating_data($postid, $onlyuser, $userid) {
         global $DB;
-        $rating = new ratings();
-
-        $ratingpost = $rating->moodleoverflow_get_rating($postid);
+        $ratingpost = service\rating::get_post_ratings(post::from_id($postid)->get_discussion())[$postid];
 
         // Get the user rating.
         $sql = "SELECT id, firstrated, rating

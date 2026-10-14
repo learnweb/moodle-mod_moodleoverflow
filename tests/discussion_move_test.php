@@ -17,6 +17,7 @@
 namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\event\discussion_moved;
+use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
@@ -74,8 +75,8 @@ final class discussion_move_test extends \advanced_testcase {
         $this->generator->create_post_file($this->answer, 'attachment', 'attachment.txt');
 
         // The teacher upvotes the answer; the answerer's grade in the source is based on it.
-        $this->generator->create_rating($this->answer, $this->teacher, RATING_UPVOTE);
-        moodleoverflow_update_all_grades_for_instance($this->source);
+        $this->generator->create_rating($this->answer, $this->teacher, rating_type::UPVOTE->value);
+        service\rating::update_all_grades($this->source);
 
         // Rows of other tables that store the moodleoverflow of the discussion.
         $discussionid = $this->discussion->get_id();
@@ -118,8 +119,8 @@ final class discussion_move_test extends \advanced_testcase {
         // Ratings, and with them reputation and grades.
         $this->assertTrue($DB->record_exists('moodleoverflow_ratings', ['discussionid' => $id,
             'moodleoverflowid' => $this->destination->id]));
-        $this->assertEquals(0, ratings::get_reputation_instance($this->source->id, $this->otherstudent->id));
-        $this->assertEquals($upvote, ratings::get_reputation_instance($this->destination->id, $this->otherstudent->id));
+        $this->assertEquals(0, service\rating::get_instance_reputation($this->source, $this->otherstudent->id));
+        $this->assertEquals($upvote, service\rating::get_instance_reputation($this->destination, $this->otherstudent->id));
         $this->assertEquals(0, $this->helper_get_grade($this->source, $this->otherstudent));
         $this->assertEquals($upvote, $this->helper_get_grade($this->destination, $this->otherstudent));
 

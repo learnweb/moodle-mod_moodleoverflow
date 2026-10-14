@@ -24,6 +24,7 @@
 namespace mod_moodleoverflow;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\tables\userstats_table;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
@@ -127,7 +128,7 @@ final class userstats_test extends \advanced_testcase {
         $this->generator->create_rating($this->answer1, $this->teacher, RATING_SOLVED);
 
         // Calculate the forum reputation of the other student.
-        $reputation = ratings::get_reputation_instance($this->modflow->id, $this->otherstudent->id);
+        $reputation = service\rating::get_instance_reputation($this->modflow, $this->otherstudent->id);
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
         $reputation2 = $this->get_specific_userstats($data, $this->otherstudent, 'forumreputation');

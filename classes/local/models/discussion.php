@@ -25,7 +25,6 @@ use mod_moodleoverflow\event\discussion_deleted;
 use mod_moodleoverflow\event\discussion_moved;
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\local\service\readtracking;
-use mod_moodleoverflow\ratings;
 use core\exception\moodle_exception;
 use moodle_url;
 
@@ -516,18 +515,6 @@ class discussion {
     public function get_userid(): int {
         $this->existence_check();
         return $this->userid;
-    }
-
-    /**
-     * Returns the ratings from this discussion.
-     * @return array of votings
-     * @throws moodle_exception
-     */
-    public function get_ratings(): array {
-        $this->existence_check();
-        $this->posts_check();
-
-        return ratings::get_ratings_by_discussion($this->id);
     }
 
     /**

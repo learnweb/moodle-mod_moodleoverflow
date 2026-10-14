@@ -28,7 +28,6 @@ use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\form\post_form;
 use mod_moodleoverflow\local\service\readtracking;
-use mod_moodleoverflow\ratings;
 use core\exception\moodle_exception;
 use moodle_url;
 use stdClass;
@@ -718,24 +717,6 @@ class post {
     }
 
     // Helper Functions.
-
-    /**
-     * Calculate the ratings of a post.
-     *
-     * @return object $ratingsobject.
-     * @throws moodle_exception
-     */
-    public function get_ratings(): object {
-        $this->existence_check();
-        $postratings = ratings::get_ratings_by_discussion($this->get_discussion()->get_id(), $this->id);
-        return (object) [
-            'upvotes' => $postratings->upvotes,
-            'downvotes' => $postratings->downvotes,
-            'votesdifference' => $postratings->upvotes - $postratings->downvotes,
-            'markedhelpful' => $postratings->ishelpful,
-            'markedsolution' => $postratings->issolved,
-        ];
-    }
 
     /**
      * Builds an object from this instance that has only DB-relevant attributes.
