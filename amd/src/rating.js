@@ -14,171 +14,113 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Implements rating functionality
+ * Implements rating functionality: votes and solved / helpful marks. The server decides the new state, this module
+ * only shows it.
  *
  * @module     mod_moodleoverflow/rating
  * @copyright  2022 Justus Dieckmann WWU
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import Ajax from 'core/ajax';
+import Notification from 'core/notification';
 import Prefetch from 'core/prefetch';
 import {get_string as getString} from 'core/str';
 
-const RATING_DOWNVOTE = 1;
-const RATING_UPVOTE = 2;
-const RATING_REMOVE_DOWNVOTE = 10;
-const RATING_REMOVE_UPVOTE = 20;
-const RATING_SOLVED = 3;
-const RATING_HELPFUL = 4;
+/** The rating of each action, the values of the enum rating_type. */
+const RATINGS = {downvote: 1, upvote: 2, solved: 3, helpful: 4};
+
+/** The CSS class of a post that has a mark. */
+const MARKCLASSES = {solved: 'markedsolution', helpful: 'markedhelpful'};
 
 const root = document.getElementById('moodleoverflow-root');
 
 /**
- * Send a vote via AJAX, then updates post and user ratings.
- * @param {int} postid
- * @param {int} rating
- * @param {int} userid
- * @returns {Promise<*>}
+ * Shows the new vote count of the post and the new reputations of the rater and the author.
+ * @param {string} postid
+ * @param {int} userid The rater.
+ * @param {object} response The result of mod_moodleoverflow_record_vote.
  */
-async function sendVote(postid, rating, userid) {
-    const response = await Ajax.call([{
-        methodname: 'mod_moodleoverflow_record_vote',
-        args: {
-            postid: postid,
-            ratingid: rating
-        }
-    }])[0];
-
-    root.querySelectorAll(`[data-moodleoverflow-userreputation="${userid}"]`).forEach((i) => {
-        i.textContent = response.raterreputation;
+function showReputations(postid, userid, response) {
+    const show = (selector, value) => root.querySelectorAll(selector).forEach((element) => {
+        element.textContent = value;
     });
-
-    root.querySelectorAll(`[data-moodleoverflow-userreputation="${response.ownerid}"]`).forEach((i) => {
-        i.textContent = response.ownerreputation;
-    });
-
-    root.querySelectorAll(`[data-moodleoverflow-postreputation="${postid}"]`).forEach((i) => {
-        i.textContent = response.postrating;
-    });
-
-    return response;
+    show(`[data-moodleoverflow-postreputation="${postid}"]`, response.postrating);
+    show(`[data-moodleoverflow-userreputation="${userid}"]`, response.raterreputation);
+    if (response.ownerid !== null && response.ownerreputation !== null) {
+        show(`[data-moodleoverflow-userreputation="${response.ownerid}"]`, response.ownerreputation);
+    }
 }
 
+/**
+ * Shows the vote of the user on both vote buttons of a post.
+ * @param {HTMLElement} postElement
+ * @param {int} uservote The rating of the vote, 0 if the user has not voted.
+ */
+async function showVote(postElement, uservote) {
+    for (const action of ['upvote', 'downvote']) {
+        const button = postElement.querySelector(`[data-moodleoverflow-action="${action}"]`);
+        const clicked = uservote === RATINGS[action];
+        button.setAttribute('data-moodleoverflow-state', clicked ? 'clicked' : 'notclicked');
+        button.title = await getString(clicked ? `action_remove_${action}` : `action_${action}`, 'mod_moodleoverflow');
+    }
+}
+
+/**
+ * Shows which posts have a mark: the CSS class of every post and the label of its mark button.
+ * @param {string} action solved or helpful
+ * @param {int[]} markedposts The ids of the posts with the mark.
+ * @param {boolean} allowmultiplemarks Whether several posts can have the mark.
+ */
+async function showMarks(action, markedposts, allowmultiplemarks) {
+    for (const postElement of root.querySelectorAll('[data-moodleoverflow-postid]')) {
+        const marked = markedposts.includes(Number(postElement.getAttribute('data-moodleoverflow-postid')));
+        postElement.classList.toggle(MARKCLASSES[action], marked);
+        const button = postElement.querySelector(`[data-moodleoverflow-action="${action}"]`);
+        if (button) {
+            // Without multiple marks, marking another post moves the mark, so there is no "also mark".
+            const other = allowmultiplemarks && markedposts.length ? 'alsomark' : 'mark';
+            button.textContent = await getString(marked ? `marknot${action}` : `${other}${action}`, 'mod_moodleoverflow');
+        }
+    }
+}
 
 /**
  * Init function.
  *
  * @param {int} userid
- * @param {boolean} allowmultiplemarks   // true means allowed, false means not allowed.
- *
+ * @param {boolean} allowmultiplemarks Whether several posts of a discussion can have the same mark.
  */
 export function init(userid, allowmultiplemarks) {
-    Prefetch.prefetchStrings('mod_moodleoverflow',
-        ['marksolved', 'marknotsolved', 'markhelpful', 'marknothelpful',
-            'action_remove_upvote', 'action_upvote', 'action_remove_downvote', 'action_downvote']);
+    Prefetch.prefetchStrings('mod_moodleoverflow', [
+        'action_upvote', 'action_remove_upvote', 'action_downvote', 'action_remove_downvote',
+        'marksolved', 'marknotsolved', 'alsomarksolved', 'markhelpful', 'marknothelpful', 'alsomarkhelpful',
+    ]);
 
-    root.onclick = async(event) => {
-        const actionElement = event.target.closest('[data-moodleoverflow-action]');
-        if (!actionElement) {
+    root.addEventListener('click', async(event) => {
+        const button = event.target.closest('[data-moodleoverflow-action]');
+        const action = button?.getAttribute('data-moodleoverflow-action');
+        if (!RATINGS[action]) {
             return;
         }
+        const postElement = button.closest('[data-moodleoverflow-postid]');
+        const postid = postElement.getAttribute('data-moodleoverflow-postid');
+        const ismark = action in MARKCLASSES;
+        const remove = ismark ? postElement.classList.contains(MARKCLASSES[action])
+            : button.getAttribute('data-moodleoverflow-state') === 'clicked';
 
-        const action = actionElement.getAttribute('data-moodleoverflow-action');
-        const postElement = actionElement.closest('[data-moodleoverflow-postid]');
-        const postid = postElement?.getAttribute('data-moodleoverflow-postid');
-
-        switch (action) {
-            case 'upvote':
-            case 'downvote': {
-                const isupvote = action === 'upvote';
-                if (actionElement.getAttribute('data-moodleoverflow-state') === 'clicked') {
-                    await sendVote(postid, isupvote ? RATING_REMOVE_UPVOTE : RATING_REMOVE_DOWNVOTE, userid);
-                    actionElement.setAttribute('data-moodleoverflow-state', 'notclicked');
-                    actionElement.title = await getString('action_' + action, 'mod_moodleoverflow');
-                } else {
-                    const otherAction = isupvote ? 'downvote' : 'upvote';
-                    await sendVote(postid, isupvote ? RATING_UPVOTE : RATING_DOWNVOTE, userid);
-                    actionElement.setAttribute('data-moodleoverflow-state', 'clicked');
-                    const otherElement = postElement.querySelector(
-                        `[data-moodleoverflow-action="${otherAction}"]`);
-                    otherElement.setAttribute('data-moodleoverflow-state', 'notclicked');
-                    actionElement.title = await getString('action_remove_' + action, 'mod_moodleoverflow');
-                    otherElement.title = await getString('action_' + otherAction, 'mod_moodleoverflow');
-                }
-            }
-            break;
-            case 'helpful':
-            case 'solved': {
-                const isHelpful = action === 'helpful';
-                const htmlclass = isHelpful ? 'markedhelpful' : 'markedsolution';
-                const shouldRemove = postElement.classList.contains(htmlclass);
-                const baseRating = isHelpful ? RATING_HELPFUL : RATING_SOLVED;
-                const rating = shouldRemove ? baseRating * 10 : baseRating;
-                await sendVote(postid, rating, userid);
-
-                /* If       multiplemarks are not allowed (that is the default mode): delete all marks.
-                   else:    only delete the mark if the post is being unmarked.
-
-                   Add a mark, if the post is being marked.
-                */
-                if (!allowmultiplemarks) {
-                    // Delete all marks in the discussion
-                    for (const el of root.querySelectorAll('.moodleoverflowpost.' + htmlclass)) {
-                        el.classList.remove(htmlclass);
-                        el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
-                            await getString(`mark${action}`, 'mod_moodleoverflow');
-                    }
-                } else {
-                    // Remove only the mark of the unmarked post.
-                    if (shouldRemove) {
-                        postElement.classList.remove(htmlclass);
-                        actionElement.textContent = await getString(`mark${action}`, 'mod_moodleoverflow');
-                        changeStrings(htmlclass, action);
-                    }
-                }
-                // If the post is being marked, mark it.
-                if (!shouldRemove) {
-                    postElement.classList.add(htmlclass);
-                    actionElement.textContent = await getString(`marknot${action}`, 'mod_moodleoverflow');
-                    if (allowmultiplemarks) {
-                        changeStrings(htmlclass, action);
-                    }
-                }
-
-            }
-        }
-    };
-
-}
-
-/**
- * Function to change the String of the post data-action button.
- * Only used if multiplemarks are allowed.
- * @param {string} htmlclass the class where the String is being updated
- * @param {string} action    helpful or solved mark
- */
-async function changeStrings(htmlclass, action) {
-    Prefetch.prefetchStrings('mod_moodleoverflow',
-        ['marksolved', 'alsomarksolved', 'markhelpful', 'alsomarkhelpful',]);
-
-    // 1. Step: Are there other posts in the Discussion, that are solved/helpful?
-    var othermarkedposts = false;
-    for (const el of root.querySelectorAll('.moodleoverflowpost')) {
-        if (el.classList.contains(htmlclass)) {
-            othermarkedposts = true;
-            break;
-        }
-    }
-    // 2. Step: Change the strings of the action Button of the unmarked posts.
-    for (const el of root.querySelectorAll('.moodleoverflowpost')) {
-        if (!el.classList.contains(htmlclass) && el.querySelector(`[data-moodleoverflow-action="${action}"]`)) {
-            if (othermarkedposts) {
-                el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
-                    await getString(`alsomark${action}`, 'mod_moodleoverflow');
+        try {
+            const response = await Ajax.call([{
+                methodname: 'mod_moodleoverflow_record_vote',
+                args: {postid: postid, rating: RATINGS[action], remove: remove},
+            }])[0];
+            showReputations(postid, userid, response);
+            if (ismark) {
+                await showMarks(action, response.markedposts, allowmultiplemarks);
             } else {
-                el.querySelector(`[data-moodleoverflow-action="${action}"]`).textContent =
-                    await getString(`mark${action}`, 'mod_moodleoverflow');
+                await showVote(postElement, response.uservote);
             }
+        } catch (error) {
+            Notification.exception(error);
         }
-    }
+    });
 }

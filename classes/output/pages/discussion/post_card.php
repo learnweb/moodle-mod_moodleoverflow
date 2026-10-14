@@ -139,12 +139,14 @@ class post_card implements named_templatable, renderable {
         $ratings = service\rating::get_post_ratings($discussion)[$this->post->get_id()];
 
         $commands = [];
+        // Without multiple marks, marking another answer moves the mark, so there is no "also mark".
+        $multiplemarks = $moodleoverflow->allows_multiple_marks();
 
         // Mark helpful — discussion starter only, direct answers only.
         if (permissions::can_mark_helpful($this->post, $USER->id)) {
             if ($ratings->ishelpful) {
                 $label = get_string('marknothelpful', 'moodleoverflow');
-            } else if (service\rating::get_marked_post_ids($discussion, rating_type::HELPFUL)) {
+            } else if ($multiplemarks && service\rating::get_marked_post_ids($discussion, rating_type::HELPFUL)) {
                 $label = get_string('alsomarkhelpful', 'moodleoverflow');
             } else {
                 $label = get_string('markhelpful', 'moodleoverflow');
@@ -160,7 +162,7 @@ class post_card implements named_templatable, renderable {
         if (permissions::can_mark_solved($this->post, $USER->id)) {
             if ($ratings->issolved) {
                 $label = get_string('marknotsolved', 'moodleoverflow');
-            } else if (service\rating::get_marked_post_ids($discussion, rating_type::SOLVED)) {
+            } else if ($multiplemarks && service\rating::get_marked_post_ids($discussion, rating_type::SOLVED)) {
                 $label = get_string('alsomarksolved', 'moodleoverflow');
             } else {
                 $label = get_string('marksolved', 'moodleoverflow');

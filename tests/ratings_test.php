@@ -23,6 +23,7 @@
  */
 namespace mod_moodleoverflow;
 
+use core_external\external_api;
 use mod_moodleoverflow\event\rating_created;
 use mod_moodleoverflow\event\rating_deleted;
 use mod_moodleoverflow\event\rating_updated;
@@ -395,27 +396,38 @@ final class ratings_test extends \advanced_testcase {
     // External function.
 
     /**
-     * Test, if record_vote translates the rating id into the use cases and returns the new state.
+     * Test, if record_vote calls the use case of the rating and returns the new state of the post.
      */
     public function test_record_vote(): void {
         $postid = $this->answer->get_id();
-        $this->setUser($this->student);
-        $result = record_vote::execute($postid, rating_type::UPVOTE->value);
-        $this->assertEquals(['postrating' => 1, 'ownerreputation' => 10, 'raterreputation' => 1,
-            'ownerid' => $this->otherstudent->id, ], $result);
+        $call = fn(int $postid, int $rating, bool $remove = false) => external_api::clean_returnvalue(
+            record_vote::execute_returns(),
+            record_vote::execute($postid, $rating, $remove)
+        );
 
-        $result = record_vote::execute($postid, rating_type::UPVOTE->value * 10);
+        $this->setUser($this->student);
+        $result = $call($postid, rating_type::UPVOTE->value);
+        $this->assertEquals(['postrating' => 1, 'ownerreputation' => 10, 'raterreputation' => 1,
+            'ownerid' => $this->otherstudent->id, 'uservote' => rating_type::UPVOTE->value, 'markedposts' => [], ], $result);
+
+        $result = $call($postid, rating_type::UPVOTE->value, true);
         $this->assertEquals(0, $result['postrating']);
+        $this->assertEquals(0, $result['uservote']);
         $this->assertNull(service\rating::get_user_vote($this->answer, $this->student->id));
 
+        // Marks return all posts with the mark, so the page can show where the mark moved.
         $this->setUser($this->teacher);
-        record_vote::execute($postid, rating_type::SOLVED->value);
+        $result = $call($this->teacheranswer->get_id(), rating_type::SOLVED->value);
+        $this->assertEquals([$this->teacheranswer->get_id()], $result['markedposts']);
+        $result = $call($postid, rating_type::SOLVED->value);
+        $this->assertEquals([$postid], $result['markedposts']);
         $this->assertEquals([$postid], service\rating::get_marked_post_ids($this->get_discussion(), rating_type::SOLVED));
-        record_vote::execute($postid, rating_type::SOLVED->value * 10);
+        $result = $call($postid, rating_type::SOLVED->value, true);
+        $this->assertEquals([], $result['markedposts']);
         $this->assertEquals([], service\rating::get_marked_post_ids($this->get_discussion(), rating_type::SOLVED));
 
-        // Only the rating values and their multiples of 10 are valid.
-        foreach ([0, 5, 15, 25, 50] as $invalid) {
+        // Only the values of rating_type are ratings.
+        foreach ([0, 5, 10, 20] as $invalid) {
             $this->assert_refused(fn() => record_vote::execute($postid, $invalid), 'invalidratingid');
         }
     }
