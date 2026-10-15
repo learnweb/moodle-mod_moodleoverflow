@@ -16,7 +16,7 @@
 
 namespace mod_moodleoverflow\route\api;
 
-use coding_exception;
+use core\exception\coding_exception;
 use core\context\system;
 use core\context\user;
 use core\exception\moodle_exception;

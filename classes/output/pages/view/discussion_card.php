@@ -20,14 +20,15 @@ use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
 use mod_moodleoverflow\local\enum\anonymity;
+use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service\rating;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\local\service\review;
-use mod_moodleoverflow\ratings;
 use mod_moodleoverflow\subscriptions;
-use moodle_exception;
+use core\exception\moodle_exception;
 use moodle_url;
 
 /**
@@ -89,14 +90,14 @@ class discussion_card implements named_templatable, renderable {
         global $USER;
         $isloggedin = !is_guest($this->context, $USER) && isloggedin();
         // Check if the post was marked as helpful or as solution.
-        $helpful = array_values(ratings::discussion_is_solved($this->discussion->get_id()));
+        $helpful = rating::get_marked_post_ids($this->discussion, rating_type::HELPFUL);
         if ($helpful) {
-            $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$helpful[0]->postid}");
+            $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$helpful[0]}");
             $helpful = ['link' => $link->out()];
         }
-        $solution = array_values(ratings::discussion_is_solved($this->discussion->get_id(), true));
+        $solution = rating::get_marked_post_ids($this->discussion, rating_type::SOLVED);
         if ($solution) {
-            $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$solution[0]->postid}");
+            $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$solution[0]}");
             $solution = ['link' => $link->out()];
         }
 
@@ -117,8 +118,8 @@ class discussion_card implements named_templatable, renderable {
         ];
 
         // Gather rating information about the first post.
-        $ratings = $this->firstpost->get_ratings();
-        $userrating = ratings::user_rated($this->firstpost->get_id());
+        $ratings = rating::get_post_ratings($this->discussion)[$this->firstpost->get_id()];
+        $vote = rating::get_user_vote($this->firstpost, $USER->id);
 
         // Gather readtracking data for the readtracking template.
         $unreadcount = readtracking::count_unread_posts_discussion($this->discussion, $USER->id);
@@ -143,10 +144,10 @@ class discussion_card implements named_templatable, renderable {
 
         return (object) [
             'postid' => $this->firstpost->get_id(),
-            'votes' => $ratings->votesdifference,
-            'userupvoted' => $userrating && $userrating->rating == RATING_UPVOTE,
-            'userdownvoted' => $userrating && $userrating->rating == RATING_DOWNVOTE,
-            'canchange' => permissions::can_vote($this->firstpost, $USER->id),
+            'votes' => $ratings->upvotes - $ratings->downvotes,
+            'userupvoted' => $vote === rating_type::UPVOTE,
+            'userdownvoted' => $vote === rating_type::DOWNVOTE,
+            'canchange' => rating::can_change_vote($this->firstpost, $USER->id),
             'markedhelpful' => $helpful,
             'markedsolution' => $solution,
             'subjecttext' => format_string($this->discussion->name), // The discussion name, use format_text perhaps.

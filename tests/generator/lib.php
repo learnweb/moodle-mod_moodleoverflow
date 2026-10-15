@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
@@ -151,14 +152,14 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      *
      * @param post $post The rated post.
      * @param stdClass $rater The user who rates.
-     * @param int $rating One of the RATING_* constants.
+     * @param rating_type $rating
      * @return stdClass The rating record.
      */
-    public function create_rating(post $post, stdClass $rater, int $rating): stdClass {
+    public function create_rating(post $post, stdClass $rater, rating_type $rating): stdClass {
         global $DB;
         $time = time();
         $record = (object) [
-            'rating' => $rating,
+            'rating' => $rating->value,
             'postid' => $post->get_id(),
             'discussionid' => $post->get_discussionid(),
             'moodleoverflowid' => $this->get_moodleoverflow($post)->id,

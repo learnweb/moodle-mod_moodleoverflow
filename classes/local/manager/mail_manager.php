@@ -23,7 +23,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\output\moodleoverflow_email;
 use mod_moodleoverflow\subscriptions;
-use moodle_exception;
+use core\exception\moodle_exception;
 use stdClass;
 
 /**

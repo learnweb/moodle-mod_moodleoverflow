@@ -17,7 +17,7 @@
 namespace mod_moodleoverflow\local\models;
 
 use cm_info;
-use coding_exception;
+use core\exception\coding_exception;
 use context_module;
 use dml_exception;
 use moodle_url;
@@ -339,7 +339,7 @@ class moodleoverflow {
      * @return bool
      */
     public function is_reputation_enabled(): bool {
-        return $this->can_disable_rating() ? $this->allowreputation : true;
+        return $this->is_rating_enabled() && (!$this->can_disable_rating() || $this->allowreputation);
     }
 
     /**
@@ -375,7 +375,7 @@ class moodleoverflow {
     }
 
     /**
-     * Whether several answers can be marked as solved or helpful.
+     * Whether several answers can be marked as solved or helpful (e.g. 2 posts in a discussion are both helpful).
      * @return bool
      */
     public function allows_multiple_marks(): bool {

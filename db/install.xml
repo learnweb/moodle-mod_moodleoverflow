@@ -150,7 +150,7 @@
         <FIELD NAME="postid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="id of the post that is rated"/>
         <FIELD NAME="discussionid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="id of the discussion the rated post is part of"/>
         <FIELD NAME="moodleoverflowid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="id of the moodleoverflow instance the rated post contains to."/>
-        <FIELD NAME="rating" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 = neutral 1 = negative 2 = positive 3 = solved student 4 = solved teacher"/>
+        <FIELD NAME="rating" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 = negative 2 = positive 3 = solved 4 = helpful"/>
         <FIELD NAME="firstrated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="the date the rating was submitted"/>
         <FIELD NAME="lastchanged" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="date the rating was changed the last time."/>
       </FIELDS>

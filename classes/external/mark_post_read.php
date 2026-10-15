@@ -16,7 +16,7 @@
 
 namespace mod_moodleoverflow\external;
 
-use coding_exception;
+use core\exception\coding_exception;
 use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_value;

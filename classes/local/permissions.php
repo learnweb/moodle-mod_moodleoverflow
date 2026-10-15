@@ -16,14 +16,14 @@
 
 namespace mod_moodleoverflow\local;
 
-use coding_exception;
+use core\exception\coding_exception;
 use core_availability\info_module;
 use dml_exception;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
-use moodle_exception;
+use core\exception\moodle_exception;
 
 /**
  * Stateless class that bundles permissions checks. Functions check with capabilities and moodleoverflow rules if actions are

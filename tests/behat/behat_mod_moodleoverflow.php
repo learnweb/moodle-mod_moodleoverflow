@@ -682,4 +682,120 @@ class behat_mod_moodleoverflow extends behat_base {
         $userid = $DB->get_field('user', 'id', ['username' => $username], MUST_EXIST);
         $this->execute('behat_general::i_visit', ['/mod/moodleoverflow/user.php?user=' . $userid]);
     }
+
+    // Ratings. The posts are searched by their message, so it needs to be unique in the testing scenario.
+
+    /**
+     * Clicks a rating button of a moodleoverflow post: "upvote", "downvote", "solved" or "helpful".
+     *
+     * @When I click on the :action button of the moodleoverflow post :message
+     * @param string $action The value of the data-moodleoverflow-action attribute.
+     * @param string $message The message of the post.
+     * @return void
+     */
+    public function i_click_on_the_button_of_the_moodleoverflow_post(string $action, string $message): void {
+        $node = $this->find('xpath', $this->get_post_xpath($message) .
+            '//*[@data-moodleoverflow-action=' . behat_context_helper::escape($action) . ']');
+        // Sticky elements like the activity navigation footer would intercept the click.
+        $this->execute_js_on_node($node, '{{ELEMENT}}.scrollIntoView({block: "center"});');
+        $this->ensure_node_is_visible($node);
+        $node->click();
+    }
+
+    /**
+     * Checks the vote count of a moodleoverflow post.
+     *
+     * @Then the moodleoverflow post :message should have :votes votes
+     * @param string $message The message of the post.
+     * @param string $votes Upvotes minus downvotes.
+     * @return void
+     */
+    public function the_moodleoverflow_post_should_have_votes(string $message, string $votes): void {
+        $xpath = $this->get_post_xpath($message) . "//p[contains(@class, 'votecount')]";
+        $this->spin(
+            fn($context) => trim($context->find('xpath', $xpath)->getText()) === $votes,
+            false,
+            false,
+            new ExpectationException("The post '$message' does not have $votes votes", $this->getSession())
+        );
+    }
+
+    /**
+     * Checks the state of a vote button of a moodleoverflow post: "clicked", "notclicked" or "disabled".
+     *
+     * @Then the :button button of the moodleoverflow post :message should be :state
+     * @param string $button "upvote" or "downvote".
+     * @param string $message The message of the post.
+     * @param string $state The value of the data-moodleoverflow-state attribute.
+     * @return void
+     */
+    public function the_vote_button_of_the_moodleoverflow_post_should_be(string $button, string $message, string $state): void {
+        $icon = $button === 'upvote' ? 'fa-chevron-up' : 'fa-chevron-down';
+        $this->execute('behat_general::should_exist_in_the', [
+            '.vote.' . $icon . "[data-moodleoverflow-state='$state']", 'css_element',
+            $this->get_post_xpath($message), 'xpath_element',
+        ]);
+    }
+
+    /**
+     * Checks that the vote buttons of a moodleoverflow post cannot be clicked, because the vote cannot be changed.
+     *
+     * @Then the vote buttons of the moodleoverflow post :message should not be clickable
+     * @param string $message The message of the post.
+     * @return void
+     */
+    public function the_vote_buttons_of_the_moodleoverflow_post_should_not_be_clickable(string $message): void {
+        $this->execute('behat_general::should_not_exist_in_the', [
+            "[data-moodleoverflow-action='upvote'], [data-moodleoverflow-action='downvote']", 'css_element',
+            $this->get_post_xpath($message), 'xpath_element',
+        ]);
+    }
+
+    /**
+     * Checks that a moodleoverflow post is marked as "solution" or "helpful".
+     *
+     * @Then the moodleoverflow post :message should be marked as :mark
+     * @param string $message The message of the post.
+     * @param string $mark "solution" or "helpful".
+     * @return void
+     */
+    public function the_moodleoverflow_post_should_be_marked_as(string $message, string $mark): void {
+        $this->execute('behat_general::should_exist', [$this->get_post_xpath($message, 'marked' . $mark), 'xpath_element']);
+    }
+
+    /**
+     * Checks that a moodleoverflow post is not marked as "solution" or "helpful".
+     *
+     * @Then the moodleoverflow post :message should not be marked as :mark
+     * @param string $message The message of the post.
+     * @param string $mark "solution" or "helpful".
+     * @return void
+     */
+    public function the_moodleoverflow_post_should_not_be_marked_as(string $message, string $mark): void {
+        $this->execute('behat_general::should_not_exist', [$this->get_post_xpath($message, 'marked' . $mark), 'xpath_element']);
+    }
+
+    /**
+     * Checks that a text is shown in a moodleoverflow post, e.g. the label of a mark button.
+     *
+     * @Then I should see :text in the moodleoverflow post :message
+     * @param string $text
+     * @param string $message The message of the post.
+     * @return void
+     */
+    public function i_should_see_in_the_moodleoverflow_post(string $text, string $message): void {
+        $this->execute('behat_general::assert_element_contains_text', [$text, $this->get_post_xpath($message), 'xpath_element']);
+    }
+
+    /**
+     * Returns the xpath of a moodleoverflow post.
+     *
+     * @param string $message The message of the post.
+     * @param string|null $class A CSS class the post must have.
+     * @return string
+     */
+    protected function get_post_xpath(string $message, ?string $class = null): string {
+        $hasclass = $class ? "[contains(concat(' ', normalize-space(@class), ' '), ' $class ')]" : '';
+        return "//div[@data-moodleoverflow-postid]{$hasclass}[contains(., " . behat_context_helper::escape($message) . ')]';
+    }
 }

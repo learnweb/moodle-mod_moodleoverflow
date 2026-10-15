@@ -22,8 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_moodleoverflow;
+use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\tables\userstats_table;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
@@ -77,7 +79,7 @@ final class userstats_test extends \advanced_testcase {
      */
     public function test_upvote(): void {
         // Teacher upvotes the answer of the other student.
-        $this->generator->create_rating($this->answer1, $this->teacher, RATING_UPVOTE);
+        $this->generator->create_rating($this->answer1, $this->teacher, rating_type::UPVOTE);
 
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
@@ -91,7 +93,7 @@ final class userstats_test extends \advanced_testcase {
      */
     public function test_downvote(): void {
         // Teacher downvotes the answer of the student.
-        $this->generator->create_rating($this->answer2, $this->teacher, RATING_DOWNVOTE);
+        $this->generator->create_rating($this->answer2, $this->teacher, rating_type::DOWNVOTE);
 
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
@@ -105,9 +107,9 @@ final class userstats_test extends \advanced_testcase {
      */
     public function test_activity(): void {
         // The student rates 3 times.
-        $this->generator->create_rating($this->answer1, $this->student, RATING_HELPFUL);
-        $this->generator->create_rating($this->answer1, $this->student, RATING_UPVOTE);
-        $this->generator->create_rating($this->question2, $this->student, RATING_DOWNVOTE);
+        $this->generator->create_rating($this->answer1, $this->student, rating_type::HELPFUL);
+        $this->generator->create_rating($this->answer1, $this->student, rating_type::UPVOTE);
+        $this->generator->create_rating($this->question2, $this->student, rating_type::DOWNVOTE);
         // The student created 2 posts (1 discussion, 1 answer).
         // Activity = 5.
         // Create the user statistics table for this course and save it in $data.
@@ -121,17 +123,21 @@ final class userstats_test extends \advanced_testcase {
      */
     public function test_reputation(): void {
         // The student and the teacher rate the other student.
-        $this->generator->create_rating($this->answer1, $this->student, RATING_HELPFUL);
-        $this->generator->create_rating($this->answer1, $this->student, RATING_UPVOTE);
-        $this->generator->create_rating($this->question2, $this->student, RATING_DOWNVOTE);
-        $this->generator->create_rating($this->answer1, $this->teacher, RATING_SOLVED);
+        $this->generator->create_rating($this->answer1, $this->student, rating_type::HELPFUL);
+        $this->generator->create_rating($this->answer1, $this->student, rating_type::UPVOTE);
+        $this->generator->create_rating($this->question2, $this->student, rating_type::DOWNVOTE);
+        $this->generator->create_rating($this->answer1, $this->teacher, rating_type::SOLVED);
 
-        // Calculate the forum reputation of the other student.
-        $reputation = ratings::get_reputation_instance($this->modflow->id, $this->otherstudent->id);
+        // The other student receives a helpful mark, an upvote and a solution mark on the answer and a downvote on the
+        // question. The student gets the bonus for their two votes, but nothing for marking.
+        $points = fn(string $name) => (int) get_config('moodleoverflow', 'votescale' . $name);
+        $expected = $points('helpful') + $points('upvote') + $points('downvote') + $points('solved');
+        $this->assertEquals($expected, service\rating::get_instance_reputation($this->modflow, $this->otherstudent->id));
+
         // Create the user statistics table for this course and save it in $data.
         $data = $this->create_statstable();
-        $reputation2 = $this->get_specific_userstats($data, $this->otherstudent, 'forumreputation');
-        $this->assertEquals($reputation, $reputation2);
+        $this->assertEquals($expected, $this->get_specific_userstats($data, $this->otherstudent, 'forumreputation'));
+        $this->assertEquals(2 * $points('vote'), $this->get_specific_userstats($data, $this->student, 'forumreputation'));
     }
 
     /**
@@ -166,12 +172,12 @@ final class userstats_test extends \advanced_testcase {
         // The student rates the answer of the other student as helpful and gives it an upvote.
         // The activity of the student should only change with the upvote.
         // The received upvotes of the other student should change.
-        $this->generator->create_rating($answeruser2, $this->student, RATING_HELPFUL);
+        $this->generator->create_rating($answeruser2, $this->student, rating_type::HELPFUL);
         $newuserstats = $this->create_statstable();
         $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
         $this->assertEquals($oldactivityuser1, $newactivityuser1);
 
-        $this->generator->create_rating($answeruser2, $this->student, RATING_UPVOTE);
+        $this->generator->create_rating($answeruser2, $this->student, rating_type::UPVOTE);
         $newuserstats = $this->create_statstable();
         $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
         $newupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->otherstudent, 'receivedupvotes');
@@ -180,7 +186,7 @@ final class userstats_test extends \advanced_testcase {
 
         // The other student gives the discussion starter post an upvote.
         // The activity of the other student should change, the received upvotes of the student shouldn't change.
-        $this->generator->create_rating($starterpost, $this->otherstudent, RATING_UPVOTE);
+        $this->generator->create_rating($starterpost, $this->otherstudent, rating_type::UPVOTE);
         $newuserstats = $this->create_statstable();
         $newactivityuser2 = $this->get_specific_userstats($newuserstats, $this->otherstudent, 'forumactivity');
         $newupvotesuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'receivedupvotes');
@@ -218,12 +224,12 @@ final class userstats_test extends \advanced_testcase {
         // The student rates the answer of the other student as helpful and gives it an upvote.
         // The activity of the student should only change with the upvote.
         // The received upvotes of the other student should not change.
-        $this->generator->create_rating($answeruser2, $this->student, RATING_HELPFUL);
+        $this->generator->create_rating($answeruser2, $this->student, rating_type::HELPFUL);
         $newuserstats = $this->create_statstable();
         $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
         $this->assertEquals($oldactivityuser1, $newactivityuser1);
 
-        $this->generator->create_rating($answeruser2, $this->student, RATING_UPVOTE);
+        $this->generator->create_rating($answeruser2, $this->student, rating_type::UPVOTE);
         $newuserstats = $this->create_statstable();
         $newactivityuser1 = $this->get_specific_userstats($newuserstats, $this->student, 'forumactivity');
         $newupvotesuser2 = $this->get_specific_userstats($newuserstats, $this->otherstudent, 'receivedupvotes');

@@ -341,7 +341,7 @@ $string['privacy:metadata:moodleoverflow_ratings:firstrated'] = 'The date the ra
 $string['privacy:metadata:moodleoverflow_ratings:lastchanged'] = 'The date the rating was changed the last time.';
 $string['privacy:metadata:moodleoverflow_ratings:moodleoverflowid'] = 'The ID of the Moodleoverflow forum that contains the rated post.';
 $string['privacy:metadata:moodleoverflow_ratings:postid'] = 'The ID of the post that was rated.';
-$string['privacy:metadata:moodleoverflow_ratings:rating'] = 'The submitted rating. 0 = neutral, 1 = negative, 2 = positive, 3 = helpful, 4 = solution';
+$string['privacy:metadata:moodleoverflow_ratings:rating'] = 'The submitted rating. 1 = negative, 2 = positive, 3 = solution, 4 = helpful';
 $string['privacy:metadata:moodleoverflow_ratings:userid'] = 'The ID of the user who submitted the rating.';
 $string['privacy:metadata:moodleoverflow_read'] = 'Information about read tracking of posts. This includes when posts were read by a user.';
 $string['privacy:metadata:moodleoverflow_read:discussionid'] = 'The ID of the discussion the read post belongs to,';
@@ -363,7 +363,6 @@ $string['questions'] = 'Questions';
 $string['questions_and_posts'] = 'Questions and answers';
 $string['ratedbystarter'] = 'This post was marked as the most helpful by the questioner';
 $string['ratedbyteacher'] = 'This post was marked as the solution by a teacher';
-$string['ratingfailed'] = 'Rating failed. Try again.';
 $string['ratingheading'] = 'Rating and reputation';
 $string['ratingpreference'] = 'Display first';
 $string['ratingpreference_help'] = 'Answers can be marked as solution and helpful. This option decides which of these will be pinned as the first answer of the discussion. There are 2 options:
