@@ -166,11 +166,12 @@ class discussion {
      * Adds a new Discussion with a post.
      *
      * @param object $prepost The prepost object from the post_control. Has information about the post and other important stuff.
+     * @param ?int $draftitemid
      * @return bool|?int
      * @throws dml_exception
      * @throws coding_exception
      */
-    public function add(object $prepost): bool|int|null {
+    public function add(object $prepost, ?int $draftitemid = null): bool|int|null {
         global $DB;
         try {
             $transaction = $DB->start_delegated_transaction();
@@ -190,12 +191,11 @@ class discussion {
                 "",
                 0,
                 $prepost->reviewed,
-                null,
-                $prepost->formattachments
+                null
             );
 
             // Add it to the DB and save the id of the first/parent post.
-            $this->firstpost = $post->add();
+            $this->firstpost = $post->add($draftitemid, $prepost->formattachments);
             $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
 
             // Add the parent post to the $posts array.
@@ -228,10 +228,11 @@ class discussion {
     /**
      * Deletes this discussion with all of it's posts
      * @param object $prepost Information about the post from the post_control
+     * @param int $userid The user that deletes the post.
      * @return bool Wether deletion was successful of not
      * @throws moodle_exception
      */
-    public function delete(object $prepost): bool {
+    public function delete(object $prepost, int $userid): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -244,7 +245,7 @@ class discussion {
 
             // Delete every post of this discussion.
             $firstpost = $this->posts[$this->firstpost];
-            $firstpost->delete(true);
+            $firstpost->delete(true, $userid);
 
             // Delete the read-records for the discussion.
             readtracking::delete_read_records(discussid: $this->id);
@@ -282,9 +283,10 @@ class discussion {
      * Adds a new post to this discussion and the DB.
      *
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
+     * @param ?int $draftitemid
      * @throws dml_exception|moodle_exception
      */
-    public function add_new_post(object $prepost) {
+    public function add_new_post(object $prepost, ?int $draftitemid = null) {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -301,11 +303,10 @@ class discussion {
             "",
             0,
             $prepost->reviewed,
-            null,
-            $prepost->formattachments
+            null
         );
         // Add the post to the DB.
-        $postid = $post->add();
+        $postid = $post->add($draftitemid, $prepost->formattachments);
 
         // Add the post to the $posts array and update the timemodified in the DB.
         $this->posts[$postid] = $post;
@@ -320,10 +321,11 @@ class discussion {
     /**
      * Deletes a post that is in this discussion from the DB.
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
+     * @param int $userid The user that deletes the post.
      * @return bool If the deletion was possible
      * @throws moodle_exception
      */
-    public function delete_post_from_discussion(object $prepost): bool {
+    public function delete_post_from_discussion(object $prepost, int $userid): bool {
         $this->existence_check();
         $this->posts_check();
 
@@ -332,7 +334,7 @@ class discussion {
 
         // Access the post and delete it.
         $post = $this->posts[$prepost->postid];
-        if (!$post->delete($prepost->deletechildren)) {
+        if (!$post->delete($prepost->deletechildren, $userid)) {
             // Deletion failed.
             return false;
         }
@@ -350,9 +352,10 @@ class discussion {
      * Edits the message of a post from this discussion.
      * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
      * @param int $userid The user that makes the edit
+     * @param ?int $draftitemid
      * @throws dml_exception|moodle_exception
      */
-    public function edit_post(object $prepost, int $userid): bool {
+    public function edit_post(object $prepost, int $userid, ?int $draftitemid): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
@@ -370,7 +373,14 @@ class discussion {
             $this->timemodified = $prepost->timenow;
             $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
         }
-        $post->edit($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachments, $userid);
+        $post->edit(
+            $prepost->timenow,
+            $prepost->message,
+            $prepost->messageformat,
+            $userid,
+            $draftitemid,
+            $prepost->formattachments
+        );
 
         // The post has been edited successfully.
         return true;

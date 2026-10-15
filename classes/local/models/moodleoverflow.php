@@ -274,6 +274,50 @@ class moodleoverflow {
         return ['maxattachments' => $this->maxattachments, 'maxbytes' => $this->maxbytes];
     }
 
+    /**
+     * Options for the message editor of a post, for the form and for saving the embedded files.
+     *
+     * @param ?int $postid The post whose files are edited, null for a new post.
+     * @return array
+     */
+    public function get_editor_options(?int $postid = null): array {
+        global $CFG;
+        // The constants are defined there; this may be called before a form has loaded them.
+        require_once($CFG->libdir . '/formslib.php');
+        require_once($CFG->dirroot . '/repository/lib.php');
+        $context = $this->get_context();
+        return [
+            'maxfiles' => EDITOR_UNLIMITED_FILES,
+            'maxbytes' => get_user_max_upload_file_size($context, $CFG->maxbytes, $this->get_course()->maxbytes),
+            'trusttext' => true,
+            'return_types' => FILE_INTERNAL | FILE_EXTERNAL,
+            'subdirs' => file_area_contains_subdirs($context, 'mod_moodleoverflow', 'post', $postid),
+        ];
+    }
+
+    /**
+     * Options for the attachment file manager of a post, for the form and for saving the attachments.
+     *
+     * @return array
+     */
+    public function get_attachment_options(): array {
+        global $CFG;
+        // The constants are defined there; this may be called before a form has loaded it.
+        require_once($CFG->dirroot . '/repository/lib.php');
+        return [
+            'subdirs' => 0,
+            'maxbytes' => get_user_max_upload_file_size(
+                $this->get_context(),
+                $CFG->maxbytes,
+                $this->get_course()->maxbytes,
+                $this->maxbytes
+            ),
+            'maxfiles' => $this->maxattachments,
+            'accepted_types' => '*',
+            'return_types' => FILE_INTERNAL | FILE_CONTROLLED_LINK,
+        ];
+    }
+
     // Review.
 
     /**

@@ -26,7 +26,6 @@ use core_user\fields;
 use dml_exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\event\post_deleted;
-use mod_moodleoverflow\form\post_form;
 use mod_moodleoverflow\local\service\readtracking;
 use core\exception\moodle_exception;
 use moodle_url;
@@ -60,9 +59,6 @@ class post {
 
     // Not database related attributes.
 
-    /** @var ?int This variable is optional, it contains important information for the add_attachment function */
-    public ?int $formattachments;
-
     /** @var string The subject/title of the Discussion */
     public string $subject;
 
@@ -91,7 +87,6 @@ class post {
      * @param int $mailed Mailed status
      * @param int $reviewed Review status
      * @param ?int $timereviewed The time when the post was reviewed
-     * @param ?int $formattachments Information about attachments of the post_form
      */
     public function __construct(
         /** @var ?int The post ID */
@@ -117,10 +112,8 @@ class post {
         /** @var int Review status */
         public int $reviewed,
         /** @var ?int The time when the post was reviewed */
-        public ?int $timereviewed,
-        ?int $formattachments = null
+        public ?int $timereviewed
     ) {
-        $this->formattachments = $formattachments;
     }
 
     /**
@@ -173,7 +166,6 @@ class post {
      * @param int $mailed Mailed status
      * @param int $reviewed Review status
      * @param ?int $timereviewed The time when the post was reviewed
-     * @param ?int $formattachments Information about attachments from the post_form
      *
      * @return object post object without id
      */
@@ -188,8 +180,7 @@ class post {
         string $attachment,
         int $mailed,
         int $reviewed,
-        ?int $timereviewed,
-        ?int $formattachments = null
+        ?int $timereviewed
     ): object {
         $id = null;
         return new self(
@@ -204,8 +195,7 @@ class post {
             $attachment,
             $mailed,
             $reviewed,
-            $timereviewed,
-            $formattachments
+            $timereviewed
         );
     }
 
@@ -224,19 +214,21 @@ class post {
 
     /**
      * Adds a new post in an existing discussion.
+     * @param ?int $draftitemid
+     * @param ?int $attachmentdraftid
      * @return bool|int|null The Id of the post if operation was successful
      * @throws coding_exception
      * @throws dml_exception|moodle_exception
      */
-    public function add(): bool|int|null {
+    public function add(?int $draftitemid = null, ?int $attachmentdraftid = null): bool|int|null {
         global $DB;
 
         // Add post to the database.
         $this->id = $DB->insert_record('moodleoverflow_posts', $this->build_db_object());
 
         // Save draft files to permanent file area.
-        $this->save_draft_files();
-        $this->add_attachment();
+        $this->save_draft_files($draftitemid);
+        $this->add_attachment($attachmentdraftid);
 
         if ($this->reviewed) {
             $DB->set_field('moodleoverflow_discussions', 'timemodified', $this->modified, ['id' => $this->discussion]);
@@ -245,6 +237,7 @@ class post {
 
         // Mark the created post as read if the user is tracking the discussion.
         readtracking::mark_post_read($this, $this->userid);
+        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
         return $this->id;
     }
 
@@ -252,12 +245,12 @@ class post {
      * Deletes this moodleoverflow post and it's children posts if wanted.
      *
      * @param bool $deletechildren If child posts (posts that reference this post as parent)
-     *
+     * @param int $userid The user that deletes the post.
      * @return bool Whether the deletion was successful or not
      * @throws moodle_exception
      */
-    public function delete(bool $deletechildren): bool {
-        global $DB, $USER;
+    public function delete(bool $deletechildren, int $userid): bool {
+        global $DB;
         $this->existence_check();
 
         // Iterate through all children and delete them.
@@ -270,7 +263,7 @@ class post {
             if ($deletechildren && $childposts) {
                 foreach ($childposts as $childpost) {
                     $child = $this->from_record($childpost);
-                    $child->delete(true);
+                    $child->delete(true, $userid);
                 }
             }
 
@@ -314,7 +307,7 @@ class post {
                     'objectid' => $this->id,
                     'other' => ['discussionid' => $this->discussion, 'moodleoverflowid' => $this->get_moodleoverflow()->id],
                 ];
-                if ($this->userid !== $USER->id) {
+                if ($this->userid !== $userid) {
                     $params['relateduserid'] = $this->userid;
                 }
                 $event = post_deleted::create($params);
@@ -340,25 +333,34 @@ class post {
      * @param int $time The time the post was modified (given from the discussion class).
      * @param string $postmessage The new message
      * @param int $messageformat
-     * @param ?int $formattachments Information about attachments from the post_form
      * @param int $userid User that makes the edit
+     * @param ?int $draftitemid
+     * @param ?int $attachmentdraftid Information about attachments from the post_form
      * @return true if the post has been edited successfully
      * @throws moodle_exception
      */
-    public function edit(int $time, string $postmessage, int $messageformat, ?int $formattachments, int $userid): bool {
+    public function edit(
+        int $time,
+        string $postmessage,
+        int $messageformat,
+        int $userid,
+        ?int $draftitemid = null,
+        ?int $attachmentdraftid = null,
+    ): bool {
+        global $DB;
         $this->existence_check();
 
         // Update the attributes.
         $this->modified = $time;
         $this->message = $postmessage;
         $this->messageformat = $messageformat;
-        $this->formattachments = $formattachments;
-        $this->save_draft_files();
-        $this->add_attachment();
+        $this->save_draft_files($draftitemid);
+        $this->add_attachment($attachmentdraftid);
 
         // Mark the post as read.
         readtracking::mark_post_read($this, $userid);
 
+        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
         // The post has been edited successfully.
         return true;
     }
@@ -366,29 +368,28 @@ class post {
     /**
      * If successful, this function returns the name of the file
      *
+     * @param ?int $attachmentdraftid
      * @return void
      * @throws moodle_exception
      */
-    public function add_attachment(): void {
-        global $DB;
+    public function add_attachment(?int $attachmentdraftid = null): void {
         $this->existence_check();
 
-        if (empty($this->formattachments)) {
+        if (empty($attachmentdraftid)) {
             return;
         }
 
         $context = context_module::instance($this->get_coursemodule()->id);
-        $info = file_get_draft_area_info($this->formattachments);
-        $present = ($info['filecount'] > 0) ? '1' : '';
+        $info = file_get_draft_area_info($attachmentdraftid);
+        $this->attachment = ($info['filecount'] > 0) ? '1' : '';
         file_save_draft_area_files(
-            $this->formattachments,
+            $attachmentdraftid,
             $context->id,
             'mod_moodleoverflow',
             'attachment',
             $this->id,
-            post_form::attachment_options($this->get_moodleoverflow()->get_db_object())
+            $this->get_moodleoverflow()->get_attachment_options()
         );
-        $DB->set_field('moodleoverflow_posts', 'attachment', $present, ['id' => $this->id]);
     }
 
     /**
@@ -461,55 +462,58 @@ class post {
 
     /**
      * Saves draft files from the message form permanently and updates the post message.
+     * @param ?int $draftitemid
      * @return void
      * @throws moodle_exception
      */
-    public function save_draft_files(): void {
-        global $DB;
+    public function save_draft_files(?int $draftitemid = null): void {
         $this->existence_check();
+        if (empty($draftitemid)) {
+            return;
+        }
         $context = context_module::instance($this->get_coursemodule()->id);
         $this->message = file_save_draft_area_files(
-            file_get_submitted_draft_itemid('message'),
+            $draftitemid,
             $context->id,
             'mod_moodleoverflow',
             'post',
             $this->id,
-            post_form::editor_options($context, $this->id),
+            $this->get_moodleoverflow()->get_editor_options($this->id),
             $this->message
         );
-        $DB->update_record('moodleoverflow_posts', $this->build_db_object());
     }
 
     /**
-     * Get a link to the users profile and the users fullname.
+     * Get a link to the authors profile and fullname.
      * Returns a html link embedded in the users name.
+     * @param int $userid The user that wants to get the link to the authors profile.
      * @return array
      * @throws moodle_exception
      */
-    public function get_userlink(): array {
-        global $USER, $DB;
+    public function get_authorlink(int $userid): array {
+        global $DB;
         $this->existence_check();
 
         $courseid = $this->get_discussion()->get_courseid();
         $modulecontext = context_module::instance($this->get_coursemodule()->id);
-        $userid = $this->get_userid();
-        if ($userid === 0) {
+        $authorid = $this->get_userid();
+        if ($authorid === 0) {
             $name = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
             return ['link' => $name, 'fullname' => $name];
         }
-        if ($this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $userid)) {
-            if ($userid == $USER->id) {
+        if ($this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $authorid)) {
+            if ($authorid == $userid) {
                 $fullname = get_string('anonym_you', 'mod_moodleoverflow');
-                $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
+                $profilelink = new moodle_url('/user/view.php', ['id' => $authorid, 'course' => $courseid]);
                 return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
             } else {
                 $usermapping = anonymous::get_userid_mapping($this->get_moodleoverflow(), $this->get_discussionid());
-                return ['link' => $usermapping[$userid], 'fullname' => $usermapping[$userid]];
+                return ['link' => $usermapping[$authorid], 'fullname' => $usermapping[$authorid]];
             }
         }
-        $user = $DB->get_record('user', ['id' => $userid]);
+        $user = $DB->get_record('user', ['id' => $authorid]);
         $fullname = fullname($user, has_capability('moodle/site:viewfullnames', $modulecontext));
-        $profilelink = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $courseid]);
+        $profilelink = new moodle_url('/user/view.php', ['id' => $authorid, 'course' => $courseid]);
         return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
     }
 

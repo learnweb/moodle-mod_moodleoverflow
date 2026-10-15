@@ -250,7 +250,7 @@ function moodleoverflow_refresh_events($courseid = 0) {
  * @return boolean Success/Failure
  */
 function moodleoverflow_delete_instance($id) {
-    global $DB;
+    global $DB, $USER;
 
     // Initiate the variables.
     $result = true;
@@ -282,7 +282,7 @@ function moodleoverflow_delete_instance($id) {
     if ($discussions = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $moodleoverflow->id])) {
         require_once('locallib.php');
         foreach ($discussions as $discussion) {
-            if (!discussion::from_record($discussion)->delete((object) ['modulecontext' => $context])) {
+            if (!discussion::from_record($discussion)->delete((object) ['modulecontext' => $context], $USER->id)) {
                 $result = false;
             }
         }

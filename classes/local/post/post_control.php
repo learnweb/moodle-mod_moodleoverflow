@@ -136,7 +136,7 @@ class post_control {
 
         // Format the submitted data.
         $this->prepost->messageformat = $form->message['format'];
-        $this->prepost->formattachments = $form->attachments;
+        $this->prepost->formattachments = $form->attachments ?? null;
         $this->prepost->message = $form->message['text'];
         $this->prepost->messagetrust = trusttext_trusted($this->prepost->modulecontext);
 
@@ -279,9 +279,6 @@ class post_control {
         // Load the $post variable.
         $this->assemble_prepost();
 
-        // Format the message.
-        $this->prepost->message = $this->info->relatedpost->get_message_formatted();
-
         // Unset where the user is coming from. This allows to calculate the correct return url later.
         unset($SESSION->fromdiscussion);
     }
@@ -347,7 +344,7 @@ class post_control {
             $this->prepost->timenow,
             $this->prepost->userid
         );
-        if (!$discussion->add($this->prepost)) {
+        if (!$discussion->add($this->prepost, file_get_submitted_draft_itemid('message'))) {
             throw new moodle_exception('couldnotadd', 'moodleoverflow');
         }
 
@@ -387,7 +384,7 @@ class post_control {
             || permissions::can_review_posts($this->info->moodleoverflow, $USER->id);
 
         // Create the new post.
-        if (!$newpostid = $this->info->discussion->add_new_post($this->prepost)) {
+        if (!$newpostid = $this->info->discussion->add_new_post($this->prepost, file_get_submitted_draft_itemid('message'))) {
             throw new moodle_exception('couldnotadd', 'moodleoverflow');
         }
 
@@ -440,7 +437,7 @@ class post_control {
         }
 
         // Update the post.
-        if (!$this->info->discussion->edit_post($this->prepost, $USER->id)) {
+        if (!$this->info->discussion->edit_post($this->prepost, $USER->id, file_get_submitted_draft_itemid('message'))) {
             throw new moodle_exception('couldnotupdate', 'moodleoverflow');
         }
 
@@ -497,12 +494,12 @@ class post_control {
         if ($this->prepost->parentid == 0) {
             // Save the moodleoverflowid. Then delete the discussion.
             $moodleoverflowid = $this->info->discussion->get_moodleoverflowid();
-            $this->info->discussion->delete($this->prepost);
+            $this->info->discussion->delete($this->prepost, $USER->id);
 
             // Redirect the user back to the start page of the moodleoverflow instance.
             return 'view.php?m=' . $moodleoverflowid;
         } else {
-            $this->info->discussion->delete_post_from_discussion($this->prepost);
+            $this->info->discussion->delete_post_from_discussion($this->prepost, $USER->id);
             return moodleoverflow_go_back_to($this->info->discussion->get_link());
         }
     }
@@ -550,7 +547,7 @@ class post_control {
             'mod_moodleoverflow',
             'attachment',
             empty($this->prepost->postid) ? null : $this->prepost->postid,
-            post_form::attachment_options($this->info->moodleoverflow)
+            $this->info->moodleoverflow->get_attachment_options()
         );
 
         // If the post is anonymous, attachments should have an anonymous author when editing the attachment.
@@ -601,20 +598,29 @@ class post_control {
         $heading = ($this->interaction == 'reply') ? get_string('yourreply', 'moodleoverflow')
                                                    : get_string('yournewtopic', 'moodleoverflow');
 
+        // Copy the embedded files of the message into a draft area, so the editor shows and keeps them.
+        $messagedraftid = file_get_submitted_draft_itemid('message');
+        $message = file_prepare_draft_area(
+            $messagedraftid,
+            $this->info->modulecontext->id,
+            'mod_moodleoverflow',
+            'post',
+            empty($this->prepost->postid) ? null : $this->prepost->postid,
+            $this->info->moodleoverflow->get_editor_options(empty($this->prepost->postid) ? null : $this->prepost->postid),
+            $this->prepost->message
+        );
+
         // Set data for the form.
         $mformpost->set_data([
-             'attachments' => $draftitemid,
-             'general' => $heading,
-             'subject' => $this->prepost->subject,
-             'message' => ['text' => $this->prepost->message,
-                           'format' => editors_get_preferred_format(),
-                           'itemid' => $this->prepost->postid, ],
-             'userid' => $this->prepost->userid,
-             'parent' => $this->prepost->parentid,
-             'discussion' => $this->prepost->discussionid,
-             'course' => $this->prepost->courseid,
-            ]
-            + $pageparams);
+            'attachments' => $draftitemid,
+            'general' => $heading,
+            'subject' => $this->prepost->subject,
+            'message' => ['text' => $message, 'format' => editors_get_preferred_format(), 'itemid' => $messagedraftid],
+            'userid' => $this->prepost->userid,
+            'parent' => $this->prepost->parentid,
+            'discussion' => $this->prepost->discussionid,
+            'course' => $this->prepost->courseid,
+        ] + $pageparams);
 
         return $mformpost;
     }
@@ -625,14 +631,14 @@ class post_control {
      * @throws moodle_exception|dml_exception
      */
     public function display_original_post(): string {
-        global $PAGE, $OUTPUT;
+        global $PAGE, $OUTPUT, $USER;
         if ($this->interaction == 'reply') {
             $PAGE->requires->js_call_amd('mod_moodleoverflow/show_post', 'init');
             $data = (object) [
                 'postid' => $this->info->relatedpost->get_id(),
                 'postcontent' => $this->info->relatedpost->get_message_formatted(),
                 'attachments' => $this->info->relatedpost->get_attachments($OUTPUT),
-                'byname' => $this->info->relatedpost->get_userlink()['link'],
+                'byname' => $this->info->relatedpost->get_authorlink($USER->id)['link'],
             ];
             return $OUTPUT->render_from_template('mod_moodleoverflow/post_original', $data);
         }
