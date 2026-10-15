@@ -16,10 +16,8 @@
 
 namespace mod_moodleoverflow\form;
 
-use context_module;
 use mod_moodleoverflow\local\permissions;
 use moodleform;
-use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -44,7 +42,6 @@ class post_form extends moodleform {
         $modform =& $this->_form;
         $post = $this->_customdata['post'];
         $edit = $this->_customdata['edit'];
-        $modcontext = $this->_customdata['modulecontext'];
         $moodleoverflow = $this->_customdata['moodleoverflow'];
 
         // Fill in the data depending on page params later using set_data.
@@ -64,7 +61,7 @@ class post_form extends moodleform {
             'message',
             get_string('message', 'moodleoverflow'),
             null,
-            self::editor_options($modcontext, (empty($post->id) ? null : $post->id))
+            $moodleoverflow->get_editor_options((empty($post->id) ? null : $post->id))
         );
         $modform->setType('message', PARAM_RAW);
         $modform->addRule('message', get_string('required'), 'required', null, 'client');
@@ -75,7 +72,7 @@ class post_form extends moodleform {
                 'attachments',
                 get_string('attachment', 'moodleoverflow'),
                 null,
-                self::attachment_options($moodleoverflow)
+                $moodleoverflow->get_attachment_options()
             );
             $modform->addHelpButton('attachments', 'attachment', 'moodleoverflow');
         }
@@ -132,44 +129,5 @@ class post_form extends moodleform {
         }
 
         return $errors;
-    }
-
-    /**
-     * Returns the options array to use in filemanager for moodleoverflow attachments
-     *
-     * @param stdClass $moodleoverflow
-     *
-     * @return array
-     */
-    public static function attachment_options($moodleoverflow) {
-        global $COURSE, $PAGE, $CFG;
-        $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes, $moodleoverflow->maxbytes);
-
-        return [
-            'subdirs' => 0,
-            'maxbytes' => $maxbytes,
-            'maxfiles' => $moodleoverflow->maxattachments,
-            'accepted_types' => '*',
-            'return_types' => FILE_INTERNAL | FILE_CONTROLLED_LINK,
-        ];
-    }
-
-    /**
-     * Returns the options array to use in forum text editor
-     *
-     * @param context_module $context
-     * @param int $postid post id, use null when adding new post
-     * @return array
-     */
-    public static function editor_options(context_module $context, $postid) {
-        global $COURSE, $PAGE, $CFG;
-        $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes);
-        return [
-            'maxfiles' => EDITOR_UNLIMITED_FILES,
-            'maxbytes' => $maxbytes,
-            'trusttext' => true,
-            'return_types' => FILE_INTERNAL | FILE_EXTERNAL,
-            'subdirs' => file_area_contains_subdirs($context, 'mod_moodleoverflow', 'post', $postid),
-        ];
     }
 }

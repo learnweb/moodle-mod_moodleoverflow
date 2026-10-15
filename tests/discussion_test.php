@@ -112,7 +112,7 @@ final class discussion_test extends \advanced_testcase {
         // Delete the discussion, but save the IDs first.
         $discussionid = $this->discussion->get_id();
         $postid = $this->discussion->get_firstpostid();
-        $this->discussion->delete($prepost);
+        $this->discussion->delete($prepost, $this->student->id);
 
         // The discussion and the post should not be in the DB anymore.
         $discussion = count($DB->get_records('moodleoverflow_discussions', ['id' => $discussionid]));

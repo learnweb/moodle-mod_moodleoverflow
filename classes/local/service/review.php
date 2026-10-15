@@ -56,9 +56,9 @@ class review {
         $discussion = $post->get_discussion();
         if (!$post->get_parentid()) {
             // Delete discussion, if this is the question.
-            $discussion->delete((object) ['modulecontext' => $post->get_moodleoverflow()->get_context()]);
+            $discussion->delete((object) ['modulecontext' => $post->get_moodleoverflow()->get_context()], $userid);
         } else {
-            $discussion->delete_post_from_discussion((object) ['postid' => $post->get_id(), 'deletechildren' => true]);
+            $discussion->delete_post_from_discussion((object) ['postid' => $post->get_id(), 'deletechildren' => true], $userid);
         }
     }
 

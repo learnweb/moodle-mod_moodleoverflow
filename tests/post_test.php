@@ -112,7 +112,7 @@ final class post_test extends \advanced_testcase {
         $time = time();
 
         // Update the post.
-        $this->post->edit($time, $message, $this->post->messageformat, $this->post->formattachments, $this->student->id);
+        $this->post->edit($time, $message, $this->post->messageformat, $this->student->id);
 
         // The message and modified time should be changed.
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $this->post->get_id()]);
@@ -136,7 +136,7 @@ final class post_test extends \advanced_testcase {
         // Delete the post with its attachment.
         // Save the post id as it gets unsettled by the post object after being deleted.
         $postid = $this->post->get_id();
-        $this->post->delete(true);
+        $this->post->delete(true, $this->student->id);
 
         // Now try to get the attachment, it should be deleted from the database.
         $numberofattachments = count($DB->get_records('files', ['itemid' => $postid]));

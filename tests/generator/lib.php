@@ -115,7 +115,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             'formattachments' => null,
             'modulecontext' => $modflow->get_context(),
         ];
-        $this->as_user($author, fn() => $discussion->add($prepost));
+        $discussion->add($prepost);
         return post::from_id($discussion->get_firstpostid());
     }
 
@@ -144,7 +144,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             $this->is_reviewed($this->get_moodleoverflow($parent), $author, false),
             null
         );
-        return post::from_id($this->as_user($author, fn() => $reply->add()));
+        return post::from_id($reply->add());
     }
 
     /**
@@ -250,25 +250,5 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         global $DB;
         $conditions = ['id' => $post->get_discussionid()];
         return moodleoverflow::from_id($DB->get_field('moodleoverflow_discussions', 'moodleoverflow', $conditions, MUST_EXIST));
-    }
-
-    /**
-     * Runs a function as another user and restores the user of the test afterwards.
-     *
-     * Needed because post::add() saves the draft files of the message in the user context of $USER.
-     *
-     * @param stdClass $user
-     * @param callable $function
-     * @return mixed What the function returns.
-     */
-    private function as_user(stdClass $user, callable $function): mixed {
-        global $USER;
-        $previous = empty($USER->id) ? null : clone($USER);
-        $this->set_user($user);
-        try {
-            return $function();
-        } finally {
-            $this->set_user($previous);
-        }
     }
 }
