@@ -230,11 +230,6 @@ class post {
         $this->save_draft_files($draftitemid);
         $this->add_attachment($attachmentdraftid);
 
-        if ($this->reviewed) {
-            $DB->set_field('moodleoverflow_discussions', 'timemodified', $this->modified, ['id' => $this->discussion]);
-            $DB->set_field('moodleoverflow_discussions', 'usermodified', $this->userid, ['id' => $this->discussion]);
-        }
-
         // Mark the created post as read if the user is tracking the discussion.
         readtracking::mark_post_read($this, $this->userid);
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
@@ -570,6 +565,15 @@ class post {
         $options->para = true;
         $options->context = $context;
         return format_text($message, $this->messageformat, $options);
+    }
+
+    /**
+     * Returns when the post was last active in its discussion: when it joined (created, or approved later)
+     * or when it was last edited, whichever is later.
+     * @return int
+     */
+    public function get_time_active(): int {
+        return max($this->modified, $this->timereviewed ?? 0);
     }
 
     /**

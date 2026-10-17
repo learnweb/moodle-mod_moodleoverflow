@@ -197,6 +197,7 @@ class discussion {
             // Add it to the DB and save the id of the first/parent post.
             $this->firstpost = $post->add($draftitemid, $prepost->formattachments);
             $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
+            $this->update_last_activity();
 
             // Add the parent post to the $posts array.
             $this->posts[$this->firstpost] = $post;
@@ -308,11 +309,9 @@ class discussion {
         // Add the post to the DB.
         $postid = $post->add($draftitemid, $prepost->formattachments);
 
-        // Add the post to the $posts array and update the timemodified in the DB.
+        // Add the post to the $posts array and update the last post of the discussion.
         $this->posts[$postid] = $post;
-        $this->timemodified = $prepost->timenow;
-        $this->usermodified = $prepost->userid;
-        $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+        $this->update_last_activity();
 
         // Return the id of the added post.
         return $postid;
@@ -340,7 +339,7 @@ class discussion {
         }
 
         // Check for the new last post of the discussion.
-        $this->adapt_to_last_post();
+        $this->update_last_activity();
 
         // Delete the post from the post array.
         unset($this->posts[$prepost->postid]);
@@ -366,12 +365,10 @@ class discussion {
         // Access the post.
         $post = $this->posts[$prepost->postid];
 
-        // If the post is the firstpost, then update the name of this discussion and the post. If not, only update the post.
+        // If the post is the question, the subject is the name of the discussion.
         if ($prepost->postid == array_key_first($this->posts)) {
             $this->name = $prepost->subject;
-            $this->usermodified = $prepost->userid;
-            $this->timemodified = $prepost->timenow;
-            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+            $DB->set_field('moodleoverflow_discussions', 'name', $this->name, ['id' => $this->id]);
         }
         $post->edit(
             $prepost->timenow,
@@ -381,42 +378,44 @@ class discussion {
             $draftitemid,
             $prepost->formattachments
         );
+        // An edit of an unreviewed post is no activity, so its editor does not count.
+        $this->update_last_activity($post->reviewed ? $userid : null);
 
         // The post has been edited successfully.
         return true;
     }
 
     /**
-     * Sets timemodified and usermodified of the discussion to the newest reviewed post.
-     * @return bool true if the DB needed to be adapted. false if it didn't change.
+     * Sets the last post of the discussion (timemodified and usermodified).
+     *
+     * Only reviewed posts count. The time of a post is when it joined the discussion (created, or approved later)
+     * or when it was last edited, whichever is later. The posts do not store who edited them, so the user is the
+     * author of that post, unless the caller passes the user whose change is the newest (an edit of a reviewed post).
+     *
+     * @param int|null $userid The user who made the newest change, if it was not the author.
+     * @return void
      * @throws dml_exception|moodle_exception
      */
-    public function adapt_to_last_post(): bool {
+    public function update_last_activity(?int $userid = null): void {
         global $DB;
         $this->existence_check();
 
-        // Only reviewed posts count as activity of the discussion.
-        $records = $DB->get_records(
-            'moodleoverflow_posts',
-            ['discussion' => $this->id, 'reviewed' => 1],
-            'modified DESC, id DESC',
-            'id, modified, userid',
-            0,
-            1
-        );
-        $lastpost = reset($records);
+        // Load the posts freshly: the posts of this object may be stale (e.g. the approved post still unreviewed).
+        $records = $DB->get_records('moodleoverflow_posts', ['discussion' => $this->id, 'reviewed' => 1]);
+        $lastpost = self::find_last_post(array_map(fn($record) => post::from_record($record), $records));
         if (!$lastpost) {
-            return false;
+            // No reviewed post yet: keep the values from the creation of the discussion.
+            return;
         }
 
-        // Check if the last post changed. If it changed, then update the DB-record of this discussion.
-        if ($lastpost->modified != $this->timemodified || $lastpost->userid != $this->usermodified) {
-            $this->timemodified = $lastpost->modified;
-            $this->usermodified = $lastpost->userid;
-            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
-            return true;
-        }
-        return false;
+        $this->timemodified = $lastpost->get_time_active();
+        $this->usermodified = $userid ?? $lastpost->get_userid();
+        // Only write the two fields, so values of this object that were loaded earlier (e.g. the name) are not written back.
+        $DB->update_record('moodleoverflow_discussions', (object) [
+            'id' => $this->id,
+            'timemodified' => $this->timemodified,
+            'usermodified' => $this->usermodified,
+        ]);
     }
 
     /**
@@ -558,19 +557,14 @@ class discussion {
     }
 
     /**
-     * Return the newest post in a discussion.
-     *
-     * @return post
+     * Returns the last post of the discussion: the reviewed post that was active last.
+     * @return post|null Null while no post is reviewed (the question waits for its review).
      * @throws moodle_exception
      */
-    public function get_newest_post(): post {
+    public function get_last_post(): ?post {
         $this->existence_check();
         $this->posts_check();
-        $posts = $this->posts;
-        usort($posts, function ($a, $b) {
-            return $b->modified <=> $a->modified;
-        });
-        return reset($posts);
+        return self::find_last_post($this->posts);
     }
 
     /**
@@ -658,6 +652,18 @@ class discussion {
             'timestart' => $this->timestart,
             'usermodified' => $this->usermodified,
         ];
+    }
+
+    /**
+     * Finds the last post: unreviewed posts are not part of the discussion yet.
+     * @param post[] $posts
+     * @return post|null
+     */
+    private static function find_last_post(array $posts): ?post {
+        $reviewed = array_filter($posts, fn(post $post) => $post->reviewed == 1);
+        usort($reviewed, fn(post $a, post $b) =>
+            [$b->get_time_active(), $b->get_id()] <=> [$a->get_time_active(), $a->get_id()]);
+        return reset($reviewed) ?: null;
     }
 
     // Security.

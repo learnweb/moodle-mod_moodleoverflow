@@ -247,6 +247,26 @@ final class review_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if approving makes the post the last post of the discussion at the time of the review, with its author.
+     */
+    public function test_approve_updates_last_post(): void {
+        global $DB;
+        $modflow = $this->create_review_moodleoverflow();
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $answer = $this->generator->create_reply($question, $this->student);
+        // Both posts were written in the past, so the review is the newest activity.
+        $DB->set_field('moodleoverflow_posts', 'created', 100, ['discussion' => $question->get_discussionid()]);
+        $DB->set_field('moodleoverflow_posts', 'modified', 100, ['discussion' => $question->get_discussionid()]);
+
+        service\review::approve(post::from_id($answer->get_id()), $this->teacher->id);
+
+        $timereviewed = $DB->get_field('moodleoverflow_posts', 'timereviewed', ['id' => $answer->get_id()], MUST_EXIST);
+        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $question->get_discussionid()], '*', MUST_EXIST);
+        $this->assertEquals($timereviewed, $discussion->timemodified);
+        $this->assertEquals($this->student->id, $discussion->usermodified);
+    }
+
+    /**
      * Test, if rejecting an answer deletes only the answer.
      */
     public function test_reject_answer(): void {
