@@ -120,7 +120,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     }
 
     /**
-     * Creates a reply to a post.
+     * Creates a reply to a post. It is added through its discussion, so the last post of the discussion is updated.
      *
      * @param post $parent The post to reply to.
      * @param stdClass $author The author of the reply.
@@ -131,20 +131,16 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         $this->postcount++;
         // Replies are created one second apart, so they have a stable order.
         $time = time() + $this->postcount;
-        $reply = post::construct_without_id(
-            $parent->get_discussionid(),
-            $parent->get_id(),
-            $author->id,
-            $time,
-            $time,
-            $record['message'] ?? '<p>Forum message post ' . $this->postcount . '</p>',
-            FORMAT_MOODLE,
-            '',
-            0,
-            $this->is_reviewed($this->get_moodleoverflow($parent), $author, false),
-            null
-        );
-        return post::from_id($reply->add());
+        $prepost = (object) [
+            'parentid' => $parent->get_id(),
+            'userid' => $author->id,
+            'timenow' => $time,
+            'message' => $record['message'] ?? '<p>Forum message post ' . $this->postcount . '</p>',
+            'messageformat' => FORMAT_MOODLE,
+            'reviewed' => $this->is_reviewed($this->get_moodleoverflow($parent), $author, false),
+            'formattachments' => null,
+        ];
+        return post::from_id(discussion::from_id($parent->get_discussionid())->add_new_post($prepost));
     }
 
     /**

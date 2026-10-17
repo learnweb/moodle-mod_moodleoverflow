@@ -51,8 +51,8 @@ class discussion_card implements named_templatable, renderable {
     /** @var post The first post in the discussion */
     public post $firstpost;
 
-    /** @var post The most recently modified post */
-    public post $lastpost;
+    /** @var post|null The last post, null while the question waits for its review */
+    public ?post $lastpost;
 
     /** @var bool If discussion can be moved */
     public bool $movepossible;
@@ -75,7 +75,7 @@ class discussion_card implements named_templatable, renderable {
         $this->context = $context;
         $this->discussion = $discussion;
         $this->firstpost = $this->discussion->get_first_post();
-        $this->lastpost = $this->discussion->get_newest_post();
+        $this->lastpost = $this->discussion->get_last_post();
         $this->modflow = $this->discussion->get_moodleoverflow();
         $this->movepossible = $movepossible;
     }
@@ -103,7 +103,6 @@ class discussion_card implements named_templatable, renderable {
 
         // Gather information about the discussion starter and the last user that posted something.
         $starterl = new moodle_url($this->l['user'], ['id' => $this->discussion->get_userid(), 'course' => $this->modflow->course]);
-        $lastpostl = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id(), 'parent' => $this->lastpost->get_id()]);
         $isnotanon = $this->modflow->get_anonymity() === anonymity::NONE;
 
         $userfirstpost = [
@@ -111,11 +110,11 @@ class discussion_card implements named_templatable, renderable {
             'picture' => $isnotanon ? $this->firstpost->get_userpicture() : '',
             'link' => $isnotanon && $this->firstpost->get_userid() !== 0 ? $starterl->out() : '',
         ];
-        $userlastpost = [
+        $userlastpost = $this->lastpost ? [
             'name' => $this->author_name($this->lastpost),
-            'date' => userdate($this->discussion->timemodified, get_string('strftimerecentfull')),
-            'link' => $lastpostl->out(),
-        ];
+            'date' => userdate($this->lastpost->get_time_active(), get_string('strftimerecentfull')),
+            'link' => $this->lastpost->get_link()->out(),
+        ] : [];
 
         // Gather rating information about the first post.
         $ratings = rating::get_post_ratings($this->discussion)[$this->firstpost->get_id()];

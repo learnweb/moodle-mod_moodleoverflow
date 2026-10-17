@@ -23,8 +23,10 @@
 
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 /**
@@ -120,5 +122,135 @@ final class discussion_test extends \advanced_testcase {
 
         $post = count($DB->get_records('moodleoverflow_posts', ['id' => $postid]));
         $this->assertEquals(0, $post);
+    }
+
+    /**
+     * Test, if the last post is the reviewed post that joined or was edited last, and null without a reviewed post.
+     */
+    public function test_get_last_post(): void {
+        global $DB;
+        $question = $this->generator->create_question($this->modflow, $this->teacher);
+        $answer = $this->generator->create_reply($question, $this->student);
+        $unreviewed = $this->generator->create_reply($question, $this->student);
+        $approved = $this->generator->create_reply($question, $this->otherstudent);
+        $this->set_post_times($question, 100);
+        $this->set_post_times($answer, 200);
+        $this->set_post_times($unreviewed, 400, null, 0);
+        // Written before the answer, but approved after it.
+        $this->set_post_times($approved, 150, 300);
+
+        $discussion = discussion::from_id($question->get_discussionid());
+        $this->assertEquals($approved->get_id(), $discussion->get_last_post()->get_id());
+        $this->assertEquals(300, $discussion->get_last_post()->get_time_active());
+
+        // An edit makes the answer the last post.
+        $DB->set_field('moodleoverflow_posts', 'modified', 500, ['id' => $answer->get_id()]);
+        $discussion = discussion::from_id($question->get_discussionid());
+        $this->assertEquals($answer->get_id(), $discussion->get_last_post()->get_id());
+
+        // A discussion whose question waits for its review has no last post and keeps the values from its creation.
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $waiting = $this->generator->create_question($modflow, $this->student);
+        $this->assertNull($waiting->get_discussion()->get_last_post());
+        $this->assert_last_post($waiting->get_discussionid(), $waiting->created, $this->student->id);
+    }
+
+    /**
+     * Test, if an unreviewed reply does not change the last post of the discussion.
+     */
+    public function test_unreviewed_reply_is_no_last_post(): void {
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+
+        $this->generator->create_reply($question, $this->student);
+
+        $this->assert_last_post($question->get_discussionid(), $question->modified, $this->teacher->id);
+    }
+
+    /**
+     * Test, if editing a post makes it the last post with the editor as the user, but only once the post is reviewed.
+     */
+    public function test_edit_sets_editor_of_reviewed_post(): void {
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $answer = $this->generator->create_reply($question, $this->student);
+
+        // An edit of the unreviewed answer is no activity.
+        $discussion = discussion::from_id($question->get_discussionid());
+        $discussion->edit_post($this->get_edit_prepost($answer, time() + 1000), $this->student->id, null);
+        $this->assert_last_post($question->get_discussionid(), $question->modified, $this->teacher->id);
+
+        // Once reviewed, an edit by another user makes the answer the last post, with the editor as the user.
+        post::from_id($answer->get_id())->mark_reviewed();
+        $time = time() + 2000;
+        $discussion = discussion::from_id($question->get_discussionid());
+        $discussion->edit_post($this->get_edit_prepost($answer, $time), $this->otherstudent->id, null);
+        $this->assert_last_post($question->get_discussionid(), $time, $this->otherstudent->id);
+    }
+
+    /**
+     * Test, if deleting the last post falls back to the previous post and its author.
+     */
+    public function test_delete_of_last_post_falls_back(): void {
+        $question = $this->generator->create_question($this->modflow, $this->student);
+        $answer = $this->generator->create_reply($question, $this->otherstudent);
+
+        $discussion = discussion::from_id($question->get_discussionid());
+        $discussion->delete_post_from_discussion(
+            (object) ['postid' => $answer->get_id(), 'deletechildren' => true],
+            $this->teacher->id
+        );
+
+        $this->assert_last_post($question->get_discussionid(), $question->modified, $this->student->id);
+    }
+
+    /**
+     * Sets the times and the review status of a post in the database.
+     *
+     * @param post $post
+     * @param int $modified Also used as the creation time.
+     * @param int|null $timereviewed
+     * @param int $reviewed
+     */
+    private function set_post_times(post $post, int $modified, ?int $timereviewed = null, int $reviewed = 1): void {
+        global $DB;
+        $DB->update_record('moodleoverflow_posts', (object) [
+            'id' => $post->get_id(),
+            'created' => $modified,
+            'modified' => $modified,
+            'timereviewed' => $timereviewed,
+            'reviewed' => $reviewed,
+        ]);
+    }
+
+    /**
+     * Builds the prepost object that edits a post without changing its message.
+     *
+     * @param post $post
+     * @param int $time The time of the edit.
+     * @return \stdClass
+     */
+    private function get_edit_prepost(post $post, int $time): \stdClass {
+        return (object) [
+            'postid' => $post->get_id(),
+            'timenow' => $time,
+            'message' => $post->message,
+            'messageformat' => $post->messageformat,
+            'formattachments' => null,
+        ];
+    }
+
+    /**
+     * Asserts the last post of a discussion as stored in the database.
+     *
+     * @param int $discussionid
+     * @param int $time The expected timemodified.
+     * @param int $userid The expected usermodified.
+     */
+    private function assert_last_post(int $discussionid, int $time, int $userid): void {
+        global $DB;
+        $record = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid], '*', MUST_EXIST);
+        $this->assertEquals($time, $record->timemodified);
+        $this->assertEquals($userid, $record->usermodified);
     }
 }

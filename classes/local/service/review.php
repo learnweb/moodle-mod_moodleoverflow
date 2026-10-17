@@ -42,6 +42,7 @@ class review {
     public static function approve(post $post, int $userid): void {
         permissions::ensure(permissions::can_review_post($post, $userid), 'cannotreviewpost');
         $post->mark_reviewed();
+        $post->get_discussion()->update_last_activity();
     }
 
     /**
