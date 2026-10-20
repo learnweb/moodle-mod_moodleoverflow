@@ -21,7 +21,6 @@ use core\context\system;
 use core\context\user;
 use core\exception\moodle_exception;
 use core\param;
-use core\router\require_login;
 use core\router\route;
 use core\router\schema\response\payload_response;
 use core\router\schema\parameters\path_parameter;
@@ -54,12 +53,12 @@ class user_controller {
         method: ['GET'],
         pathtypes: [new path_parameter(name: 'userid', type: param::INT)],
         responses: [new user_posts_response()],
-        requirelogin: new require_login(),
     )]
     public function get_user_posts(ServerRequestInterface $request, ResponseInterface $response, int $userid): payload_response {
         global $PAGE, $USER, $CFG;
         $payload = [];
 
+        require_login();
         if (isguestuser()) {
             $PAGE->set_context(system::instance());
             return new payload_response([], $request, $response);
