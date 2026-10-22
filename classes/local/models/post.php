@@ -43,11 +43,7 @@ require_once($CFG->libdir . '/filelib.php');
 /**
  * Class that represents a post.
  *
- * Please be careful with functions that delete, add or edit posts.
- * Security checks for these functions were done in the post_control class and these functions should only be accessed that way.
- * Accessing these functions directly without the checks from the post_control could lead to serious errors.
- *
- * Most of the functions in this class are called by moodleoverflow/classes/discussion/discussion.php . The discussion class
+ * Most of the functions in this class are called by the discussion model. The discussion class
  * manages posts in a moodleoverflow and works like a toplevel class for the post class. If you want to manipulate
  * (delete, add, edit) posts, please call the functions from the discussion class. To read and obtain information about posts
  * you are free to choose.
@@ -57,13 +53,7 @@ require_once($CFG->libdir . '/filelib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post {
-    // Attributes. The most important attributes are private and can only be changed by internal functions.
-    // Other attributes can be accessed directly. The database related attributes are promoted in the constructor below.
-
     // Not database related attributes.
-
-    /** @var string The subject/title of the Discussion */
-    public string $subject;
 
     /** @var discussion The discussion where the post is located */
     public discussion $discussionobject;

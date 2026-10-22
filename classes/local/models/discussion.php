@@ -41,10 +41,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @package     mod_moodleoverflow
  * @copyright   2023 Tamaro Walter
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
- * Please be careful with functions that delete, add or edit posts and discussions.
- * Security checks for these functions were done in the post_control class and these functions should only be accessed that way.
- * Accessing these functions directly without the checks from the post control could lead to serious errors.
  */
 class discussion {
     // The database related attributes are promoted in the constructor below.
