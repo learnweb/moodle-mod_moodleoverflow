@@ -32,6 +32,7 @@ use mod_moodleoverflow\local\service\readtracking;
 use core\exception\moodle_exception;
 use moodle_url;
 use stdClass;
+use Throwable;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -246,90 +247,56 @@ class post {
     }
 
     /**
-     * Deletes this moodleoverflow post and it's children posts if wanted.
+     * Deletes this post with its replies, their ratings, read records and files (attachments and embedded files).
      *
-     * @param bool $deletechildren If child posts (posts that reference this post as parent)
-     * @param int $userid The user that deletes the post.
-     * @return bool Whether the deletion was successful or not
-     * @throws moodle_exception
+     * The discussion updates its last post afterward; the question is only deleted through discussion::delete().
+     *
+     * @param int $userid The user who deletes the post.
+     * @return void
+     * @throws Throwable
      */
-    public function delete(bool $deletechildren, int $userid): bool {
+    public function delete(int $userid): void {
         global $DB;
         $this->existence_check();
+        $context = $this->get_context();
+        $modflowid = $this->get_moodleoverflow()->id;
 
-        // Iterate through all children and delete them.
+        $transaction = $DB->start_delegated_transaction();
         try {
-            $transaction = $DB->start_delegated_transaction();
-
-            // Get the coursemoduleid for later use.
-            $coursemoduleid = $this->get_coursemodule()->id;
-            $childposts = $this->get_childposts();
-            if ($deletechildren && $childposts) {
-                foreach ($childposts as $childpost) {
-                    $child = $this->from_record($childpost);
-                    $child->delete(true, $userid);
-                }
+            // Delete the replies.
+            foreach ($this->get_childposts() as $record) {
+                self::from_record($record)->delete($userid);
             }
 
-            // Delete the ratings.
+            // Delete all associated ratings.
             $DB->delete_records('moodleoverflow_ratings', ['postid' => $this->id]);
+            readtracking::delete_read_records(postid: $this->id);
+
+            // Delete all files.
+            $fs = get_file_storage();
+            foreach (['attachment', 'post'] as $filearea) {
+                $fs->delete_area_files($context->id, 'mod_moodleoverflow', $filearea, $this->id);
+            }
 
             // Delete the post.
-            if ($DB->delete_records('moodleoverflow_posts', ['id' => $this->id])) {
-                readtracking::delete_read_records(postid: $this->id);
+            $DB->delete_records('moodleoverflow_posts', ['id' => $this->id]);
 
-                // Delete the attachments.
-                $fs = get_file_storage();
-                $context = context_module::instance($coursemoduleid);
-                $attachments = $fs->get_area_files(
-                    $context->id,
-                    'mod_moodleoverflow',
-                    'attachment',
-                    $this->id,
-                    "filename",
-                    true
-                );
-                foreach ($attachments as $attachment) {
-                    // Get file.
-                    $file = $fs->get_file(
-                        $context->id,
-                        'mod_moodleoverflow',
-                        'attachment',
-                        $this->id,
-                        $attachment->get_filepath(),
-                        $attachment->get_filename()
-                    );
-                    // Delete it if it exists.
-                    if ($file) {
-                        $file->delete();
-                    }
-                }
-
-                // Trigger the post deletion event.
-                $params = [
+            // The question is deleted with its discussion, which fires discussion_deleted (as on creation).
+            if ($this->parent != 0) {
+                post_deleted::create([
                     'context' => $context,
                     'objectid' => $this->id,
-                    'other' => ['discussionid' => $this->discussion, 'moodleoverflowid' => $this->get_moodleoverflow()->id],
-                ];
-                if ($this->userid !== $userid) {
-                    $params['relateduserid'] = $this->userid;
-                }
-                $event = post_deleted::create($params);
-                $event->trigger();
-
-                // Set the id of this instance to null, so that working with it is not possible anymore.
-                $this->id = null;
-
-                // The post has been deleted.
-                $transaction->allow_commit();
-                return true;
+                    'other' => ['discussionid' => $this->discussion, 'moodleoverflowid' => $modflowid],
+                    ...($this->userid !== $userid ? ['relateduserid' => $this->userid] : []),
+                ])->trigger();
             }
-        } catch (\Exception $e) {
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
             $transaction->rollback($e);
         }
 
-        // Deleting the post failed.
-        return false;
+        // Working with this instance is not possible anymore.
+        $this->id = null;
     }
 
     /**

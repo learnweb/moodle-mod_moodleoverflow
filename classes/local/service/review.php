@@ -54,13 +54,7 @@ class review {
      */
     public static function reject(post $post, int $userid): void {
         permissions::ensure(permissions::can_review_post($post, $userid), 'cannotreviewpost');
-        $discussion = $post->get_discussion();
-        if (!$post->get_parentid()) {
-            // Delete discussion, if this is the question.
-            $discussion->delete((object) ['modulecontext' => $post->get_moodleoverflow()->get_context()], $userid);
-        } else {
-            $discussion->delete_post_from_discussion((object) ['postid' => $post->get_id(), 'deletechildren' => true], $userid);
-        }
+        discussion::from_id($post->get_discussionid())->delete_post($post, $userid);
     }
 
     // Read only functions.

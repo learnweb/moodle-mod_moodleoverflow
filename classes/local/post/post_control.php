@@ -93,7 +93,6 @@ class post_control {
         $count += $urlparameter->create ? 1 : 0;
         $count += $urlparameter->reply ? 1 : 0;
         $count += $urlparameter->edit ? 1 : 0;
-        $count += $urlparameter->delete ? 1 : 0;
         if ($count !== 1) {
             throw new moodle_exception('wrongparametercount', 'moodleoverflow');
         }
@@ -110,10 +109,6 @@ class post_control {
             $this->interaction = 'reply';
             $this->info->replypostid = $urlparameter->reply;
             $this->build_prepost_reply($this->info->replypostid);
-        } else if ($urlparameter->delete) {
-            $this->interaction = 'delete';
-            $this->info->deletepostid = $urlparameter->delete;
-            $this->build_prepost_delete($this->info->deletepostid);
         }
     }
 
@@ -245,86 +240,7 @@ class post_control {
         unset($SESSION->fromdiscussion);
     }
 
-    /**
-     * Function to prepare the deletion of a post.
-     *
-     * @param int $deletepostid The ID of the post that is being deleted.
-     * @throws moodle_exception
-     */
-    private function build_prepost_delete(int $deletepostid): void {
-        global $USER;
-        // Get the related post, discussion, moodleoverflow, course, coursemodule and contexts.
-        $this->collect_information($deletepostid);
-
-        // Require a login and retrieve the modulecontext.
-        require_login($this->info->course, false, $this->info->cm);
-
-        // Check some capabilities.
-        permissions::ensure(permissions::can_delete_post($this->info->relatedpost, $USER->id), 'cannotdeletepost');
-
-        // Count all replies of this post.
-        $this->info->replycount = $this->info->relatedpost->count_replies(false);
-        if ($this->info->replycount >= 1) {
-            $this->info->deletetype = 'plural';
-        } else {
-            $this->info->deletetype = 'singular';
-        }
-        // Build the prepost.
-        $this->assemble_prepost();
-        $this->prepost->deletechildren = true;
-    }
-
-    // Execute Functions.
-
-    /**
-     * Executes the deletion of a post.
-     *
-     * @return mixed redirect information
-     * @throws moodle_exception if the post could not be deleted.
-     */
-    public function execute_delete(): mixed {
-        global $SESSION, $USER;
-        $this->check_interaction('delete');
-
-        // Check if the user has the capability to delete the post.
-        $SESSION->errorreturnurl = $this->info->discussion->get_link();
-        permissions::ensure(permissions::can_delete_post($this->info->relatedpost, $USER->id), 'cannotdeletepost');
-
-        // Check if the post is a parent post or not.
-        if ($this->prepost->parentid == 0) {
-            // Save the moodleoverflowid. Then delete the discussion.
-            $moodleoverflowid = $this->info->discussion->get_moodleoverflowid();
-            $this->info->discussion->delete($this->prepost, $USER->id);
-
-            // Redirect the user back to the start page of the moodleoverflow instance.
-            return 'view.php?m=' . $moodleoverflowid;
-        } else {
-            $this->info->discussion->delete_post_from_discussion($this->prepost, $USER->id);
-            return moodleoverflow_go_back_to($this->info->discussion->get_link());
-        }
-    }
-
     // Functions that uses the post.php to build the page.
-
-    /**
-     * Builds a part of confirmation page. The confirmation request box is being build by the post.php.
-     * @throws moodle_exception
-     */
-    public function confirm_delete(): void {
-        global $CFG, $SESSION, $PAGE;
-        $this->check_interaction('delete');
-        // Save the referer for later redirection.
-        if (!isset($SESSION->fromdiscussion)) {
-            // If the referer is not a login screen, save it.
-            if (!strncasecmp("$CFG->wwwroot/login", get_local_referer(false), 300)) {
-                $SESSION->fromdiscussion = get_local_referer(false);
-            }
-        }
-        $PAGE->navbar->add(get_string('delete', 'moodleoverflow'));
-        $PAGE->set_title($this->info->course->shortname);
-        $PAGE->set_heading($this->info->course->fullname);
-        $PAGE->add_body_class('limitedwidth');
-    }
 
     /**
      *
@@ -534,20 +450,6 @@ class post_control {
                 $this->prepost->message = $this->info->relatedpost->message;
                 $this->prepost->messageformat = $this->info->relatedpost->messageformat;
             }
-        }
-    }
-
-
-    // Interaction check.
-
-    /**
-     * Checks if the interaction is correct
-     * @param string $interaction
-     * @throws moodle_exception
-     */
-    private function check_interaction($interaction): void {
-        if ($this->interaction != $interaction) {
-            throw new moodle_exception('wronginteraction', 'moodleoverflow');
         }
     }
 

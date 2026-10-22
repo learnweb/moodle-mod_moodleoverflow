@@ -39,13 +39,10 @@ require_once($CFG->libdir . '/completionlib.php');
 $moodleoverflow = optional_param('moodleoverflow', 0, PARAM_INT);
 $reply = optional_param('reply', 0, PARAM_INT);
 $edit = optional_param('edit', 0, PARAM_INT);
-$delete = optional_param('delete', 0, PARAM_INT);
-$confirm = optional_param('confirm', 0, PARAM_INT);
 
 // Set the URL that should be used to return to this page.
 $SESSION->errorreturnurl = get_local_referer(false);
-$PAGE->set_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit,
-                                                      'delete' => $delete, 'confirm' => $confirm, ]);
+$PAGE->set_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit]);
 
 // These params will be passed as hidden variables later in the form.
 $pageparams = ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit];
@@ -54,13 +51,13 @@ $pageparams = ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' =>
 $postcontrol = new post_control();
 
 // Put all interaction parameters in one object for the post_control.
-$urlparameter = (object) ['create' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit, 'delete' => $delete];
+$urlparameter = (object) ['create' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit];
 
 // Catch guests.
 if (!isloggedin() || isguestuser()) {
     // Gather information and set the page right so that user can be redirected to the right site.
     $information = $urlparameter->create ? $postcontrol->catch_guest(false, $urlparameter->create)
-                                  : $postcontrol->catch_guest($urlparameter->reply ?: $urlparameter->edit ?: $urlparameter->delete);
+                                  : $postcontrol->catch_guest($urlparameter->reply ?: $urlparameter->edit);
 
     // The guest needs to login.
     $strlogin = get_string('noguestpost', 'forum') . '<br /><br />' . get_string('liketologin');
@@ -87,43 +84,6 @@ try {
 // Get attributes from the postcontrol.
 $information = $postcontrol->get_information();
 $prepost = $postcontrol->get_prepost();
-
-// If a post is being deleted, delete it immediately.
-if ($postcontrol->get_interaction() == 'delete') {
-    // Has the user confirmed the deletion?
-    if (!empty($confirm) && confirm_sesskey()) {
-        try {
-            $redirect = $postcontrol->execute_delete();
-            redirect($redirect);
-        } catch (moodle_exception $e) {
-            $postcontrol->error_handling($e->getMessage());
-        }
-    } else {
-        // Deletion needs to be confirmed.
-        $postcontrol->confirm_delete();
-
-        // Display a confirmation request depending on the number of posts that are being deleted.
-        $information = $postcontrol->get_information();
-        echo $OUTPUT->header();
-        if ($information->deletetype == 'plural') {
-            echo $OUTPUT->confirm(
-                get_string('deletesureplural', 'moodleoverflow', $information->replycount + 1),
-                'post.php?delete=' . $delete . '&confirm=' . $delete,
-                $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $information->discussion->get_id() .
-                '#p' . $information->relatedpost->get_id()
-            );
-        } else {
-            echo $OUTPUT->confirm(
-                get_string('deletesure', 'moodleoverflow', $information->replycount),
-                "post.php?delete=$delete&confirm=$delete",
-                $CFG->wwwroot . '/mod/moodleoverflow/discussion.php?d=' . $information->discussion->get_id() .
-                '#p' . $information->relatedpost->get_id()
-            );
-        }
-        echo $OUTPUT->footer();
-    }
-    exit;
-}
 
 // A post will be created or edited. For that the post_control builds a post_form.
 $mformpost = $postcontrol->build_postform($pageparams);

@@ -90,18 +90,14 @@ final class discussion_test extends \advanced_testcase {
 
     /**
      * Test, if a post and its attachment are deleted successfully.
-     * @covers \mod_moodleoverflow\local\models\discussion::delete_post_from_discussion
+     * @covers \mod_moodleoverflow\local\models\discussion::delete_post
      */
     public function test_delete_discussion(): void {
         global $DB;
-        // Build the prepost object with necessary information.
-        $prepost = new \stdClass();
-        $prepost->modulecontext = $this->modflow->get_context();
-
         // Delete the discussion, but save the IDs first.
         $discussionid = $this->discussion->get_id();
         $postid = $this->discussion->get_firstpostid();
-        $this->discussion->delete($prepost, $this->student->id);
+        $this->discussion->delete($this->student->id);
 
         // The discussion and the post should not be in the DB anymore.
         $discussion = count($DB->get_records('moodleoverflow_discussions', ['id' => $discussionid]));
@@ -184,13 +180,7 @@ final class discussion_test extends \advanced_testcase {
     public function test_delete_of_last_post_falls_back(): void {
         $question = $this->generator->create_question($this->modflow, $this->student);
         $answer = $this->generator->create_reply($question, $this->otherstudent);
-
-        $discussion = discussion::from_id($question->get_discussionid());
-        $discussion->delete_post_from_discussion(
-            (object) ['postid' => $answer->get_id(), 'deletechildren' => true],
-            $this->teacher->id
-        );
-
+        $question->get_discussion()->delete_post($answer, $this->teacher->id);
         $this->assert_last_post($question->get_discussionid(), $question->modified, $this->student->id);
     }
 

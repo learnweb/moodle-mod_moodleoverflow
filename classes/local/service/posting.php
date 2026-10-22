@@ -128,4 +128,42 @@ class posting {
         // Return the updated post to have the newest data.
         return post::from_id($post->get_id());
     }
+
+    /**
+     * Deletes a post with its replies; deleting the question deletes the whole discussion.
+     *
+     * The authors and raters of the deleted posts lose reputation, so their grades are updated.
+     *
+     * @param post $post The post to delete.
+     * @param int $userid The user who deletes the post.
+     * @return bool True if the whole discussion was deleted.
+     * @throws moodle_exception|Throwable
+     */
+    public static function delete(post $post, int $userid): bool {
+        global $DB;
+        permissions::ensure(permissions::can_delete_post($post, $userid), 'cannotdeletepost');
+
+        $discussion = discussion::from_id($post->get_discussionid());
+        $modflow = $discussion->get_moodleoverflow();
+
+        // Collect the affected users before the posts are gone to update their grades.
+        $postids = $post->is_question()
+            ? array_keys($discussion->get_posts())
+            : [$post->get_id(), ...array_keys($post->get_childposts())];
+        [$insql, $params] = $DB->get_in_or_equal($postids);
+        $affectedusers = array_unique(array_merge(
+            $DB->get_fieldset_select('moodleoverflow_posts', 'userid', "id $insql", $params),
+            $DB->get_fieldset_select('moodleoverflow_ratings', 'userid', "postid $insql", $params)
+        ));
+
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            $isdeleted = $discussion->delete_post($post, $userid);
+            rating::update_grades($modflow, $affectedusers);
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
+        }
+        return $isdeleted;
+    }
 }

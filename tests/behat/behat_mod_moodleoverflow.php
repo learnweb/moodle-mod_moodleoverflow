@@ -290,7 +290,7 @@ class behat_mod_moodleoverflow extends behat_base {
             "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) . "')]//a[text()='Delete']",
             "xpath_element",
         ]);
-        $this->execute('behat_general::i_click_on', ['Continue', 'button']);
+        $this->execute('behat_general::i_click_on_in_the', ['Delete', 'button', '.modal-dialog', 'css_element']);
     }
 
     /**

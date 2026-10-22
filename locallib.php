@@ -34,24 +34,6 @@ global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
 
 /**
- * Modifies the session to return back to where the user is coming from.
- *
- * @param object $default
- *
- * @return mixed
- */
-function moodleoverflow_go_back_to($default) {
-    global $SESSION;
-    if (!empty($SESSION->fromdiscussion)) {
-        $returnto = $SESSION->fromdiscussion;
-        unset($SESSION->fromdiscussion);
-        return $returnto;
-    } else {
-        return $default;
-    }
-}
-
-/**
  * Updates all grades.
  * @return void
  * @throws coding_exception|dml_exception

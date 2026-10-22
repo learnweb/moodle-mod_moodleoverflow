@@ -85,7 +85,8 @@ $node = $forumnode->add(format_string($discussion->name), $url);
 $node->display = false;
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $moodleoverflow->allows_multiple_marks()]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $modflow->allows_multiple_marks()]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/deletepost', 'init');
 
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));

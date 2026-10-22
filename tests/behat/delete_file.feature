@@ -27,7 +27,7 @@ Feature: Delete attachments
     And I should see "This is the message of the answer post"
     And "//div[contains(@class, 'moodleoverflowpost')]//div[contains(@class, 'attachments')]//img[contains(@src, 'NH.jpg')]" "xpath_element" should exist
     And I click on "Delete" "link"
-    And I click on "Continue" "button"
+    And I click on "Delete" "button" in the ".modal-dialog" "css_element"
     Then I should "" see the elements:
       | Test moodleoverflow name | This is the body |
     And I should not see "This is the message of the answer post"

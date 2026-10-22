@@ -214,57 +214,36 @@ class discussion {
     }
 
     /**
-     * Deletes this discussion with all of it's posts
-     * @param object $prepost Information about the post from the post_control
-     * @param int $userid The user that deletes the post.
-     * @return bool Wether deletion was successful of not
-     * @throws moodle_exception
+     * Deletes this discussion with all its posts and the data that belongs to it.
+     *
+     * @param int $userid The user who deletes the discussion.
+     * @return void
+     * @throws Throwable
      */
-    public function delete(object $prepost, int $userid): bool {
+    public function delete(int $userid): void {
         global $DB;
         $this->existence_check();
         $this->posts_check();
+        $context = $this->get_moodleoverflow()->get_context();
 
-        // Delete a discussion with all of it's posts.
-        // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
-        // All DB transactions are rolled back.
+        $transaction = $DB->start_delegated_transaction();
         try {
-            $transaction = $DB->start_delegated_transaction();
-
-            // Delete every post of this discussion.
-            $firstpost = $this->posts[$this->firstpost];
-            $firstpost->delete(true, $userid);
-
-            // Delete the read-records for the discussion.
+            // All other posts are replies to the question and are deleted with it.
+            $this->posts[$this->firstpost]->delete($userid);
             readtracking::delete_read_records(discussid: $this->id);
-
-            // Remove the subscriptions for the discussion.
             $DB->delete_records('moodleoverflow_discuss_subs', ['discussion' => $this->id]);
-
-            // Delete the discussion from the database.
+            $DB->delete_records('moodleoverflow_mail_info', ['forumdiscussionid' => $this->id]);
             $DB->delete_records('moodleoverflow_discussions', ['id' => $this->id]);
 
-            // Trigger the discussion deleted event.
-            $params = [
-                'objectid' => $this->id,
-                'context' => $prepost->modulecontext,
-            ];
-
-            $event = discussion_deleted::create($params);
-            $event->trigger();
-
-            // Set the id of this instance to null, so that working with it is not possible anymore.
-            $this->id = null;
-
-            // The discussion has been deleted.
+            discussion_deleted::create(['objectid' => $this->id, 'context' => $context])->trigger();
             $transaction->allow_commit();
-            return true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $transaction->rollback($e);
         }
 
-        // Deleting the discussion has failed.
-        return false;
+        // Working with this instance is not possible anymore.
+        $this->id = null;
+        $this->posts = [];
     }
 
     /**
@@ -315,33 +294,40 @@ class discussion {
     }
 
     /**
-     * Deletes a post that is in this discussion from the DB.
-     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
-     * @param int $userid The user that deletes the post.
-     * @return bool If the deletion was possible
-     * @throws moodle_exception
+     * Deletes a post of this discussion with its replies. Deleting the question deletes the whole discussion.
+     *
+     * @param post $post The post to delete.
+     * @param int $userid The user who deletes the post.
+     * @return bool True if the whole discussion was deleted.
+     * @throws Throwable
      */
-    public function delete_post_from_discussion(object $prepost, int $userid): bool {
+    public function delete_post(post $post, int $userid): bool {
+        global $DB;
         $this->existence_check();
         $this->posts_check();
+        $this->post_exists_check($post->get_id());
 
-        // Check if the posts exists in this discussion.
-        $this->post_exists_check($prepost->postid);
-
-        // Access the post and delete it.
-        $post = $this->posts[$prepost->postid];
-        if (!$post->delete($prepost->deletechildren, $userid)) {
-            // Deletion failed.
-            return false;
+        if ($post->get_id() === $this->firstpost) {
+            $this->delete($userid);
+            return true;
         }
 
-        // Check for the new last post of the discussion.
-        $this->update_last_activity();
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            $this->posts[$post->get_id()]->delete($userid);
+            $this->update_last_activity();
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
+        }
 
-        // Delete the post from the post array.
-        unset($this->posts[$prepost->postid]);
-
-        return true;
+        // Remove the post and its replies from the list (comments have no replies of their own).
+        foreach ($this->posts as $id => $other) {
+            if ($id === $post->get_id() || $other->get_parentid() === $post->get_id()) {
+                unset($this->posts[$id]);
+            }
+        }
+        return false;
     }
 
     /**

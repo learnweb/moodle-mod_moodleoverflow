@@ -282,9 +282,7 @@ function moodleoverflow_delete_instance($id) {
     if ($discussions = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $moodleoverflow->id])) {
         require_once('locallib.php');
         foreach ($discussions as $discussion) {
-            if (!discussion::from_record($discussion)->delete((object) ['modulecontext' => $context], $USER->id)) {
-                $result = false;
-            }
+            discussion::from_record($discussion)->delete($USER->id);
         }
     }
 

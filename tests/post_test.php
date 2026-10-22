@@ -137,7 +137,7 @@ final class post_test extends \advanced_testcase {
         // Delete the post with its attachment.
         // Save the post id as it gets unsettled by the post object after being deleted.
         $postid = $this->post->get_id();
-        $this->post->delete(true, $this->student->id);
+        $this->post->delete($this->student->id);
 
         // Now try to get the attachment, it should be deleted from the database.
         $numberofattachments = count($DB->get_records('files', ['itemid' => $postid]));

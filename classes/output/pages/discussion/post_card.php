@@ -184,10 +184,13 @@ class post_card implements named_templatable, renderable {
 
         // Delete.
         if (permissions::can_delete_post($this->post, $USER->id)) {
-            $commands[] = html_writer::link(
-                new moodle_url('/mod/moodleoverflow/post.php', ['delete' => $this->post->get_id()]),
-                get_string('delete', 'moodleoverflow')
-            );
+            $commands[] = html_writer::tag('a', get_string('delete', 'moodleoverflow'), [
+                'href' => '#',
+                'role' => 'button',
+                'data-action' => 'mod_moodleoverflow/delete-post',
+                'data-postid' => $this->post->get_id(),
+                'data-replies' => $this->post->count_replies(false),
+            ]);
         }
 
         // Reply.
