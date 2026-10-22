@@ -27,6 +27,8 @@ use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\models\post_content;
+use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 /**
@@ -60,45 +62,30 @@ final class discussion_test extends \advanced_testcase {
      */
     public function test_create_discussion(): void {
         global $DB;
-
-        // Build a prepost object with important information.
-        $time = time();
-        $prepost = new \stdClass();
-        $prepost->userid = $this->student->id;
-        $prepost->timenow = $time;
-        $prepost->message = 'a message';
-        $prepost->messageformat = 1;
-        $prepost->reviewed = 0;
-        $prepost->formattachments = null;
-        $prepost->modulecontext = $this->modflow->get_context();
-
         // Log in as the student.
         $this->setUser($this->student);
 
         // Build a new discussion object.
-        $discussion = discussion::construct_without_id(
-            $this->course->id,
-            $this->modflow->id,
-            'Discussion Topic',
-            0,
-            $this->student->id,
-            $time,
-            $time,
-            $this->student->id
+        $postcontent = new post_content(
+            'a message',
+            FORMAT_HTML,
+            null,
+            null,
+            'Discussion Topic'
         );
-        $discussionid = $discussion->add($prepost);
+        $discussion = posting::create_discussion($this->modflow, $this->student->id, $postcontent);
         $posts = $discussion->get_posts();
         $post = $posts[$discussion->get_firstpostid()];
 
         // The discussion and the firstpost should be in the DB.
         $dbdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->get_id()]);
-        $this->assertEquals($dbdiscussion->id, $discussionid);
+        $this->assertEquals($dbdiscussion->id, $discussion->get_id());
         $this->assertEquals('Discussion Topic', $dbdiscussion->name);
 
         $dbpost = $DB->get_record('moodleoverflow_posts', ['id' => $discussion->get_firstpostid()]);
         $this->assertEquals($dbpost->id, $post->get_id());
         $this->assertEquals($dbpost->discussion, $post->get_discussionid());
-        $this->assertEquals($prepost->message, $dbpost->message);
+        $this->assertEquals('a message', $dbpost->message);
     }
 
     /**

@@ -290,7 +290,7 @@ class permissions {
     // Review permissions.
 
     /**
-     * If a user can review all posts in a moodleoverflow.
+     * If a user can review all posts in a moodleoverflow. Usually a teacher has this ability.
      * @param moodleoverflow $modflow
      * @param int $userid
      * @return bool

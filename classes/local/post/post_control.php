@@ -21,10 +21,8 @@ use core\exception\coding_exception;
 use core\notification;
 use dml_exception;
 use html_writer;
-use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_updated;
-use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
@@ -144,9 +142,7 @@ class post_control {
         $this->prepost->timenow = time();
 
         // Execute the right function.
-        if ($this->interaction == 'create' && $form->moodleoverflow == $this->prepost->moodleoverflowid) {
-            return $this->execute_create($form);
-        } else if ($this->interaction == 'reply' && $form->reply == $this->prepost->parentid) {
+        if ($this->interaction == 'reply' && $form->reply == $this->prepost->parentid) {
             return $this->execute_reply($form);
         } else if ($this->interaction == 'edit' && $form->edit == $this->prepost->postid) {
             return $this->execute_edit($form);
@@ -315,60 +311,6 @@ class post_control {
     // Execute Functions.
 
     /**
-     * Executes the creation of a new discussion.
-     *
-     * @param object $form The results from the post_form.
-     * @throws moodle_exception if the discussion could not be added.
-     * @return object An object with all information to redirect.
-     */
-    private function execute_create(object $form): object {
-        global $USER;
-        // Check if the user is allowed to post.
-        permissions::ensure(permissions::can_start_discussion($this->info->moodleoverflow, $USER->id), 'nopostmoodleoverflow');
-
-        // Set the post to not reviewed if questions should be reviewed and the user is not a reviewed themselves.
-        $this->prepost->reviewed = (int) !$this->info->moodleoverflow->requires_review(true)
-            || permissions::can_review_posts($this->info->moodleoverflow, $USER->id);
-
-        // Get the discussion subject.
-        $this->prepost->subject = $form->subject;
-
-        // Create the discussion object.
-        $discussion = discussion::construct_without_id(
-            $this->prepost->courseid,
-            $this->prepost->moodleoverflowid,
-            $this->prepost->subject,
-            0,
-            $this->prepost->userid,
-            $this->prepost->timenow,
-            $this->prepost->timenow,
-            $this->prepost->userid
-        );
-        if (!$discussion->add($this->prepost, file_get_submitted_draft_itemid('message'))) {
-            throw new moodle_exception('couldnotadd', 'moodleoverflow');
-        }
-
-        // Trigger the discussion created event.
-        $params = ['context' => $this->info->modulecontext, 'objectid' => $discussion->get_id()];
-        $event = discussion_created::create($params);
-        $event->trigger();
-
-        // Subscribe to this thread.
-        // Please be aware that in future the use of get_db_object() should be replaced with only $this->info->discussion,
-        // as the subscription class should be refactored with the new way of working with posts.
-        subscriptions::post_subscription(
-            $this->info->moodleoverflow,
-            $discussion->get_db_object(),
-            $this->info->modulecontext
-        );
-
-        // Define the location to redirect the user after successfully posting.
-        $redirectto = new moodle_url('/mod/moodleoverflow/view.php', ['m' => $form->moodleoverflow]);
-        $redirectmessage = html_writer::tag('p', get_string("postaddedsuccess", "moodleoverflow"));
-        return (object) ['redirectto' => $redirectto, 'redirectmessage' => $redirectmessage];
-    }
-
-    /**
      * Executes the reply to an existing post.
      *
      * @param object $form The results from the post_form.
@@ -398,12 +340,11 @@ class post_control {
         $event->trigger();
 
         // Subscribe to this thread.
-        // LEARNWEB-TODO: Please be aware that in future the use of build_db_object() should be replaced with only
-        // $this->info->discussion, as the subscription class should be refactored with the new way of working with posts.
         subscriptions::post_subscription(
             $this->info->moodleoverflow,
-            $this->info->discussion->get_db_object(),
-            $this->info->modulecontext
+            $this->info->discussion,
+            $this->info->modulecontext,
+            $USER->id
         );
 
         // Define the location to redirect the user after successfully posting.

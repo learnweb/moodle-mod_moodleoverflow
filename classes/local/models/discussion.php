@@ -23,10 +23,11 @@ use dml_exception;
 use Exception;
 use mod_moodleoverflow\event\discussion_deleted;
 use mod_moodleoverflow\event\discussion_moved;
-use mod_moodleoverflow\event\discussion_viewed;
+use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\local\service\readtracking;
 use core\exception\moodle_exception;
 use moodle_url;
+use Throwable;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -128,10 +129,10 @@ class discussion {
      * @param int $moodleoverflow The moodleoverflow ID.
      * @param string $name Discussion Title.
      * @param int $firstpost ID of the first post.
-     * @param int $userid The course ID.
-     * @param int $timemodified The course ID.
-     * @param int $timestart The course ID.
-     * @param int $usermodified The course ID.
+     * @param int $userid The user that started the discussion.
+     * @param int $timemodified Time the discussion was last modified.
+     * @param int $timestart Time the discussion was created.
+     * @param int $usermodified User that last modified the discussion.
      *
      * @return object discussion object without id.
      */
@@ -165,65 +166,51 @@ class discussion {
     /**
      * Adds a new Discussion with a post.
      *
-     * @param object $prepost The prepost object from the post_control. Has information about the post and other important stuff.
-     * @param ?int $draftitemid
-     * @return bool|?int
-     * @throws dml_exception
-     * @throws coding_exception
+     * @param post_content $content The message and files of the question.
+     * @param bool $reviewed Whether the question starts as reviewed. Not reviewed discussions/posts need to be approved first.
+     * @return int
+     * @throws Throwable
      */
-    public function add(object $prepost, ?int $draftitemid = null): bool|int|null {
+    public function add(post_content $content, bool $reviewed): int {
         global $DB;
+        $transaction = $DB->start_delegated_transaction();
         try {
-            $transaction = $DB->start_delegated_transaction();
-
             // Add the discussion to the Database.
             $this->id = $DB->insert_record('moodleoverflow_discussions', $this->build_db_object());
 
-            // Create the first/parent post for the new discussion and add it to the DB.
+            // Create the first/parent post for the new discussion.
             $post = post::construct_without_id(
                 $this->id,
                 0,
-                $prepost->userid,
-                $prepost->timenow,
-                $prepost->timenow,
-                $prepost->message,
-                $prepost->messageformat,
+                $this->userid,
+                $this->timestart,
+                $this->timestart,
+                $content->message,
+                $content->messageformat,
                 "",
                 0,
-                $prepost->reviewed,
+                (int) $reviewed,
                 null
             );
 
             // Add it to the DB and save the id of the first/parent post.
-            $this->firstpost = $post->add($draftitemid, $prepost->formattachments);
+            $this->firstpost = $post->add($content->messagedraftid, $content->attachmentdraftid);
             $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
-            $this->update_last_activity();
-
-            // Add the parent post to the $posts array.
             $this->posts[$this->firstpost] = $post;
             $this->postsbuild = true;
+            $this->update_last_activity();
 
-            // Trigger event.
-            $params = [
-                'context' => $prepost->modulecontext,
+            // Trigger creation event.
+            discussion_created::create([
+                'context' => $this->get_moodleoverflow()->get_context(),
                 'objectid' => $this->id,
-            ];
-            // LEARNWEB-TODO: check if the event functions.
-            $event = discussion_viewed::create($params);
-            $event->trigger();
+            ])->trigger();
 
-            // Everything worked, commit the transaction.
             $transaction->allow_commit();
-
-            // Return the id of the discussion.
-            return $this->id;
-        } catch (Exception $e) {
-            // Something went wrong, roll back every change so no half-created discussion remains.
+        } catch (Throwable $e) {
             $transaction->rollback($e);
         }
-
-        // Adding the discussion has failed.
-        return false;
+        return $this->id;
     }
 
     /**

@@ -32,7 +32,9 @@ use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\post\post_control;
+use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\subscriptions;
 
@@ -521,24 +523,12 @@ class behat_mod_moodleoverflow extends behat_base {
      */
     public function automatic_add_discussion(string $username, string $modflowname, string $subject, string $message): void {
         global $DB;
-        $user = $DB->get_record('user', ['username' => $username]);
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
+        $user = $DB->get_record('user', ['username' => $username], '*', MUST_EXIST);
+        $modflow = moodleoverflow::from_record($DB->get_record('moodleoverflow', ['name' => $modflowname], '*', MUST_EXIST));
         $this->set_user($user);
 
-        $postcontrol = new post_control();
-        $postcontrol->detect_interaction((object) ['create' => $moodleoverflow->id, 'reply' => 0, 'edit' => 0, 'delete' => 0]);
-
-        // Create the form the user filled in.
-        $form = (object) [
-            'attachments' => 0,
-            'subject' => $subject,
-            'message' => [
-                'text' => $message,
-                'format' => editors_get_preferred_format(),
-            ],
-            'moodleoverflow' => $moodleoverflow->id,
-        ];
-        $postcontrol->execute_interaction($form);
+        $content = new post_content($message, editors_get_preferred_format(), null, null, $subject);
+        posting::create_discussion($modflow, $user->id, $content);
     }
 
     /**

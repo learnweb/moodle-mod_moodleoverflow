@@ -27,6 +27,7 @@ use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\subscriptions;
 
@@ -103,19 +104,14 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             0,
             $author->id,
             $time,
-            0,
+            $time,
             $author->id
         );
-        $prepost = (object) [
-            'userid' => $author->id,
-            'timenow' => $time,
-            'message' => $record['message'] ?? '<p>Message for discussion ' . $this->discussioncount . '</p>',
-            'messageformat' => FORMAT_HTML,
-            'reviewed' => $this->is_reviewed($modflow, $author, true),
-            'formattachments' => null,
-            'modulecontext' => $modflow->get_context(),
-        ];
-        $discussion->add($prepost);
+        $content = new post_content(
+            $record['message'] ?? '<p>Message for discussion ' . $this->discussioncount . '</p>',
+            FORMAT_HTML
+        );
+        $discussion->add($content, (bool) $this->is_reviewed($modflow, $author, true));
         return post::from_id($discussion->get_firstpostid());
     }
 
