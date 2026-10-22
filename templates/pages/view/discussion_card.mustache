@@ -98,19 +98,19 @@
                     </div>
                 </a>
             {{/userfirstpost}}
-            <div class="d-flex flex-wrap align-items-center">
-                <span class="text-muted">{{#str}}lastpost, mod_moodleoverflow{{/str}}:</span>
-                <div>
-                    {{#userlastpost}}
+            {{#userlastpost}}
+                <div class="d-flex flex-wrap align-items-center">
+                    <span class="text-muted">{{#str}}lastpost, mod_moodleoverflow{{/str}}:</span>
+                    <div>
                         <a href="{{{link}}}" class="user-info d-flex px-2 py-1 align-items-center">
                             <div class="user-details line-height-3">
                                 {{{name}}}<br>
-                                {{{data}}}
+                                {{date}}
                             </div>
                         </a>
-                    {{/userlastpost}}
+                    </div>
                 </div>
-            </div>
+            {{/userlastpost}}
         </div>
     </div>
 </div>

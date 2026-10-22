@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow
+@mod @mod_moodleoverflow @javascript
 Feature: Students can edit or delete their moodleoverflow posts within a set time limit
   In order to refine moodleoverflow posts
   As a user
@@ -28,5 +28,5 @@ Feature: Students can edit or delete their moodleoverflow posts within a set tim
   Scenario: Delete moodleoverflow post
     Given I click in moodleoverflow on "link" type:
       | Moodleoverflow post subject | Delete |
-    And I press "Continue"
+    And I click on "Delete" "button" in the ".modal-dialog" "css_element"
     Then I should not see "Moodleoverflow post subject"

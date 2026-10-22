@@ -15,10 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Internal library of functions for module moodleoverflow
- *
- * All the moodleoverflow specific functions, needed to implement the module
- * logic, should go here. Never include this file from your lib.php!
+ * Internal library of functions for module moodleoverflow that are not related to any domain.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
@@ -32,24 +29,6 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once(dirname(__FILE__) . '/lib.php');
-
-/**
- * Modifies the session to return back to where the user is coming from.
- *
- * @param object $default
- *
- * @return mixed
- */
-function moodleoverflow_go_back_to($default) {
-    global $SESSION;
-    if (!empty($SESSION->fromdiscussion)) {
-        $returnto = $SESSION->fromdiscussion;
-        unset($SESSION->fromdiscussion);
-        return $returnto;
-    } else {
-        return $default;
-    }
-}
 
 /**
  * Updates all grades.

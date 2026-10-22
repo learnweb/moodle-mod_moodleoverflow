@@ -17,6 +17,8 @@
 namespace mod_moodleoverflow;
 
 use context_module;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
 use stdClass;
 
 /**
@@ -873,33 +875,30 @@ class subscriptions {
     /**
      * Given a new post, subscribes the user to the thread the post was posted in.
      *
-     * LEARNWEB-TODO: Refactor this function to the new way of working with discussion and posts.
-     * @param stdClass       $moodleoverflow The moodleoverflow record
-     * @param stdClass       $discussion     The discussion record
-     * @param context_module $modulecontext  The context of the module
-     *
+     * @param moodleoverflow $modflow The moodleoverflow
+     * @param discussion $discussion The discussion
+     * @param context_module $context The context of the module
+     * @param int $userid The user who posted.
      * @return bool
      */
-    public static function post_subscription($moodleoverflow, $discussion, $modulecontext) {
-        global $USER;
-
+    public static function post_subscription($modflow, $discussion, context_module $context, int $userid) {
         // Check for some basic information.
-        $force = self::is_forcesubscribed($moodleoverflow);
-        $disabled = self::subscription_disabled($moodleoverflow);
+        $force = self::is_forcesubscribed($modflow);
+        $disabled = self::subscription_disabled($modflow);
 
         // Do not continue if the user is already forced to be subscribed.
-        if ($force && has_capability('mod/moodleoverflow:allowforcesubscribe', $modulecontext)) {
+        if ($force && has_capability('mod/moodleoverflow:allowforcesubscribe', $context, $userid)) {
             return false;
         }
 
         // Do not continue if subscriptions are disabled.
         if ($disabled) {
             // If the user is subscribed, unsubscribe him.
-            $subscribed = self::is_subscribed($USER->id, $moodleoverflow, $modulecontext);
-            $coursecontext = \context_course::instance($moodleoverflow->course);
-            $canmanage = has_capability('moodle/course:manageactivities', $coursecontext, $USER->id);
+            $subscribed = self::is_subscribed($userid, $modflow, $context);
+            $coursecontext = \context_course::instance($modflow->course);
+            $canmanage = has_capability('moodle/course:manageactivities', $coursecontext, $userid);
             if ($subscribed && !$canmanage) {
-                self::unsubscribe_user($USER->id, $moodleoverflow, $modulecontext);
+                self::unsubscribe_user($userid, $modflow, $context);
             }
 
             // Do not continue.
@@ -907,7 +906,7 @@ class subscriptions {
         }
 
         // Subscribe the user to the discussion.
-        self::subscribe_user_to_discussion($USER->id, $discussion, $modulecontext);
+        self::subscribe_user_to_discussion($userid, $discussion->get_db_object(), $context);
 
         return true;
     }

@@ -16,6 +16,7 @@
 
 namespace mod_moodleoverflow\local;
 
+use core\exception\access_denied_exception;
 use core\exception\coding_exception;
 use core_availability\info_module;
 use dml_exception;
@@ -38,11 +39,11 @@ class permissions {
      * Throws if a permission check failed.
      * @param bool $allowed result of a can_*() check
      * @param string $errorcode error string in lang/en/moodleoverflow.php
-     * @throws moodle_exception
+     * @throws access_denied_exception
      */
     public static function ensure(bool $allowed, string $errorcode): void {
         if (!$allowed) {
-            throw new moodle_exception($errorcode, 'moodleoverflow');
+            throw new access_denied_exception($errorcode, 'moodleoverflow');
         }
     }
 
@@ -290,7 +291,7 @@ class permissions {
     // Review permissions.
 
     /**
-     * If a user can review all posts in a moodleoverflow.
+     * If a user can review all posts in a moodleoverflow. Usually a teacher has this ability.
      * @param moodleoverflow $modflow
      * @param int $userid
      * @return bool

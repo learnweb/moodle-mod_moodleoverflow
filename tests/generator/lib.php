@@ -27,6 +27,7 @@ use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\subscriptions;
 
@@ -103,24 +104,19 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             0,
             $author->id,
             $time,
-            0,
+            $time,
             $author->id
         );
-        $prepost = (object) [
-            'userid' => $author->id,
-            'timenow' => $time,
-            'message' => $record['message'] ?? '<p>Message for discussion ' . $this->discussioncount . '</p>',
-            'messageformat' => FORMAT_HTML,
-            'reviewed' => $this->is_reviewed($modflow, $author, true),
-            'formattachments' => null,
-            'modulecontext' => $modflow->get_context(),
-        ];
-        $this->as_user($author, fn() => $discussion->add($prepost));
+        $content = new post_content(
+            $record['message'] ?? '<p>Message for discussion ' . $this->discussioncount . '</p>',
+            FORMAT_HTML
+        );
+        $discussion->add($content, (bool) $this->is_reviewed($modflow, $author, true));
         return post::from_id($discussion->get_firstpostid());
     }
 
     /**
-     * Creates a reply to a post.
+     * Creates a reply to a post. It is added through its discussion, so the last post of the discussion is updated.
      *
      * @param post $parent The post to reply to.
      * @param stdClass $author The author of the reply.
@@ -129,22 +125,15 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      */
     public function create_reply(post $parent, stdClass $author, array $record = []): post {
         $this->postcount++;
-        // Replies are created one second apart, so they have a stable order.
-        $time = time() + $this->postcount;
-        $reply = post::construct_without_id(
-            $parent->get_discussionid(),
-            $parent->get_id(),
-            $author->id,
-            $time,
-            $time,
+
+        $discussion = discussion::from_id($parent->get_discussionid());
+        $reviewed = $this->is_reviewed($this->get_moodleoverflow($parent), $author, false);
+        $content = new post_content(
             $record['message'] ?? '<p>Forum message post ' . $this->postcount . '</p>',
-            FORMAT_MOODLE,
-            '',
-            0,
-            $this->is_reviewed($this->get_moodleoverflow($parent), $author, false),
-            null
+            FORMAT_MOODLE
         );
-        return post::from_id($this->as_user($author, fn() => $reply->add()));
+
+        return $discussion->add_reply($parent, $author->id, $content, $reviewed);
     }
 
     /**
@@ -250,25 +239,5 @@ class mod_moodleoverflow_generator extends testing_module_generator {
         global $DB;
         $conditions = ['id' => $post->get_discussionid()];
         return moodleoverflow::from_id($DB->get_field('moodleoverflow_discussions', 'moodleoverflow', $conditions, MUST_EXIST));
-    }
-
-    /**
-     * Runs a function as another user and restores the user of the test afterwards.
-     *
-     * Needed because post::add() saves the draft files of the message in the user context of $USER.
-     *
-     * @param stdClass $user
-     * @param callable $function
-     * @return mixed What the function returns.
-     */
-    private function as_user(stdClass $user, callable $function): mixed {
-        global $USER;
-        $previous = empty($USER->id) ? null : clone($USER);
-        $this->set_user($user);
-        try {
-            return $function();
-        } finally {
-            $this->set_user($previous);
-        }
     }
 }

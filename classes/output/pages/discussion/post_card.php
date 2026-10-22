@@ -106,8 +106,8 @@ class post_card implements named_templatable, renderable {
             'permalink' => (new moodle_url($discusspath, ['d' => $discussion->get_id()], 'p' . $this->post->get_id()))->out(),
             'postcontent' => $this->post->get_message_formatted(),
             'attachments' => $this->post->get_attachments($output),
-            'authorname' => $this->post->get_userlink()['fullname'],
-            'authorlink' => $this->post->get_userlink()['link'],
+            'authorname' => $this->post->get_authorlink($USER->id)['fullname'],
+            'authorlink' => $this->post->get_authorlink($USER->id)['link'],
             'authorpicture' => $this->post->get_userpicture(),
             'iscomment' => $parentpost !== null && $parentpost->get_id() != $this->post->get_discussion()->get_firstpostid(),
             'isfirstpost' => $this->post->get_id() == $this->post->get_discussion()->get_firstpostid(),
@@ -184,10 +184,13 @@ class post_card implements named_templatable, renderable {
 
         // Delete.
         if (permissions::can_delete_post($this->post, $USER->id)) {
-            $commands[] = html_writer::link(
-                new moodle_url('/mod/moodleoverflow/post.php', ['delete' => $this->post->get_id()]),
-                get_string('delete', 'moodleoverflow')
-            );
+            $commands[] = html_writer::tag('a', get_string('delete', 'moodleoverflow'), [
+                'href' => '#',
+                'role' => 'button',
+                'data-action' => 'mod_moodleoverflow/delete-post',
+                'data-postid' => $this->post->get_id(),
+                'data-replies' => $this->post->count_replies(false),
+            ]);
         }
 
         // Reply.

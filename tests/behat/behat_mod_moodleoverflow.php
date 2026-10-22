@@ -32,7 +32,9 @@ use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\post\post_control;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\models\post_content;
+use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\subscriptions;
 
@@ -288,7 +290,7 @@ class behat_mod_moodleoverflow extends behat_base {
             "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) . "')]//a[text()='Delete']",
             "xpath_element",
         ]);
-        $this->execute('behat_general::i_click_on', ['Continue', 'button']);
+        $this->execute('behat_general::i_click_on_in_the', ['Delete', 'button', '.modal-dialog', 'css_element']);
     }
 
     /**
@@ -521,24 +523,12 @@ class behat_mod_moodleoverflow extends behat_base {
      */
     public function automatic_add_discussion(string $username, string $modflowname, string $subject, string $message): void {
         global $DB;
-        $user = $DB->get_record('user', ['username' => $username]);
-        $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
+        $user = $DB->get_record('user', ['username' => $username], '*', MUST_EXIST);
+        $modflow = moodleoverflow::from_record($DB->get_record('moodleoverflow', ['name' => $modflowname], '*', MUST_EXIST));
         $this->set_user($user);
 
-        $postcontrol = new post_control();
-        $postcontrol->detect_interaction((object) ['create' => $moodleoverflow->id, 'reply' => 0, 'edit' => 0, 'delete' => 0]);
-
-        // Create the form the user filled in.
-        $form = (object) [
-            'attachments' => 0,
-            'subject' => $subject,
-            'message' => [
-                'text' => $message,
-                'format' => editors_get_preferred_format(),
-            ],
-            'moodleoverflow' => $moodleoverflow->id,
-        ];
-        $postcontrol->execute_interaction($form);
+        $content = new post_content($message, editors_get_preferred_format(), null, null, $subject);
+        posting::create_discussion($modflow, $user->id, $content);
     }
 
     /**
@@ -557,26 +547,14 @@ class behat_mod_moodleoverflow extends behat_base {
         global $DB;
         $user = $DB->get_record('user', ['username' => $username]);
         $this->set_user($user);
+
+        // Get the parent post.
         $sql = "SELECT * FROM {moodleoverflow_posts} WHERE " .
             $DB->sql_compare_text('message') . " = " .
             $DB->sql_compare_text(':message');
-        $parentpost = $DB->get_record_sql($sql, ['message' => $parentmessage]);
-        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $parentpost->discussion]);
-        $postcontrol = new post_control();
-        $postcontrol->detect_interaction((object) ['create' => 0, 'reply' => $parentpost->id, 'edit' => 0, 'delete' => 0]);
+        $parent = post::from_record($DB->get_record_sql($sql, ['message' => $parentmessage]));
 
-        $form = (object) [
-            'attachments' => 0,
-            'subject' => $discussion->name,
-            'message' => [
-                'text' => $message,
-                'format' => editors_get_preferred_format(),
-            ],
-            'reply' => $parentpost->id,
-            'parent' => $parentpost->id,
-            'discussion' => $discussion->id,
-        ];
-        $postcontrol->execute_interaction($form);
+        posting::reply($parent, $user->id, new post_content($message, editors_get_preferred_format()));
     }
 
     /**

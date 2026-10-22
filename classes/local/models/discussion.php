@@ -23,10 +23,11 @@ use dml_exception;
 use Exception;
 use mod_moodleoverflow\event\discussion_deleted;
 use mod_moodleoverflow\event\discussion_moved;
-use mod_moodleoverflow\event\discussion_viewed;
+use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\local\service\readtracking;
 use core\exception\moodle_exception;
 use moodle_url;
+use Throwable;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -40,10 +41,6 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @package     mod_moodleoverflow
  * @copyright   2023 Tamaro Walter
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
- * Please be careful with functions that delete, add or edit posts and discussions.
- * Security checks for these functions were done in the post_control class and these functions should only be accessed that way.
- * Accessing these functions directly without the checks from the post control could lead to serious errors.
  */
 class discussion {
     // The database related attributes are promoted in the constructor below.
@@ -128,10 +125,10 @@ class discussion {
      * @param int $moodleoverflow The moodleoverflow ID.
      * @param string $name Discussion Title.
      * @param int $firstpost ID of the first post.
-     * @param int $userid The course ID.
-     * @param int $timemodified The course ID.
-     * @param int $timestart The course ID.
-     * @param int $usermodified The course ID.
+     * @param int $userid The user that started the discussion.
+     * @param int $timemodified Time the discussion was last modified.
+     * @param int $timestart Time the discussion was created.
+     * @param int $usermodified User that last modified the discussion.
      *
      * @return object discussion object without id.
      */
@@ -165,248 +162,235 @@ class discussion {
     /**
      * Adds a new Discussion with a post.
      *
-     * @param object $prepost The prepost object from the post_control. Has information about the post and other important stuff.
-     * @return bool|?int
-     * @throws dml_exception
-     * @throws coding_exception
+     * @param post_content $content The message and files of the question.
+     * @param bool $reviewed Whether the question starts as reviewed. Not reviewed discussions/posts need to be approved first.
+     * @return int
+     * @throws Throwable
      */
-    public function add(object $prepost): bool|int|null {
+    public function add(post_content $content, bool $reviewed): int {
         global $DB;
+        $transaction = $DB->start_delegated_transaction();
         try {
-            $transaction = $DB->start_delegated_transaction();
-
             // Add the discussion to the Database.
             $this->id = $DB->insert_record('moodleoverflow_discussions', $this->build_db_object());
 
-            // Create the first/parent post for the new discussion and add it to the DB.
+            // Create the first/parent post for the new discussion.
             $post = post::construct_without_id(
                 $this->id,
                 0,
-                $prepost->userid,
-                $prepost->timenow,
-                $prepost->timenow,
-                $prepost->message,
-                $prepost->messageformat,
+                $this->userid,
+                $this->timestart,
+                $this->timestart,
+                $content->message,
+                $content->messageformat,
                 "",
                 0,
-                $prepost->reviewed,
-                null,
-                $prepost->formattachments
+                (int) $reviewed,
+                null
             );
 
             // Add it to the DB and save the id of the first/parent post.
-            $this->firstpost = $post->add();
+            $this->firstpost = $post->add($content->messagedraftid, $content->attachmentdraftid);
             $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
-
-            // Add the parent post to the $posts array.
             $this->posts[$this->firstpost] = $post;
             $this->postsbuild = true;
+            $this->update_last_activity();
 
-            // Trigger event.
-            $params = [
-                'context' => $prepost->modulecontext,
+            // Trigger creation event.
+            discussion_created::create([
+                'context' => $this->get_moodleoverflow()->get_context(),
                 'objectid' => $this->id,
-            ];
-            // LEARNWEB-TODO: check if the event functions.
-            $event = discussion_viewed::create($params);
-            $event->trigger();
+            ])->trigger();
 
-            // Everything worked, commit the transaction.
             $transaction->allow_commit();
-
-            // Return the id of the discussion.
-            return $this->id;
-        } catch (Exception $e) {
-            // Something went wrong, roll back every change so no half-created discussion remains.
+        } catch (Throwable $e) {
             $transaction->rollback($e);
         }
-
-        // Adding the discussion has failed.
-        return false;
+        return $this->id;
     }
 
     /**
-     * Deletes this discussion with all of it's posts
-     * @param object $prepost Information about the post from the post_control
-     * @return bool Wether deletion was successful of not
-     * @throws moodle_exception
+     * Deletes this discussion with all its posts and the data that belongs to it.
+     *
+     * @param int $userid The user who deletes the discussion.
+     * @return void
+     * @throws Throwable
      */
-    public function delete(object $prepost): bool {
+    public function delete(int $userid): void {
         global $DB;
         $this->existence_check();
         $this->posts_check();
+        $context = $this->get_moodleoverflow()->get_context();
 
-        // Delete a discussion with all of it's posts.
-        // In case something does not work we throw the error as it should be known that something went ... terribly wrong.
-        // All DB transactions are rolled back.
+        $transaction = $DB->start_delegated_transaction();
         try {
-            $transaction = $DB->start_delegated_transaction();
-
-            // Delete every post of this discussion.
-            $firstpost = $this->posts[$this->firstpost];
-            $firstpost->delete(true);
-
-            // Delete the read-records for the discussion.
+            // All other posts are replies to the question and are deleted with it.
+            $this->posts[$this->firstpost]->delete($userid);
             readtracking::delete_read_records(discussid: $this->id);
-
-            // Remove the subscriptions for the discussion.
             $DB->delete_records('moodleoverflow_discuss_subs', ['discussion' => $this->id]);
-
-            // Delete the discussion from the database.
+            $DB->delete_records('moodleoverflow_mail_info', ['forumdiscussionid' => $this->id]);
             $DB->delete_records('moodleoverflow_discussions', ['id' => $this->id]);
 
-            // Trigger the discussion deleted event.
-            $params = [
-                'objectid' => $this->id,
-                'context' => $prepost->modulecontext,
-            ];
-
-            $event = discussion_deleted::create($params);
-            $event->trigger();
-
-            // Set the id of this instance to null, so that working with it is not possible anymore.
-            $this->id = null;
-
-            // The discussion has been deleted.
+            discussion_deleted::create(['objectid' => $this->id, 'context' => $context])->trigger();
             $transaction->allow_commit();
-            return true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $transaction->rollback($e);
         }
 
-        // Deleting the discussion has failed.
-        return false;
+        // Working with this instance is not possible anymore.
+        $this->id = null;
+        $this->posts = [];
     }
 
     /**
-     * Adds a new post to this discussion and the DB.
-     *
-     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
-     * @throws dml_exception|moodle_exception
+     * Adds a reply to a post from this discussion.
+     * @param post $parent The post that gets replied to
+     * @param int $userid The user that replies
+     * @param post_content $content The content from the post form
+     * @param bool $reviewed If the post should be reviewed or not.
+     * @return post
+     * @throws Throwable
      */
-    public function add_new_post(object $prepost) {
+    public function add_reply(post $parent, int $userid, post_content $content, bool $reviewed): post {
         global $DB;
         $this->existence_check();
         $this->posts_check();
+        $this->post_exists_check($parent->get_id());
 
-        // Create the post that will be added to the new discussion.
+        // Build the new post record.
+        $time = time();
         $post = post::construct_without_id(
             $this->id,
-            $prepost->parentid,
-            $prepost->userid,
-            $prepost->timenow,
-            $prepost->timenow,
-            $prepost->message,
-            $prepost->messageformat,
+            $parent->get_id(),
+            $userid,
+            $time,
+            $time,
+            $content->message,
+            $content->messageformat,
             "",
             0,
-            $prepost->reviewed,
-            null,
-            $prepost->formattachments
+            (int) $reviewed,
+            null
         );
+
         // Add the post to the DB.
-        $postid = $post->add();
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            $postid = $post->add($content->messagedraftid, $content->attachmentdraftid);
 
-        // Add the post to the $posts array and update the timemodified in the DB.
-        $this->posts[$postid] = $post;
-        $this->timemodified = $prepost->timenow;
-        $this->usermodified = $prepost->userid;
-        $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+            // Add the post to the $posts array and update the last post of the discussion.
+            $this->posts[$postid] = $post;
+            $this->update_last_activity();
 
-        // Return the id of the added post.
-        return $postid;
-    }
-
-    /**
-     * Deletes a post that is in this discussion from the DB.
-     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
-     * @return bool If the deletion was possible
-     * @throws moodle_exception
-     */
-    public function delete_post_from_discussion(object $prepost): bool {
-        $this->existence_check();
-        $this->posts_check();
-
-        // Check if the posts exists in this discussion.
-        $this->post_exists_check($prepost->postid);
-
-        // Access the post and delete it.
-        $post = $this->posts[$prepost->postid];
-        if (!$post->delete($prepost->deletechildren)) {
-            // Deletion failed.
-            return false;
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
         }
-
-        // Check for the new last post of the discussion.
-        $this->adapt_to_last_post();
-
-        // Delete the post from the post array.
-        unset($this->posts[$prepost->postid]);
-
-        return true;
+        return $post;
     }
 
     /**
-     * Edits the message of a post from this discussion.
-     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
-     * @param int $userid The user that makes the edit
-     * @throws dml_exception|moodle_exception
+     * Deletes a post of this discussion with its replies. Deleting the question deletes the whole discussion.
+     *
+     * @param post $post The post to delete.
+     * @param int $userid The user who deletes the post.
+     * @return bool True if the whole discussion was deleted.
+     * @throws Throwable
      */
-    public function edit_post(object $prepost, int $userid): bool {
+    public function delete_post(post $post, int $userid): bool {
         global $DB;
         $this->existence_check();
         $this->posts_check();
+        $this->post_exists_check($post->get_id());
 
-        // Check if the posts exists in this discussion.
-        $this->post_exists_check($prepost->postid);
-
-        // Access the post.
-        $post = $this->posts[$prepost->postid];
-
-        // If the post is the firstpost, then update the name of this discussion and the post. If not, only update the post.
-        if ($prepost->postid == array_key_first($this->posts)) {
-            $this->name = $prepost->subject;
-            $this->usermodified = $prepost->userid;
-            $this->timemodified = $prepost->timenow;
-            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
-        }
-        $post->edit($prepost->timenow, $prepost->message, $prepost->messageformat, $prepost->formattachments, $userid);
-
-        // The post has been edited successfully.
-        return true;
-    }
-
-    /**
-     * Sets timemodified and usermodified of the discussion to the newest reviewed post.
-     * @return bool true if the DB needed to be adapted. false if it didn't change.
-     * @throws dml_exception|moodle_exception
-     */
-    public function adapt_to_last_post(): bool {
-        global $DB;
-        $this->existence_check();
-
-        // Only reviewed posts count as activity of the discussion.
-        $records = $DB->get_records(
-            'moodleoverflow_posts',
-            ['discussion' => $this->id, 'reviewed' => 1],
-            'modified DESC, id DESC',
-            'id, modified, userid',
-            0,
-            1
-        );
-        $lastpost = reset($records);
-        if (!$lastpost) {
-            return false;
-        }
-
-        // Check if the last post changed. If it changed, then update the DB-record of this discussion.
-        if ($lastpost->modified != $this->timemodified || $lastpost->userid != $this->usermodified) {
-            $this->timemodified = $lastpost->modified;
-            $this->usermodified = $lastpost->userid;
-            $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
+        if ($post->get_id() === $this->firstpost) {
+            $this->delete($userid);
             return true;
         }
+
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            $this->posts[$post->get_id()]->delete($userid);
+            $this->update_last_activity();
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
+        }
+
+        // Remove the post and its replies from the list (comments have no replies of their own).
+        foreach ($this->posts as $id => $other) {
+            if ($id === $post->get_id() || $other->get_parentid() === $post->get_id()) {
+                unset($this->posts[$id]);
+            }
+        }
         return false;
+    }
+
+    /**
+     * Edits a post of this discussion.
+     *
+     * @param post $post The post to edit.
+     * @param int $userid The user who edits the post.
+     * @param post_content $content The new content.
+     * @return void
+     * @throws Throwable
+     */
+    public function edit_post(post $post, int $userid, post_content $content): void {
+        global $DB;
+        $this->existence_check();
+        $this->posts_check();
+        $this->post_exists_check($post->get_id());
+
+        // Work on the copy in this discussion, so its list of posts stays up to date.
+        $post = $this->posts[$post->get_id()];
+
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            if ($post->get_id() === $this->firstpost && $content->subject !== null) {
+                $this->name = trim($content->subject);
+                $DB->set_field('moodleoverflow_discussions', 'name', $this->name, ['id' => $this->id]);
+            }
+            $post->edit($userid, $content);
+
+            // An edit of an unreviewed post is no activity, so its editor does not count.
+            $this->update_last_activity($post->reviewed ? $userid : null);
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
+        }
+    }
+
+    /**
+     * Sets the last post of the discussion (timemodified and usermodified).
+     *
+     * Only reviewed posts count. The time of a post is when it joined the discussion (created, or approved later)
+     * or when it was last edited, whichever is later. The posts do not store who edited them, so the user is the
+     * author of that post, unless the caller passes the user whose change is the newest (an edit of a reviewed post).
+     *
+     * @param int|null $userid The user who made the newest change, if it was not the author.
+     * @return void
+     * @throws dml_exception|moodle_exception
+     */
+    public function update_last_activity(?int $userid = null): void {
+        global $DB;
+        $this->existence_check();
+
+        // Load the posts freshly: the posts of this object may be stale (e.g. the approved post still unreviewed).
+        $records = $DB->get_records('moodleoverflow_posts', ['discussion' => $this->id, 'reviewed' => 1]);
+        $lastpost = self::find_last_post(array_map(fn($record) => post::from_record($record), $records));
+        if (!$lastpost) {
+            // No reviewed post yet: keep the values from the creation of the discussion.
+            return;
+        }
+
+        $this->timemodified = $lastpost->get_time_active();
+        $this->usermodified = $userid ?? $lastpost->get_userid();
+        // Only write the two fields, so values of this object that were loaded earlier (e.g. the name) are not written back.
+        $DB->update_record('moodleoverflow_discussions', (object) [
+            'id' => $this->id,
+            'timemodified' => $this->timemodified,
+            'usermodified' => $this->usermodified,
+        ]);
     }
 
     /**
@@ -548,19 +532,14 @@ class discussion {
     }
 
     /**
-     * Return the newest post in a discussion.
-     *
-     * @return post
+     * Returns the last post of the discussion: the reviewed post that was active last.
+     * @return post|null Null while no post is reviewed (the question waits for its review).
      * @throws moodle_exception
      */
-    public function get_newest_post(): post {
+    public function get_last_post(): ?post {
         $this->existence_check();
         $this->posts_check();
-        $posts = $this->posts;
-        usort($posts, function ($a, $b) {
-            return $b->modified <=> $a->modified;
-        });
-        return reset($posts);
+        return self::find_last_post($this->posts);
     }
 
     /**
@@ -650,6 +629,18 @@ class discussion {
         ];
     }
 
+    /**
+     * Finds the last post: unreviewed posts are not part of the discussion yet.
+     * @param post[] $posts
+     * @return post|null
+     */
+    private static function find_last_post(array $posts): ?post {
+        $reviewed = array_filter($posts, fn(post $post) => $post->reviewed == 1);
+        usort($reviewed, fn(post $a, post $b) =>
+            [$b->get_time_active(), $b->get_id()] <=> [$a->get_time_active(), $a->get_id()]);
+        return reset($reviewed) ?: null;
+    }
+
     // Security.
 
     /**
@@ -685,7 +676,7 @@ class discussion {
      * @throws moodle_exception;
      */
     private function post_exists_check(int $postid): void {
-        if (!$this->posts[$postid]) {
+        if (!isset($this->posts[$postid])) {
             throw new moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
         }
     }

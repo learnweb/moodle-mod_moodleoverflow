@@ -42,62 +42,45 @@ $PAGE->add_body_class('limitedwidth');
 
 // Check if the discussion is valid.
 $discussion = discussion::from_id($d);
-$moodleoverflow = $discussion->get_moodleoverflow();
-
-// Check if the related moodleoverflow instance is valid.
-$course = get_course($discussion->get_courseid());
-
-// Get the related coursemodule and its context.
-if (!$cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id, $course->id)) {
-    throw new moodle_exception('invalidcoursemodule');
-}
-
-// Set the modulecontext.
-$modulecontext = context_module::instance($cm->id);
+$modflow = $discussion->get_moodleoverflow();
+$course = $modflow->get_course();
 
 // A user must be logged in and enrolled to the course.
-require_course_login($course, true, $cm);
+require_course_login($course, true, $modflow->get_cm());
 
 // Has the user the capability to view the discussion?
 if (!permissions::can_view_discussion($discussion, $USER->id)) {
-    $redirect = (new moodle_url('/mod/moodleoverflow/view.php', ['m' => $moodleoverflow->id]))->out();
-    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow', $redirect);
+    throw new moodle_exception('noviewdiscussionspermission', 'moodleoverflow', $modflow->get_link()->out());
 }
 
-// Trigger the discussion viewed event.
-$event = discussion_viewed::create(['context' => $modulecontext, 'objectid' => $discussion->get_id()]);
-$event->trigger();
+// The user entered the discussion. Mark it as read and trigger the discussion viewed event.
+readtracking::mark_discussion_read($discussion, $USER->id);
+discussion_viewed::create(['context' => $modflow->get_context(), 'objectid' => $discussion->get_id()])->trigger();
 
 // Unset where the user is coming from.
 // Allows to calculate the correct return url later.
 unset($SESSION->fromdiscussion);
 
 // Append the discussion name to the navigation.
-$forumnode = $PAGE->navigation->find($cm->id, navigation_node::TYPE_ACTIVITY);
+$forumnode = $PAGE->navigation->find($modflow->get_cm()->id, navigation_node::TYPE_ACTIVITY);
 if (empty($forumnode)) {
     $forumnode = $PAGE->navbar;
 } else {
     $forumnode->make_active();
 }
 
-$url = new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussion->get_id()]);
-$node = $forumnode->add(format_string($discussion->name), $url);
+$node = $forumnode->add(format_string($discussion->name), $discussion->get_link());
 $node->display = false;
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $moodleoverflow->allows_multiple_marks()]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $modflow->allows_multiple_marks()]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/deletepost', 'init');
 
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
 
-// Mark the discussion as read as the user entered the discussion.
-readtracking::mark_discussion_read($discussion, $USER->id);
-
-// Start the side-output.
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
-
-// Guests and users can not subscribe to a discussion.
 echo $OUTPUT->render(new discussion_page($discussion));
 echo $OUTPUT->footer();
