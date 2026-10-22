@@ -125,18 +125,15 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      */
     public function create_reply(post $parent, stdClass $author, array $record = []): post {
         $this->postcount++;
-        // Replies are created one second apart, so they have a stable order.
-        $time = time() + $this->postcount;
-        $prepost = (object) [
-            'parentid' => $parent->get_id(),
-            'userid' => $author->id,
-            'timenow' => $time,
-            'message' => $record['message'] ?? '<p>Forum message post ' . $this->postcount . '</p>',
-            'messageformat' => FORMAT_MOODLE,
-            'reviewed' => $this->is_reviewed($this->get_moodleoverflow($parent), $author, false),
-            'formattachments' => null,
-        ];
-        return post::from_id(discussion::from_id($parent->get_discussionid())->add_new_post($prepost));
+
+        $discussion = discussion::from_id($parent->get_discussionid());
+        $reviewed = $this->is_reviewed($this->get_moodleoverflow($parent), $author, false);
+        $content = new post_content(
+            $record['message'] ?? '<p>Forum message post ' . $this->postcount . '</p>',
+            FORMAT_MOODLE
+        );
+
+        return $discussion->add_reply($parent, $author->id, $content, $reviewed);
     }
 
     /**

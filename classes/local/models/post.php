@@ -25,6 +25,7 @@ use core_files\external\stored_file_exporter;
 use core_user\fields;
 use dml_exception;
 use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\local\service\readtracking;
 use core\exception\moodle_exception;
@@ -230,9 +231,16 @@ class post {
         $this->save_draft_files($draftitemid);
         $this->add_attachment($attachmentdraftid);
 
-        // Mark the created post as read if the user is tracking the discussion.
-        readtracking::mark_post_read($this, $this->userid);
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
+
+        // Trigger Event. The question is created with its discussion, which fires discussion_created.
+        if ($this->parent != 0) {
+            post_created::create([
+                'context' => $this->get_context(),
+                'objectid' => $this->id,
+                'other' => ['discussionid' => $this->discussion, 'moodleoverflowid' => $this->get_moodleoverflow()->id],
+            ])->trigger();
+        }
         return $this->id;
     }
 

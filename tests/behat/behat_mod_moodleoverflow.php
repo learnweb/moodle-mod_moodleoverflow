@@ -32,8 +32,8 @@ use Behat\Mink\Exception\ElementNotFoundException;
 use Behat\Mink\Exception\ExpectationException;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
-use mod_moodleoverflow\local\post\post_control;
 use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\subscriptions;
@@ -547,26 +547,14 @@ class behat_mod_moodleoverflow extends behat_base {
         global $DB;
         $user = $DB->get_record('user', ['username' => $username]);
         $this->set_user($user);
+
+        // Get the parent post.
         $sql = "SELECT * FROM {moodleoverflow_posts} WHERE " .
             $DB->sql_compare_text('message') . " = " .
             $DB->sql_compare_text(':message');
-        $parentpost = $DB->get_record_sql($sql, ['message' => $parentmessage]);
-        $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $parentpost->discussion]);
-        $postcontrol = new post_control();
-        $postcontrol->detect_interaction((object) ['create' => 0, 'reply' => $parentpost->id, 'edit' => 0, 'delete' => 0]);
+        $parent = post::from_record($DB->get_record_sql($sql, ['message' => $parentmessage]));
 
-        $form = (object) [
-            'attachments' => 0,
-            'subject' => $discussion->name,
-            'message' => [
-                'text' => $message,
-                'format' => editors_get_preferred_format(),
-            ],
-            'reply' => $parentpost->id,
-            'parent' => $parentpost->id,
-            'discussion' => $discussion->id,
-        ];
-        $postcontrol->execute_interaction($form);
+        posting::reply($parent, $user->id, new post_content($message, editors_get_preferred_format()));
     }
 
     /**

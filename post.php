@@ -24,6 +24,7 @@
 
 use core\output\notification;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\post\post_control;
 use mod_moodleoverflow\local\service\posting;
@@ -138,21 +139,27 @@ if ($mformpost->is_cancelled()) {
     }
 }
 
-// If the post_form is submitted, the post_control executes the right function.
+// The form was filled with information.
 if ($fromform = $mformpost->get_data()) {
+    $content = new post_content(
+        message: $fromform->message['text'],
+        messageformat: $fromform->message['format'],
+        messagedraftid: $fromform->message['itemid'],
+        attachmentdraftid: $fromform->attachments ?? null,
+        subject: $fromform->subject ?? null
+    );
     try {
         if (!empty($fromform->moodleoverflow)) {
             // Start a discussion. The service checks if the user may post in this moodleoverflow.
             $modflow = moodleoverflow::from_id($fromform->moodleoverflow);
-            $content = new post_content(
-                message: $fromform->message['text'],
-                messageformat: $fromform->message['format'],
-                messagedraftid: $fromform->message['itemid'],
-                attachmentdraftid: $fromform->attachments ?? null,
-                subject: $fromform->subject,
-            );
             posting::create_discussion($modflow, $USER->id, $content);
             redirect($modflow->get_link(), get_string('postaddedsuccess', 'moodleoverflow'), null, notification::NOTIFY_SUCCESS);
+        }
+        if (!empty($fromform->reply)) {
+            $post = posting::reply(post::from_id($fromform->reply), $USER->id, $content);
+            $message = get_string('postaddedsuccess', 'moodleoverflow') . ' ' .
+                get_string('postaddedtimeleft', 'moodleoverflow', format_time(get_config('moodleoverflow', 'maxeditingtime')));
+            redirect($post->get_link(), $message, null, notification::NOTIFY_SUCCESS);
         }
         $redirect = $postcontrol->execute_interaction($fromform);
         redirect(moodleoverflow_go_back_to($redirect->redirectto), $redirect->redirectmessage, null, notification::NOTIFY_SUCCESS);

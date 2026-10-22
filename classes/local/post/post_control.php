@@ -21,12 +21,10 @@ use core\exception\coding_exception;
 use core\notification;
 use dml_exception;
 use html_writer;
-use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_updated;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\subscriptions;
 use mod_moodleoverflow\form\post_form;
 use core\exception\moodle_exception;
 use moodle_url;
@@ -142,9 +140,7 @@ class post_control {
         $this->prepost->timenow = time();
 
         // Execute the right function.
-        if ($this->interaction == 'reply' && $form->reply == $this->prepost->parentid) {
-            return $this->execute_reply($form);
-        } else if ($this->interaction == 'edit' && $form->edit == $this->prepost->postid) {
+        if ($this->interaction == 'edit' && $form->edit == $this->prepost->postid) {
             return $this->execute_edit($form);
         } else {
             throw new coding_exception(get_string('errorunexpectedinteraction', 'moodleoverflow'));
@@ -309,57 +305,6 @@ class post_control {
     }
 
     // Execute Functions.
-
-    /**
-     * Executes the reply to an existing post.
-     *
-     * @param object $form The results from the post_form.
-     * @throws moodle_exception if the reply could not be added.
-     */
-    private function execute_reply(object $form): object {
-        global $USER;
-        // Check if the user has the capability to write a reply.
-        permissions::ensure(permissions::can_reply($this->info->relatedpost, $USER->id), 'cannotreply');
-
-        // Set to not reviewed, if posts should be reviewed and user is not a reviewer themselves.
-        $this->prepost->reviewed = (int) !$this->info->moodleoverflow->requires_review(false)
-            || permissions::can_review_posts($this->info->moodleoverflow, $USER->id);
-
-        // Create the new post.
-        if (!$newpostid = $this->info->discussion->add_new_post($this->prepost, file_get_submitted_draft_itemid('message'))) {
-            throw new moodle_exception('couldnotadd', 'moodleoverflow');
-        }
-
-        // Trigger the post created event.
-        $params = ['context' => $this->info->modulecontext, 'objectid' => $newpostid,
-                   'other' => ['discussionid' => $this->prepost->discussionid,
-                               'moodleoverflowid' => $this->prepost->moodleoverflowid,
-                              ],
-                  ];
-        $event = post_created::create($params);
-        $event->trigger();
-
-        // Subscribe to this thread.
-        subscriptions::post_subscription(
-            $this->info->moodleoverflow,
-            $this->info->discussion,
-            $this->info->modulecontext,
-            $USER->id
-        );
-
-        // Define the location to redirect the user after successfully posting.
-        $redirectto = new moodle_url(
-            '/mod/moodleoverflow/discussion.php',
-            ['d' => $this->prepost->discussionid, 'p' => $newpostid]
-        );
-        $redirectmessage = html_writer::tag('p', get_string("postaddedsuccess", "moodleoverflow"));
-        $redirectmessage .= html_writer::tag('p', get_string(
-            "postaddedtimeleft",
-            "moodleoverflow",
-            format_time(get_config('moodleoverflow', 'maxeditingtime'))
-        ));
-        return (object) ['redirectto' => $redirectto, 'redirectmessage' => $redirectmessage];
-    }
 
     /**
      * Executes the edit of an existing post.

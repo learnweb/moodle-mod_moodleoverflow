@@ -268,40 +268,53 @@ class discussion {
     }
 
     /**
-     * Adds a new post to this discussion and the DB.
-     *
-     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
-     * @param ?int $draftitemid
-     * @throws dml_exception|moodle_exception
+     * Adds a reply to a post from this discussion.
+     * @param post $parent The post that gets replied to
+     * @param int $userid The user that replies
+     * @param post_content $content The content from the post form
+     * @param bool $reviewed If the post should be reviewed or not.
+     * @return post
+     * @throws Throwable
      */
-    public function add_new_post(object $prepost, ?int $draftitemid = null) {
+    public function add_reply(post $parent, int $userid, post_content $content, bool $reviewed): post {
         global $DB;
         $this->existence_check();
         $this->posts_check();
 
-        // Create the post that will be added to the new discussion.
+        if ($parent->get_discussionid() !== $this->id) {
+            throw new coding_exception('The parent post is not part of this discussion.');
+        }
+
+        // Build the new post record.
+        $time = time();
         $post = post::construct_without_id(
             $this->id,
-            $prepost->parentid,
-            $prepost->userid,
-            $prepost->timenow,
-            $prepost->timenow,
-            $prepost->message,
-            $prepost->messageformat,
+            $parent->get_id(),
+            $userid,
+            $time,
+            $time,
+            $content->message,
+            $content->messageformat,
             "",
             0,
-            $prepost->reviewed,
+            (int) $reviewed,
             null
         );
+
         // Add the post to the DB.
-        $postid = $post->add($draftitemid, $prepost->formattachments);
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            $postid = $post->add($content->messagedraftid, $content->attachmentdraftid);
 
-        // Add the post to the $posts array and update the last post of the discussion.
-        $this->posts[$postid] = $post;
-        $this->update_last_activity();
+            // Add the post to the $posts array and update the last post of the discussion.
+            $this->posts[$postid] = $post;
+            $this->update_last_activity();
 
-        // Return the id of the added post.
-        return $postid;
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
+        }
+        return $post;
     }
 
     /**
