@@ -289,7 +289,6 @@ class moodleoverflow {
         return [
             'maxfiles' => EDITOR_UNLIMITED_FILES,
             'maxbytes' => get_user_max_upload_file_size($context, $CFG->maxbytes, $this->get_course()->maxbytes),
-            'trusttext' => true,
             'return_types' => FILE_INTERNAL | FILE_EXTERNAL,
             'subdirs' => file_area_contains_subdirs($context, 'mod_moodleoverflow', 'post', $postid),
         ];

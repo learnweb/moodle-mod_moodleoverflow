@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The file that is opened in Moodle when the user interacts with posts
+ * The page with the post form: start a discussion, reply to a post or edit a post.
  *
  * @package   mod_moodleoverflow
  * @copyright 2023 Tamaro Walter
@@ -23,143 +23,116 @@
  */
 
 use core\output\notification;
+use mod_moodleoverflow\form\post_form;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
-use mod_moodleoverflow\local\post\post_control;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\posting;
 
-// Include config and locallib.
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-global $CFG, $USER, $DB, $PAGE, $SESSION, $OUTPUT;
+global $CFG, $USER, $PAGE, $OUTPUT;
 require_once(dirname(__FILE__) . '/locallib.php');
-require_once($CFG->libdir . '/completionlib.php');
 
-// Declare optional url parameters.
-$moodleoverflow = optional_param('moodleoverflow', 0, PARAM_INT);
+// Which operation on which object: on the first request from the URL, on the submission from the hidden form fields.
+$create = optional_param('moodleoverflow', 0, PARAM_INT);
 $reply = optional_param('reply', 0, PARAM_INT);
 $edit = optional_param('edit', 0, PARAM_INT);
+if (count(array_filter([$create, $reply, $edit])) !== 1) {
+    throw new moodle_exception('wrongparametercount', 'moodleoverflow');
+}
+$post = $edit ? post::from_id($edit) : null;
+$parent = $reply ? post::from_id($reply) : null;
+$modflow = $create ? moodleoverflow::from_id($create) : ($post ?? $parent)->get_moodleoverflow();
+$course = $modflow->get_course();
+$cm = $modflow->get_cm();
 
-// Set the URL that should be used to return to this page.
-$SESSION->errorreturnurl = get_local_referer(false);
-$PAGE->set_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit]);
+$PAGE->set_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $create, 'reply' => $reply, 'edit' => $edit]);
+$PAGE->set_cm($cm, $course);
+$PAGE->set_title($course->shortname . ': ' . format_string($modflow->name));
+$PAGE->set_heading($course->fullname);
+$PAGE->add_body_class('limitedwidth');
 
-// These params will be passed as hidden variables later in the form.
-$pageparams = ['moodleoverflow' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit];
-
-// Create a post_control object to control and lead the process.
-$postcontrol = new post_control();
-
-// Put all interaction parameters in one object for the post_control.
-$urlparameter = (object) ['create' => $moodleoverflow, 'reply' => $reply, 'edit' => $edit];
-
-// Catch guests.
+// Guests are asked to log in.
 if (!isloggedin() || isguestuser()) {
-    // Gather information and set the page right so that user can be redirected to the right site.
-    $information = $urlparameter->create ? $postcontrol->catch_guest(false, $urlparameter->create)
-                                  : $postcontrol->catch_guest($urlparameter->reply ?: $urlparameter->edit);
-
-    // The guest needs to login.
-    $strlogin = get_string('noguestpost', 'forum') . '<br /><br />' . get_string('liketologin');
     echo $OUTPUT->header();
     echo $OUTPUT->confirm(
-        $strlogin,
+        get_string('noguestpost', 'forum') . '<br /><br />' . get_string('liketologin'),
         get_login_url(),
-        $CFG->wwwroot . '/mod/moodleoverflow/view.php?m= ' . $information->moodleoverflow->id
+        $modflow->get_link()
     );
     echo $OUTPUT->footer();
     exit;
 }
 
-// Require a general login to post something.
-// LEARNWEB-TODO: should course or id really be zero?.
-require_login(0, false);
+// Users who are not enrolled are sent to the enrolment page.
+require_login($course, false, $cm);
 
-// Now the post_control checks which interaction is wanted and builds a prepost.
-try {
-    $postcontrol->detect_interaction($urlparameter);
-} catch (moodle_exception $e) {
-    $postcontrol->error_handling($e->getMessage());
-}
-// Get attributes from the postcontrol.
-$information = $postcontrol->get_information();
-$prepost = $postcontrol->get_prepost();
-
-// A post will be created or edited. For that the post_control builds a post_form.
-$mformpost = $postcontrol->build_postform($pageparams);
-
-// The User now entered information in the form. The post.php now needs to process the information and call the right function.
-
-// If the interaction was cancelled, the user needs to be redirected.
-if ($mformpost->is_cancelled()) {
-    if (!isset($prepost->discussionid)) {
-        redirect(new moodle_url('/mod/moodleoverflow/view.php', ['m' => $prepost->moodleoverflowid]));
-    } else {
-        redirect(new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $prepost->discussionid]));
-    }
+// May the user open the form? The service checks again when the form is submitted.
+if ($create) {
+    permissions::ensure(permissions::can_start_discussion($modflow, $USER->id), 'nopostmoodleoverflow');
+} else if ($reply) {
+    permissions::ensure(permissions::can_reply($parent, $USER->id), 'cannotreply');
+} else {
+    permissions::ensure(permissions::can_edit_post($post, $USER->id), 'cannoteditposts');
 }
 
-// The form was filled with information.
-if ($fromform = $mformpost->get_data()) {
+$customdata = ['modflow' => $modflow, 'post' => $post, 'parent' => $parent];
+$form = new post_form($PAGE->url, $customdata, 'post', '', ['id' => 'mformmoodleoverflow']);
+$form->set_initial_data();
+
+if ($form->is_cancelled()) {
+    redirect($create ? $modflow->get_link() : ($post ?? $parent)->get_discussion()->get_link());
+}
+
+// If there is data from the form it means that the user entered information in the form. Execute the right action related to it.
+if ($data = $form->get_data()) {
     $content = new post_content(
-        message: $fromform->message['text'],
-        messageformat: $fromform->message['format'],
-        messagedraftid: $fromform->message['itemid'],
-        attachmentdraftid: $fromform->attachments ?? null,
-        subject: $fromform->subject ?? null
+        message: $data->message['text'],
+        messageformat: $data->message['format'],
+        messagedraftid: $data->message['itemid'],
+        attachmentdraftid: $data->attachments ?? null,
+        subject: $data->subject ?? null
     );
-    // Execute the right interaction.
-    try {
-        if (!empty($fromform->moodleoverflow)) {
-            // Start a discussion. The service checks if the user may post in this moodleoverflow.
-            $modflow = moodleoverflow::from_id($fromform->moodleoverflow);
-            posting::create_discussion($modflow, $USER->id, $content);
-            redirect($modflow->get_link(), get_string('postaddedsuccess', 'moodleoverflow'), null, notification::NOTIFY_SUCCESS);
-        }
-        if (!empty($fromform->reply)) {
-            $post = posting::reply(post::from_id($fromform->reply), $USER->id, $content);
-            $message = get_string('postaddedsuccess', 'moodleoverflow') . ' ' .
-                get_string('postaddedtimeleft', 'moodleoverflow', format_time(get_config('moodleoverflow', 'maxeditingtime')));
-            redirect($post->get_link(), $message, null, notification::NOTIFY_SUCCESS);
-        }
-        if (!empty($fromform->edit)) {
-            $post = posting::edit(post::from_id($fromform->edit), $USER->id, $content);
-            $message = get_string('postupdated', 'moodleoverflow');
-            if ($post->get_userid() !== (int) $USER->id) {
-                // Name the author whose post was edited, unless the author is anonymous.
-                $isquestioner = $post->get_discussion()->get_userid() === $post->get_userid();
-                if ($post->get_userid() === 0 || $post->get_moodleoverflow()->is_author_anonymous($isquestioner)) {
-                    $name = get_string('anonymous', 'moodleoverflow');
-                } else {
-                    $name = fullname(core_user::get_user($post->get_userid()));
-                }
-                $message = get_string('editedpostupdated', 'moodleoverflow', $name);
-            }
-            redirect($post->get_link(), $message, null, notification::NOTIFY_SUCCESS);
-        }
-        throw new coding_exception(get_string('errorunexpectedinteraction', 'moodleoverflow'));
-    } catch (moodle_exception $e) {
-        $postcontrol->error_handling($e->getMessage());
+
+    if ($create) {
+        posting::create_discussion($modflow, $USER->id, $content);
+        redirect($modflow->get_link(), get_string('postaddedsuccess', 'moodleoverflow'), null, notification::NOTIFY_SUCCESS);
     }
-    exit;
+
+    if ($reply) {
+        $newpost = posting::reply($parent, $USER->id, $content);
+        $message = get_string('postaddedsuccess', 'moodleoverflow') . ' ' .
+            get_string('postaddedtimeleft', 'moodleoverflow', format_time(get_config('moodleoverflow', 'maxeditingtime')));
+        redirect($newpost->get_link(), $message, null, notification::NOTIFY_SUCCESS);
+    }
+
+    // The post gets edited.
+    $post = posting::edit($post, $USER->id, $content);
+    $message = get_string('postupdated', 'moodleoverflow');
+    if ($post->get_userid() !== (int) $USER->id) {
+        // Name the author whose post was edited, unless the author is anonymous.
+        $isquestioner = $post->get_discussion()->get_userid() === $post->get_userid();
+        $name = ($post->get_userid() === 0 || $modflow->is_author_anonymous($isquestioner))
+            ? get_string('anonymous', 'moodleoverflow')
+            : fullname(core_user::get_user($post->get_userid()));
+        $message = get_string('editedpostupdated', 'moodleoverflow', $name);
+    }
+    redirect($post->get_link(), $message, null, notification::NOTIFY_SUCCESS);
 }
 
-// If the script gets to this point, nothing has been submitted.
-// The post_form will be displayed.
-
-// Define the message to be displayed above the form.
-$toppost = new stdClass();
-$toppost->subject = get_string('addanewdiscussion', 'moodleoverflow');
-
-// Initiate the page.
-$PAGE->set_title($information->course->shortname . ': ' .
-                 $information->moodleoverflow->name . ' ' .
-                 format_string($toppost->subject));
-$PAGE->set_heading($information->course->fullname);
-$PAGE->add_body_class('limitedwidth');
-
-// Display all.
+// Nothing was submitted yet (or the submission was invalid): show the form, for a reply show the parent post.
+if ($parent) {
+    $PAGE->requires->js_call_amd('mod_moodleoverflow/show_post', 'init');
+}
 echo $OUTPUT->header();
-echo $postcontrol->display_original_post();
-$mformpost->display();
+if ($parent) {
+    echo $OUTPUT->render_from_template('mod_moodleoverflow/post_original', [
+        'postid' => $parent->get_id(),
+        'postcontent' => $parent->get_message_formatted(),
+        'attachments' => $parent->get_attachments($OUTPUT),
+        'byname' => $parent->get_authorlink($USER->id)['link'],
+    ]);
+}
+$form->display();
 echo $OUTPUT->footer();
