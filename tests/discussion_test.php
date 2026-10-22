@@ -28,7 +28,6 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
-use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 /**
@@ -58,39 +57,34 @@ final class discussion_test extends \advanced_testcase {
     }
 
     /**
-     * Test, if a discussion is being created correctly
+     * Test, if adding a discussion creates the question with the author and the start time of the discussion.
      */
-    public function test_create_discussion(): void {
+    public function test_add(): void {
         global $DB;
-        // Log in as the student.
-        $this->setUser($this->student);
-
-        // Build a new discussion object.
-        $postcontent = new post_content(
-            'a message',
-            FORMAT_HTML,
-            null,
-            null,
-            'Discussion Topic'
+        $discussion = discussion::construct_without_id(
+            $this->course->id,
+            $this->modflow->id,
+            'Topic',
+            0,
+            $this->student->id,
+            100,
+            100,
+            $this->student->id
         );
-        $discussion = posting::create_discussion($this->modflow, $this->student->id, $postcontent);
-        $posts = $discussion->get_posts();
-        $post = $posts[$discussion->get_firstpostid()];
 
-        // The discussion and the firstpost should be in the DB.
-        $dbdiscussion = $DB->get_record('moodleoverflow_discussions', ['id' => $discussion->get_id()]);
-        $this->assertEquals($dbdiscussion->id, $discussion->get_id());
-        $this->assertEquals('Discussion Topic', $dbdiscussion->name);
+        $discussion->add(new post_content('Question', FORMAT_HTML), false);
 
-        $dbpost = $DB->get_record('moodleoverflow_posts', ['id' => $discussion->get_firstpostid()]);
-        $this->assertEquals($dbpost->id, $post->get_id());
-        $this->assertEquals($dbpost->discussion, $post->get_discussionid());
-        $this->assertEquals('a message', $dbpost->message);
+        $question = $DB->get_record('moodleoverflow_posts', ['id' => $discussion->get_firstpostid()], '*', MUST_EXIST);
+        $this->assertEquals($discussion->get_id(), $question->discussion);
+        $this->assertEquals(0, $question->parent);
+        $this->assertEquals($this->student->id, $question->userid);
+        $this->assertEquals(100, $question->created);
+        $this->assertEquals('Question', $question->message);
+        $this->assertEquals(0, $question->reviewed);
     }
 
     /**
-     * Test, if a post and its attachment are deleted successfully.
-     * @covers \mod_moodleoverflow\local\models\discussion::delete_post
+     * Test, if deleting a discussion deletes its posts.
      */
     public function test_delete_discussion(): void {
         global $DB;
