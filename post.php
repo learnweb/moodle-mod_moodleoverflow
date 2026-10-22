@@ -148,6 +148,7 @@ if ($fromform = $mformpost->get_data()) {
         attachmentdraftid: $fromform->attachments ?? null,
         subject: $fromform->subject ?? null
     );
+    // Execute the right interaction.
     try {
         if (!empty($fromform->moodleoverflow)) {
             // Start a discussion. The service checks if the user may post in this moodleoverflow.
@@ -161,8 +162,22 @@ if ($fromform = $mformpost->get_data()) {
                 get_string('postaddedtimeleft', 'moodleoverflow', format_time(get_config('moodleoverflow', 'maxeditingtime')));
             redirect($post->get_link(), $message, null, notification::NOTIFY_SUCCESS);
         }
-        $redirect = $postcontrol->execute_interaction($fromform);
-        redirect(moodleoverflow_go_back_to($redirect->redirectto), $redirect->redirectmessage, null, notification::NOTIFY_SUCCESS);
+        if (!empty($fromform->edit)) {
+            $post = posting::edit(post::from_id($fromform->edit), $USER->id, $content);
+            $message = get_string('postupdated', 'moodleoverflow');
+            if ($post->get_userid() !== (int) $USER->id) {
+                // Name the author whose post was edited, unless the author is anonymous.
+                $isquestioner = $post->get_discussion()->get_userid() === $post->get_userid();
+                if ($post->get_userid() === 0 || $post->get_moodleoverflow()->is_author_anonymous($isquestioner)) {
+                    $name = get_string('anonymous', 'moodleoverflow');
+                } else {
+                    $name = fullname(core_user::get_user($post->get_userid()));
+                }
+                $message = get_string('editedpostupdated', 'moodleoverflow', $name);
+            }
+            redirect($post->get_link(), $message, null, notification::NOTIFY_SUCCESS);
+        }
+        throw new coding_exception(get_string('errorunexpectedinteraction', 'moodleoverflow'));
     } catch (moodle_exception $e) {
         $postcontrol->error_handling($e->getMessage());
     }

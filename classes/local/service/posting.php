@@ -99,4 +99,33 @@ class posting {
 
         return $post;
     }
+
+    /**
+     * Edits a post.
+     *
+     * @param post $post The post to edit.
+     * @param int $userid The user who edits the post.
+     * @param post_content $content The new content.
+     * @return post The edited post.
+     * @throws moodle_exception|coding_exception|Throwable
+     */
+    public static function edit(post $post, int $userid, post_content $content): post {
+        global $DB;
+        permissions::ensure(permissions::can_edit_post($post, $userid), 'cannotupdatepost');
+        if ($post->get_parentid() == 0 && trim($content->subject ?? '') === '') {
+            throw new coding_exception('An empty subject is not allowed');
+        }
+
+        $discussion = discussion::from_id($post->get_discussionid());
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            $discussion->edit_post($post, $userid, $content);
+            readtracking::mark_post_read($post, $userid);
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
+        }
+        // Return the updated post to have the newest data.
+        return post::from_id($post->get_id());
+    }
 }

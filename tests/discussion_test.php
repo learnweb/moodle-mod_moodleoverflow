@@ -161,18 +161,21 @@ final class discussion_test extends \advanced_testcase {
         $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
         $question = $this->generator->create_question($modflow, $this->teacher);
         $answer = $this->generator->create_reply($question, $this->student);
+        // Both posts were written in the past, so the edits are the newest activity.
+        $this->set_post_times($question, 100);
+        $this->set_post_times($answer, 100, null, 0);
 
         // An edit of the unreviewed answer is no activity.
         $discussion = discussion::from_id($question->get_discussionid());
-        $discussion->edit_post($this->get_edit_prepost($answer, time() + 1000), $this->student->id, null);
-        $this->assert_last_post($question->get_discussionid(), $question->modified, $this->teacher->id);
+        $discussion->edit_post($answer, $this->student->id, $this->get_edit_content($answer));
+        $this->assert_last_post($question->get_discussionid(), 100, $this->teacher->id);
 
         // Once reviewed, an edit by another user makes the answer the last post, with the editor as the user.
         post::from_id($answer->get_id())->mark_reviewed();
-        $time = time() + 2000;
         $discussion = discussion::from_id($question->get_discussionid());
-        $discussion->edit_post($this->get_edit_prepost($answer, $time), $this->otherstudent->id, null);
-        $this->assert_last_post($question->get_discussionid(), $time, $this->otherstudent->id);
+        $discussion->edit_post($answer, $this->otherstudent->id, $this->get_edit_content($answer));
+        $edited = post::from_id($answer->get_id());
+        $this->assert_last_post($question->get_discussionid(), $edited->get_time_active(), $this->otherstudent->id);
     }
 
     /**
@@ -211,20 +214,13 @@ final class discussion_test extends \advanced_testcase {
     }
 
     /**
-     * Builds the prepost object that edits a post without changing its message.
+     * Builds the content that edits a post without changing its message.
      *
      * @param post $post
-     * @param int $time The time of the edit.
-     * @return \stdClass
+     * @return post_content
      */
-    private function get_edit_prepost(post $post, int $time): \stdClass {
-        return (object) [
-            'postid' => $post->get_id(),
-            'timenow' => $time,
-            'message' => $post->message,
-            'messageformat' => $post->messageformat,
-            'formattachments' => null,
-        ];
+    private function get_edit_content(post $post): post_content {
+        return new post_content($post->message, $post->messageformat);
     }
 
     /**

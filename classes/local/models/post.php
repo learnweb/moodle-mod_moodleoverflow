@@ -27,6 +27,7 @@ use dml_exception;
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_deleted;
+use mod_moodleoverflow\event\post_updated;
 use mod_moodleoverflow\local\service\readtracking;
 use core\exception\moodle_exception;
 use moodle_url;
@@ -332,40 +333,32 @@ class post {
     }
 
     /**
-     * Edits the message from this instance.
-     * @param int $time The time the post was modified (given from the discussion class).
-     * @param string $postmessage The new message
-     * @param int $messageformat
-     * @param int $userid User that makes the edit
-     * @param ?int $draftitemid
-     * @param ?int $attachmentdraftid Information about attachments from the post_form
-     * @return true if the post has been edited successfully
+     * Edits the message and the files of this post.
+     *
+     * @param int $userid The user who edits the post.
+     * @param post_content $content The new content; its subject belongs to the discussion and is not read here.
+     * @return void
      * @throws moodle_exception
      */
-    public function edit(
-        int $time,
-        string $postmessage,
-        int $messageformat,
-        int $userid,
-        ?int $draftitemid = null,
-        ?int $attachmentdraftid = null,
-    ): bool {
+    public function edit(int $userid, post_content $content): void {
         global $DB;
         $this->existence_check();
 
-        // Update the attributes.
-        $this->modified = $time;
-        $this->message = $postmessage;
-        $this->messageformat = $messageformat;
-        $this->save_draft_files($draftitemid);
-        $this->add_attachment($attachmentdraftid);
-
-        // Mark the post as read.
-        readtracking::mark_post_read($this, $userid);
+        $this->modified = time();
+        $this->message = $content->message;
+        $this->messageformat = $content->messageformat;
+        $this->save_draft_files($content->messagedraftid);
+        $this->add_attachment($content->attachmentdraftid);
 
         $DB->update_record('moodleoverflow_posts', $this->build_db_object());
-        // The post has been edited successfully.
-        return true;
+
+        // Trigger the event.
+        post_updated::create([
+            'context' => $this->get_context(),
+            'objectid' => $this->id,
+            'other' => ['discussionid' => $this->discussion, 'moodleoverflowid' => $this->get_moodleoverflow()->id],
+            ...($this->userid !== $userid ? ['relateduserid' => $this->userid] : []),
+        ])->trigger();
     }
 
     /**

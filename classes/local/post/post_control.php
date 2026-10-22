@@ -21,7 +21,6 @@ use core\exception\coding_exception;
 use core\notification;
 use dml_exception;
 use html_writer;
-use mod_moodleoverflow\event\post_updated;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
@@ -115,35 +114,6 @@ class post_control {
             $this->interaction = 'delete';
             $this->info->deletepostid = $urlparameter->delete;
             $this->build_prepost_delete($this->info->deletepostid);
-        }
-    }
-
-    /**
-     * Controls the execution of an interaction.
-     * @param object $form The results from the post_form.
-     * @return object An object with information for the redirect
-     * @throws coding_exception
-     * @throws moodle_exception
-     */
-    public function execute_interaction(object $form): object {
-        global $SESSION;
-        // Redirect url in case of occurring errors.
-        $SESSION->errorreturnurl = new moodle_url('/mod/moodleoverflow/view.php?', ['m' => $this->prepost->moodleoverflowid]);
-
-        // Format the submitted data.
-        $this->prepost->messageformat = $form->message['format'];
-        $this->prepost->formattachments = $form->attachments ?? null;
-        $this->prepost->message = $form->message['text'];
-        $this->prepost->messagetrust = trusttext_trusted($this->prepost->modulecontext);
-
-        // Get the current time.
-        $this->prepost->timenow = time();
-
-        // Execute the right function.
-        if ($this->interaction == 'edit' && $form->edit == $this->prepost->postid) {
-            return $this->execute_edit($form);
-        } else {
-            throw new coding_exception(get_string('errorunexpectedinteraction', 'moodleoverflow'));
         }
     }
 
@@ -307,62 +277,6 @@ class post_control {
     // Execute Functions.
 
     /**
-     * Executes the edit of an existing post.
-     *
-     * @param object $form The results from the post_form.
-     * @throws moodle_exception if the post could not be updated.
-     */
-    private function execute_edit(object $form): object {
-        global $USER, $DB;
-        // Check if the user has the capability to edit his post.
-        permissions::ensure(permissions::can_edit_post($this->info->relatedpost, $USER->id), 'cannotupdatepost');
-
-        // If the post that is being edited is the parent post, the subject can be edited too.
-        if ($this->prepost->parentid == 0) {
-            $this->prepost->subject = $form->subject;
-        }
-
-        // Update the post.
-        if (!$this->info->discussion->edit_post($this->prepost, $USER->id, file_get_submitted_draft_itemid('message'))) {
-            throw new moodle_exception('couldnotupdate', 'moodleoverflow');
-        }
-
-        // Trigger the post updated event.
-        $params = ['context' => $this->info->modulecontext, 'objectid' => $form->edit,
-                   'other' => ['discussionid' => $this->prepost->discussionid,
-                               'moodleoverflowid' => $this->prepost->moodleoverflowid,
-                              ],
-                   'relateduserid' => $this->prepost->userid == $USER->id ? $this->prepost->userid : null,
-                  ];
-        $event = post_updated::create($params);
-        $event->trigger();
-
-        // Define the location to redirect the user after successfully editing.
-        $redirectto = new moodle_url(
-            '/mod/moodleoverflow/discussion.php',
-            ['d' => $this->prepost->discussionid, 'p' => $form->edit]
-        );
-        // The edit was successful.
-        $redirectmessage = get_string('postupdated', 'moodleoverflow');
-        if ($this->prepost->userid != $USER->id) {
-            if (
-                $this->prepost->userid == 0
-                || $this->info->moodleoverflow->is_author_anonymous(
-                    $this->info->discussion->get_userid() === $this->prepost->userid
-                )
-            ) {
-                $name = get_string('anonymous', 'moodleoverflow');
-            } else {
-                $realuser = $DB->get_record('user', ['id' => $this->prepost->userid]);
-                $name = fullname($realuser);
-            }
-            $redirectmessage = get_string('editedpostupdated', 'moodleoverflow', $name);
-        }
-
-        return (object) ['redirectto' => $redirectto, 'redirectmessage' => $redirectmessage];
-    }
-
-    /**
      * Executes the deletion of a post.
      *
      * @return mixed redirect information
@@ -459,13 +373,13 @@ class post_control {
         // Declare the post_form.
         $mformpost = new post_form('post.php', $formarray, 'post', '', ['id' => 'mformmoodleoverflow']);
 
-        // If the user is not the original author append an extra message to the message. (Happens when interaction = 'edit').
+        // A new post uses the preferred editor format; an edited post keeps its own format.
+        $format = $this->interaction == 'edit' ? $this->prepost->messageformat : editors_get_preferred_format();
         if ($USER->id != $this->prepost->userid) {
             // Create a temporary object.
             $data = new stdClass();
             $data->date = userdate(time());
-            $this->prepost->messageformat = editors_get_preferred_format();
-            if ($this->prepost->messageformat == FORMAT_HTML) {
+            if ($format == FORMAT_HTML) {
                 $profileurl = new moodle_url('/user/view.php', ['id' => $USER->id, 'course' => $this->prepost->courseid]);
                 $data->name = html_writer::link($profileurl, fullname($USER));
                 $this->prepost->message .= html_writer::tag(
@@ -501,7 +415,7 @@ class post_control {
             'attachments' => $draftitemid,
             'general' => $heading,
             'subject' => $this->prepost->subject,
-            'message' => ['text' => $message, 'format' => editors_get_preferred_format(), 'itemid' => $messagedraftid],
+            'message' => ['text' => $message, 'format' => $format, 'itemid' => $messagedraftid],
             'userid' => $this->prepost->userid,
             'parent' => $this->prepost->parentid,
             'discussion' => $this->prepost->discussionid,
@@ -618,6 +532,7 @@ class post_control {
                 $this->prepost->postid = $this->info->relatedpost->get_id();
                 $this->prepost->userid = $this->info->relatedpost->get_userid();
                 $this->prepost->message = $this->info->relatedpost->message;
+                $this->prepost->messageformat = $this->info->relatedpost->messageformat;
             }
         }
     }

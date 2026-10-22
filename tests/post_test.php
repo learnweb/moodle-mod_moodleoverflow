@@ -25,6 +25,7 @@ namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 defined('MOODLE_INTERNAL') || die();
@@ -109,15 +110,15 @@ final class post_test extends \advanced_testcase {
         // Gather important parameters.
         $message = 'a new message';
 
-        $time = time();
+        $before = time();
 
         // Update the post.
-        $this->post->edit($time, $message, $this->post->messageformat, $this->student->id);
+        $this->post->edit($this->student->id, new post_content($message, $this->post->messageformat));
 
         // The message and modified time should be changed.
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $this->post->get_id()]);
         $this->assertEquals($message, $post->message);
-        $this->assertEquals($time, $post->modified);
+        $this->assertGreaterThanOrEqual($before, $post->modified);
     }
 
     /**

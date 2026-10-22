@@ -280,10 +280,7 @@ class discussion {
         global $DB;
         $this->existence_check();
         $this->posts_check();
-
-        if ($parent->get_discussionid() !== $this->id) {
-            throw new coding_exception('The parent post is not part of this discussion.');
-        }
+        $this->post_exists_check($parent->get_id());
 
         // Build the new post record.
         $time = time();
@@ -348,41 +345,37 @@ class discussion {
     }
 
     /**
-     * Edits the message of a post from this discussion.
-     * @param object $prepost The prepost object from the post_control. Has Information about the post and other important stuff.
-     * @param int $userid The user that makes the edit
-     * @param ?int $draftitemid
-     * @throws dml_exception|moodle_exception
+     * Edits a post of this discussion.
+     *
+     * @param post $post The post to edit.
+     * @param int $userid The user who edits the post.
+     * @param post_content $content The new content.
+     * @return void
+     * @throws Throwable
      */
-    public function edit_post(object $prepost, int $userid, ?int $draftitemid): bool {
+    public function edit_post(post $post, int $userid, post_content $content): void {
         global $DB;
         $this->existence_check();
         $this->posts_check();
+        $this->post_exists_check($post->get_id());
 
-        // Check if the posts exists in this discussion.
-        $this->post_exists_check($prepost->postid);
+        // Work on the copy in this discussion, so its list of posts stays up to date.
+        $post = $this->posts[$post->get_id()];
 
-        // Access the post.
-        $post = $this->posts[$prepost->postid];
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            if ($post->get_id() === $this->firstpost && $content->subject !== null) {
+                $this->name = trim($content->subject);
+                $DB->set_field('moodleoverflow_discussions', 'name', $this->name, ['id' => $this->id]);
+            }
+            $post->edit($userid, $content);
 
-        // If the post is the question, the subject is the name of the discussion.
-        if ($prepost->postid == array_key_first($this->posts)) {
-            $this->name = $prepost->subject;
-            $DB->set_field('moodleoverflow_discussions', 'name', $this->name, ['id' => $this->id]);
+            // An edit of an unreviewed post is no activity, so its editor does not count.
+            $this->update_last_activity($post->reviewed ? $userid : null);
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
         }
-        $post->edit(
-            $prepost->timenow,
-            $prepost->message,
-            $prepost->messageformat,
-            $userid,
-            $draftitemid,
-            $prepost->formattachments
-        );
-        // An edit of an unreviewed post is no activity, so its editor does not count.
-        $this->update_last_activity($post->reviewed ? $userid : null);
-
-        // The post has been edited successfully.
-        return true;
     }
 
     /**
@@ -701,7 +694,7 @@ class discussion {
      * @throws moodle_exception;
      */
     private function post_exists_check(int $postid): void {
-        if (!$this->posts[$postid]) {
+        if (!isset($this->posts[$postid])) {
             throw new moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
         }
     }
