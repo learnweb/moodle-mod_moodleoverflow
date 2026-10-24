@@ -27,6 +27,7 @@ use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\readtracking;
+use mod_moodleoverflow\local\service\subscription;
 use mod_moodleoverflow\output\pages\discussion\discussion_page;
 
 require_once('../../config.php');
@@ -35,6 +36,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
+$unsubscribe = optional_param('unsubscribe', 0, PARAM_BOOL); // Unsubscribe link of a mail.
 
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/discussion.php', ['d' => $d]);
@@ -75,6 +77,17 @@ $node->display = false;
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $modflow->allows_multiple_marks()]);
 $PAGE->requires->js_call_amd('mod_moodleoverflow/deletepost', 'init');
+
+// The unsubscribe link of a mail only opens a confirmation dialog, the GET request changes nothing.
+if (
+    $unsubscribe
+    && permissions::can_change_discussion_subscription($discussion, $USER->id)
+    && subscription::is_subscribed_to_discussion($discussion, $USER->id)
+) {
+    $names = (object) ['discussion' => format_string($discussion->name), 'moodleoverflow' => format_string($modflow->name)];
+    $params = ['discussion', $discussion->get_id(), get_string('confirmunsubscribediscussion', 'moodleoverflow', $names)];
+    $PAGE->requires->js_call_amd('mod_moodleoverflow/subscription', 'confirmUnsubscribe', $params);
+}
 
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));

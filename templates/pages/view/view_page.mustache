@@ -43,6 +43,9 @@
     {{#startdiscussion}}
         <a href="{{{link}}}" class="btn btn-secondary m-2">{{#str}} addanewdiscussion, moodleoverflow {{/str}}</a>
     {{/startdiscussion}}
+    {{#subscription}}
+        {{> mod_moodleoverflow/subscription_toggle }}
+    {{/subscription}}
 
     {{#hasdiscussions}}
         {{! List of moodleoverflow where discussion can be moved to}}

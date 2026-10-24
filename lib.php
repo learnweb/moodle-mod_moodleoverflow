@@ -461,54 +461,19 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  *
  * @param settings_navigation $settingsnav complete settings navigation tree
  * @param navigation_node|null $moodleoverflownode moodleoverflow administration node
- * @throws \core\exception\moodle_exception
- * @throws coding_exception
- * @throws dml_exception
- * @throws moodle_exception
+ * @throws coding_exception|dml_exception
  */
 function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, ?navigation_node $moodleoverflownode = null) {
     global $USER, $CFG;
 
     // Retrieve the current moodle record.
     $moodleoverflow = moodleoverflow::from_id($settingsnav->get_page()->cm->instance);
-
-    // Check if the user can subscribe to the instance.
-    if (!$context = context_module::instance($settingsnav->get_page()->cm->id)) {
-        throw new \moodle_exception('badcontext');
-    }
-    $enrolled = is_enrolled($context, $USER, '', false);
-    $activeenrolled = is_enrolled($context, $USER, '', true);
-    $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $context);
-    $forcesubscribed = subscriptions::is_forcesubscribed($moodleoverflow);
-    $subscdisabled = subscriptions::subscription_disabled($moodleoverflow);
-    $cansubscribe = $activeenrolled && (!$subscdisabled || $canmanage) &&
-        !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $context));
+    $context = context_module::instance($settingsnav->get_page()->cm->id);
 
     // Display a link to the index.
-    if ($enrolled && $activeenrolled && $CFG->branch >= 501) {
-        // Generate the text of the link.
-        $linktext = get_string('gotoindex', 'moodleoverflow');
-
-        // Generate the link.
+    if (is_enrolled($context, $USER, '', true) && $CFG->branch >= 501) {
         $link = new moodle_url('/mod/moodleoverflow/index.php', ['id' => $moodleoverflow->course]);
-
-        // Add the link to the menu.
-        $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
-    }
-
-    // Display a link to subscribe or unsubscribe.
-    if ($cansubscribe) {
-        // Choose the linktext depending on the current state of subscription.
-        $issubscribed = subscriptions::is_subscribed($USER->id, $moodleoverflow, $context);
-        if ($issubscribed) {
-            $linktext = get_string('unsubscribe', 'moodleoverflow');
-        } else {
-            $linktext = get_string('subscribe', 'moodleoverflow');
-        }
-
-        // Add the link to the menu.
-        $url = new moodle_url('/mod/moodleoverflow/subscribe.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
-        $moodleoverflownode->add($linktext, $url, navigation_node::TYPE_SETTING);
+        $moodleoverflownode->add(get_string('gotoindex', 'moodleoverflow'), $link, navigation_node::TYPE_SETTING);
     }
 }
 

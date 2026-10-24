@@ -23,6 +23,7 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
+import {changeSubscription} from 'mod_moodleoverflow/subscription';
 
 /**
  * Init function
@@ -50,22 +51,12 @@ const addSubscriptionListener = (itemid) => {
     // Get the right subscription toggle element.
     const element = document.getElementById(itemid);
     element.addEventListener('change', async function() {
-            const cmid = parseInt(element.dataset.cmid);
-            const subscribed = element.dataset.setting === 'true';
-            const data = {
-                methodname: 'mod_moodleoverflow_change_subscription_mode',
-                args: {
-                    subscribed: subscribed,
-                    cmid: cmid
-                },
-            };
-            element.dataset.setting = Boolean(!subscribed);
-            // Call the AJAX function.
+            // The toggle already shows the target state.
+            const subscribe = element.checked;
             try {
-                await Ajax.call([data])[0];
+                element.checked = await changeSubscription('moodleoverflow', element.dataset.moodleoverflowid, subscribe);
             } catch (error) {
-                element.dataset.setting = Boolean(subscribed);
-                element.checked = subscribed;
+                element.checked = !subscribe;
                 Notification.exception(error);
             }
         }

@@ -28,7 +28,7 @@ use core_courseformat\local\overview\overviewitem;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\readtracking;
-use mod_moodleoverflow\subscriptions;
+use mod_moodleoverflow\local\service\subscription;
 
 /**
  * Checklist overview integration (for Moodle 5.0+)
@@ -115,8 +115,8 @@ class overview extends activityoverviewbase {
         global $USER, $PAGE;
 
         // Check the subscription status of the user and if it's changable.
-        $subscribed = subscriptions::is_subscribed($USER->id, $this->moodleoverflow, $this->modulecontext);
-        $changeable = subscriptions::is_subscribable($this->moodleoverflow, $this->modulecontext);
+        $subscribed = subscription::is_subscribed($this->moodleoverflow, $USER->id);
+        $changeable = permissions::can_change_subscription($this->moodleoverflow, $USER->id);
 
         // Build the content.
         $itemid = 'moodleoverflow-subscription-toggle-' . $this->moodleoverflow->id;
