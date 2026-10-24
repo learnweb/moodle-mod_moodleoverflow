@@ -25,6 +25,7 @@ namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\review_level;
+use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
@@ -411,6 +412,94 @@ final class permissions_test extends \advanced_testcase {
         $this->assertTrue(permissions::can_change_tracking($optional, $this->student->id));
         $this->assertFalse(permissions::can_change_tracking($forced, $this->student->id));
         $this->assertFalse(permissions::can_change_tracking($optional, guest_user()->id));
+    }
+
+    // Subscription permissions.
+
+    /**
+     * Test, if only users that can see the moodleoverflow can be subscribed, and nobody if subscriptions are disabled.
+     */
+    public function test_can_subscribe(): void {
+        $optional = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
+        $disabled = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::DISABLED->value]);
+
+        // Admins do not need an enrolment to subscribe themselves.
+        $this->assertTrue(permissions::can_subscribe($optional, $this->student->id));
+        $this->assertTrue(permissions::can_subscribe($optional, get_admin()->id));
+        $this->assertFalse(permissions::can_subscribe($optional, $this->notenrolled->id));
+        $this->assertFalse(permissions::can_subscribe($optional, guest_user()->id));
+        $this->assertFalse(permissions::can_subscribe($optional, 0));
+
+        // Not even teachers and admins can be subscribed if subscriptions are disabled.
+        $this->assertFalse(permissions::can_subscribe($disabled, $this->teacher->id));
+        $this->assertFalse(permissions::can_subscribe($disabled, get_admin()->id));
+    }
+
+    /**
+     * Test, in which modes a student (subscribed by default) and a manager (not subscribed by default) can change their
+     * subscription.
+     * @dataProvider can_change_subscription_provider
+     * @param subscription_mode $mode
+     * @param bool $expectstudent
+     * @param bool $expectmanager
+     */
+    public function test_can_change_subscription(subscription_mode $mode, bool $expectstudent, bool $expectmanager): void {
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => $mode->value]);
+        $manager = $this->getDataGenerator()->create_and_enrol($this->course, 'manager');
+
+        $this->assertEquals($expectstudent, permissions::can_change_subscription($modflow, $this->student->id));
+        $this->assertEquals($expectmanager, permissions::can_change_subscription($modflow, $manager->id));
+    }
+
+    /**
+     * Subscription modes and whether a student and a manager can change their subscription.
+     * @return array
+     */
+    public static function can_change_subscription_provider(): array {
+        return [
+            'optional' => [subscription_mode::OPTIONAL, true, true],
+            'forced' => [subscription_mode::FORCED, false, true],
+            'auto' => [subscription_mode::AUTO, true, true],
+            'disabled' => [subscription_mode::DISABLED, false, false],
+        ];
+    }
+
+    /**
+     * Test, if users can only change the subscription of discussions they can see, and not as default subscribers of a
+     * forced moodleoverflow.
+     */
+    public function test_can_change_discussion_subscription(): void {
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::QUESTIONS->value]);
+        $discussion = $this->generator->create_question($modflow, $this->student)->get_discussion();
+
+        // The question waits for a review, so only its author and the reviewers can subscribe to it.
+        $this->assertTrue(permissions::can_change_discussion_subscription($discussion, $this->student->id));
+        $this->assertTrue(permissions::can_change_discussion_subscription($discussion, $this->teacher->id));
+        $this->assertFalse(permissions::can_change_discussion_subscription($discussion, $this->otherstudent->id));
+
+        // Default subscribers of a forced moodleoverflow cannot unsubscribe from single discussions.
+        $forced = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::FORCED->value]);
+        $discussion = $this->generator->create_question($forced, $this->teacher)->get_discussion();
+        $this->assertFalse(permissions::can_change_discussion_subscription($discussion, $this->student->id));
+    }
+
+    /**
+     * Test, if only actively enrolled users with the capability allowforcesubscribe are subscribed by default.
+     */
+    public function test_is_default_subscriber(): void {
+        global $DB;
+        $modflow = $this->create_moodleoverflow();
+        $manager = $this->getDataGenerator()->create_and_enrol($this->course, 'manager');
+
+        $this->assertTrue(permissions::is_default_subscriber($modflow, $this->student->id));
+        $this->assertTrue(permissions::is_default_subscriber($modflow, $this->teacher->id));
+        $this->assertFalse(permissions::is_default_subscriber($modflow, $manager->id));
+        $this->assertFalse(permissions::is_default_subscriber($modflow, get_admin()->id));
+
+        // A suspended enrolment does not count.
+        $instance = $DB->get_record('enrol', ['courseid' => $this->course->id, 'enrol' => 'manual'], '*', MUST_EXIST);
+        enrol_get_plugin('manual')->update_user_enrol($instance, $this->student->id, ENROL_USER_SUSPENDED);
+        $this->assertFalse(permissions::is_default_subscriber($modflow, $this->student->id));
     }
 
     // Helper functions.
