@@ -105,8 +105,6 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         // Create the moodleoverflow instance.
         $newitemid = $DB->insert_record('moodleoverflow', $data);
         $this->apply_activity_instance($newitemid);
-
-        // Add current enrolled user subscriptions if necessary.
     }
 
     /**
@@ -191,8 +189,13 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $data = (object) $data;
         $oldid = $data->id;
 
-        $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
         $data->userid = $this->get_mappingid('user', $data->userid);
+        if (!$data->userid) {
+            return;
+        }
+        $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
+        // Backups before version 2026050705 have no preference, all their rows are opt-ins.
+        $data->preference = ($data->preference ?? 1) > 0 ? 1 : -1;
 
         $newitemid = $DB->insert_record('moodleoverflow_subscriptions', $data);
         $this->set_mapping('moodleoverflow_subscription', $oldid, $newitemid, true);
@@ -209,9 +212,14 @@ class restore_moodleoverflow_activity_structure_step extends restore_activity_st
         $data = (object) $data;
         $oldid = $data->id;
 
+        $data->userid = $this->get_mappingid('user', $data->userid);
+        if (!$data->userid) {
+            return;
+        }
         $data->discussion = $this->get_new_parentid('moodleoverflow_discussion');
         $data->moodleoverflow = $this->get_new_parentid('moodleoverflow');
-        $data->userid = $this->get_mappingid('user', $data->userid);
+        // Backups before version 2026050705 store the time of the choice for opt-ins.
+        $data->preference = $data->preference > 0 ? 1 : -1;
 
         $newitemid = $DB->insert_record('moodleoverflow_discuss_subs', $data);
         $this->set_mapping('moodleoverflow_discuss_sub', $oldid, $newitemid, true);
