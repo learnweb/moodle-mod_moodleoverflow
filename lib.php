@@ -36,7 +36,7 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
-use mod_moodleoverflow\subscriptions;
+use mod_moodleoverflow\local\service\subscription;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/locallib.php');
@@ -137,27 +137,6 @@ function moodleoverflow_add_instance(stdClass $data) {
 }
 
 /**
- * Handle changes following the creation of a moodleoverflow instance.
- * This function is typically called by the course_module_created observer.
- *
- * @param context_module   $context        The context of the moodleoverflow
- * @param object $moodleoverflow The moodleoverflow object
- */
-function moodleoverflow_instance_created($context, $moodleoverflow) {
-
-    // Check if users are forced to be subscribed to the moodleoverflow instance.
-    if ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
-        // Get a list of all potential subscribers.
-        $users = subscriptions::get_potential_subscribers($context, 'u.id, u.email');
-
-        // Subscribe all potential subscribers to this moodleoverflow.
-        foreach ($users as $user) {
-            subscriptions::subscribe_user($user->id, $moodleoverflow, $context);
-        }
-    }
-}
-
-/**
  * Updates an instance of the moodleoverflow in the database.
  *
  * Given an object containing all the necessary data,
@@ -172,41 +151,22 @@ function moodleoverflow_update_instance(stdClass $data): bool {
     global $DB;
 
     $data->timemodified = time();
-
-    // Get the moodleoverflow id.
     $data->id = $data->instance;
-
-    // Get the old record.
-    $oldmoodleoverflow = $DB->get_record('moodleoverflow', ['id' => $data->id]);
-
-    // Find the context of the module.
-    $modulecontext = context_module::instance($data->coursemodule);
+    $oldmoodleoverflow = moodleoverflow::from_id($data->instance);
 
     // Check if the subscription state has changed.
     if ($data->forcesubscribe != $oldmoodleoverflow->forcesubscribe) {
-        if ($data->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
-            // Get a list of potential subscribers.
-            $users = subscriptions::get_potential_subscribers($modulecontext, 'u.id, u.email', '');
-
-            // Subscribe all those users to the moodleoverflow instance.
-            foreach ($users as $user) {
-                subscriptions::subscribe_user($user->id, $data, $modulecontext);
-            }
-        } else if ($data->forcesubscribe == MOODLEOVERFLOW_CHOOSESUBSCRIBE) {
-            // Delete all current subscribers.
-            $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $data->id]);
-        }
+        subscription::delete_subscriptions(modflowid: $data->instance);
     }
 
     // Update the moodleoverflow instance in the database.
     $result = $DB->update_record('moodleoverflow', $data);
-
     moodleoverflow_grade_item_update($data);
 
     // Update all grades.
-    service\rating::update_all_grades(moodleoverflow::from_id($data->id));
+    service\rating::update_all_grades(moodleoverflow::from_id($data->instance));
     $completiontime = !empty($data->completionexpected) ? $data->completionexpected : null;
-    api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $data->id, $completiontime);
+    api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $data->instance, $completiontime);
 
     return $result;
 }
@@ -274,8 +234,7 @@ function moodleoverflow_delete_instance($id) {
     $fs->delete_area_files($context->id);
 
     // Delete the subscription elements.
-    $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $moodleoverflow->id]);
-    $DB->delete_records('moodleoverflow_discuss_subs', ['moodleoverflow' => $moodleoverflow->id]);
+    subscription::delete_subscriptions(modflowid: $moodleoverflow->id);
     $DB->delete_records('moodleoverflow_grades', ['moodleoverflowid' => $moodleoverflow->id]);
 
     // Delete the discussions.

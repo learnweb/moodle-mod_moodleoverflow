@@ -79,6 +79,7 @@ $string['cannotreply'] = 'You cannot reply to this post';
 $string['cannotreviewpost'] = 'Review not possible';
 $string['cannottrack'] = 'Could not stop tracking that forum';
 $string['cannotupdatepost'] = 'You can not update this post';
+$string['changesubscriptionmode'] = 'Changing the subscription mode resets the subscription choices of all participants, also for single discussions. Afterwards the default of the new mode applies.';
 $string['cleanreadtime'] = 'Mark old posts as read hour';
 $string['clicktosubscribe'] = 'You are not subscribed to this discussion. Click to subscribe.';
 $string['clicktounsubscribe'] = 'You are subscribed to this discussion. Click to unsubscribe.';
@@ -103,8 +104,6 @@ $string['configvotescalehelpful'] = 'The amount of reputation a mark as helpful 
 $string['configvotescalesolved'] = 'The amount of reputation a mark as solution on your post gives.';
 $string['configvotescaleupvote'] = 'The amount of reputation an upvote for your post gives.';
 $string['configvotescalevote'] = 'The amount of reputation voting gives.';
-$string['confirmsubscribe'] = 'Do you really want to subscribe to forum \'{$a}\'?';
-$string['confirmsubscribediscussion'] = 'Do you really want to subscribe to discussion \'{$a->discussion}\' in forum \'{$a->moodleoverflow}\'?';
 $string['confirmunsubscribe'] = 'Do you really want to unsubscribe from moodleoverflow \'{$a}\'?';
 $string['confirmunsubscribediscussion'] = 'Do you really want to unsubscribe from discussion \'{$a->discussion}\' in moodleoverflow \'{$a->moodleoverflow}\'?';
 $string['containsstarterrating'] = 'Contains a post marked as the most helpful by the questioner';
@@ -124,14 +123,9 @@ $string['desc:only_questions'] = 'The name of questioners will not be displayed 
 $string['desc:review_everything'] = 'All questions and answers are going to be reviewed by a teacher before being published.';
 $string['desc:review_questions'] = 'All questions are going to be reviewed by a teacher before being published.';
 $string['digestunreadpost'] = 'Course: {$a->linktocourse} -> {$a->linktoforum}, Topic: {$a->linktodiscussion} has {$a->unreadposts} unread posts.';
-$string['disallowsubscribe'] = 'Subscriptions not allowed';
 $string['discussionlocked'] = 'This discussion has been locked so you can no longer reply to it.';
 $string['discussionname'] = 'Discussion name';
-$string['discussionnownotsubscribed'] = '{$a->name} will NOT be notified of new posts in \'{$a->discussion}\' of \'{$a->moodleoverflow}\'';
-$string['discussionnowsubscribed'] = '{$a->name} will be notified of new posts in \'{$a->discussion}\' of \'{$a->moodleoverflow}\'';
 $string['discussions'] = 'Discussions';
-$string['discussionsubscription'] = 'Discussion subscription';
-$string['discussionsubscription_help'] = 'Subscribing to a discussion means you will receive notifications of new posts to that discussion.';
 $string['downvotenotchangeable'] = 'Cannot downvote';
 $string['edit'] = 'Edit';
 $string['editedby'] = 'Edited by {$a->name} - original submission {$a->date}';
@@ -160,7 +154,6 @@ $string['eventreadtrackingdisabled'] = 'Read tracking disabled';
 $string['eventreadtrackingenabled'] = 'Read tracking enabled';
 $string['eventsubscriptioncreated'] = 'Subscription created';
 $string['eventsubscriptiondeleted'] = 'Subscription deleted';
-$string['everyoneisnowsubscribed'] = 'Everyone is now subscribed to this forum';
 $string['featurenotavailable'] = "This feature isn't available yet — please ask your site administrator to update Moodle.";
 $string['filterposts'] = 'Filter';
 $string['firstnewest'] = 'Newest first';
@@ -272,7 +265,6 @@ $string['noexistingdiscussion'] = 'The discussion does not exist.';
 $string['noexistingpost'] = 'The post does not exist.';
 $string['noguestpost'] = 'Sorry, guests are not allowed to post.';
 $string['nootherforums'] = 'Unfortunately, there is no other Moodleoverflow where you can move it.';
-$string['nopermissiontosubscribe'] = 'You do not have the permission to view subscribers';
 $string['nopostmoodleoverflow'] = 'Sorry, you are not allowed to post to this forum.';
 $string['noratemoodleoverflow'] = 'Sorry, you are not allowed to vote in this forum.';
 $string['noratingchangeallowed'] = 'You are not allowed to change your ratings.';
@@ -283,9 +275,7 @@ $string['notrackmoodleoverflow'] = 'Don\'t track unread posts';
 $string['notstartuser'] = 'Only the user who started the discussion can mark an answer as helpful.';
 $string['notteacher'] = 'Only course owners can do this.';
 $string['noviewdiscussionspermission'] = 'You do not have the permission to view discussions in this forum';
-$string['nownotsubscribed'] = '{$a->name} will NOT be notified of new posts in \'{$a->moodleoverflow}\'';
 $string['nownottracking'] = '{$a->name} is no longer tracking \'{$a->moodleoverflow}\'.';
-$string['nowsubscribed'] = '{$a->name} will be notified of new posts in \'{$a->moodleoverflow}\'';
 $string['nowtracking'] = '{$a->name} is now tracking \'{$a->moodleoverflow}\'.';
 $string['oldpostdays'] = 'Read after days';
 $string['original_post'] = 'Original post';
@@ -317,7 +307,7 @@ $string['privacy:grade'] = 'Your grade for this Moodleoverflow forum.';
 $string['privacy:metadata:core_files'] = 'Moodleoverflow stores files which have been uploaded by the user to form part of a forum post.';
 $string['privacy:metadata:moodleoverflow_discuss_subs'] = 'Information about the subscriptions to individual forum discussions. This includes when a user has chosen to subscribe to a discussion or to unsubscribe from one where they would otherwise be subscribed.';
 $string['privacy:metadata:moodleoverflow_discuss_subs:discussion'] = 'The ID of the discussion that was subscribed / unsubscribed.';
-$string['privacy:metadata:moodleoverflow_discuss_subs:preference'] = 'The start time of the subscription.';
+$string['privacy:metadata:moodleoverflow_discuss_subs:preference'] = 'Whether the user subscribed to (1) or unsubscribed from (-1) the discussion.';
 $string['privacy:metadata:moodleoverflow_discuss_subs:userid'] = 'The ID of the user who changed the subscription settings.';
 $string['privacy:metadata:moodleoverflow_discussions'] = 'Information about forum discussions. This includes which discussions a user has started.';
 $string['privacy:metadata:moodleoverflow_discussions:name'] = 'The name of the discussion.';
@@ -349,15 +339,17 @@ $string['privacy:metadata:moodleoverflow_read:firstread'] = 'The date the post w
 $string['privacy:metadata:moodleoverflow_read:lastread'] = 'The date the post was read the last time by the user.';
 $string['privacy:metadata:moodleoverflow_read:postid'] = 'The ID of the post that has been read.';
 $string['privacy:metadata:moodleoverflow_read:userid'] = 'The ID of the user who read the post.';
-$string['privacy:metadata:moodleoverflow_subscriptions'] = 'Information about subscriptions to forums. This includes which forums a user has subscribed.';
+$string['privacy:metadata:moodleoverflow_subscriptions'] = 'Information about subscriptions to forums. This includes which forums a user has subscribed to or unsubscribed from.';
 $string['privacy:metadata:moodleoverflow_subscriptions:moodleoverflow'] = 'The ID of the Moodleoverflow forum the user has subscribed.';
+$string['privacy:metadata:moodleoverflow_subscriptions:preference'] = 'Whether the user subscribed to (1) or unsubscribed from (-1) the forum.';
 $string['privacy:metadata:moodleoverflow_subscriptions:userid'] = 'The ID of the user who has subscribed a forum.';
 $string['privacy:metadata:moodleoverflow_tracking'] = 'Information about the tracking of forums. This includes which forums a user does not track.';
 $string['privacy:metadata:moodleoverflow_tracking:moodleoverflowid'] = 'The ID of the moodleoverflow forum that is not tracked by the user.';
 $string['privacy:metadata:moodleoverflow_tracking:userid'] = 'The ID of the user who does not track the forum.';
 $string['privacy:postwasread'] = 'This post was first read on {$a->firstread} and most recently read on {$a->lastread}';
 $string['privacy:readtrackingdisabled'] = 'You have chosen to not track which posts that you have read within this forum.';
-$string['privacy:subscribedtoforum'] = 'You are subscribed to this forum.';
+$string['privacy:subscribedtoforum'] = 'You have subscribed to this forum.';
+$string['privacy:unsubscribedfromforum'] = 'You have unsubscribed from this forum.';
 $string['questioner'] = 'Questioner';
 $string['questions'] = 'Questions';
 $string['questions_and_posts'] = 'Questions and answers';
@@ -400,23 +392,20 @@ $string['starterrating'] = 'Helpful';
 $string['subject'] = 'Subject';
 $string['subscribe'] = 'Subscribe to this forum';
 $string['subscribed'] = 'Subscribed';
-$string['subscribeenrolledonly'] = 'Sorry, only enrolled users are allowed to subscribe to post notifications.';
 $string['subscriptionauto'] = 'Auto subscription';
 $string['subscriptiondisabled'] = 'Subscription disabled';
 $string['subscriptionforced'] = 'Forced subscription';
 $string['subscriptionmode'] = 'Subscription mode';
-$string['subscriptionmode_help'] = 'When a participant is subscribed to a forum it means they will receive forum post notifications. There are 4 subscription mode options:
+$string['subscriptionmode_help'] = 'When a participant is subscribed to a forum, they receive notifications of new posts. Subscribed by default are the enrolled participants with the capability "Allow forced subscription" (by default students and teachers). There are 4 subscription mode options:
 
-* Optional subscription - Participants can choose whether to be subscribed
-* Forced subscription - Everyone is subscribed and cannot unsubscribe
-* Auto subscription - Everyone is subscribed initially but can choose to unsubscribe at any time
-* Subscription disabled - Subscriptions are not allowed
+* Optional subscription - Nobody is subscribed by default. Participants choose whether to subscribe to the forum or to single discussions.
+* Forced subscription - Participants are subscribed by default and cannot unsubscribe. Others, for example managers, choose themselves.
+* Auto subscription - Participants are subscribed by default, but can unsubscribe from the forum or from single discussions.
+* Subscription disabled - Nobody is subscribed and no notifications are sent.
 
-Note: Any subscription mode changes will only affect users who enrol in the course in the future, and not existing users.';
+Changing the subscription mode resets the subscription choices of all participants. Afterwards the default of the new mode applies.';
 $string['subscriptionoptional'] = 'Optional subscription';
 $string['subscriptiontrackingheader'] = 'Subscription and tracking';
-$string['switchtoauto'] = 'If you switch to the auto subscription, all enrolled users will be subscribed to this forum!';
-$string['switchtooptional'] = 'If you switch to the optional subscription, all currently subscribed users will be unsubscribed from this forum!';
 $string['taskcleanreadrecords'] = 'Moodleoverflow maintenance job to clean old read records';
 $string['tasksenddailymails'] = 'Moodleoverflow job to send a daily summary mail of unread posts';
 $string['tasksendmails'] = 'Moodleoverflow maintenance job to send notification mails of unread posts';

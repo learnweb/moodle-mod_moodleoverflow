@@ -29,7 +29,6 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\subscriptions;
 
 /**
  * Moodleoverflow module data generator class
@@ -57,9 +56,6 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     public function reset() {
         $this->discussioncount = 0;
         $this->postcount = 0;
-        // The static caches of subscriptions survive between tests.
-        subscriptions::reset_moodleoverflow_cache();
-        subscriptions::reset_discussion_cache();
         parent::reset();
     }
 

@@ -29,20 +29,20 @@ import Prefetch from 'core/prefetch';
  * @param {string} previousSetting
  */
 export function init(previousSetting) {
-    Prefetch.prefetchStrings('mod_moodleoverflow', ['switchtooptional', 'switchtoauto']);
+    Prefetch.prefetchStrings('mod_moodleoverflow', ['changesubscriptionmode']);
     Prefetch.prefetchStrings('moodle', ['confirm', 'cancel']);
     const form = document.querySelector('form.mform');
     const select = document.getElementById('id_forcesubscribe');
     form.onsubmit = async(e) => {
-        const value = select.selectedOptions[0].value;
-        if (value == previousSetting || value == 1 || value == 3) {
+        // Every change of the mode resets the subscription choices of all users.
+        if (select.selectedOptions[0].value == previousSetting) {
             return;
         }
 
         e.preventDefault();
         await Notification.confirm(
             await getString('confirm'),
-            await getString(value == 0 ? 'switchtooptional' : 'switchtoauto', 'mod_moodleoverflow'),
+            await getString('changesubscriptionmode', 'mod_moodleoverflow'),
             await getString('confirm'),
             await getString('cancel'),
             () => {

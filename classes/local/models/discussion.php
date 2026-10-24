@@ -26,6 +26,7 @@ use mod_moodleoverflow\event\discussion_moved;
 use mod_moodleoverflow\event\discussion_created;
 use mod_moodleoverflow\local\service\readtracking;
 use core\exception\moodle_exception;
+use mod_moodleoverflow\local\service\subscription;
 use moodle_url;
 use Throwable;
 
@@ -227,7 +228,7 @@ class discussion {
             // All other posts are replies to the question and are deleted with it.
             $this->posts[$this->firstpost]->delete($userid);
             readtracking::delete_read_records(discussid: $this->id);
-            $DB->delete_records('moodleoverflow_discuss_subs', ['discussion' => $this->id]);
+            subscription::delete_subscriptions(discussid: $this->id);
             $DB->delete_records('moodleoverflow_mail_info', ['forumdiscussionid' => $this->id]);
             $DB->delete_records('moodleoverflow_discussions', ['id' => $this->id]);
 

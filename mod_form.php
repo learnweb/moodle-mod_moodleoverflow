@@ -27,6 +27,7 @@
 
 use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\local\enum\review_level;
+use mod_moodleoverflow\local\enum\subscription_mode;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -137,11 +138,12 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('header', 'subscriptiontrackingheader', get_string('subscriptiontrackingheader', 'moodleoverflow'));
 
         // Prepare the array with options for the subscription state.
-        $options = [];
-        $options[MOODLEOVERFLOW_CHOOSESUBSCRIBE] = get_string('subscriptionoptional', 'moodleoverflow');
-        $options[MOODLEOVERFLOW_FORCESUBSCRIBE] = get_string('subscriptionforced', 'moodleoverflow');
-        $options[MOODLEOVERFLOW_INITIALSUBSCRIBE] = get_string('subscriptionauto', 'moodleoverflow');
-        $options[MOODLEOVERFLOW_DISALLOWSUBSCRIBE] = get_string('subscriptiondisabled', 'moodleoverflow');
+        $options = [
+            subscription_mode::OPTIONAL->value => get_string('subscriptionoptional', 'moodleoverflow'),
+            subscription_mode::FORCED->value => get_string('subscriptionforced', 'moodleoverflow'),
+            subscription_mode::AUTO->value => get_string('subscriptionauto', 'moodleoverflow'),
+            subscription_mode::DISABLED->value => get_string('subscriptiondisabled', 'moodleoverflow'),
+        ];
 
         // Create the option to set the subscription state.
         $mform->addElement('select', 'forcesubscribe', get_string('subscriptionmode', 'moodleoverflow'), $options);

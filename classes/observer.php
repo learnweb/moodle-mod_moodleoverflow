@@ -16,9 +16,7 @@
 
 namespace mod_moodleoverflow;
 
-use context;
-use context_module;
-use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\service\subscription;
 
 /**
  * Event observer for mod_moodleoverflow.
@@ -54,85 +52,10 @@ class observer {
             $params['userid'] = $cp->userid;
 
             // Delete all records that are connected to those moodleoverflow instances.
-            $DB->delete_records_select('moodleoverflow_subscriptions', 'userid = :userid AND moodleoverflow ' . $select, $params);
-            $DB->delete_records_select('moodleoverflow_read', 'userid = :userid AND moodleoverflowid ' . $select, $params);
-        }
-    }
-
-    /**
-     * Observer for role_assigned event.
-     *
-     * @param \core\event\role_assigned $event
-     *
-     * @return void
-     */
-    public static function role_assigned(\core\event\role_assigned $event) {
-        global $CFG, $DB;
-
-        // Get the context level.
-        $context = context::instance_by_id($event->contextid, MUST_EXIST);
-
-        // Check whether the context level is at course level.
-        // Only at this level the user is enrolled in the course and can subscribe.
-        if ($context->contextlevel != CONTEXT_COURSE) {
-            return;
-        }
-
-        // Require the libriary of the plugin. It is needed for the variable.
-        require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
-        // Get the related user.
-        $userid = $event->relateduserid;
-
-        // Retrieve all moodleoverflows in this course.
-        $sql = "SELECT m.id, m.course as course, cm.id AS cmid, m.forcesubscribe
-                  FROM {moodleoverflow} m
-                  JOIN {course_modules} cm ON (cm.instance = m.id)
-                  JOIN {modules} mo ON (mo.id = cm.module)
-             LEFT JOIN {moodleoverflow_subscriptions} ms ON (ms.moodleoverflow = m.id AND ms.userid = :userid)
-                 WHERE m.course = :courseid AND m.forcesubscribe = :initial AND mo.name = 'moodleoverflow' AND ms.id IS NULL";
-        $params = ['courseid' => $context->instanceid,
-                                 'userid' => $userid,
-                                 'initial' => MOODLEOVERFLOW_INITIALSUBSCRIBE, ];
-        $moodleoverflows = $DB->get_records_sql($sql, $params);
-
-        // Loop through all moodleoverflows.
-        foreach ($moodleoverflows as $moodleoverflow) {
-            // If user doesn't have allowforcesubscribe capability then don't subscribe.
-
-            // Retrieve the context of the module.
-            $modulecontext = context_module::instance($moodleoverflow->cmid);
-
-            // Check if the user is allowed to be forced to be subscribed.
-            $allowforce = has_capability('mod/moodleoverflow:allowforcesubscribe', $modulecontext, $userid);
-
-            // If the user has the right to be forced to be subscribed, subscribe the user.
-            if ($allowforce) {
-                \mod_moodleoverflow\subscriptions::subscribe_user($userid, $moodleoverflow, $modulecontext);
+            foreach (array_keys($moodleoverflows) as $modflowid) {
+                subscription::delete_subscriptions(userid: $cp->userid, modflowid: $modflowid);
             }
-        }
-    }
-
-    /**
-     * Observer for \core\event\course_module_created event.
-     *
-     * @param \core\event\course_module_created $event
-     *
-     * @return void
-     */
-    public static function course_module_created(\core\event\course_module_created $event) {
-        global $CFG;
-
-        // Check if a moodleoverflow instance was created.
-        if ($event->other['modulename'] === 'moodleoverflow') {
-            // Require the library.
-            require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
-
-            // Create a snapshot of the created moodleoverflow record.
-            $moodleoverflow = moodleoverflow::from_id($event->other['instanceid']);
-
-            // Trigger the function for a created moodleoverflow instance.
-            moodleoverflow_instance_created($event->get_context(), $moodleoverflow);
+            $DB->delete_records_select('moodleoverflow_read', 'userid = :userid AND moodleoverflowid ' . $select, $params);
         }
     }
 }

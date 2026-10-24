@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * PHP Unit Tests for the subscription service.
- * @package   mod_moodleoverflow
- * @copyright 2026 Tamaro Walter
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_moodleoverflow;
 
 use core\exception\coding_exception;
@@ -73,7 +66,7 @@ final class subscription_test extends \advanced_testcase {
         bool $expected
     ): void {
         $userid = (int) ($isdefault ? $this->student->id : $this->manager->id);
-        $modflow = $this->create_modflow($mode);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => $mode->value]);
         $discussion = $this->generator->create_question($modflow, $this->teacher)->get_discussion();
         if ($modflowchoice !== null) {
             $this->add_choice($modflow, null, $userid, $modflowchoice);
@@ -119,7 +112,7 @@ final class subscription_test extends \advanced_testcase {
      * Test, if a choice for a discussion does not subscribe the user to the whole moodleoverflow.
      */
     public function test_is_subscribed_ignores_discussion_choices(): void {
-        $modflow = $this->create_modflow(subscription_mode::OPTIONAL);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
         $discussion = $this->generator->create_question($modflow, $this->teacher)->get_discussion();
 
         $this->add_choice($modflow, $discussion, $this->student->id, subscription::OPTIN);
@@ -133,7 +126,7 @@ final class subscription_test extends \advanced_testcase {
      * Test, if every subscribed user is a recipient exactly once, also users without an enrolment.
      */
     public function test_get_recipients(): void {
-        $modflow = $this->create_modflow(subscription_mode::AUTO);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::AUTO->value]);
         $discussion = $this->generator->create_question($modflow, $this->teacher)->get_discussion();
 
         // The student is subscribed by default, through the moodleoverflow and through the discussion.
@@ -156,7 +149,7 @@ final class subscription_test extends \advanced_testcase {
      */
     public function test_subscribe(): void {
         global $DB;
-        $modflow = $this->create_modflow(subscription_mode::OPTIONAL);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
         $discussion = $this->generator->create_question($modflow, $this->teacher)->get_discussion();
         $this->add_choice($modflow, $discussion, $this->student->id, subscription::OPTOUT);
 
@@ -176,7 +169,7 @@ final class subscription_test extends \advanced_testcase {
      */
     public function test_unsubscribe(): void {
         global $DB;
-        $modflow = $this->create_modflow(subscription_mode::AUTO);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::AUTO->value]);
 
         $sink = $this->redirectEvents();
         subscription::unsubscribe($modflow, $this->student->id);
@@ -197,7 +190,7 @@ final class subscription_test extends \advanced_testcase {
      */
     public function test_discussion_actions(): void {
         global $DB;
-        $modflow = $this->create_modflow(subscription_mode::OPTIONAL);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
         $discussion = $this->generator->create_question($modflow, $this->teacher)->get_discussion();
 
         $sink = $this->redirectEvents();
@@ -217,7 +210,7 @@ final class subscription_test extends \advanced_testcase {
      * Test, if a user that cannot change the subscription is refused.
      */
     public function test_unsubscribe_refused(): void {
-        $modflow = $this->create_modflow(subscription_mode::FORCED);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::FORCED->value]);
 
         $this->expectException(\moodle_exception::class);
         subscription::unsubscribe($modflow, $this->student->id);
@@ -240,7 +233,7 @@ final class subscription_test extends \advanced_testcase {
         ?int $expected
     ): void {
         global $DB;
-        $modflow = $this->create_modflow($mode);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => $mode->value]);
         $discussion = $this->generator->create_question($modflow, $this->teacher)->get_discussion();
         $DB->set_field('user', 'autosubscribe', $autosubscribe, ['id' => $this->student->id]);
         if ($discussionchoice !== null) {
@@ -277,8 +270,8 @@ final class subscription_test extends \advanced_testcase {
      */
     public function test_delete_subscriptions(): void {
         global $DB;
-        $modflow = $this->create_modflow(subscription_mode::OPTIONAL);
-        $other = $this->create_modflow(subscription_mode::OPTIONAL);
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
+        $other = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
         $discussion = $this->generator->create_question($modflow, $this->teacher)->get_discussion();
         foreach ([$this->student->id, $this->otherstudent->id] as $userid) {
             $this->add_choice($modflow, null, $userid, subscription::OPTIN);
@@ -300,19 +293,6 @@ final class subscription_test extends \advanced_testcase {
     }
 
     // Helper functions.
-
-    /**
-     * Creates a moodleoverflow without subscription rows.
-     * @param subscription_mode $mode
-     * @return moodleoverflow
-     */
-    private function create_modflow(subscription_mode $mode): moodleoverflow {
-        global $DB;
-        $modflow = $this->create_moodleoverflow(['forcesubscribe' => $mode->value]);
-        // Creating an auto moodleoverflow still subscribes all enrolled users through the old observer.
-        $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $modflow->id]);
-        return $modflow;
-    }
 
     /**
      * Stores a choice of a user directly in the database.

@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow
+@mod @mod_moodleoverflow @javascript
 Feature: A user can control their own moodleoverflow subscription preferences for a discussion
   In order to receive notifications for things I am interested in
   As a user
@@ -20,29 +20,24 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     And I log out
     When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
     Then I should see "Subscribe to this forum"
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
-    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" moodleoverflow discussion card
-    And I should "" see the elements:
-      | Student One will be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name' | Subscribe to this forum |
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "" exist in the "Test post subject one" and "" moodleoverflow discussion card
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "" exist in the "Test post subject two" and "" moodleoverflow discussion card
-    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" moodleoverflow discussion card
-    And I should "" see the elements:
-      | Student One will NOT be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name' | Subscribe to this forum |
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
-    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" moodleoverflow discussion card
-    And I should "" see the elements:
-      | Student One will be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name' | Subscribe to this forum |
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "" exist in the "Test post subject one" and "" moodleoverflow discussion card
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "" exist in the "Test post subject two" and "" moodleoverflow discussion card
-    And I follow "Subscribe to this forum"
-    And I should "" see the elements:
-      | Student One will be notified of new posts in 'Test moodleoverflow name' | Unsubscribe from this forum |
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
-    And I follow "Unsubscribe from this forum"
-    And I should "" see the elements:
-      | Student One will NOT be notified of new posts in 'Test moodleoverflow name' | Subscribe to this forum |
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
+    And I click on "You are not subscribed to this discussion. Click to subscribe." "icon" in the "Test post subject one" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject one" and "" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject two" and "" moodleoverflow discussion card
+    And I click on "You are subscribed to this discussion. Click to unsubscribe." "icon" in the "Test post subject one" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
+    And I click on "You are not subscribed to this discussion. Click to subscribe." "icon" in the "Test post subject one" moodleoverflow discussion card
+    And I reload the page
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject one" and "" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject two" and "" moodleoverflow discussion card
+    And I click on "Subscribe to this forum" "button"
+    And I reload the page
+    And I should see "Unsubscribe from this forum"
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
+    And I click on "Unsubscribe from this forum" "button"
+    And I reload the page
+    And I should see "Subscribe to this forum"
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
 
   Scenario: An automatic subscription moodleoverflow can have discussions unsubscribed from
     Given the following "activities" exist:
@@ -53,26 +48,21 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     And I log out
     When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
     Then I should see "Unsubscribe from this forum"
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
-    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" moodleoverflow discussion card
-    And I should "" see the elements:
-      | Student One will NOT be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name' | Unsubscribe from this forum |
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "" exist in the "Test post subject one" and "" moodleoverflow discussion card
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "" exist in the "Test post subject two" and "" moodleoverflow discussion card
-    And I click on "You are not subscribed to this discussion. Click to subscribe." "link" in the "Test post subject one" moodleoverflow discussion card
-    And I should "" see the elements:
-      | Student One will be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name' | Unsubscribe from this forum |
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
-    And I click on "You are subscribed to this discussion. Click to unsubscribe." "link" in the "Test post subject one" moodleoverflow discussion card
-    And I should "" see the elements:
-      | Student One will NOT be notified of new posts in 'Test post subject one' of 'Test moodleoverflow name' | Unsubscribe from this forum |
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "" exist in the "Test post subject one" and "" moodleoverflow discussion card
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "" exist in the "Test post subject two" and "" moodleoverflow discussion card
-    And I follow "Unsubscribe from this forum"
-    And I should "" see the elements:
-      | Student One will NOT be notified of new posts in 'Test moodleoverflow name' | Subscribe to this forum |
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
-    And I follow "Subscribe to this forum"
-    And I should "" see the elements:
-      | Student One will be notified of new posts in 'Test moodleoverflow name' | Unsubscribe from this forum |
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
+    And I click on "You are subscribed to this discussion. Click to unsubscribe." "icon" in the "Test post subject one" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject one" and "" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject two" and "" moodleoverflow discussion card
+    And I click on "You are not subscribed to this discussion. Click to subscribe." "icon" in the "Test post subject one" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
+    And I click on "You are subscribed to this discussion. Click to unsubscribe." "icon" in the "Test post subject one" moodleoverflow discussion card
+    And I reload the page
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject one" and "" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject two" and "" moodleoverflow discussion card
+    And I click on "Unsubscribe from this forum" "button"
+    And I reload the page
+    And I should see "Subscribe to this forum"
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
+    And I click on "Subscribe to this forum" "button"
+    And I reload the page
+    And I should see "Unsubscribe from this forum"
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
