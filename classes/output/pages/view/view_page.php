@@ -118,6 +118,11 @@ class view_page implements named_templatable, renderable {
             'discussions' => $items,
             'hasdiscussions' => $discussioncount > 0,
             'startdiscussion' => $canstartdiscussion ? ['link' => $startdiscussion->out()] : [],
+            'subscription' => permissions::can_change_subscription($this->modflow, $USER->id) ? [
+                'type' => 'moodleoverflow',
+                'id' => $this->modflow->id,
+                'subscribed' => service\subscription::is_subscribed($this->modflow, $USER->id),
+            ] : [],
             'markallread' => service\readtracking::count_unread_posts_moodleoverflow($this->modflow, $USER->id) > 0 ? [
                 'itemid' => 'moodleoverflow-markallread-' . $this->modflow->id,
                 'instanceid' => $this->modflow->id,

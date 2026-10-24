@@ -85,6 +85,7 @@ class provider implements
             [
                 'userid' => 'privacy:metadata:moodleoverflow_subscriptions:userid',
                 'moodleoverflow' => 'privacy:metadata:moodleoverflow_subscriptions:moodleoverflow',
+                'preference' => 'privacy:metadata:moodleoverflow_subscriptions:preference',
             ],
             'privacy:metadata:moodleoverflow_subscriptions'
         );
@@ -217,7 +218,7 @@ class provider implements
                     c.id AS contextid,
                     mof.*,
                     cm.id AS cmid,
-                    s.userid AS subscribed,
+                    s.preference AS subscriptionpreference,
                     track.userid AS tracked,
                     g.grade
                 FROM {context} c

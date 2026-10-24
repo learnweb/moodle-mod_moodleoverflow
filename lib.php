@@ -36,7 +36,7 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
-use mod_moodleoverflow\subscriptions;
+use mod_moodleoverflow\local\service\subscription;
 
 defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/locallib.php');
@@ -137,27 +137,6 @@ function moodleoverflow_add_instance(stdClass $data) {
 }
 
 /**
- * Handle changes following the creation of a moodleoverflow instance.
- * This function is typically called by the course_module_created observer.
- *
- * @param context_module   $context        The context of the moodleoverflow
- * @param object $moodleoverflow The moodleoverflow object
- */
-function moodleoverflow_instance_created($context, $moodleoverflow) {
-
-    // Check if users are forced to be subscribed to the moodleoverflow instance.
-    if ($moodleoverflow->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
-        // Get a list of all potential subscribers.
-        $users = subscriptions::get_potential_subscribers($context, 'u.id, u.email');
-
-        // Subscribe all potential subscribers to this moodleoverflow.
-        foreach ($users as $user) {
-            subscriptions::subscribe_user($user->id, $moodleoverflow, $context);
-        }
-    }
-}
-
-/**
  * Updates an instance of the moodleoverflow in the database.
  *
  * Given an object containing all the necessary data,
@@ -172,41 +151,22 @@ function moodleoverflow_update_instance(stdClass $data): bool {
     global $DB;
 
     $data->timemodified = time();
-
-    // Get the moodleoverflow id.
     $data->id = $data->instance;
-
-    // Get the old record.
-    $oldmoodleoverflow = $DB->get_record('moodleoverflow', ['id' => $data->id]);
-
-    // Find the context of the module.
-    $modulecontext = context_module::instance($data->coursemodule);
+    $oldmoodleoverflow = moodleoverflow::from_id($data->instance);
 
     // Check if the subscription state has changed.
     if ($data->forcesubscribe != $oldmoodleoverflow->forcesubscribe) {
-        if ($data->forcesubscribe == MOODLEOVERFLOW_INITIALSUBSCRIBE) {
-            // Get a list of potential subscribers.
-            $users = subscriptions::get_potential_subscribers($modulecontext, 'u.id, u.email', '');
-
-            // Subscribe all those users to the moodleoverflow instance.
-            foreach ($users as $user) {
-                subscriptions::subscribe_user($user->id, $data, $modulecontext);
-            }
-        } else if ($data->forcesubscribe == MOODLEOVERFLOW_CHOOSESUBSCRIBE) {
-            // Delete all current subscribers.
-            $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $data->id]);
-        }
+        subscription::delete_subscriptions(modflowid: $data->instance);
     }
 
     // Update the moodleoverflow instance in the database.
     $result = $DB->update_record('moodleoverflow', $data);
-
     moodleoverflow_grade_item_update($data);
 
     // Update all grades.
-    service\rating::update_all_grades(moodleoverflow::from_id($data->id));
+    service\rating::update_all_grades(moodleoverflow::from_id($data->instance));
     $completiontime = !empty($data->completionexpected) ? $data->completionexpected : null;
-    api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $data->id, $completiontime);
+    api::update_completion_date_event($data->coursemodule, 'moodleoverflow', $data->instance, $completiontime);
 
     return $result;
 }
@@ -274,8 +234,7 @@ function moodleoverflow_delete_instance($id) {
     $fs->delete_area_files($context->id);
 
     // Delete the subscription elements.
-    $DB->delete_records('moodleoverflow_subscriptions', ['moodleoverflow' => $moodleoverflow->id]);
-    $DB->delete_records('moodleoverflow_discuss_subs', ['moodleoverflow' => $moodleoverflow->id]);
+    subscription::delete_subscriptions(modflowid: $moodleoverflow->id);
     $DB->delete_records('moodleoverflow_grades', ['moodleoverflowid' => $moodleoverflow->id]);
 
     // Delete the discussions.
@@ -461,54 +420,19 @@ function moodleoverflow_pluginfile($course, $cm, $context, $filearea, $args, $fo
  *
  * @param settings_navigation $settingsnav complete settings navigation tree
  * @param navigation_node|null $moodleoverflownode moodleoverflow administration node
- * @throws \core\exception\moodle_exception
- * @throws coding_exception
- * @throws dml_exception
- * @throws moodle_exception
+ * @throws coding_exception|dml_exception
  */
 function moodleoverflow_extend_settings_navigation(settings_navigation $settingsnav, ?navigation_node $moodleoverflownode = null) {
     global $USER, $CFG;
 
     // Retrieve the current moodle record.
     $moodleoverflow = moodleoverflow::from_id($settingsnav->get_page()->cm->instance);
-
-    // Check if the user can subscribe to the instance.
-    if (!$context = context_module::instance($settingsnav->get_page()->cm->id)) {
-        throw new \moodle_exception('badcontext');
-    }
-    $enrolled = is_enrolled($context, $USER, '', false);
-    $activeenrolled = is_enrolled($context, $USER, '', true);
-    $canmanage = has_capability('mod/moodleoverflow:managesubscriptions', $context);
-    $forcesubscribed = subscriptions::is_forcesubscribed($moodleoverflow);
-    $subscdisabled = subscriptions::subscription_disabled($moodleoverflow);
-    $cansubscribe = $activeenrolled && (!$subscdisabled || $canmanage) &&
-        !($forcesubscribed && has_capability('mod/moodleoverflow:allowforcesubscribe', $context));
+    $context = context_module::instance($settingsnav->get_page()->cm->id);
 
     // Display a link to the index.
-    if ($enrolled && $activeenrolled && $CFG->branch >= 501) {
-        // Generate the text of the link.
-        $linktext = get_string('gotoindex', 'moodleoverflow');
-
-        // Generate the link.
+    if (is_enrolled($context, $USER, '', true) && $CFG->branch >= 501) {
         $link = new moodle_url('/mod/moodleoverflow/index.php', ['id' => $moodleoverflow->course]);
-
-        // Add the link to the menu.
-        $moodleoverflownode->add($linktext, $link, navigation_node::TYPE_SETTING);
-    }
-
-    // Display a link to subscribe or unsubscribe.
-    if ($cansubscribe) {
-        // Choose the linktext depending on the current state of subscription.
-        $issubscribed = subscriptions::is_subscribed($USER->id, $moodleoverflow, $context);
-        if ($issubscribed) {
-            $linktext = get_string('unsubscribe', 'moodleoverflow');
-        } else {
-            $linktext = get_string('subscribe', 'moodleoverflow');
-        }
-
-        // Add the link to the menu.
-        $url = new moodle_url('/mod/moodleoverflow/subscribe.php', ['id' => $moodleoverflow->id, 'sesskey' => sesskey()]);
-        $moodleoverflownode->add($linktext, $url, navigation_node::TYPE_SETTING);
+        $moodleoverflownode->add(get_string('gotoindex', 'moodleoverflow'), $link, navigation_node::TYPE_SETTING);
     }
 }
 

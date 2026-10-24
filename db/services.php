@@ -50,14 +50,6 @@ $functions = [
         'type' => 'write',
         'ajax' => true,
     ],
-    'mod_moodleoverflow_change_subscription_mode' => [
-        'classname' => 'mod_moodleoverflow\external\change_subscription_mode',
-        'methodname' => 'execute',
-        'classpath' => 'mod/moodleoverflow/classes/external/change_subscription_mode.php',
-        'description' => 'Changes subscription mode',
-        'type' => 'write',
-        'ajax' => true,
-    ],
     'mod_moodleoverflow_change_readtracking_mode' => [
         'classname' => 'mod_moodleoverflow\external\change_readtracking_mode',
         'methodname' => 'execute',

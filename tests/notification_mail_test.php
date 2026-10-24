@@ -16,112 +16,120 @@
 
 namespace mod_moodleoverflow;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->libdir . '/completionlib.php');
-
+use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\manager\mail_manager;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\service\subscription;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
-use PHPUnit\Framework\Attributes\CoversClass;
-use stdClass;
 
 /**
- * Unit tests for the mod_moodleoverflow plugin.
- *
+ * Tests who gets a notification mail about a new post. The recipients follow the rules of the subscription service.
  * @package   mod_moodleoverflow
  * @copyright 2025 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-/**
- * PHPUnit tests for testing the process of sending notification of new posts via email.
- *
- * @package   mod_moodleoverflow
- * @copyright 2025 Tamaro Walter
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
  * @covers \mod_moodleoverflow\local\manager\mail_manager
  */
-#[CoversClass(mail_manager::class)]
 final class notification_mail_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
-    // Attributes.
+    /** @var \phpunit_phpmailer_sink catches the sent mails */
+    private $sink;
 
-    /** @var object The data that will be used for testing.
-     * This Class contains the test data:
-     * - one course.
-     * - a moodleoverflow activity
-     * - a teacher.
-     * - two students.
-     * - message and mail sinks to check if mails were sent.
-     */
-    private $testdata;
-
-    // Construct functions.
     public function setUp(): void {
         parent::setUp();
-        $this->testdata = new stdClass();
         $this->resetAfterTest();
-        $this->helper_course_set_up();
+        $this->sink = $this->redirect_mails();
+        $this->setup_course();
     }
-
-    public function tearDown(): void {
-        $this->testdata = null;
-        parent::tearDown();
-    }
-
-    // Tests.
 
     /**
-     * Test if order of the mails is correct.
-     *
-     * @return void
-     * @covers \mod_moodleoverflow\task\send_mails
+     * Test, if a user that unsubscribed from a discussion gets no mails about it, although they are subscribed to the
+     * moodleoverflow.
      */
-    public function test_sortorder(): void {
-        $this->testdata->output = $this->run_task(new send_mails());
-        $this->assertTrue(true);
-        /* LEARNWEB-TODO: Add tests. A simple test coverage of the notification mails are in review_test.php for now.
-                          They need to be removed from there and added here (+extending test cases). */
+    public function test_discussion_optout(): void {
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        subscription::subscribe($modflow, $this->student->id);
+        subscription::subscribe($modflow, $this->otherstudent->id);
+        subscription::unsubscribe_discussion($question->get_discussion(), $this->student->id);
+
+        $this->assertEquals([(int) $this->otherstudent->id], $this->get_recipients($question));
+    }
+
+    /**
+     * Test, if a user that is subscribed to the moodleoverflow and to the discussion gets the mail once.
+     */
+    public function test_no_duplicates(): void {
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        subscription::subscribe($modflow, $this->student->id);
+        subscription::subscribe_discussion($question->get_discussion(), $this->student->id);
+
+        $this->assertEquals([(int) $this->student->id], $this->get_recipients($question));
+    }
+
+    /**
+     * Test, if a forced moodleoverflow notifies the users with the capability allowforcesubscribe, but not a manager
+     * without it and not the author.
+     */
+    public function test_forced(): void {
+        $this->getDataGenerator()->create_and_enrol($this->course, 'manager');
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::FORCED->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+
+        $expected = [(int) $this->student->id, (int) $this->otherstudent->id];
+        sort($expected);
+        $this->assertEquals($expected, $this->get_recipients($question));
+    }
+
+    /**
+     * Test, if a moodleoverflow with disabled subscriptions notifies nobody, also not users that subscribed before.
+     */
+    public function test_disabled(): void {
+        global $DB;
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::DISABLED->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $DB->insert_record('moodleoverflow_subscriptions', [
+            'userid' => $this->student->id,
+            'moodleoverflow' => $modflow->id,
+            'preference' => subscription::OPTIN,
+        ]);
+
+        $this->assertEquals([], $this->get_recipients($question));
+    }
+
+    /**
+     * Test, if the task sends exactly one mail to every recipient.
+     */
+    public function test_send_mails(): void {
+        $modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::OPTIONAL->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        subscription::subscribe($modflow, $this->student->id);
+        subscription::subscribe_discussion($question->get_discussion(), $this->student->id);
+        subscription::subscribe($modflow, $this->otherstudent->id);
+        subscription::unsubscribe_discussion($question->get_discussion(), $this->otherstudent->id);
+
+        $this->sink->clear();
+        $this->run_task(new send_mails());
+
+        $this->assertEquals([$this->student->email], array_column($this->sink->get_messages(), 'to'));
     }
 
     // Helper functions.
 
     /**
-     * Helper function that creates:
-     * - two courses.
-     * - an assignment in each course.
-     * - an activity completion in the first course.
-     * - a teacher that is enrolled in both courses.
-     * - a student in each course.
+     * Returns the users that would get a mail about a post, sorted by id.
+     * @param post $post
+     * @return int[]
      */
-    private function helper_course_set_up(): void {
-        $datagenerator = $this->getDataGenerator();
-        $plugingenerator = $datagenerator->get_plugin_generator('mod_moodleoverflow');
-        $this->testdata->mailsink = $this->redirect_mails();
-        $this->testdata->messagesink = $this->redirectMessages();
-        // Create a new course.
-        $this->testdata->course = $datagenerator->create_course();
-
-        // Create a teacher and a student and enroll them in the course.
-        $this->testdata->teacher = $datagenerator->create_user(['firstname' => 'Tamaro', 'email' => 'tamaromail@example.com',
-                                                                'maildigest' => 0, ]);
-        $this->testdata->student1 = $datagenerator->create_user(['firstname' => 'Student1', 'email' => 'student1mail@example.com',
-                                                                 'maildigest' => 0, ]);
-        $this->testdata->student2 = $datagenerator->create_user(['firstname' => 'Student1', 'email' => 'student1mail@example.com',
-                                                                 'maildigest' => 0, ]);
-
-        $datagenerator->enrol_user($this->testdata->teacher->id, $this->testdata->course->id, 'teacher');
-        $datagenerator->enrol_user($this->testdata->student1->id, $this->testdata->course->id, 'student');
-        $datagenerator->enrol_user($this->testdata->student2->id, $this->testdata->course->id, 'student');
-
-        // Create a moodleoverflow with a discussion from the teacher.
-        $options = ['course' => $this->testdata->course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
-        $this->testdata->moodleoverflow = $datagenerator->create_module('moodleoverflow', $options);
-        $this->testdata->coursemodule = get_coursemodule_from_instance('moodleoverflow', $this->testdata->moodleoverflow->id);
-        $this->testdata->discussion = $plugingenerator->post_to_forum($this->testdata->moodleoverflow, $this->testdata->teacher);
+    private function get_recipients(post $post): array {
+        $records = array_filter(
+            mail_manager::get_unmailed_posts(0, time() + 1),
+            fn($record) => $record->postid == $post->get_id()
+        );
+        $userids = array_map('intval', array_column($records, 'usertoid'));
+        sort($userids);
+        return $userids;
     }
 }

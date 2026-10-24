@@ -27,7 +27,7 @@ use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\rating;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\local\service\review;
-use mod_moodleoverflow\subscriptions;
+use mod_moodleoverflow\local\service\subscription;
 use core\exception\moodle_exception;
 use moodle_url;
 
@@ -88,7 +88,6 @@ class discussion_card implements named_templatable, renderable {
     #[\Override]
     public function export_for_template(renderer_base $output): object {
         global $USER;
-        $isloggedin = !is_guest($this->context, $USER) && isloggedin();
         // Check if the post was marked as helpful or as solution.
         $helpful = rating::get_marked_post_ids($this->discussion, rating_type::HELPFUL);
         if ($helpful) {
@@ -139,7 +138,6 @@ class discussion_card implements named_templatable, renderable {
 
         // Miscellaneous data.
         $topicmove = ['name' => $this->discussion->name, 'id' => $this->discussion->get_id()];
-        $subicon = subscriptions::get_discussion_subscription_icon($this->modflow, $this->context, $this->discussion->get_id());
 
         return (object) [
             'postid' => $this->firstpost->get_id(),
@@ -160,8 +158,11 @@ class discussion_card implements named_templatable, renderable {
             'reviewlink' => $reviewlink?->out(),
             'questionunderreview' => $this->firstpost->reviewed == 0,
             'canmovetopic' => $this->movepossible ? $topicmove : [],
-            'cansubtodiscussion' => ($isloggedin && subscriptions::is_subscribable($this->modflow, $this->context)) ? [
-                'discussionsubicon' => $subicon,
+            'subscription' => permissions::can_change_discussion_subscription($this->discussion, $USER->id) ? [
+                'type' => 'discussion',
+                'id' => $this->discussion->get_id(),
+                'subscribed' => subscription::is_subscribed_to_discussion($this->discussion, $USER->id),
+                'icononly' => true,
             ] : [],
         ];
     }

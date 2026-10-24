@@ -107,11 +107,12 @@
         <INDEX NAME="postid-userid" UNIQUE="false" FIELDS="postid, userid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="moodleoverflow_subscriptions" COMMENT="Keeps track of who is subscribed to what forum">
+    <TABLE NAME="moodleoverflow_subscriptions" COMMENT="The choices of users to subscribe to or unsubscribe from a moodleoverflow.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="moodleoverflow" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="preference" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Opt-in (1) or opt-out (-1)."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -120,6 +121,7 @@
       <INDEXES>
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
         <INDEX NAME="moodleoverflow" UNIQUE="false" FIELDS="moodleoverflow"/>
+        <INDEX NAME="userid-moodleoverflow" UNIQUE="true" FIELDS="userid, moodleoverflow"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="moodleoverflow_discuss_subs" COMMENT="Users may choose to subscribe and unsubscribe from specific discussions.">
@@ -128,7 +130,7 @@
         <FIELD NAME="moodleoverflow" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Id of the moodleoverflow instance that contains the discussion that is subscribed or subscribed by the user."/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="ID of the user with the custom settings."/>
         <FIELD NAME="discussion" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="ID of the discussion that has custom settings."/>
-        <FIELD NAME="preference" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Timestamp of the latest change of the custom preference."/>
+        <FIELD NAME="preference" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Opt-in (1) or opt-out (-1)."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

@@ -68,7 +68,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
             'userid', 'preference', ]);
 
         $subscriptions = new backup_nested_element('subscriptions');
-        $subscription = new backup_nested_element('subscription', ['id'], ['userid']);
+        $subscription = new backup_nested_element('subscription', ['id'], ['userid', 'preference']);
 
         $readposts = new backup_nested_element('readposts');
         $read = new backup_nested_element('read', ['id'], [
@@ -124,6 +124,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
         // Define id annotations.
         $post->annotate_ids('user', 'userid');
         $subscription->annotate_ids('user', 'userid');
+        $discussionsub->annotate_ids('user', 'userid');
         $read->annotate_ids('user', 'userid');
         $rating->annotate_ids('user', 'userid');
         $track->annotate_ids('user', 'userid');

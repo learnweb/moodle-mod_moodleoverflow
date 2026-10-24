@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow
+@mod @mod_moodleoverflow @javascript
 Feature: A user can control their own subscription preferences for a moodleoverflow
   In order to receive notifications for things I am interested in
   As a user
@@ -17,8 +17,8 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
     Then I should "not" see the elements:
       | Subscribe to this forum | Unsubscribe from this forum |
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
 
   Scenario: A forced subscription moodleoverflow cannot be subscribed to
     Given the following "activities" exist:
@@ -28,8 +28,8 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
     Then I should "not" see the elements:
       | Subscribe to this forum | Unsubscribe from this forum |
-    And "You are subscribed to this discussion. Click to unsubscribe." "link" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
-    And "You are not subscribed to this discussion. Click to subscribe." "link" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
+    And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
+    And "You are not subscribed to this discussion. Click to subscribe." "icon" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
 
   Scenario: An optional moodleoverflow can be subscribed to
     Given the following "activities" exist:
@@ -39,7 +39,7 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
     Then I should see "Subscribe to this forum"
     And I should not see "Unsubscribe from this forum"
-    And I follow "Subscribe to this forum"
-    And I should "" see the elements:
-      | Student One will be notified of new posts in 'Test moodleoverflow name' | Unsubscribe from this forum |
+    And I click on "Subscribe to this forum" "button"
+    And I reload the page
+    And I should see "Unsubscribe from this forum"
     And I should not see "Subscribe to this forum"

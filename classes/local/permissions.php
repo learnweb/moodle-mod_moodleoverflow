@@ -20,6 +20,7 @@ use core\exception\access_denied_exception;
 use core\exception\coding_exception;
 use core_availability\info_module;
 use dml_exception;
+use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
@@ -27,8 +28,8 @@ use mod_moodleoverflow\local\models\post;
 use core\exception\moodle_exception;
 
 /**
- * Stateless class that bundles permissions checks. Functions check with capabilities and moodleoverflow rules if actions are
- * possible or if elements are visible to a user.
+ * Stateless class that bundles permissions checks. This is the central "rulebook" of this plugin for read/writes.
+ * Functions check with capabilities and moodleoverflow rules if actions are possible or if elements are visible to a user.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
@@ -376,5 +377,57 @@ class permissions {
      */
     public static function can_change_tracking(moodleoverflow $modflow, int $userid): bool {
         return self::can_track($modflow, $userid) && $modflow->get_tracking_type()->users_can_choose();
+    }
+
+    // Subscription permissions.
+
+    /**
+     * If a user can be subscribed to a moodleoverflow. Nobody can be subscribed when subscriptions are disabled.
+     * @param moodleoverflow $modflow
+     * @param int $userid
+     * @return bool
+     * @throws dml_exception|moodle_exception
+     */
+    public static function can_subscribe(moodleoverflow $modflow, int $userid): bool {
+        return $userid !== 0
+            && !isguestuser($userid)
+            && self::can_view_moodleoverflow($modflow, $userid)
+            && $modflow->get_subscription_mode() !== subscription_mode::DISABLED;
+    }
+
+    /**
+     * If a user can subscribe to or unsubscribe from a moodleoverflow themselves.
+     * @param moodleoverflow $modflow
+     * @param int $userid
+     * @return bool
+     * @throws dml_exception|moodle_exception
+     */
+    public static function can_change_subscription(moodleoverflow $modflow, int $userid): bool {
+        // In a forced moodleoverflow, the default subscribers cannot opt out; everyone else chooses themselves.
+        return self::can_subscribe($modflow, $userid)
+            && ($modflow->get_subscription_mode() !== subscription_mode::FORCED || !self::is_default_subscriber($modflow, $userid));
+    }
+
+    /**
+     * If a user can subscribe to or unsubscribe from a single discussion.
+     * @param discussion $discussion
+     * @param int $userid
+     * @return bool
+     * @throws dml_exception|moodle_exception
+     */
+    public static function can_change_discussion_subscription(discussion $discussion, int $userid): bool {
+        return self::can_view_discussion($discussion, $userid)
+            && self::can_change_subscription($discussion->get_moodleoverflow(), $userid);
+    }
+
+    /**
+     * If a user belongs to the users that are subscribed by default in forced and auto mode. The mode itself is not
+     * checked here. Usually, teachers and students of the course belong to this. Admins that are enrolled in the course not.
+     * @param moodleoverflow $modflow
+     * @param int $userid
+     * @return bool
+     */
+    public static function is_default_subscriber(moodleoverflow $modflow, int $userid): bool {
+        return is_enrolled($modflow->get_context(), $userid, 'mod/moodleoverflow:allowforcesubscribe', true);
     }
 }

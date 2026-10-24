@@ -36,7 +36,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\local\service\readtracking;
-use mod_moodleoverflow\subscriptions;
+use mod_moodleoverflow\local\service\subscription;
 
 /**
  * moodleoverflow-related steps definitions.
@@ -77,9 +77,6 @@ class behat_mod_moodleoverflow extends behat_base {
                 [$row['username'], 'C1', $row['role']],
             ])]);
         }
-
-        subscriptions::reset_moodleoverflow_cache();
-        subscriptions::reset_discussion_cache();
     }
 
     /**
@@ -379,9 +376,8 @@ class behat_mod_moodleoverflow extends behat_base {
 
     // phpcs:disable moodle.Files.LineLength.TooLong
     /**
-     * Checks that an element and selector type exists in another element and selector type on the current page.
-     *
-     * This step is for advanced users, use it if you don't find anything else suitable for what you need.
+     * Checks that an element and selector type is shown in one or two moodleoverflow discussion cards. Hidden elements
+     * count as not shown (with JavaScript): toggles render all their states and hide the inactive ones.
      *
      * @Given :element :selectortype should :text exist in the :discussiontitle and :optdiscussion moodleoverflow discussion card
      *
@@ -393,32 +389,22 @@ class behat_mod_moodleoverflow extends behat_base {
      */
     public function should_exist_in_the_moodleoverflow_discussion_card($element, $selectortype, $text, $discussiontitle, string $optdiscussion) {
         // phpcs:enable
-        $containernode = $this->find_moodleoverflow_discussion_card($discussiontitle);
-
-        if ($text === "not") {
-            try {
-                $this->find($selectortype, $element, false, $containernode, behat_base::get_reduced_timeout());
-            } catch (ElementNotFoundException $e) {
-                return; // Element not found as expected.
+        foreach (array_filter([$discussiontitle, $optdiscussion]) as $title) {
+            $shown = $this->is_shown($selectortype, $element, $this->find_moodleoverflow_discussion_card($title));
+            if ($text === "not" && $shown) {
+                throw new ExpectationException(
+                    "The '{$element}' '{$selectortype}' exists in the '{$title}' moodleoverflow discussion card",
+                    $this->getSession()
+                );
             }
-            throw new ExpectationException(
-                "The '{$element}' '{$selectortype}' exists in the '{$discussiontitle}' moodleoverflow discussion card",
-                $this->getSession()
-            );
-        }
-
-        $exception = new ElementNotFoundException(
-            $this->getSession(),
-            $selectortype,
-            null,
-            "$element in the moodleoverflow discussion card."
-        );
-
-        $this->find($selectortype, $element, $exception, $containernode);
-
-        // Search for a second discussion if provided.
-        if ($optdiscussion !== "") {
-            $this->find_moodleoverflow_discussion_card($optdiscussion);
+            if ($text !== "not" && !$shown) {
+                throw new ElementNotFoundException(
+                    $this->getSession(),
+                    $selectortype,
+                    null,
+                    "$element in the '{$title}' moodleoverflow discussion card."
+                );
+            }
         }
     }
 
@@ -567,16 +553,12 @@ class behat_mod_moodleoverflow extends behat_base {
     public function should_be_subscribed(string $type, string $modflowname) {
         global $DB, $USER;
         $moodleoverflow = $DB->get_record('moodleoverflow', ['name' => $modflowname]);
-        $cm = get_coursemodule_from_instance('moodleoverflow', $moodleoverflow->id);
-        if ($type == 'not') {
-            if (subscriptions::is_subscribed($USER->id, $moodleoverflow, context_module::instance($cm->id))) {
-                throw new Exception("User should not be subscribed but is already subscribed");
-            }
-        } else {
-            $params = ['moodleoverflow' => $moodleoverflow->id, 'userid' => $USER->id];
-            if ($DB->count_records('moodleoverflow_subscriptions', $params) != 1) {
-                throw new Exception("User should be subscribed but is not");
-            }
+        $subscribed = subscription::is_subscribed(moodleoverflow::from_record($moodleoverflow), $USER->id);
+        if ($type == 'not' && $subscribed) {
+            throw new Exception("User should not be subscribed but is already subscribed");
+        }
+        if ($type != 'not' && !$subscribed) {
+            throw new Exception("User should be subscribed but is not");
         }
     }
 
@@ -612,26 +594,36 @@ class behat_mod_moodleoverflow extends behat_base {
      */
     public function set_subscription_readtracking(string $username, string $modflowname, string $substype, string $readtype): void {
         global $DB;
-        $substype = $substype == "on" ? true : false;
-        $readtype = $readtype == "on" ? true : false;
         $modflow = moodleoverflow::from_record($DB->get_record('moodleoverflow', ['name' => $modflowname]));
         $user = $DB->get_record('user', ['username' => $username]);
-        $cm = get_coursemodule_from_instance('moodleoverflow', $modflow->id);
-        $modcontext = context_module::instance($cm->id);
-        if ($substype) {
-            subscriptions::subscribe_user($user->id, $modflow, $modcontext, true);
-        } else {
-            subscriptions::unsubscribe_user($user->id, $modflow, $modcontext, true);
-        }
 
-        if ($readtype) {
-            readtracking::start_tracking($modflow, $user->id);
-        } else {
-            readtracking::stop_tracking($modflow, $user->id);
-        }
+        $substype == "on" ? subscription::subscribe($modflow, $user->id) : subscription::unsubscribe($modflow, $user->id);
+        $readtype == "on" ? readtracking::start_tracking($modflow, $user->id) : readtracking::stop_tracking($modflow, $user->id);
     }
 
     // Internal helper functions.
+
+    /**
+     * Whether an element is shown in a container: it exists and, with JavaScript, is visible.
+     *
+     * @param string $selectortype
+     * @param string $element
+     * @param \Behat\Mink\Element\Element $container
+     * @return bool
+     */
+    protected function is_shown(string $selectortype, string $element, \Behat\Mink\Element\Element $container): bool {
+        try {
+            $nodes = $this->find_all($selectortype, $element, false, $container, behat_base::get_reduced_timeout());
+        } catch (ElementNotFoundException $e) {
+            return false;
+        }
+        foreach ($nodes as $node) {
+            if (!$this->running_javascript() || $node->isVisible()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Gets the container node.

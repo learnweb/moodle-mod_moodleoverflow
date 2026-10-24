@@ -356,3 +356,27 @@ function mod_moodleoverflow_move_draftfiles_to_permanent_filearea() {
 
     return $postsupdated;
 }
+
+/**
+ * Turns the rows of moodleoverflow_subscriptions into choices of users: opt-in (1) or opt-out (-1), like in
+ * moodleoverflow_discuss_subs. Needs the field preference and the unique index (userid, moodleoverflow).
+ *
+ * The values are written out, upgrade steps must not depend on the current plugin code.
+ */
+function mod_moodleoverflow_convert_subscription_choices(): void {
+    global $DB;
+
+    // In auto mode, enrolled users without a row have unsubscribed (or never got the subscription). Store that as an
+    // opt-out, so they do not fall back to the default and get mails again.
+    $sql = 'INSERT INTO {moodleoverflow_subscriptions} (userid, moodleoverflow, preference)
+            SELECT DISTINCT ue.userid, m.id, -1
+              FROM {moodleoverflow} m
+              JOIN {enrol} e ON e.courseid = m.course
+              JOIN {user_enrolments} ue ON ue.enrolid = e.id
+         LEFT JOIN {moodleoverflow_subscriptions} s ON s.userid = ue.userid AND s.moodleoverflow = m.id
+             WHERE m.forcesubscribe = :auto AND s.id IS NULL';
+    $DB->execute($sql, ['auto' => 2]);
+
+    // Discussion opt-ins stored the time of the choice until now.
+    $DB->execute('UPDATE {moodleoverflow_discuss_subs} SET preference = 1 WHERE preference > 1');
+}

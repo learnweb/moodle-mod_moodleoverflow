@@ -27,6 +27,7 @@ namespace mod_moodleoverflow;
 use mod_moodleoverflow\external\review_approve_post;
 use mod_moodleoverflow\external\review_reject_post;
 use mod_moodleoverflow\local\enum\review_level;
+use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
@@ -98,7 +99,7 @@ final class review_test extends \advanced_testcase {
     public function test_forum_review_everything(): void {
         global $DB;
 
-        $options = ['needsreview' => review_level::EVERYTHING->value, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
+        $options = ['needsreview' => review_level::EVERYTHING->value, 'forcesubscribe' => subscription_mode::FORCED->value];
 
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
@@ -163,7 +164,7 @@ final class review_test extends \advanced_testcase {
     public function test_forum_review_only_questions(): void {
         global $DB;
 
-        $options = ['needsreview' => review_level::QUESTIONS->value, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
+        $options = ['needsreview' => review_level::QUESTIONS->value, 'forcesubscribe' => subscription_mode::FORCED->value];
         $posts = $this->create_post($options);
         $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
 
@@ -195,7 +196,7 @@ final class review_test extends \advanced_testcase {
      * Test reviews functionality when reviewing is allowed in admin settings.
      */
     public function test_forum_review_disallowed(): void {
-        $options = ['needsreview' => review_level::EVERYTHING->value, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
+        $options = ['needsreview' => review_level::EVERYTHING->value, 'forcesubscribe' => subscription_mode::FORCED->value];
 
         set_config('allowreview', 0, 'moodleoverflow');
 

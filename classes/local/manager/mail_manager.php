@@ -19,10 +19,11 @@ namespace mod_moodleoverflow\local\manager;
 use context_module;
 use core_user;
 use dml_exception;
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service\subscription;
 use mod_moodleoverflow\output\moodleoverflow_email;
-use mod_moodleoverflow\subscriptions;
 use core\exception\moodle_exception;
 use stdClass;
 
@@ -194,19 +195,20 @@ class mail_manager {
 
 
     /**
-     * Return a list of records that will be mailed. One record has all the information that is needed. This includes:
+     * Return a list of records that will be mailed. One record per unmailed post and recipient has all the information
+     * that is needed:
      * - The post, discussion, moodleoverflow data of a post that is unmailed
      * - The data of the post author
-     * - The data of the user, that is subscribed to the moodleoverflow discussion, that has the unmailed post
+     * - The data of the user that is subscribed to the discussion of the post (the recipient)
      *
-     * The same post and user can be found redundantly, because one posts is  mailed to many user and one user gets notified about
-     * many posts. Because all data is in one table, every record represents one mail.
+     * The recipients come from the subscription service, so there is only one definition of "subscribed". Authors are
+     * not notified about their own posts.
      *
      * @param int $starttime posts created after this time
      * @param int $endtime posts created before this time
      *
      * @return array
-     * @throws dml_exception
+     * @throws dml_exception|moodle_exception
      */
     public static function get_unmailed_posts($starttime, $endtime): array {
         global $DB;
@@ -234,73 +236,48 @@ class mail_manager {
                          userto.lastnamephonetic AS usertolastnamephonetic, userto.middlename AS usertomiddlename,
                          userto.alternatename AS usertoalternatename";
 
-        $fields = "(ROW_NUMBER() OVER (ORDER BY p.modified)) AS row_num, " . $postfields . ", " . $discussionfields . ", "
-                    . $moodleoverflowfields . ", " . $coursefields . ", " . $cmfields . ", " . $authorfields . ", " . $usertofields;
-
-        // Set params for the sql query.
-        $timenow = time();
+        // Load the unmailed posts, one row per post.
         $params = [
-            'unsubscribed' => subscriptions::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED,
-            'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE,
-            'active' => ENROL_USER_ACTIVE,
-            'enabled' => ENROL_INSTANCE_ENABLED,
-            'now1' => $timenow,
-            'now2' => $timenow,
             'pendingmail' => self::MOODLEOVERFLOW_MAILED_PENDING,
             'reviewsent' => self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS,
             'ptimestart' => $starttime,
             'ptimeend' => $endtime,
         ];
+        $sql = "SELECT $postfields, $discussionfields, $moodleoverflowfields, $coursefields, $cmfields, $authorfields
+                  FROM {moodleoverflow_posts} p
+                  JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                  JOIN {moodleoverflow} mo ON mo.id = d.moodleoverflow
+                  JOIN {course} c ON c.id = mo.course
+                  JOIN {course_modules} cm ON cm.instance = mo.id
+                  JOIN {modules} md ON md.id = cm.module AND md.name = 'moodleoverflow'
+                  JOIN {user} author ON author.id = p.userid
+                 WHERE p.mailed IN (:pendingmail, :reviewsent) AND p.reviewed = 1
+                   AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
+              ORDER BY p.modified";
+        $posts = $DB->get_records_sql($sql, $params);
 
-        // Retrieve the records.
-        // Documentation can be found on: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-Developers.
-        $sql = "SELECT $fields
-                FROM {moodleoverflow_posts} p
-                JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-                JOIN {moodleoverflow} mo ON mo.id = d.moodleoverflow
-                JOIN {course} c ON c.id = mo.course
-                JOIN (
-                    SELECT cm.id, cm.groupingid, cm.instance
-                    FROM {course_modules} cm
-                    JOIN {modules} md ON md.id = cm.module
-                    WHERE md.name = 'moodleoverflow'
-                ) cm ON cm.instance = mo.id
-                JOIN {user} author ON author.id = p.userid
-                JOIN (
-                    SELECT *
-                    FROM (
-                        SELECT userid, moodleoverflow, -1 as discussion
-                        FROM {moodleoverflow_subscriptions} s
-                        UNION
-                        SELECT userid, moodleoverflow, discussion
-                        FROM {moodleoverflow_discuss_subs} ds
-                        WHERE ds.preference <> :unsubscribed
-                        UNION
-                        SELECT userid, moodleoverflow, discussion
-                        FROM (
-                            SELECT u.id AS userid, m.id AS moodleoverflow, -1 AS discussion
-                            FROM {user} u
-                            JOIN {user_enrolments} ue ON ue.userid = u.id
-                            JOIN {enrol} e ON e.id = ue.enrolid
-                            JOIN {course} c ON c.id = e.courseid
-                            JOIN {moodleoverflow} m ON m.course = c.id
-                            WHERE m.forcesubscribe = :forcesubscribe
-                            AND ue.status = :active
-                            AND e.status = :enabled
-                            AND ue.timestart <= :now1
-                            AND (ue.timeend = 0 OR ue.timeend > :now2)
-                        ) as forcedsubs
-                    ) as subscriptions
-                    LEFT JOIN {user} u ON u.id = subscriptions.userid
-                ) userto ON ((d.moodleoverflow = userto.moodleoverflow) AND
-                                      ((p.discussion = userto.discussion) OR
-                                      (userto.discussion = -1))
-                                     )
-                WHERE p.mailed IN (:pendingmail, :reviewsent) AND p.reviewed = 1
-                AND COALESCE(p.timereviewed, p.created) >= :ptimestart AND p.created < :ptimeend
-                AND author.id <> userto.id";
+        // The recipients of every discussion, and their user data in one query.
+        $recipientids = [];
+        foreach ($posts as $post) {
+            $recipientids[$post->discussionid] ??= subscription::get_recipients(discussion::from_id($post->discussionid));
+        }
+        $userids = array_unique(array_merge(...array_values($recipientids)));
+        if (!$userids) {
+            return [];
+        }
+        [$insql, $inparams] = $DB->get_in_or_equal($userids);
+        $recipients = $DB->get_records_sql("SELECT $usertofields FROM {user} userto WHERE userto.id $insql", $inparams);
 
-        return $DB->get_records_sql($sql, $params);
+        // One record per post and recipient.
+        $records = [];
+        foreach ($posts as $post) {
+            foreach ($recipientids[$post->discussionid] as $userid) {
+                if ($userid !== (int) $post->authorid) {
+                    $records[] = (object) ((array) $post + (array) $recipients[$userid]);
+                }
+            }
+        }
+        return $records;
     }
 
     /**

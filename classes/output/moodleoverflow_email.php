@@ -16,7 +16,10 @@
 
 namespace mod_moodleoverflow\output;
 
-use mod_moodleoverflow\subscriptions;
+use mod_moodleoverflow\local\models\discussion;
+use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service\subscription;
 
 /**
  * Moodleoverflow email renderable for use in e-mail.
@@ -240,22 +243,15 @@ class moodleoverflow_email implements \renderable, \templatable {
      * @return null|string
      */
     public function get_unsubscribediscussionlink() {
-
-        // Check whether the moodleoverflow is subscribable.
-        $subscribable = subscriptions::is_subscribable($this->moodleoverflow, \context_module::instance($this->cm->id));
-        if (!$subscribable) {
+        $discussion = discussion::from_id($this->discussion->id);
+        $userid = $this->get_postto()->id;
+        if (
+            !permissions::can_change_discussion_subscription($discussion, $userid)
+            || !subscription::is_subscribed_to_discussion($discussion, $userid)
+        ) {
             return null;
         }
-
-        // Prepare information.
-        $id = $this->moodleoverflow->id;
-        $d = $this->discussion->id;
-        $url = '/mod/moodleoverflow/subscribe.php';
-
-        // Generate a link to unsubscribe from the discussion.
-        $link = new \moodle_url($url, ['id' => $id, 'd' => $d]);
-
-        return $link->out(false);
+        return (new \moodle_url($discussion->get_link(), ['unsubscribe' => 1]))->out(false);
     }
 
     /**
@@ -413,25 +409,15 @@ class moodleoverflow_email implements \renderable, \templatable {
     /**
      * Get the link to unsubscribe from the moodleoverflow.
      *
-     * @return string
+     * @return string|null
      */
     public function get_unsubscribemoodleoverflowlink() {
-        if (
-            !subscriptions::is_subscribable(
-                $this->moodleoverflow,
-                \context_module::instance($this->cm->id)
-            )
-        ) {
+        $modflow = moodleoverflow::from_id($this->moodleoverflow->id);
+        $userid = $this->get_postto()->id;
+        if (!permissions::can_change_subscription($modflow, $userid) || !subscription::is_subscribed($modflow, $userid)) {
             return null;
         }
-        $link = new \moodle_url(
-            '/mod/moodleoverflow/subscribe.php',
-            [
-                'id' => $this->moodleoverflow->id,
-            ]
-        );
-
-        return $link->out(false);
+        return (new \moodle_url($modflow->get_link(), ['unsubscribe' => 1]))->out(false);
     }
 
     /**

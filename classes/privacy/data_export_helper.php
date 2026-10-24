@@ -47,12 +47,12 @@ class data_export_helper {
                     dsub.preference
                   FROM {moodleoverflow} mof
             INNER JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = mof.id
-            LEFT JOIN {moodleoverflow_discuss_subs} dsub ON dsub.discussion = d.id
+             LEFT JOIN {moodleoverflow_discuss_subs} dsub ON dsub.discussion = d.id AND dsub.userid = :dsubuserid
                  WHERE mof.id {$foruminsql}
                    AND (
-                        d.userid    = :discussionuserid OR
+                        d.userid = :discussionuserid OR
                         d.usermodified = :dmuserid OR
-                        dsub.userid = :dsubuserid
+                        dsub.id IS NOT NULL
                    )
         ";
         $params = [
@@ -318,25 +318,23 @@ class data_export_helper {
     }
 
     /**
-     * Store data about whether the user subscribes to forum.
+     * Store data about whether the user subscribed to or unsubscribed from the forum.
      * @param \stdClass $forum  The forum whose data is being exported.
      *
      * @return bool     Whether any data was stored.
      */
     public static function export_subscription_data(\stdClass $forum) {
-        if (null !== $forum->subscribed) {
-            // The user is subscribed to this forum.
-            writer::with_context(\context_module::instance($forum->cmid))->export_metadata(
-                [],
-                'subscriptionpreference',
-                1,
-                get_string('privacy:subscribedtoforum', 'mod_moodleoverflow')
-            );
-
-            return true;
+        if (null === $forum->subscriptionpreference) {
+            return false;
         }
-
-        return false;
+        $optin = $forum->subscriptionpreference == service\subscription::OPTIN;
+        writer::with_context(\context_module::instance($forum->cmid))->export_metadata(
+            [],
+            'subscriptionpreference',
+            $forum->subscriptionpreference,
+            get_string($optin ? 'privacy:subscribedtoforum' : 'privacy:unsubscribedfromforum', 'mod_moodleoverflow')
+        );
+        return true;
     }
 
     /**
@@ -351,15 +349,10 @@ class data_export_helper {
         $area = static::get_discussion_area($discussion);
         if (null !== $discussion->preference) {
             // The user hass a specific subscription preference for this discussion.
-            $a = (object) [];
-            switch ($discussion->preference) {
-                case \mod_moodleoverflow\subscriptions::MOODLEOVERFLOW_DISCUSSION_UNSUBSCRIBED:
-                    $a->preference = get_string('unsubscribed', 'mod_moodleoverflow');
-                    break;
-                default:
-                    $a->preference = get_string('subscribed', 'mod_moodleoverflow');
-                    break;
-            }
+            $unsubscribed = $discussion->preference == service\subscription::OPTOUT;
+            $a = (object) [
+                'preference' => get_string($unsubscribed ? 'unsubscribed' : 'subscribed', 'mod_moodleoverflow'),
+            ];
             writer::with_context($context)->export_metadata(
                 $area,
                 'subscriptionpreference',

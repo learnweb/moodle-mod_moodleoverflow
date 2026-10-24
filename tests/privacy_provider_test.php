@@ -30,6 +30,7 @@ use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 use dml_exception;
 use mod_moodleoverflow\local\enum\rating_type;
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
@@ -167,7 +168,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $context = \context_module::instance($forum->cmid);
 
         // Subscribe the user to the forum.
-        subscriptions::subscribe_user($user->id, $forum, $context);
+        service\subscription::subscribe(moodleoverflow::from_id($forum->id), $user->id);
 
         // Retrieve all contexts - only this context should be returned.
         $contextlist = $this->get_contexts_for_userid($user->id, 'mod_moodleoverflow');
@@ -202,7 +203,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [$discussion, $post] = $this->generator->post_to_forum($forum, $otheruser);
         $context = \context_module::instance($forum->cmid);
         // Subscribe the user to the discussion.
-        subscriptions::subscribe_user_to_discussion($user->id, $discussion, $context);
+        service\subscription::subscribe_discussion(discussion::from_id($discussion->id), $user->id);
         // Retrieve all contexts - only this context should be returned.
         $contextlist = $this->get_contexts_for_userid($user->id, 'mod_moodleoverflow');
         $this->assertCount(1, $contextlist);
@@ -219,9 +220,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $discsubcontext = data_export_helper::get_subcontext($discussion);
         $this->assertCount(1, $writer->get_all_metadata($discsubcontext));
         // It should be the subscriptionpreference whose value is an Integer.
-        // (It's a timestamp, but it doesn't matter).
         $metadata = $writer->get_metadata($discsubcontext, 'subscriptionpreference');
-        $this->assertGreaterThan(1, $metadata);
+        $this->assertEquals(service\subscription::OPTIN, $metadata);
         // For context we output the discussion content.
         $data = $writer->get_data($discsubcontext);
         $this->assertInstanceOf('stdClass', $data);
@@ -1067,7 +1067,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [$user] = $this->create_students(2, $course);
 
         // Subscribe the user to the moodleoverflow.
-        subscriptions::subscribe_user($user->id, $moodleoverflow, $context);
+        service\subscription::subscribe(moodleoverflow::from_id($moodleoverflow->id), $user->id);
         $userlist = new userlist($context, 'mod_moodleoverflow');
         provider::get_users_in_context($userlist);
 
@@ -1093,8 +1093,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         [$ofd1] = $this->generator->post_to_forum($othermoodleoverflow, $author);
 
         // Subscribe the user to the discussions.
-        subscriptions::subscribe_user_to_discussion($user->id, $fd1, $context);
-        subscriptions::subscribe_user_to_discussion($otheruser->id, $ofd1, $context);
+        service\subscription::subscribe_discussion(discussion::from_id($fd1->id), $user->id);
+        service\subscription::subscribe_discussion(discussion::from_id($ofd1->id), $otheruser->id);
 
         $userlist = new userlist($context, 'mod_moodleoverflow');
         provider::get_users_in_context($userlist);

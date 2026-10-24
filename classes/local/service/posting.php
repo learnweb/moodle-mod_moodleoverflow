@@ -24,7 +24,6 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\subscriptions;
 use Throwable;
 
 /**
@@ -61,7 +60,7 @@ class posting {
         $transaction = $DB->start_delegated_transaction();
         try {
             $discussion->add($content, (!$modflow->requires_review(true) || permissions::can_review_posts($modflow, $userid)));
-            subscriptions::post_subscription($modflow, $discussion, $modflow->get_context(), $userid);
+            subscription::follow_on_post($discussion, $userid);
             readtracking::mark_post_read($discussion->get_first_post(), $userid);
             $transaction->allow_commit();
         } catch (Throwable $e) {
@@ -89,9 +88,8 @@ class posting {
         $transaction = $DB->start_delegated_transaction();
         try {
             $post = $discussion->add_reply($parent, $userid, $content, $reviewed);
-            subscriptions::post_subscription($modflow, $discussion, $modflow->get_context(), $userid);
+            subscription::follow_on_post($discussion, $userid);
             readtracking::mark_post_read($post, $userid);
-
             $transaction->allow_commit();
         } catch (Throwable $e) {
             $transaction->rollback($e);

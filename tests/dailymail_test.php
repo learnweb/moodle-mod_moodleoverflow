@@ -23,6 +23,7 @@
  */
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_daily_mails;
@@ -67,7 +68,7 @@ final class dailymail_test extends \advanced_testcase {
         // Create a new course with a moodleoverflow forum.
         $this->generator = $this->getDataGenerator()->get_plugin_generator('mod_moodleoverflow');
         $this->course = $this->getDataGenerator()->create_course();
-        $this->modflow = $this->create_moodleoverflow(['forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE]);
+        $this->modflow = $this->create_moodleoverflow(['forcesubscribe' => subscription_mode::FORCED->value]);
     }
 
     // Helper functions.
@@ -123,7 +124,7 @@ final class dailymail_test extends \advanced_testcase {
 
         // Create another user, course and a moodleoverflow post.
         $course = $this->getDataGenerator()->create_course();
-        $location = ['course' => $course->id, 'forcesubscribe' => MOODLEOVERFLOW_FORCESUBSCRIBE];
+        $location = ['course' => $course->id, 'forcesubscribe' => subscription_mode::FORCED->value];
         $moodleoverflow = $this->getDataGenerator()->create_module('moodleoverflow', $location);
         $student = $this->getDataGenerator()->create_user(['firstname' => 'Student2', 'email' => 'student2@example.com',
                                                            'maildigest' => '1', ]);

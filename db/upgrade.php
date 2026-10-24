@@ -326,5 +326,42 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
         upgrade_mod_savepoint(true, 2025112701, 'moodleoverflow');
     }
+
+    if ($oldversion < 2026050705) {
+        // A row in moodleoverflow_subscriptions becomes the choice of a user: opt-in (1) or opt-out (-1), like in
+        // moodleoverflow_discuss_subs. The subscription mode gives the default for everyone without a row.
+
+        // Delete duplicate rows, the oldest one stays.
+        $duplicates = $DB->get_records_sql(
+            'SELECT MIN(id) AS keepid, userid, moodleoverflow
+               FROM {moodleoverflow_subscriptions}
+           GROUP BY userid, moodleoverflow
+             HAVING COUNT(id) > 1'
+        );
+        foreach ($duplicates as $duplicate) {
+            $DB->delete_records_select(
+                'moodleoverflow_subscriptions',
+                'userid = :userid AND moodleoverflow = :moodleoverflow AND id <> :keepid',
+                ['userid' => $duplicate->userid, 'moodleoverflow' => $duplicate->moodleoverflow, 'keepid' => $duplicate->keepid]
+            );
+        }
+
+        // Existing rows are opt-ins.
+        $table = new xmldb_table('moodleoverflow_subscriptions');
+        $field = new xmldb_field('preference', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '1', 'moodleoverflow');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $index = new xmldb_index('userid-moodleoverflow', XMLDB_INDEX_UNIQUE, ['userid', 'moodleoverflow']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        require_once($CFG->dirroot . '/mod/moodleoverflow/db/upgradelib.php');
+        mod_moodleoverflow_convert_subscription_choices();
+
+        upgrade_mod_savepoint(true, 2026050705, 'moodleoverflow');
+    }
     return true;
 }
