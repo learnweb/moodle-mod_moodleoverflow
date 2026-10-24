@@ -130,6 +130,20 @@ class provider implements
             'privacy:metadata:moodleoverflow_grades'
         );
 
+        // The 'moodleoverflow_mail_info' table only queues the content of the daily digest mails.
+        // It is temporary data that is removed once the mails are sent, so it is not exported but deleted.
+        $collection->add_database_table(
+            'moodleoverflow_mail_info',
+            [
+                'userid' => 'privacy:metadata:moodleoverflow_mail_info:userid',
+                'courseid' => 'privacy:metadata:moodleoverflow_mail_info:courseid',
+                'forumid' => 'privacy:metadata:moodleoverflow_mail_info:forumid',
+                'forumdiscussionid' => 'privacy:metadata:moodleoverflow_mail_info:forumdiscussionid',
+                'numberofposts' => 'privacy:metadata:moodleoverflow_mail_info:numberofposts',
+            ],
+            'privacy:metadata:moodleoverflow_mail_info'
+        );
+
         $collection->link_subsystem(
             'core_files',
             'privacy:metadata:core_files'
@@ -303,6 +317,7 @@ class provider implements
         );
         $DB->delete_records('moodleoverflow_discussions', ['moodleoverflow' => $forum->id]);
         $DB->delete_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id]);
+        $DB->delete_records('moodleoverflow_mail_info', ['forumid' => $forum->id]);
 
         // Delete all files from the posts.
         $fs = get_file_storage();
@@ -350,6 +365,9 @@ class provider implements
             $DB->delete_records('moodleoverflow_grades', [
                     'moodleoverflowid' => $forum->id,
                     'userid' => $userid, ]);
+            $DB->delete_records('moodleoverflow_mail_info', [
+                'forumid' => $forum->id,
+                'userid' => $userid, ]);
 
             // Do not delete ratings but reset userid.
             $ratingsql = "userid = :userid AND discussionid IN
@@ -498,11 +516,13 @@ class provider implements
         // Don't be confused some tables named the id of the moodleoverflow table moodleoverflow some moodleoverflowid.
         $selectmoanduser = "moodleoverflow = :moodleoverflowid AND userid {$userinsql}";
         $selectmoidanduser = "moodleoverflowid = :moodleoverflowid AND userid {$userinsql}";
+        $selectforumidanduser = "forumid = :moodleoverflowid AND userid {$userinsql}";
         $DB->delete_records_select('moodleoverflow_tracking', $selectmoidanduser, $params);
         $DB->delete_records_select('moodleoverflow_subscriptions', $selectmoanduser, $params);
         $DB->delete_records_select('moodleoverflow_read', $selectmoidanduser, $params);
         $DB->delete_records_select('moodleoverflow_discuss_subs', $selectmoanduser, $params);
         $DB->delete_records_select('moodleoverflow_grades', $selectmoidanduser, $params);
+        $DB->delete_records_select('moodleoverflow_mail_info', $selectforumidanduser, $params);
 
         $postsql = "userid {$userinsql} AND discussion IN
             (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :moodleoverflowid)";

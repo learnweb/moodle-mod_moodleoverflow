@@ -1225,4 +1225,52 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         service\rating::update_all_grades($forum);
         self::assertEmpty($DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade'));
     }
+
+    /**
+     * Tests that the queued daily mail information is deleted.
+     *
+     * @covers \mod_moodleoverflow\privacy\provider::delete_data_for_user
+     * @covers \mod_moodleoverflow\privacy\provider::delete_data_for_users
+     * @covers \mod_moodleoverflow\privacy\provider::delete_data_for_all_users_in_context
+     */
+    public function test_mail_info_deleted(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        [$user1, $user2, $user3] = $this->create_students(3, $course);
+        $forums = [];
+        $contexts = [];
+        for ($i = 0; $i < 2; $i++) {
+            $forum = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+            $cm = get_coursemodule_from_instance('moodleoverflow', $forum->id);
+            $forums[$i] = $forum;
+            $contexts[$i] = \context_module::instance($cm->id);
+            [$discussion, ] = $this->generator->post_to_forum($forum, $user1);
+            foreach ([$user1, $user2, $user3] as $user) {
+                $DB->insert_record('moodleoverflow_mail_info', [
+                    'userid' => $user->id,
+                    'courseid' => $course->id,
+                    'forumid' => $forum->id,
+                    'forumdiscussionid' => $discussion->id,
+                    'numberofposts' => 1,
+                ]);
+            }
+        }
+
+        // Delete the data of a single user in the first forum.
+        provider::delete_data_for_user(new approved_contextlist($user1, 'mod_moodleoverflow', [$contexts[0]->id]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_mail_info', ['forumid' => $forums[0]->id, 'userid' => $user1->id]));
+        $this->assertTrue($DB->record_exists('moodleoverflow_mail_info', ['forumid' => $forums[1]->id, 'userid' => $user1->id]));
+        $this->assertEquals(2, $DB->count_records('moodleoverflow_mail_info', ['forumid' => $forums[0]->id]));
+
+        // Delete the data of a list of users in the first forum.
+        provider::delete_data_for_users(new approved_userlist($contexts[0], 'mod_moodleoverflow', [$user2->id]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_mail_info', ['forumid' => $forums[0]->id, 'userid' => $user2->id]));
+        $this->assertTrue($DB->record_exists('moodleoverflow_mail_info', ['forumid' => $forums[0]->id, 'userid' => $user3->id]));
+
+        // Delete the data of all users in the first forum.
+        provider::delete_data_for_all_users_in_context($contexts[0]);
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_mail_info', ['forumid' => $forums[0]->id]));
+        $this->assertEquals(3, $DB->count_records('moodleoverflow_mail_info', ['forumid' => $forums[1]->id]));
+    }
 }
