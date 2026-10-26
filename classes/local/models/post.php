@@ -52,14 +52,8 @@ require_once($CFG->libdir . '/filelib.php');
 class post {
     // Not database related attributes.
 
-    /** @var discussion The discussion where the post is located */
-    public discussion $discussionobject;
-
-    /** @var moodleoverflow The Moodleoverflow where the post is located*/
-    public moodleoverflow $moodleoverflowobject;
-
-    /** @var ?object The parent post of an answerpost */
-    public ?object $parentpost;
+    /** @var discussion|null The discussion of the post, shared with the other posts that were loaded with it */
+    private ?discussion $discussionobject = null;
 
     // Constructors and other builders.
 
@@ -561,18 +555,36 @@ class post {
      */
     public function get_moodleoverflow(): moodleoverflow {
         $this->existence_check();
-        return $this->moodleoverflowobject ??= $this->get_discussion()->get_moodleoverflow();
+        return $this->get_discussion()->get_moodleoverflow();
     }
 
     /**
-     * Returns the discussion where the post is located.
+     * Returns the discussion where the post is located. A post loaded with its discussion shares that discussion object
+     * with the other posts; a post loaded on its own loads the discussion, which then uses this object for the post.
      *
-     * @return discussion $discussionobject.
+     * @return discussion
      * @throws moodle_exception
      */
     public function get_discussion(): discussion {
         $this->existence_check();
-        return $this->discussionobject ??= discussion::from_id($this->discussion);
+        if ($this->discussionobject === null) {
+            discussion::from_id($this->discussion)->adopt_post($this);
+        }
+        return $this->discussionobject;
+    }
+
+    /**
+     * Links the post to the discussion object it belongs to. Only called by the discussion model.
+     *
+     * @param discussion $discussion
+     * @return void
+     * @throws coding_exception|moodle_exception
+     */
+    public function set_discussion(discussion $discussion): void {
+        if ($discussion->get_id() !== $this->discussion) {
+            throw new coding_exception('The post does not belong to this discussion.');
+        }
+        $this->discussionobject = $discussion;
     }
 
     /**
@@ -587,18 +599,13 @@ class post {
     }
 
     /**
-     * Returns the parent post
-     * @return post|null $post|false
-     * @throws dml_exception
+     * Returns the parent post from the posts of the discussion.
+     * @return post|null Null for the question.
      * @throws moodle_exception
      */
-    public function get_parentpost(): post|null {
-        global $DB;
+    public function get_parentpost(): ?post {
         $this->existence_check();
-        // Return the parentpost, which is null if there is no parent or a post.
-        return $this->parentpost ??= $this->parent === 0 ? null : $this->from_record(
-            $DB->get_record('moodleoverflow_posts', ['id' => $this->parent])
-        );
+        return $this->parent === 0 ? null : $this->get_discussion()->get_posts()[$this->parent];
     }
 
     /**

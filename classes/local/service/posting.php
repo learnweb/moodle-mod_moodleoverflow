@@ -81,7 +81,7 @@ class posting {
         global $DB;
         permissions::ensure(permissions::can_reply($parent, $userid), 'cannotreply');
 
-        $discussion = discussion::from_id($parent->get_discussionid());
+        $discussion = $parent->get_discussion();
         $modflow = $discussion->get_moodleoverflow();
         $reviewed = !$modflow->requires_review(false) || permissions::can_review_posts($modflow, $userid);
 
@@ -114,17 +114,15 @@ class posting {
             throw new coding_exception('An empty subject is not allowed');
         }
 
-        $discussion = discussion::from_id($post->get_discussionid());
         $transaction = $DB->start_delegated_transaction();
         try {
-            $discussion->edit_post($post, $userid, $content);
+            $post->get_discussion()->edit_post($post, $userid, $content);
             readtracking::mark_post_read($post, $userid);
             $transaction->allow_commit();
         } catch (Throwable $e) {
             $transaction->rollback($e);
         }
-        // Return the updated post to have the newest data.
-        return post::from_id($post->get_id());
+        return $post;
     }
 
     /**
@@ -141,12 +139,12 @@ class posting {
         global $DB;
         permissions::ensure(permissions::can_delete_post($post, $userid), 'cannotdeletepost');
 
-        $discussion = discussion::from_id($post->get_discussionid());
+        $discussion = $post->get_discussion();
         $modflow = $discussion->get_moodleoverflow();
 
         // Collect the affected users before the posts are gone to update their grades.
         $postids = $post->is_question()
-            ? array_keys($discussion->get_posts())
+            ? $DB->get_fieldset_select('moodleoverflow_posts', 'id', 'discussion = ?', [$discussion->get_id()])
             : [$post->get_id(), ...array_keys($post->get_childposts())];
         [$insql, $params] = $DB->get_in_or_equal($postids);
         $affectedusers = array_unique(array_merge(

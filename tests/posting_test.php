@@ -225,14 +225,17 @@ final class posting_test extends \advanced_testcase {
         $this->generator->create_rating($answer, $this->student, rating_type::UPVOTE);
         $this->generator->create_post_file($answer, 'attachment');
         $this->generator->create_post_file($answer, 'post');
+        // Deleting clears the ids of the deleted objects, so save them first.
+        $answerid = $answer->get_id();
+        $commentid = $comment->get_id();
 
         $this->assertFalse(posting::delete($answer, $this->teacher->id));
 
         $this->assertTrue($DB->record_exists('moodleoverflow_posts', ['id' => $question->get_id()]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['id' => $answer->get_id()]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['id' => $comment->get_id()]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_ratings', ['postid' => $answer->get_id()]));
-        $this->assertFalse($DB->record_exists('files', ['component' => 'mod_moodleoverflow', 'itemid' => $answer->get_id()]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['id' => $answerid]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['id' => $commentid]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_ratings', ['postid' => $answerid]));
+        $this->assertFalse($DB->record_exists('files', ['component' => 'mod_moodleoverflow', 'itemid' => $answerid]));
     }
 
     /**
@@ -248,13 +251,15 @@ final class posting_test extends \advanced_testcase {
             'forumdiscussionid' => $discussion->get_id(),
             'numberofposts' => 1,
         ]);
+        // Deleting clears the id of the discussion, so save it first.
+        $discussionid = $discussion->get_id();
 
         $this->assertTrue(posting::delete($discussion->get_first_post(), $this->teacher->id));
 
-        $this->assertFalse($DB->record_exists('moodleoverflow_discussions', ['id' => $discussion->get_id()]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['discussion' => $discussion->get_id()]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_discuss_subs', ['discussion' => $discussion->get_id()]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_mail_info', ['forumdiscussionid' => $discussion->get_id()]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_discussions', ['id' => $discussionid]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['discussion' => $discussionid]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_discuss_subs', ['discussion' => $discussionid]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_mail_info', ['forumdiscussionid' => $discussionid]));
     }
 
     /**

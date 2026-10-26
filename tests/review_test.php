@@ -275,11 +275,12 @@ final class review_test extends \advanced_testcase {
         $modflow = $this->create_review_moodleoverflow();
         $question = $this->generator->create_question($modflow, $this->teacher);
         $answer = $this->generator->create_reply($question, $this->student);
+        $answerid = $answer->get_id();
         $this->setUser($this->teacher);
 
         service\review::reject($answer, $this->teacher->id);
 
-        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['id' => $answer->get_id()]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['id' => $answerid]));
         $this->assertTrue($DB->record_exists('moodleoverflow_posts', ['id' => $question->get_id()]));
     }
 
@@ -290,12 +291,13 @@ final class review_test extends \advanced_testcase {
         global $DB;
         $modflow = $this->create_review_moodleoverflow();
         $question = $this->generator->create_question($modflow, $this->student);
+        $discussionid = $question->get_discussionid();
         $this->setUser($this->teacher);
 
         service\review::reject($question, $this->teacher->id);
 
-        $this->assertFalse($DB->record_exists('moodleoverflow_discussions', ['id' => $question->get_discussionid()]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['discussion' => $question->get_discussionid()]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_discussions', ['id' => $discussionid]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['discussion' => $discussionid]));
     }
 
     /**
@@ -308,11 +310,12 @@ final class review_test extends \advanced_testcase {
         $question = $this->generator->create_question($modflow, $this->teacher);
         $older = $this->generator->create_reply($question, $this->student);
         $newer = $this->generator->create_reply($question, $this->student);
+        $olderid = $older->get_id();
         $this->setUser($this->teacher);
 
         service\review::reject($older, $this->teacher->id);
 
-        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['id' => $older->get_id()]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['id' => $olderid]));
         $this->assertTrue($DB->record_exists('moodleoverflow_posts', ['id' => $newer->get_id()]));
         $discussion = $DB->get_record('moodleoverflow_discussions', ['id' => $question->get_discussionid()], '*', MUST_EXIST);
         $this->assertEquals($question->modified, $discussion->timemodified);

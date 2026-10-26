@@ -47,7 +47,7 @@ class discussion {
         global $DB;
         $records = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $modflow->id], 'timestart DESC, id DESC');
         return array_filter(
-            array_map(fn($record) => models\discussion::from_record($record), $records),
+            array_map(fn($record) => models\discussion::from_record($record, $modflow), $records),
             fn(models\discussion $discussion) => permissions::can_view_discussion($discussion, $userid)
         );
     }

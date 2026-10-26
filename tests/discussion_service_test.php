@@ -143,8 +143,7 @@ final class discussion_service_test extends \advanced_testcase {
      * @return array
      */
     private function get_tree_ids(post $question, int $userid): array {
-        // Load the discussion freshly, so that its posts include the replies created after the question.
-        $tree = service\discussion::get_posts_tree(discussion::from_id($question->get_discussionid()), $userid);
+        $tree = service\discussion::get_posts_tree($question->get_discussion(), $userid);
         $this->assertEquals($question->get_id(), $tree['question']->get_id());
         return array_map(
             fn(array $branch) => [$branch['answer']->get_id(), array_map(fn(post $post) => $post->get_id(), $branch['comments'])],

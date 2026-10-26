@@ -52,9 +52,9 @@ final class author_test extends \advanced_testcase {
         $this->assertEquals('Anonymous (You)', $this->get_name($question, $this->student->id));
         $this->assertEquals(fullname($this->teacher), $this->get_name($answer, $this->student->id));
 
-        // The privacy provider removed the author.
+        // The privacy provider removed the author; load the post again to see the change.
         $DB->set_field('moodleoverflow_posts', 'userid', 0, ['id' => $answer->get_id()]);
-        $this->assertEquals('Anonymous', $this->get_name($answer, $this->student->id));
+        $this->assertEquals('Anonymous', $this->get_name(post::from_id($answer->get_id()), $this->student->id));
     }
 
     /**
@@ -74,8 +74,7 @@ final class author_test extends \advanced_testcase {
     }
 
     /**
-     * Returns the author name of a post as a user sees it. The post is loaded freshly, so that its discussion knows
-     * the posts created after it.
+     * Returns the author name of a post as a user sees it.
      *
      * @param post $post
      * @param int $userid
@@ -83,7 +82,6 @@ final class author_test extends \advanced_testcase {
      */
     private function get_name(post $post, int $userid): string {
         global $PAGE;
-        $author = new author(post::from_id($post->get_id()), $userid);
-        return $author->export_for_template($PAGE->get_renderer('core'))['name'];
+        return (new author($post, $userid))->export_for_template($PAGE->get_renderer('core'))['name'];
     }
 }

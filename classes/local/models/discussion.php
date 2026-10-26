@@ -99,12 +99,13 @@ class discussion {
      * Builds a Discussion from a DB record.
      *
      * @param object $record Data object.
+     * @param moodleoverflow|null $moodleoverflow The moodleoverflow of the discussion, if the caller has it already.
      * @return discussion discussion instance
      */
-    public static function from_record(object $record): discussion {
+    public static function from_record(object $record, ?moodleoverflow $moodleoverflow = null): discussion {
         $id = !empty($record->id) ? $record->id : null;
         $course = !empty($record->course) ? $record->course : 0;
-        $moodleoverflow = !empty($record->moodleoverflow) ? $record->moodleoverflow : 0;
+        $modflowid = !empty($record->moodleoverflow) ? (int) $record->moodleoverflow : 0;
         $name = !empty($record->name) ? $record->name : '';
         $firstpost = !empty($record->firstpost) ? $record->firstpost : 0;
         $userid = !empty($record->userid) ? $record->userid : 0;
@@ -112,7 +113,13 @@ class discussion {
         $timestart = !empty($record->timestart) ? $record->timestart : 0;
         $usermodified = !empty($record->usermodified) ? $record->usermodified : 0;
 
-        $instance = new self($id, $course, $moodleoverflow, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
+        $instance = new self($id, $course, $modflowid, $name, $firstpost, $userid, $timemodified, $timestart, $usermodified);
+        if ($moodleoverflow !== null) {
+            if ($moodleoverflow->id !== $modflowid) {
+                throw new coding_exception('The discussion does not belong to this moodleoverflow.');
+            }
+            $instance->moodleoverflowobject = $moodleoverflow;
+        }
 
         // Get all the posts so that the instance can work with it.
         $instance->get_posts();
@@ -191,6 +198,7 @@ class discussion {
             );
 
             // Add it to the DB and save the id of the first/parent post.
+            $post->set_discussion($this);
             $this->firstpost = $post->add($content->messagedraftid, $content->attachmentdraftid);
             $DB->set_field('moodleoverflow_discussions', 'firstpost', $this->firstpost, ['id' => $this->id]);
             $this->posts[$this->firstpost] = $post;
@@ -275,6 +283,7 @@ class discussion {
         );
 
         // Add the post to the DB.
+        $post->set_discussion($this);
         $transaction = $DB->start_delegated_transaction();
         try {
             $postid = $post->add($content->messagedraftid, $content->attachmentdraftid);
@@ -304,14 +313,16 @@ class discussion {
         $this->posts_check();
         $this->post_exists_check($post->get_id());
 
-        if ($post->get_id() === $this->firstpost) {
+        // The post object is the one in the list, so its id is gone after the delete.
+        $postid = $post->get_id();
+        if ($postid === $this->firstpost) {
             $this->delete($userid);
             return true;
         }
 
         $transaction = $DB->start_delegated_transaction();
         try {
-            $this->posts[$post->get_id()]->delete($userid);
+            $this->posts[$postid]->delete($userid);
             $this->update_last_activity();
             $transaction->allow_commit();
         } catch (Throwable $e) {
@@ -320,7 +331,7 @@ class discussion {
 
         // Remove the post and its replies from the list (comments have no replies of their own).
         foreach ($this->posts as $id => $other) {
-            if ($id === $post->get_id() || $other->get_parentid() === $post->get_id()) {
+            if ($id === $postid || $other->get_parentid() === $postid) {
                 unset($this->posts[$id]);
             }
         }
@@ -433,10 +444,6 @@ class discussion {
             $this->moodleoverflowobject = $destination;
             $DB->update_record('moodleoverflow_discussions', $this->build_db_object());
 
-            // The loaded posts may still have the source cached as their moodleoverflow; load them again when needed.
-            $this->posts = [];
-            $this->postsbuild = false;
-
             // Log the move. The event is only delivered to observers when the outermost transaction commits.
             discussion_moved::create([
                 'objectid' => $this->id,
@@ -521,6 +528,7 @@ class discussion {
             $posts = $DB->get_records_sql($sql);
             foreach ($posts as $postrecord) {
                 $post = post::from_record($postrecord);
+                $post->set_discussion($this);
                 $this->posts[$post->get_id()] = $post;
             }
 
@@ -530,6 +538,21 @@ class discussion {
 
         // Return the posts array.
         return $this->posts;
+    }
+
+    /**
+     * Takes a post that was loaded on its own into this discussion, in place of the copy loaded with the discussion,
+     * so that there is only one object per post.
+     *
+     * @param post $post
+     * @return void
+     * @throws coding_exception|moodle_exception
+     */
+    public function adopt_post(post $post): void {
+        $this->get_posts();
+        $this->post_exists_check($post->get_id());
+        $post->set_discussion($this);
+        $this->posts[$post->get_id()] = $post;
     }
 
     /**
