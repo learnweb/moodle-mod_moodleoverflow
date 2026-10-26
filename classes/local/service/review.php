@@ -54,7 +54,7 @@ class review {
      */
     public static function reject(post $post, int $userid): void {
         permissions::ensure(permissions::can_review_post($post, $userid), 'cannotreviewpost');
-        discussion::from_id($post->get_discussionid())->delete_post($post, $userid);
+        $post->get_discussion()->delete_post($post, $userid);
     }
 
     // Read only functions.

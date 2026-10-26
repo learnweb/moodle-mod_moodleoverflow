@@ -61,7 +61,7 @@ class view_page implements named_templatable, renderable {
 
     #[\Override]
     public function export_for_template(renderer_base $output): object {
-        global $OUTPUT, $DB, $USER;
+        global $OUTPUT, $USER;
         $perpage = get_config('moodleoverflow', 'manydiscussions');
 
         // If the perpage value is invalid, deactivate paging.
@@ -77,22 +77,22 @@ class view_page implements named_templatable, renderable {
         $startdiscussion = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $this->modflow->id]);
         $userstatslink = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->cm->id]);
 
-        // Get moodleoverflow where discussions can be moved.
-        $destinations = [];
-        foreach ($DB->get_records('moodleoverflow', ['course' => $this->modflow->course]) as $record) {
-            $destination = models\moodleoverflow::from_record($record);
-            if (permissions::can_move_discussions($this->modflow, $destination, $USER->id)) {
-                $destinations[] = ['name' => $destination->name, 'modflowid' => $destination->id];
-            }
-        }
+        // Get moodleoverflows where discussions can be moved.
+        $destinations = array_map(
+            fn(models\moodleoverflow $destination) => ['name' => $destination->name, 'modflowid' => $destination->id],
+            service\discussion::get_move_destinations($this->modflow, $USER->id)
+        );
 
         // Load the visible discussions and cut out the current page.
         $discussions = service\discussion::get_discussions($this->modflow, $USER->id);
         $discussioncount = count($discussions);
-        $context = $this->modflow->get_context();
 
+        // Count the unread posts of all visible discussions at once; the cards show theirs, the page their sum.
+        $unread = service\readtracking::count_unread_posts_per_discussion($this->modflow, $discussions, $USER->id);
         $items = array_map(
-            fn(models\discussion $discussion) => $OUTPUT->render(new discussion_card($discussion, $context, !empty($destinations))),
+            fn(models\discussion $discussion) => $OUTPUT->render(
+                new discussion_card($discussion, !empty($destinations), $unread[$discussion->get_id()])
+            ),
             array_slice($discussions, $limitfrom, $limitamount)
         );
 
@@ -123,7 +123,7 @@ class view_page implements named_templatable, renderable {
                 'id' => $this->modflow->id,
                 'subscribed' => service\subscription::is_subscribed($this->modflow, $USER->id),
             ] : [],
-            'markallread' => service\readtracking::count_unread_posts_moodleoverflow($this->modflow, $USER->id) > 0 ? [
+            'markallread' => array_sum($unread) > 0 ? [
                 'itemid' => 'moodleoverflow-markallread-' . $this->modflow->id,
                 'instanceid' => $this->modflow->id,
             ] : [],

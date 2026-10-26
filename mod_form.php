@@ -25,7 +25,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\enum\subscription_mode;
 
@@ -76,21 +76,21 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         $currentsetting = $this->current && property_exists($this->current, 'anonymous') ? $this->current->anonymous : 0;
         $possiblesettings = [
-                anonymous::EVERYTHING_ANONYMOUS => get_string('anonymous:everything', 'moodleoverflow'),
+                anonymity::EVERYTHING->value => get_string('anonymous:everything', 'moodleoverflow'),
         ];
 
-        if ($currentsetting <= anonymous::QUESTION_ANONYMOUS) {
-            $possiblesettings[anonymous::QUESTION_ANONYMOUS] = get_string('anonymous:only_questions', 'moodleoverflow');
+        if ($currentsetting <= anonymity::QUESTIONS->value) {
+            $possiblesettings[anonymity::QUESTIONS->value] = get_string('anonymous:only_questions', 'moodleoverflow');
         }
 
-        if ($currentsetting == anonymous::NOT_ANONYMOUS) {
-            $possiblesettings[anonymous::NOT_ANONYMOUS] = get_string('no');
+        if ($currentsetting == anonymity::NONE->value) {
+            $possiblesettings[anonymity::NONE->value] = get_string('no');
         }
 
         if (get_config('moodleoverflow', 'allowanonymous') == '1') {
             $mform->addElement('select', 'anonymous', get_string('anonymous', 'moodleoverflow'), $possiblesettings);
             $mform->addHelpButton('anonymous', 'anonymous', 'moodleoverflow');
-            $mform->setDefault('anonymous', anonymous::NOT_ANONYMOUS);
+            $mform->setDefault('anonymous', anonymity::NONE->value);
         }
 
         if (get_config('moodleoverflow', 'allowreview') == 1) {
@@ -313,7 +313,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      * @param array $data data from the form.
      */
     public function data_postprocessing($data) {
-        if (isset($data->anonymous) && $data->anonymous != anonymous::NOT_ANONYMOUS) {
+        if (isset($data->anonymous) && $data->anonymous != anonymity::NONE->value) {
             $data->coursewidereputation = false;
         }
     }

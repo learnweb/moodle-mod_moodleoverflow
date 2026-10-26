@@ -108,11 +108,12 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             FORMAT_HTML
         );
         $discussion->add($content, (bool) $this->is_reviewed($modflow, $author, true));
-        return post::from_id($discussion->get_firstpostid());
+        return $discussion->get_first_post();
     }
 
     /**
-     * Creates a reply to a post. It is added through its discussion, so the last post of the discussion is updated.
+     * Creates a reply to a post. It is added through the discussion object of the parent, so the last post of the
+     * discussion is updated and the posts the test holds see the new reply.
      *
      * @param post $parent The post to reply to.
      * @param stdClass $author The author of the reply.
@@ -122,8 +123,8 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     public function create_reply(post $parent, stdClass $author, array $record = []): post {
         $this->postcount++;
 
-        $discussion = discussion::from_id($parent->get_discussionid());
-        $reviewed = $this->is_reviewed($this->get_moodleoverflow($parent), $author, false);
+        $discussion = $parent->get_discussion();
+        $reviewed = $this->is_reviewed($discussion->get_moodleoverflow(), $author, false);
         $content = new post_content(
             $record['message'] ?? '<p>Forum message post ' . $this->postcount . '</p>',
             FORMAT_MOODLE
@@ -147,7 +148,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
             'rating' => $rating->value,
             'postid' => $post->get_id(),
             'discussionid' => $post->get_discussionid(),
-            'moodleoverflowid' => $this->get_moodleoverflow($post)->id,
+            'moodleoverflowid' => $post->get_moodleoverflow()->id,
             'userid' => $rater->id,
             'firstrated' => $time,
             'lastchanged' => $time,
@@ -174,7 +175,7 @@ class mod_moodleoverflow_generator extends testing_module_generator {
     ): stored_file {
         global $DB;
         $file = get_file_storage()->create_file_from_string([
-            'contextid' => $this->get_moodleoverflow($post)->get_context()->id,
+            'contextid' => $post->get_context()->id,
             'component' => 'mod_moodleoverflow',
             'filearea' => $filearea,
             'itemid' => $post->get_id(),
@@ -222,18 +223,5 @@ class mod_moodleoverflow_generator extends testing_module_generator {
      */
     private function is_reviewed(moodleoverflow $modflow, stdClass $author, bool $isquestion): int {
         return (int) (!$modflow->requires_review($isquestion) || permissions::can_review_posts($modflow, $author->id));
-    }
-
-    /**
-     * Loads the moodleoverflow of a post without using the post's getters: they cache a discussion on the post, whose
-     * list of posts would lack the posts created afterwards.
-     *
-     * @param post $post
-     * @return moodleoverflow
-     */
-    private function get_moodleoverflow(post $post): moodleoverflow {
-        global $DB;
-        $conditions = ['id' => $post->get_discussionid()];
-        return moodleoverflow::from_id($DB->get_field('moodleoverflow_discussions', 'moodleoverflow', $conditions, MUST_EXIST));
     }
 }

@@ -20,7 +20,6 @@ use core\exception\moodle_exception;
 use mod_moodleoverflow\local\dto\userpost_dto;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use moodle_url;
 
@@ -56,16 +55,20 @@ class user_service {
             return [];
         }
 
-        // Build caches for everything the loop needs, keyed by id, in three queries. This reduces DB calls from the post object.
-        $discussions = $DB->get_records_list('moodleoverflow_discussions', 'id', array_unique(array_column($records, 'discussid')));
-        $moodleoverflows = $DB->get_records_list('moodleoverflow', 'id', array_unique(array_column($records, 'modflowid')));
+        // Build every moodleoverflow and discussion once; the posts are taken from their discussion.
+        $moodleoverflows = array_map(
+            fn($record) => moodleoverflow::from_record($record),
+            $DB->get_records_list('moodleoverflow', 'id', array_unique(array_column($records, 'modflowid')))
+        );
+        $discussions = array_map(
+            fn($record) => discussion::from_record($record, $moodleoverflows[$record->moodleoverflow]),
+            $DB->get_records_list('moodleoverflow_discussions', 'id', array_unique(array_column($records, 'discussid')))
+        );
         $userposts = [];
         $path = '/mod/moodleoverflow/';
         // Build the dto's. Filter out posts that the current user can't see.
         foreach ($records as $record) {
-            $post = post::from_record($record);
-            $post->moodleoverflowobject = moodleoverflow::from_record($moodleoverflows[$record->modflowid]);
-            $post->discussionobject = discussion::from_record($discussions[$record->discussid]);
+            $post = $discussions[$record->discussid]->get_posts()[$record->id];
 
             if (!permissions::can_view_post($post, $USER->id) || !permissions::can_view_author($post, $USER->id)) {
                 continue;

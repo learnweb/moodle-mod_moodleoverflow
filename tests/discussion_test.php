@@ -179,6 +179,25 @@ final class discussion_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if the posts of a discussion share one discussion object: a reply added through it is in its list and the
+     * parent of a post comes from that list. A post loaded on its own replaces the copy in the discussion it loads.
+     */
+    public function test_posts_share_their_discussion(): void {
+        $question = $this->discussion->get_first_post();
+        $answer = $this->generator->create_reply($question, $this->otherstudent);
+        $comment = $this->generator->create_reply($answer, $this->teacher);
+
+        $this->assertSame([$question, $answer, $comment], array_values($this->discussion->get_posts()));
+        foreach ([$question, $answer, $comment] as $post) {
+            $this->assertSame($this->discussion, $post->get_discussion());
+        }
+        $this->assertSame($answer, $comment->get_parentpost());
+
+        $loaded = post::from_id($comment->get_id());
+        $this->assertSame($loaded, $loaded->get_discussion()->get_posts()[$comment->get_id()]);
+    }
+
+    /**
      * Sets the times and the review status of a post in the database.
      *
      * @param post $post

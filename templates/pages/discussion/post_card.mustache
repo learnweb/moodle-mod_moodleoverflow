@@ -34,7 +34,7 @@
 <div class="{{#iscomment}}indent{{/iscomment}}{{^iscomment}}tmargin{{/iscomment}}">
 <div id="p{{postid}}" class="moodleoverflowpost border {{#iscomment}}bg-light moodleoverflowcomment{{/iscomment}}
  {{postclass}} {{#needsreview}}pendingreview{{/needsreview}}
-    {{#isfirstpost}}firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ authorname }}"
+    {{#isfirstpost}}firstpost starter{{/isfirstpost}}" role="region" aria-label="{{ author.name }}"
      data-moodleoverflow-postid="{{postid}}">
     <div class="d-flex p-2 w-100">
         <div class="left-info text-center">
@@ -88,11 +88,13 @@
                 <div class="leftbox {{questioner}}">
                     {{^iscomment}}
                         <div class="user-info">
-                            <div class="user-avatar">
-                                {{{ authorpicture }}}
-                            </div>
+                            {{#author.picture}}
+                                <div class="user-avatar">
+                                    {{{ author.picture }}}
+                                </div>
+                            {{/author.picture}}
                             <div class="user-details">
-                                {{{ authorlink }}}
+                                {{#author}}{{> mod_moodleoverflow/author_link}}{{/author}}
                                 {{#showreputation}}
                                         (
                                         {{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}
@@ -111,12 +113,12 @@
                         </div>
                     {{/iscomment}}
                     {{#iscomment}}
-                        <span class="text-muted">{{{ authorlink }}} - {{ shortdate }}</span>
+                        <span class="text-muted">{{#author}}{{> mod_moodleoverflow/author_link}}{{/author}} - {{ shortdate }}</span>
                     {{/iscomment}}
                 </div>
                 <div class="rightbox">
                     <div class="post-menu">
-                        {{{ commands }}}
+                        {{#commands}}{{> mod_moodleoverflow/post_commands}}{{/commands}}
                     </div>
                 </div>
             </div>

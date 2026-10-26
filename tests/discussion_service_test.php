@@ -16,14 +16,16 @@
 
 namespace mod_moodleoverflow;
 
+use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 /**
- * Tests the discussion list of the discussion service.
+ * Tests the discussion list and the post tree of the discussion service.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
@@ -85,6 +87,41 @@ final class discussion_service_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if the answers are ranked and each answer is followed by its comments, oldest first, including replies to
+     * comments.
+     */
+    public function test_get_posts_tree_order(): void {
+        $modflow = $this->create_moodleoverflow();
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $answer = $this->generator->create_reply($question, $this->student);
+        $upvoted = $this->generator->create_reply($question, $this->otherstudent);
+        $comment = $this->generator->create_reply($answer, $this->teacher);
+        $upvotedcomment = $this->generator->create_reply($upvoted, $this->teacher);
+        $latercomment = $this->generator->create_reply($answer, $this->otherstudent);
+        $replytocomment = $this->generator->create_reply($comment, $this->student);
+        $this->generator->create_rating($upvoted, $this->teacher, rating_type::UPVOTE);
+
+        $expected = [
+            [$upvoted->get_id(), [$upvotedcomment->get_id()]],
+            [$answer->get_id(), [$comment->get_id(), $latercomment->get_id(), $replytocomment->get_id()]],
+        ];
+        $this->assertEquals($expected, $this->get_tree_ids($question, $this->student->id));
+    }
+
+    /**
+     * Test, if an unreviewed answer is only shown to its author, and its comments are hidden with it.
+     */
+    public function test_get_posts_tree_hides_unreviewed_answer(): void {
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $answer = $this->generator->create_reply($question, $this->student);
+        $comment = $this->generator->create_reply($answer, $this->teacher);
+
+        $this->assertEquals([[$answer->get_id(), [$comment->get_id()]]], $this->get_tree_ids($question, $this->student->id));
+        $this->assertEquals([], $this->get_tree_ids($question, $this->otherstudent->id));
+    }
+
+    /**
      * Returns the ids of the discussions a user can see, in the order of the service.
      *
      * @param moodleoverflow $modflow
@@ -96,5 +133,21 @@ final class discussion_service_test extends \advanced_testcase {
             fn(discussion $discussion) => $discussion->get_id(),
             service\discussion::get_discussions($modflow, $userid)
         ));
+    }
+
+    /**
+     * Returns the post tree of a discussion as ids: one [answer id, comment ids] pair per answer. Checks the question.
+     *
+     * @param post $question
+     * @param int $userid
+     * @return array
+     */
+    private function get_tree_ids(post $question, int $userid): array {
+        $tree = service\discussion::get_posts_tree($question->get_discussion(), $userid);
+        $this->assertEquals($question->get_id(), $tree['question']->get_id());
+        return array_map(
+            fn(array $branch) => [$branch['answer']->get_id(), array_map(fn(post $post) => $post->get_id(), $branch['comments'])],
+            $tree['answers']
+        );
     }
 }

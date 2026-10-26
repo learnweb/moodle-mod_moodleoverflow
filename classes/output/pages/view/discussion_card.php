@@ -19,15 +19,15 @@ namespace mod_moodleoverflow\output\pages\view;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
-use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\rating;
-use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\local\service\review;
 use mod_moodleoverflow\local\service\subscription;
+use mod_moodleoverflow\output\author;
 use core\exception\moodle_exception;
 use moodle_url;
 
@@ -39,9 +39,6 @@ use moodle_url;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class discussion_card implements named_templatable, renderable {
-    /** @var \context_module The context. Is given by the printing function.*/
-    public \context_module $context;
-
     /** @var object The moodleoverflow database object */
     public object $modflow;
 
@@ -57,22 +54,19 @@ class discussion_card implements named_templatable, renderable {
     /** @var bool If discussion can be moved */
     public bool $movepossible;
 
-    /** @var array All important base links*/
-    private array $l = [
-        'disc' => '/mod/moodleoverflow/discussion.php',
-        'user' => '/user/view.php',
-    ];
+    /** @var int The number of posts the user has not read, counted for the whole page */
+    public int $unreadcount;
 
     /**
      * Constructor
      * @param discussion $discussion
-     * @param \context_module $context
      * @param bool $movepossible If the discussion can be moved to another moodleoverflow
+     * @param int $unreadcount The number of posts the user has not read, counted for the whole page
      * @throws \dml_exception
      * @throws moodle_exception
      */
-    public function __construct(discussion $discussion, \context_module $context, bool $movepossible) {
-        $this->context = $context;
+    public function __construct(discussion $discussion, bool $movepossible, int $unreadcount) {
+        $this->unreadcount = $unreadcount;
         $this->discussion = $discussion;
         $this->firstpost = $this->discussion->get_first_post();
         $this->lastpost = $this->discussion->get_last_post();
@@ -88,46 +82,39 @@ class discussion_card implements named_templatable, renderable {
     #[\Override]
     public function export_for_template(renderer_base $output): object {
         global $USER;
-        // Check if the post was marked as helpful or as solution.
-        $helpful = rating::get_marked_post_ids($this->discussion, rating_type::HELPFUL);
-        if ($helpful) {
-            $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$helpful[0]}");
-            $helpful = ['link' => $link->out()];
-        }
-        $solution = rating::get_marked_post_ids($this->discussion, rating_type::SOLVED);
-        if ($solution) {
-            $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$solution[0]}");
-            $solution = ['link' => $link->out()];
-        }
+        $allratings = rating::get_post_ratings($this->discussion);
+        $tree = service\discussion::get_posts_tree($this->discussion, $USER->id, $allratings);
 
-        // Gather information about the discussion starter and the last user that posted something.
-        $starterl = new moodle_url($this->l['user'], ['id' => $this->discussion->get_userid(), 'course' => $this->modflow->course]);
-        $isnotanon = $this->modflow->get_anonymity() === anonymity::NONE;
+        // Link the marks to the first marked answer in the order of the discussion page (only answers can be marked).
+        $marklink = function (string $field) use ($tree, $allratings): array {
+            foreach ($tree['answers'] as $branch) {
+                if ($allratings[$branch['answer']->get_id()]->$field > 0) {
+                    return ['link' => $branch['answer']->get_link()->out()];
+                }
+            }
+            return [];
+        };
 
-        $userfirstpost = [
-            'name' => $this->author_name($this->firstpost),
-            'picture' => $isnotanon ? $this->firstpost->get_userpicture() : '',
-            'link' => $isnotanon && $this->firstpost->get_userid() !== 0 ? $starterl->out() : '',
-        ];
+        // The starter and the last poster, as the user may see them.
+        $userfirstpost = (new author($this->firstpost, $USER->id))->export_for_template($output);
         $userlastpost = $this->lastpost ? [
-            'name' => $this->author_name($this->lastpost),
+            'name' => (new author($this->lastpost, $USER->id))->export_for_template($output)['name'],
             'date' => userdate($this->lastpost->get_time_active(), get_string('strftimerecentfull')),
             'link' => $this->lastpost->get_link()->out(),
         ] : [];
 
         // Gather rating information about the first post.
-        $ratings = rating::get_post_ratings($this->discussion)[$this->firstpost->get_id()];
+        $ratings = $allratings[$this->firstpost->get_id()];
         $vote = rating::get_user_vote($this->firstpost, $USER->id);
 
         // Gather readtracking data for the readtracking template.
-        $unreadcount = readtracking::count_unread_posts_discussion($this->discussion, $USER->id);
         $unreaddata = [
             'itemid' => 'moodleoverflow-markpostsread-' . $this->discussion->get_id(),
             'domain' => 'discussion',
             'instanceid' => $this->discussion->get_id(),
             'userid' => $USER->id,
-            'unreadlink' => (new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], '#unread'))->out(),
-            'unreadamount' => $unreadcount,
+            'unreadlink' => (new moodle_url($this->discussion->get_link(), [], 'unread'))->out(),
+            'unreadamount' => $this->unreadcount,
         ];
 
         // Gather review data.
@@ -144,15 +131,16 @@ class discussion_card implements named_templatable, renderable {
             'votes' => $ratings->upvotes - $ratings->downvotes,
             'userupvoted' => $vote === rating_type::UPVOTE,
             'userdownvoted' => $vote === rating_type::DOWNVOTE,
-            'canchange' => rating::can_change_vote($this->firstpost, $USER->id),
-            'markedhelpful' => $helpful,
-            'markedsolution' => $solution,
+            'canchange' => rating::can_change_vote($this->firstpost, $USER->id, $vote),
+            'markedhelpful' => $marklink('ishelpful'),
+            'markedsolution' => $marklink('issolved'),
             'subjecttext' => format_string($this->discussion->name), // The discussion name, use format_text perhaps.
-            'subjectlink' => (new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()]))->out(),
+            'subjectlink' => $this->discussion->get_link()->out(),
             'userfirstpost' => $userfirstpost,
             'userlastpost' => $userlastpost,
-            'replyamount' => count($this->discussion->get_posts()),
-            'unread' => $unreadcount > 0 ? $unreaddata : [],
+            // The answers and comments the user sees, like the discussion page.
+            'replyamount' => array_sum(array_map(fn(array $branch) => 1 + count($branch['comments']), $tree['answers'])),
+            'unread' => $this->unreadcount > 0 ? $unreaddata : [],
             'canreview' => permissions::can_review_posts($this->modflow, $USER->id),
             'needreview' => $reviewpostcount,
             'reviewlink' => $reviewlink?->out(),
@@ -165,24 +153,5 @@ class discussion_card implements named_templatable, renderable {
                 'icononly' => true,
             ] : [],
         ];
-    }
-
-    /**
-     * Returns the author name that gets displayed.
-     * @param post $post
-     * @return string
-     * @throws \coding_exception|moodle_exception
-     */
-    private function author_name(post $post): string {
-        global $USER, $DB;
-        if (!permissions::can_view_author($post, $USER->id)) {
-            return get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
-        }
-        $isquestioner = $post->get_userid() === $this->discussion->get_userid();
-        if ($this->modflow->is_author_anonymous($isquestioner)) {
-            return get_string('anonym_you', 'mod_moodleoverflow');
-        }
-        $user = $DB->get_record('user', ['id' => $post->get_userid()]);
-        return fullname($user, has_capability('moodle/site:viewfullnames', $this->context));
     }
 }

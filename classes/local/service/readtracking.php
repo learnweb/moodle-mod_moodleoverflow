@@ -176,33 +176,6 @@ class readtracking {
     }
 
     /**
-     * Checks whether a specific post has been read by a user.
-     * Posts older than the configured cutoff date are always considered read.
-     *
-     * @param post $post
-     * @param int $userid
-     * @return bool True if read (or old), false if unread.
-     * @throws coding_exception|dml_exception|moodle_exception
-     */
-    public static function is_post_read(post $post, int $userid): bool {
-        global $DB;
-        if (!self::is_tracked($post->get_moodleoverflow(), $userid)) {
-            return true;
-        }
-
-        $cutoffdate = time() - moodleoverflow::get_old_post_age();
-
-        $sql = "SELECT p.id
-                  FROM {moodleoverflow_posts} p
-             LEFT JOIN {moodleoverflow_read} r ON (r.postid = p.id AND r.userid = :userid)
-                 WHERE p.id = :postid
-                   AND p.modified >= :cutoffdate
-                   AND r.id IS NULL";
-
-        return !$DB->record_exists_sql($sql, ['userid' => $userid, 'postid' => $post->get_id(), 'cutoffdate' => $cutoffdate]);
-    }
-
-    /**
      * Get number of unread posts in a moodleoverflow instance.
      *
      * @param moodleoverflow $modflow
@@ -223,23 +196,69 @@ class readtracking {
      * @return int
      */
     public static function count_unread_posts_discussion(discussion $discussion, int $userid): int {
-        if (!self::is_tracked($discussion->get_moodleoverflow(), $userid)) {
-            return 0;
+        return count(self::get_unread_post_ids($discussion, $userid));
+    }
+
+    /**
+     * Counts the unread posts of several discussions of one moodleoverflow in one query, e.g. for a page of the
+     * discussion list. The visibility is checked on the post objects of the discussions.
+     * @param moodleoverflow $modflow The moodleoverflow of the discussions
+     * @param discussion[] $discussions
+     * @param int $userid
+     * @return int[] Indexed by discussion id.
+     * @throws moodle_exception
+     */
+    public static function count_unread_posts_per_discussion(moodleoverflow $modflow, array $discussions, int $userid): array {
+        global $DB;
+        $counts = [];
+        foreach ($discussions as $discussion) {
+            $counts[$discussion->get_id()] = 0;
         }
-        return count(self::get_unread_posts($userid, 'd.id = :discussionid', ['discussionid' => $discussion->get_id()]));
+        if (!$counts || !self::is_tracked($modflow, $userid)) {
+            return $counts;
+        }
+        [$insql, $params] = $DB->get_in_or_equal(array_keys($counts), SQL_PARAMS_NAMED);
+        $records = self::get_unread_records($userid, "d.id $insql", $params);
+        foreach ($discussions as $discussion) {
+            $posts = $discussion->get_posts();
+            $counts[$discussion->get_id()] = count(array_filter(
+                array_keys($records),
+                fn(int $id) => isset($posts[$id]) && permissions::can_view_post($posts[$id], $userid)
+            ));
+        }
+        return $counts;
     }
 
     /**
      * Returns the id of the first unread post in a discussion. Useful to point to the post in a discussion that is unread.
      * @param discussion $discussion
      * @param int $userid
-     * @return int
+     * @return int -1 if there is no unread post.
      * @throws moodle_exception
      */
     public static function get_first_unread_post_id(discussion $discussion, int $userid): int {
-        $posts = self::get_unread_posts($userid, 'd.id = :discussionid', ['discussionid' => $discussion->get_id()]);
-        usort($posts, fn($a, $b) => $a->created <=> $b->created);
-        return $posts ? $posts[0]->get_id() : -1;
+        return self::get_unread_post_ids($discussion, $userid)[0] ?? -1;
+    }
+
+    /**
+     * Returns the ids of the unread posts of a discussion that the user can see, oldest first. Posts older than the
+     * configured cutoff date count as read; in a moodleoverflow the user does not track, every post counts as read.
+     * The visibility is checked on the post objects of the discussion, so no post is loaded again.
+     * @param discussion $discussion
+     * @param int $userid
+     * @return int[]
+     * @throws moodle_exception
+     */
+    public static function get_unread_post_ids(discussion $discussion, int $userid): array {
+        if (!self::is_tracked($discussion->get_moodleoverflow(), $userid)) {
+            return [];
+        }
+        $posts = $discussion->get_posts();
+        $records = self::get_unread_records($userid, 'd.id = :discussionid', ['discussionid' => $discussion->get_id()]);
+        return array_values(array_filter(
+            array_keys($records),
+            fn(int $id) => isset($posts[$id]) && permissions::can_view_post($posts[$id], $userid)
+        ));
     }
 
     // Cron functions.
@@ -275,15 +294,37 @@ class readtracking {
      * @return post[]
      */
     private static function get_unread_posts(int $userid, string $where, array $params): array {
+        // Load each discussion once and take the posts from it, instead of one discussion per post.
+        $discussions = [];
+        $posts = [];
+        foreach (self::get_unread_records($userid, $where, $params) as $id => $record) {
+            $discussion = $discussions[$record->discussion] ??= discussion::from_id($record->discussion);
+            $post = $discussion->get_posts()[$id] ?? null;
+            if ($post && permissions::can_view_post($post, $userid)) {
+                $posts[$id] = $post;
+            }
+        }
+        return $posts;
+    }
+
+    /**
+     * Returns the records of the unread posts in a moodleoverflow or a discussion, oldest first, without checking
+     * whether the user can see them.
+     * @param int $userid
+     * @param string $where condition on p (posts) or d (discussions)
+     * @param array $params parameters of the condition
+     * @return object[] Indexed by post id.
+     */
+    private static function get_unread_records(int $userid, string $where, array $params): array {
         global $DB;
         $sql = "SELECT p.*
               FROM {moodleoverflow_posts} p
               JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
          LEFT JOIN {moodleoverflow_read} r ON r.postid = p.id AND r.userid = :userid
-             WHERE $where AND p.modified >= :cutoff AND r.id IS NULL";
+             WHERE $where AND p.modified >= :cutoff AND r.id IS NULL
+          ORDER BY p.created, p.id";
         $params += ['userid' => $userid, 'cutoff' => time() - moodleoverflow::get_old_post_age()];
-        $posts = array_map(fn($record) => post::from_record($record), $DB->get_records_sql($sql, $params));
-        return array_filter($posts, fn($post) => permissions::can_view_post($post, $userid));
+        return $DB->get_records_sql($sql, $params);
     }
 
     /**

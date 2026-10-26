@@ -19,12 +19,9 @@ namespace mod_moodleoverflow\local\models;
 use cm_info;
 use core\exception\coding_exception;
 use context_module;
-use core\output\html_writer;
 use core\output\renderer_base;
 use core_files\external\stored_file_exporter;
-use core_user\fields;
 use dml_exception;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\event\post_updated;
@@ -55,14 +52,8 @@ require_once($CFG->libdir . '/filelib.php');
 class post {
     // Not database related attributes.
 
-    /** @var discussion The discussion where the post is located */
-    public discussion $discussionobject;
-
-    /** @var moodleoverflow The Moodleoverflow where the post is located*/
-    public moodleoverflow $moodleoverflowobject;
-
-    /** @var ?object The parent post of an answerpost */
-    public ?object $parentpost;
+    /** @var discussion|null The discussion of the post, shared with the other posts that were loaded with it */
+    private ?discussion $discussionobject = null;
 
     // Constructors and other builders.
 
@@ -437,61 +428,6 @@ class post {
     }
 
     /**
-     * Get a link to the authors profile and fullname.
-     * Returns a html link embedded in the users name.
-     * @param int $userid The user that wants to get the link to the authors profile.
-     * @return array
-     * @throws moodle_exception
-     */
-    public function get_authorlink(int $userid): array {
-        global $DB;
-        $this->existence_check();
-
-        $courseid = $this->get_discussion()->get_courseid();
-        $modulecontext = context_module::instance($this->get_coursemodule()->id);
-        $authorid = $this->get_userid();
-        if ($authorid === 0) {
-            $name = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
-            return ['link' => $name, 'fullname' => $name];
-        }
-        if ($this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $authorid)) {
-            if ($authorid == $userid) {
-                $fullname = get_string('anonym_you', 'mod_moodleoverflow');
-                $profilelink = new moodle_url('/user/view.php', ['id' => $authorid, 'course' => $courseid]);
-                return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
-            } else {
-                $usermapping = anonymous::get_userid_mapping($this->get_moodleoverflow(), $this->get_discussionid());
-                return ['link' => $usermapping[$authorid], 'fullname' => $usermapping[$authorid]];
-            }
-        }
-        $user = $DB->get_record('user', ['id' => $authorid]);
-        $fullname = fullname($user, has_capability('moodle/site:viewfullnames', $modulecontext));
-        $profilelink = new moodle_url('/user/view.php', ['id' => $authorid, 'course' => $courseid]);
-        return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
-    }
-
-    /**
-     * Return the profile picture of the post author.
-     * @throws dml_exception|moodle_exception
-     */
-    public function get_userpicture(): string {
-        global $DB, $OUTPUT;
-        if (
-            $this->userid != 0
-            && !$this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $this->get_userid())
-        ) {
-            $user = username_load_fields_from_object(
-                (new stdClass()),
-                $DB->get_record('user', ['id' => $this->userid]),
-                null,
-                fields::get_picture_fields()
-            );
-            return $OUTPUT->user_picture($user, ['courseid' => $this->moodleoverflowobject->course, 'link' => false]);
-        }
-        return '';
-    }
-
-    /**
      * Return the link to the post inside the discussion view.
      * Note: this is not the link to make an action, as it directs to the discussion.php, not the post.php.
      * @throws \core\exception\moodle_exception
@@ -619,18 +555,36 @@ class post {
      */
     public function get_moodleoverflow(): moodleoverflow {
         $this->existence_check();
-        return $this->moodleoverflowobject ??= $this->get_discussion()->get_moodleoverflow();
+        return $this->get_discussion()->get_moodleoverflow();
     }
 
     /**
-     * Returns the discussion where the post is located.
+     * Returns the discussion where the post is located. A post loaded with its discussion shares that discussion object
+     * with the other posts; a post loaded on its own loads the discussion, which then uses this object for the post.
      *
-     * @return discussion $discussionobject.
+     * @return discussion
      * @throws moodle_exception
      */
     public function get_discussion(): discussion {
         $this->existence_check();
-        return $this->discussionobject ??= discussion::from_id($this->discussion);
+        if ($this->discussionobject === null) {
+            discussion::from_id($this->discussion)->adopt_post($this);
+        }
+        return $this->discussionobject;
+    }
+
+    /**
+     * Links the post to the discussion object it belongs to. Only called by the discussion model.
+     *
+     * @param discussion $discussion
+     * @return void
+     * @throws coding_exception|moodle_exception
+     */
+    public function set_discussion(discussion $discussion): void {
+        if ($discussion->get_id() !== $this->discussion) {
+            throw new coding_exception('The post does not belong to this discussion.');
+        }
+        $this->discussionobject = $discussion;
     }
 
     /**
@@ -645,18 +599,13 @@ class post {
     }
 
     /**
-     * Returns the parent post
-     * @return post|null $post|false
-     * @throws dml_exception
+     * Returns the parent post from the posts of the discussion.
+     * @return post|null Null for the question.
      * @throws moodle_exception
      */
-    public function get_parentpost(): post|null {
-        global $DB;
+    public function get_parentpost(): ?post {
         $this->existence_check();
-        // Return the parentpost, which is null if there is no parent or a post.
-        return $this->parentpost ??= $this->parent === 0 ? null : $this->from_record(
-            $DB->get_record('moodleoverflow_posts', ['id' => $this->parent])
-        );
+        return $this->parent === 0 ? null : $this->get_discussion()->get_posts()[$this->parent];
     }
 
     /**
@@ -706,15 +655,14 @@ class post {
     }
 
     /**
-     * Count all replies of a post.
+     * Counts the direct replies of the post, reviewed or not, from the posts of the discussion.
      *
-     * @param bool $onlyreviewed Whether to count only reviewed posts.
-     * @return int Amount of replies
-     * @throws dml_exception
+     * @return int
+     * @throws moodle_exception
      */
-    public function count_replies(bool $onlyreviewed): int {
-        global $DB;
-        return $DB->count_records('moodleoverflow_posts', ['parent' => $this->id] + ($onlyreviewed ? ['reviewed' => '1'] : []));
+    public function count_replies(): int {
+        $this->existence_check();
+        return count(array_filter($this->get_discussion()->get_posts(), fn(post $post) => $post->get_parentid() === $this->id));
     }
 
     // Security.

@@ -47,7 +47,7 @@ class discussion {
         global $DB;
         $records = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $modflow->id], 'timestart DESC, id DESC');
         return array_filter(
-            array_map(fn($record) => models\discussion::from_record($record), $records),
+            array_map(fn($record) => models\discussion::from_record($record, $modflow), $records),
             fn(models\discussion $discussion) => permissions::can_view_discussion($discussion, $userid)
         );
     }
@@ -89,5 +89,83 @@ class discussion {
         }
         // The indexed posts keep the context of the source; reindexing the destination replaces them.
         manager::request_index($destination->get_context(), 'mod_moodleoverflow-post');
+    }
+
+    /**
+     * Returns the posts of a discussion that the user can see, in the order of the discussion page.
+     *
+     * Below the question are the direct answers, ranked by marks and votes (rating::sort_answers()), and below each
+     * answer its comments, oldest first. A reply to a comment counts as a comment of its answer. Comments of an answer
+     * the user cannot see are left out with it.
+     *
+     * @param models\discussion $discussion
+     * @param int $userid
+     * @param object[]|null $ratings The ratings of the discussion (rating::get_post_ratings()), if the caller has them
+     * @return array{question: models\post, answers: array{answer: models\post, comments: models\post[]}[]}
+     * @throws moodle_exception|dml_exception
+     */
+    public static function get_posts_tree(models\discussion $discussion, int $userid, ?array $ratings = null): array {
+        permissions::ensure(permissions::can_view_discussion($discussion, $userid), 'noviewdiscussionspermission');
+        $posts = $discussion->get_posts();
+        $visible = array_filter($posts, fn(models\post $post) => permissions::can_view_post($post, $userid));
+
+        // Rank the direct answers; the result is indexed by post id.
+        $ratings ??= rating::get_post_ratings($discussion);
+        $sortdata = [];
+        foreach (array_filter($visible, fn(models\post $post) => $post->is_direct_answer()) as $answer) {
+            $rating = $ratings[$answer->get_id()];
+            $sortdata[] = (object) [
+                'id' => $answer->get_id(),
+                'modified' => $answer->modified,
+                'votesdifference' => $rating->upvotes - $rating->downvotes,
+                'markedsolution' => $rating->issolved,
+                'markedhelpful' => $rating->ishelpful,
+            ];
+        }
+        $ranked = rating::sort_answers($sortdata, $discussion->get_moodleoverflow()->get_rating_preference());
+        $answers = array_map(fn($row) => ['answer' => $visible[$row->id], 'comments' => []], $ranked);
+
+        // Append each comment to its answer, oldest first.
+        $comments = array_filter($visible, fn(models\post $post) => $post->is_comment());
+        usort($comments, fn($a, $b) => $a->created <=> $b->created ?: $a->get_id() <=> $b->get_id());
+        foreach ($comments as $comment) {
+            $answerid = self::get_answer_id($comment, $posts);
+            if (isset($answers[$answerid])) {
+                $answers[$answerid]['comments'][] = $comment;
+            }
+        }
+
+        return ['question' => $posts[$discussion->get_firstpostid()], 'answers' => array_values($answers)];
+    }
+
+    /**
+     * Returns the moodleoverflows of the same course that the user can move discussions of the source to.
+     * @param models\moodleoverflow $source
+     * @param int $userid
+     * @return models\moodleoverflow[]
+     * @throws moodle_exception
+     */
+    public static function get_move_destinations(models\moodleoverflow $source, int $userid): array {
+        global $DB;
+        $records = $DB->get_records('moodleoverflow', ['course' => $source->course], 'id');
+        return array_values(array_filter(
+            array_map(fn($record) => models\moodleoverflow::from_record($record), $records),
+            fn(models\moodleoverflow $destination) => permissions::can_move_discussions($source, $destination, $userid)
+        ));
+    }
+
+    /**
+     * Returns the id of the direct answer a comment belongs to, also for replies to comments.
+     * @param models\post $comment
+     * @param models\post[] $posts All posts of the discussion, indexed by id
+     * @return int|null Null if the chain is broken
+     * @throws moodle_exception
+     */
+    private static function get_answer_id(models\post $comment, array $posts): ?int {
+        $post = $comment;
+        while ($post !== null && $post->is_comment()) {
+            $post = $posts[$post->get_parentid()] ?? null;
+        }
+        return $post?->get_id();
     }
 }

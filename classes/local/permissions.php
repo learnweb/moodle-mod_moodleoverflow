@@ -219,7 +219,7 @@ class permissions {
         $candeleteownpost = $post->get_userid() === $userid
             && has_capability('mod/moodleoverflow:deleteownpost', $context, $userid)
             && $post->in_edit_window()
-            && $post->count_replies(false) === 0;
+            && $post->count_replies() === 0;
 
         return self::can_view_post($post, $userid) && ($candeleteownpost || $candeleteanypost);
     }

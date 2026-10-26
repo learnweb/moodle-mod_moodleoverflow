@@ -1,0 +1,36 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/post_commands
+
+  The commands below a post. The post menu draws a separator before every element, so the commands are written
+  without whitespace between them. rating.js and deletepost.js find the commands by their classes and data attributes.
+
+  Example context (json):
+  {
+      "markhelpful": {"label": "Mark as helpful"},
+      "editurl": "https://example.com/mod/moodleoverflow/post.php?edit=12",
+      "delete": {"postid": 12, "replies": 2},
+      "reply": {"url": "https://example.com/mod/moodleoverflow/post.php?reply=12#mformmoodleoverflow", "label": "Reply"}
+  }
+}}
+{{#markhelpful}}<a class="markhelpful onlyifreviewed" role="button" data-moodleoverflow-action="helpful">{{label}}</a>{{/markhelpful}}{{!
+}}{{#marksolved}}<a class="marksolved onlyifreviewed" role="button" data-moodleoverflow-action="solved">{{label}}</a>{{/marksolved}}{{!
+}}{{#editurl}}<a href="{{editurl}}">{{#str}}edit, mod_moodleoverflow{{/str}}</a>{{/editurl}}{{!
+}}{{#delete}}<a href="#" role="button" data-action="mod_moodleoverflow/delete-post" data-postid="{{postid}}" data-replies="{{replies}}">{{#str}}delete, mod_moodleoverflow{{/str}}</a>{{/delete}}{{!
+}}{{#reply}}<a href="{{url}}" class="onlyifreviewed">{{label}}</a>{{#helpicon}} {{> core/help_icon}}{{/helpicon}}{{/reply}}{{!
+}}{{#replylater}}<span class="onlyifreviewed text-muted">{{#str}}replyfirst, mod_moodleoverflow{{/str}} {{#helpicon}}{{> core/help_icon}}{{/helpicon}}</span>{{/replylater}}
