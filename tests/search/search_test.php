@@ -20,7 +20,7 @@ use context;
 use context_module;
 use core_search\document;
 use core_search\manager;
-use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use moodle_url;
@@ -232,7 +232,7 @@ final class search_test extends \advanced_testcase {
     public function test_posts_document_question_anonymous(): void {
         $searcharea = manager::get_search_area($this->postareaid);
 
-        $modflow = $this->create_instance(['anonymous' => anonymous::QUESTION_ANONYMOUS]);
+        $modflow = $this->create_instance(['anonymous' => anonymity::QUESTIONS->value]);
         [$discussion, $firstpost] = $this->generator->post_to_forum($modflow, $this->student);
         $ownreply = $this->generator->reply_to_post($firstpost, $this->student);
         $otherreply = $this->generator->reply_to_post($firstpost, $this->otherstudent);
@@ -258,7 +258,7 @@ final class search_test extends \advanced_testcase {
     public function test_posts_document_everything_anonymous(): void {
         $searcharea = manager::get_search_area($this->postareaid);
 
-        $modflow = $this->create_instance(['anonymous' => anonymous::EVERYTHING_ANONYMOUS]);
+        $modflow = $this->create_instance(['anonymous' => anonymity::EVERYTHING->value]);
         [$discussion, $firstpost] = $this->generator->post_to_forum($modflow, $this->student);
         $reply = $this->generator->reply_to_post($firstpost, $this->otherstudent);
 

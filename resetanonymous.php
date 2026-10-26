@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_moodleoverflow\anonymous;
+use mod_moodleoverflow\local\enum\anonymity;
 
 require_once('../../config.php');
 
@@ -38,15 +38,10 @@ $confirmed = optional_param('confirmed', false, PARAM_BOOL);
 $returnurl = new moodle_url('/admin/settings.php?section=modsettingmoodleoverflow');
 
 if ($confirmed !== 1) {
-    $a = new stdClass();
-    $a->fullanoncount = $DB->count_records(
-        'moodleoverflow',
-        ['anonymous' => anonymous::EVERYTHING_ANONYMOUS]
-    );
-    $a->questionanoncount = $DB->count_records(
-        'moodleoverflow',
-        ['anonymous' => anonymous::QUESTION_ANONYMOUS]
-    );
+    $a = (object) [
+        'fullanoncount' => $DB->count_records('moodleoverflow', ['anonymous' => anonymity::EVERYTHING->value]),
+        'questionanoncount' => $DB->count_records('moodleoverflow', ['anonymous' => anonymity::QUESTIONS->value]),
+    ];
     echo $OUTPUT->header();
     echo html_writer::div(
         $OUTPUT->confirm(
@@ -62,6 +57,6 @@ if ($confirmed !== 1) {
 
 require_sesskey();
 
-$DB->execute('UPDATE {moodleoverflow} SET anonymous = ?', [anonymous::NOT_ANONYMOUS]);
+$DB->execute('UPDATE {moodleoverflow} SET anonymous = ?', [anonymity::NONE->value]);
 
 redirect($returnurl);

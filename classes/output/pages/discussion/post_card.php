@@ -24,6 +24,7 @@ use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
+use mod_moodleoverflow\output\author;
 use moodle_url;
 
 /**
@@ -110,9 +111,7 @@ class post_card implements named_templatable, renderable {
             'permalink' => (new moodle_url($discusspath, ['d' => $discussion->get_id()], 'p' . $this->post->get_id()))->out(),
             'postcontent' => $this->post->get_message_formatted(),
             'attachments' => $this->post->get_attachments($output),
-            'authorname' => $this->post->get_authorlink($USER->id)['fullname'],
-            'authorlink' => $this->post->get_authorlink($USER->id)['link'],
-            'authorpicture' => $this->post->get_userpicture(),
+            'author' => (new author($this->post, $USER->id))->export_for_template($output),
             'iscomment' => $parentpost !== null && $parentpost->get_id() != $this->post->get_discussion()->get_firstpostid(),
             'isfirstpost' => $this->post->get_id() == $this->post->get_discussion()->get_firstpostid(),
             'date' => userdate($this->post->modified),

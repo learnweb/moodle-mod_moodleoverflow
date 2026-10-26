@@ -565,6 +565,32 @@ class discussion {
     }
 
     /**
+     * Returns the name of an author in this discussion where the anonymity setting hides it: the questioner is
+     * "Questioner", the others are numbered by their first post ("Answerer #1", …). Readers can tell the authors apart
+     * without knowing who they are.
+     * @param int $userid An author of a post in this discussion
+     * @return string
+     * @throws coding_exception|moodle_exception
+     */
+    public function get_pseudonym(int $userid): string {
+        if ($userid === $this->get_userid()) {
+            return get_string('questioner', 'mod_moodleoverflow');
+        }
+        $posts = $this->get_posts();
+        usort($posts, fn(post $a, post $b) => $a->created <=> $b->created ?: $a->get_id() <=> $b->get_id());
+        // Every author once, in the order of their first post; 0 is no author (removed by the privacy provider).
+        $authors = array_values(array_diff(
+            array_unique(array_map(fn(post $post) => $post->get_userid(), $posts)),
+            [0, $this->get_userid()]
+        ));
+        $number = array_search($userid, $authors, true);
+        if ($number === false) {
+            throw new coding_exception('The user is not an author of this discussion.');
+        }
+        return get_string('answerer', 'mod_moodleoverflow', $number + 1);
+    }
+
+    /**
      * Returns the moodleoverflowobject
      *
      * @return moodleoverflow $moodleoverflowobject

@@ -19,12 +19,9 @@ namespace mod_moodleoverflow\local\models;
 use cm_info;
 use core\exception\coding_exception;
 use context_module;
-use core\output\html_writer;
 use core\output\renderer_base;
 use core_files\external\stored_file_exporter;
-use core_user\fields;
 use dml_exception;
-use mod_moodleoverflow\anonymous;
 use mod_moodleoverflow\event\post_created;
 use mod_moodleoverflow\event\post_deleted;
 use mod_moodleoverflow\event\post_updated;
@@ -434,61 +431,6 @@ class post {
             $this->get_moodleoverflow()->get_editor_options($this->id),
             $this->message
         );
-    }
-
-    /**
-     * Get a link to the authors profile and fullname.
-     * Returns a html link embedded in the users name.
-     * @param int $userid The user that wants to get the link to the authors profile.
-     * @return array
-     * @throws moodle_exception
-     */
-    public function get_authorlink(int $userid): array {
-        global $DB;
-        $this->existence_check();
-
-        $courseid = $this->get_discussion()->get_courseid();
-        $modulecontext = context_module::instance($this->get_coursemodule()->id);
-        $authorid = $this->get_userid();
-        if ($authorid === 0) {
-            $name = get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
-            return ['link' => $name, 'fullname' => $name];
-        }
-        if ($this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $authorid)) {
-            if ($authorid == $userid) {
-                $fullname = get_string('anonym_you', 'mod_moodleoverflow');
-                $profilelink = new moodle_url('/user/view.php', ['id' => $authorid, 'course' => $courseid]);
-                return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
-            } else {
-                $usermapping = anonymous::get_userid_mapping($this->get_moodleoverflow(), $this->get_discussionid());
-                return ['link' => $usermapping[$authorid], 'fullname' => $usermapping[$authorid]];
-            }
-        }
-        $user = $DB->get_record('user', ['id' => $authorid]);
-        $fullname = fullname($user, has_capability('moodle/site:viewfullnames', $modulecontext));
-        $profilelink = new moodle_url('/user/view.php', ['id' => $authorid, 'course' => $courseid]);
-        return ['link' => html_writer::link($profilelink, $fullname), 'fullname' => $fullname];
-    }
-
-    /**
-     * Return the profile picture of the post author.
-     * @throws dml_exception|moodle_exception
-     */
-    public function get_userpicture(): string {
-        global $DB, $OUTPUT;
-        if (
-            $this->userid != 0
-            && !$this->get_moodleoverflow()->is_author_anonymous($this->get_discussion()->get_userid() === $this->get_userid())
-        ) {
-            $user = username_load_fields_from_object(
-                (new stdClass()),
-                $DB->get_record('user', ['id' => $this->userid]),
-                null,
-                fields::get_picture_fields()
-            );
-            return $OUTPUT->user_picture($user, ['courseid' => $this->moodleoverflowobject->course, 'link' => false]);
-        }
-        return '';
     }
 
     /**

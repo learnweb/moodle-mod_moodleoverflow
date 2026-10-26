@@ -29,6 +29,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\posting;
+use mod_moodleoverflow\output\author;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 global $CFG, $USER, $PAGE, $OUTPUT;
@@ -111,11 +112,8 @@ if ($data = $form->get_data()) {
     $post = posting::edit($post, $USER->id, $content);
     $message = get_string('postupdated', 'moodleoverflow');
     if ($post->get_userid() !== (int) $USER->id) {
-        // Name the author whose post was edited, unless the author is anonymous.
-        $isquestioner = $post->get_discussion()->get_userid() === $post->get_userid();
-        $name = ($post->get_userid() === 0 || $modflow->is_author_anonymous($isquestioner))
-            ? get_string('anonymous', 'moodleoverflow')
-            : fullname(core_user::get_user($post->get_userid()));
+        // Name the author whose post was edited, as the editor sees them.
+        $name = (new author($post, $USER->id))->export_for_template($OUTPUT)['name'];
         $message = get_string('editedpostupdated', 'moodleoverflow', $name);
     }
     redirect($post->get_link(), $message, null, notification::NOTIFY_SUCCESS);
@@ -131,7 +129,10 @@ if ($parent) {
         'postid' => $parent->get_id(),
         'postcontent' => $parent->get_message_formatted(),
         'attachments' => $parent->get_attachments($OUTPUT),
-        'byname' => $parent->get_authorlink($USER->id)['link'],
+        'byname' => $OUTPUT->render_from_template(
+            'mod_moodleoverflow/author_link',
+            (new author($parent, $USER->id))->export_for_template($OUTPUT)
+        ),
     ]);
 }
 $form->display();
