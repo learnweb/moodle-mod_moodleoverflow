@@ -241,12 +241,12 @@ class rating {
      * their vote (allowratingchange).
      * @param post $post
      * @param int $userid
+     * @param rating_type|null $vote The current vote of the user on the post (get_user_vote() or get_user_votes()).
      * @return bool
      * @throws dml_exception|moodle_exception
      */
-    public static function can_change_vote(post $post, int $userid): bool {
-        return permissions::can_vote($post, $userid)
-            && ($post->get_moodleoverflow()->allows_rating_change() || !self::get_vote_record($post, $userid));
+    public static function can_change_vote(post $post, int $userid, ?rating_type $vote): bool {
+        return permissions::can_vote($post, $userid) && ($post->get_moodleoverflow()->allows_rating_change() || $vote === null);
     }
 
     /**
@@ -259,6 +259,30 @@ class rating {
     public static function get_user_vote(post $post, int $userid): ?rating_type {
         $record = self::get_vote_record($post, $userid);
         return $record ? rating_type::from($record->rating) : null;
+    }
+
+    /**
+     * Returns the votes of a user on the posts of a discussion, in one query.
+     * @param discussion $discussion
+     * @param int $userid
+     * @return rating_type[] UPVOTE or DOWNVOTE, indexed by post id; posts without a vote of the user are missing.
+     * @throws dml_exception|moodle_exception
+     */
+    public static function get_user_votes(discussion $discussion, int $userid): array {
+        global $DB;
+        [$insql, $inparams] = $DB->get_in_or_equal([rating_type::DOWNVOTE->value, rating_type::UPVOTE->value], SQL_PARAMS_NAMED);
+        $records = $DB->get_records_select(
+            'moodleoverflow_ratings',
+            "userid = :userid AND discussionid = :discussionid AND rating $insql",
+            ['userid' => $userid, 'discussionid' => $discussion->get_id()] + $inparams,
+            'id',
+            'id, postid, rating'
+        );
+        $votes = [];
+        foreach ($records as $record) {
+            $votes[$record->postid] ??= rating_type::from($record->rating);
+        }
+        return $votes;
     }
 
     /**

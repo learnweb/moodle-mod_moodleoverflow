@@ -106,14 +106,15 @@ class record_vote extends external_api {
 
         $discussion = $post->get_discussion();
         $ratings = service\rating::get_post_ratings($discussion)[$post->get_id()];
+        $vote = service\rating::get_user_vote($post, $USER->id);
         return [
             'postrating' => $ratings->upvotes - $ratings->downvotes,
             'ownerreputation' => permissions::can_view_reputation($post, $USER->id)
                 ? service\rating::get_reputation($modflow, $post->get_userid()) : null,
             'raterreputation' => service\rating::get_reputation($modflow, $USER->id),
             'ownerid' => permissions::can_view_author($post, $USER->id) ? $post->get_userid() : null,
-            'uservote' => service\rating::get_user_vote($post, $USER->id)?->value ?? 0,
-            'canchange' => service\rating::can_change_vote($post, $USER->id),
+            'uservote' => $vote?->value ?? 0,
+            'canchange' => service\rating::can_change_vote($post, $USER->id, $vote),
             'markedposts' => $type->is_mark() ? service\rating::get_marked_post_ids($discussion, $type) : [],
         ];
     }

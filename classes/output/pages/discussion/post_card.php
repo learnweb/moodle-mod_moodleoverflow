@@ -40,22 +40,21 @@ class post_card implements named_templatable, renderable {
     /** @var post The post that gets printed */
     public post $post;
 
-    /** @var bool If the post is the first unread post of the discussion */
-    public bool $isfirstunread;
+    /** @var discussion_page_data The data of the discussion page, loaded once for all posts */
+    public discussion_page_data $data;
 
     /** @var object The ratings of the post: upvotes, downvotes, issolved, ishelpful */
-    public object $ratings;
+    private object $ratings;
 
     /**
      * Constructor.
      * @param post $post
-     * @param bool $isfirstunread if the post is the first unread post in the discussion.
-     * @param object $ratings The row of the post from service\rating::get_post_ratings()
+     * @param discussion_page_data $data The data of the discussion page, loaded once for all posts
      */
-    public function __construct(post $post, bool $isfirstunread, object $ratings) {
+    public function __construct(post $post, discussion_page_data $data) {
         $this->post = $post;
-        $this->isfirstunread = $isfirstunread;
-        $this->ratings = $ratings;
+        $this->data = $data;
+        $this->ratings = $data->get_ratings($post);
     }
 
     #[\Override]
@@ -72,22 +71,22 @@ class post_card implements named_templatable, renderable {
         $moodleoverflow = $discussion->get_moodleoverflow();
 
         // Build the postclass, which has additional css classes that show if a post solution/helpful marks and readtracking status.
-        $isread = service\readtracking::is_post_read($this->post, $USER->id);
+        $isread = $this->data->is_read($this->post);
         $issolved = $this->ratings->issolved > 0 ? 'markedsolution' : '';
         $ishelpful = $this->ratings->ishelpful > 0 ? 'markedhelpful' : '';
 
         // Get voting data for the voting template as well as reputation rating.
-        $vote = service\rating::get_user_vote($this->post, $USER->id);
+        $vote = $this->data->get_vote($this->post);
         $showvotes = $moodleoverflow->is_rating_enabled() ? [
             'postid' => $this->post->get_id(),
             'votes' => $this->ratings->upvotes - $this->ratings->downvotes,
             'userupvoted' => $vote === rating_type::UPVOTE,
             'userdownvoted' => $vote === rating_type::DOWNVOTE,
-            'canchange' => service\rating::can_change_vote($this->post, $USER->id),
+            'canchange' => service\rating::can_change_vote($this->post, $USER->id, $vote),
         ] : [];
         $showreputation = permissions::can_view_reputation($this->post, $USER->id) ? [
             'userid' => $this->post->get_userid(),
-            'userreputation' => service\rating::get_reputation($moodleoverflow, $this->post->get_userid()),
+            'userreputation' => $this->data->get_reputation($this->post->get_userid()),
         ] : [];
 
         // Review data.
@@ -99,7 +98,7 @@ class post_card implements named_templatable, renderable {
 
         // Build the mustache data.
         return (object) [
-            'isfirstunread' => $this->isfirstunread,
+            'isfirstunread' => $this->data->is_first_unread($this->post),
             'postid' => $this->post->get_id(),
             'postclass' => ' ' . ($isread ? 'read' : 'unread') . ' ' . $ishelpful . ' ' . $issolved,
             'permalink' => (new moodle_url($discusspath, ['d' => $discussion->get_id()], 'p' . $this->post->get_id()))->out(),
@@ -142,7 +141,7 @@ class post_card implements named_templatable, renderable {
             $commands['editurl'] = (new moodle_url('/mod/moodleoverflow/post.php', ['edit' => $this->post->get_id()]))->out(false);
         }
         if (permissions::can_delete_post($this->post, $USER->id)) {
-            $commands['delete'] = ['postid' => $this->post->get_id(), 'replies' => $this->post->count_replies(false)];
+            $commands['delete'] = ['postid' => $this->post->get_id(), 'replies' => $this->post->count_replies()];
         }
 
         // A reply to a comment goes to its answer.
@@ -175,11 +174,10 @@ class post_card implements named_templatable, renderable {
         [$action, $marked] = $mark === rating_type::HELPFUL
             ? ['helpful', $this->ratings->ishelpful > 0]
             : ['solved', $this->ratings->issolved > 0];
-        $discussion = $this->post->get_discussion();
-        $multiplemarks = $discussion->get_moodleoverflow()->allows_multiple_marks();
+        $multiplemarks = $this->post->get_moodleoverflow()->allows_multiple_marks();
         if ($marked) {
             $key = 'marknot' . $action;
-        } else if ($multiplemarks && service\rating::get_marked_post_ids($discussion, $mark)) {
+        } else if ($multiplemarks && $this->data->has_mark($mark)) {
             $key = 'alsomark' . $action;
         } else {
             $key = 'mark' . $action;

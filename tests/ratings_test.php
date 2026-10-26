@@ -126,6 +126,8 @@ final class ratings_test extends \advanced_testcase {
         service\rating::vote($this->answer, $this->student->id, rating_type::DOWNVOTE);
         $this->assertSame(rating_type::DOWNVOTE, service\rating::get_user_vote($this->answer, $this->student->id));
         $this->assertEquals(1, $count());
+        $votes = service\rating::get_user_votes($this->get_discussion(), $this->student->id);
+        $this->assertSame([$this->answer->get_id() => rating_type::DOWNVOTE], $votes);
 
         service\rating::remove_vote($this->answer, $this->student->id);
         service\rating::remove_vote($this->answer, $this->student->id);
@@ -147,12 +149,17 @@ final class ratings_test extends \advanced_testcase {
      * Test, if changing or removing a vote needs the admin setting allowratingchange, while marks do not.
      */
     public function test_allowratingchange(): void {
+        $canchange = fn(post $post, stdClass $user) => service\rating::can_change_vote(
+            $post,
+            $user->id,
+            service\rating::get_user_vote($post, $user->id)
+        );
         set_config('allowratingchange', 0, 'moodleoverflow');
-        $this->assertTrue(service\rating::can_change_vote($this->answer, $this->student->id));
+        $this->assertTrue($canchange($this->answer, $this->student));
 
         service\rating::vote($this->answer, $this->student->id, rating_type::UPVOTE);
-        $this->assertFalse(service\rating::can_change_vote($this->answer, $this->student->id));
-        $this->assertTrue(service\rating::can_change_vote($this->teacheranswer, $this->student->id));
+        $this->assertFalse($canchange($this->answer, $this->student));
+        $this->assertTrue($canchange($this->teacheranswer, $this->student));
         $change = fn() => service\rating::vote($this->answer, $this->student->id, rating_type::DOWNVOTE);
         $remove = fn() => service\rating::remove_vote($this->answer, $this->student->id);
         $this->assert_refused($change, 'noratingchangeallowed');
@@ -165,8 +172,8 @@ final class ratings_test extends \advanced_testcase {
 
         // With rating changes, a vote can always be changed. Nobody can change a vote they may not give.
         set_config('allowratingchange', 1, 'moodleoverflow');
-        $this->assertTrue(service\rating::can_change_vote($this->answer, $this->student->id));
-        $this->assertFalse(service\rating::can_change_vote($this->answer, $this->otherstudent->id));
+        $this->assertTrue($canchange($this->answer, $this->student));
+        $this->assertFalse($canchange($this->answer, $this->otherstudent));
     }
 
     /**

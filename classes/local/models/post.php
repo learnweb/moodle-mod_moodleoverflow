@@ -655,15 +655,14 @@ class post {
     }
 
     /**
-     * Count all replies of a post.
+     * Counts the direct replies of the post, reviewed or not, from the posts of the discussion.
      *
-     * @param bool $onlyreviewed Whether to count only reviewed posts.
-     * @return int Amount of replies
-     * @throws dml_exception
+     * @return int
+     * @throws moodle_exception
      */
-    public function count_replies(bool $onlyreviewed): int {
-        global $DB;
-        return $DB->count_records('moodleoverflow_posts', ['parent' => $this->id] + ($onlyreviewed ? ['reviewed' => '1'] : []));
+    public function count_replies(): int {
+        $this->existence_check();
+        return count(array_filter($this->get_discussion()->get_posts(), fn(post $post) => $post->get_parentid() === $this->id));
     }
 
     // Security.
