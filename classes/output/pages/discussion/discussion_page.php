@@ -16,13 +16,11 @@
 
 namespace mod_moodleoverflow\output\pages\discussion;
 
-use context_module;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
-use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
 
 /**
@@ -33,27 +31,16 @@ use mod_moodleoverflow\local\service;
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class discussion_page implements named_templatable, renderable{
+class discussion_page implements named_templatable, renderable {
     /** @var discussion The discussion that gets printed */
     public discussion $discussion;
-
-
-    /** @var post The first post of the discussion */
-    public post $firstpost;
-
-    /** @var post[] The answer posts of the discussion */
-    public array $answers;
-
 
     /**
      * Constructor.
      * @param discussion $discussion
      */
     public function __construct(discussion $discussion) {
-        global $USER;
         $this->discussion = $discussion;
-        $this->firstpost = $this->discussion->get_first_post();
-        $this->answers = array_filter($this->discussion->get_answerposts(), fn($p) => permissions::can_view_post($p, $USER->id));
     }
 
     #[\Override]
@@ -63,56 +50,25 @@ class discussion_page implements named_templatable, renderable{
 
     #[\Override]
     public function export_for_template(renderer_base $output): object {
-        global $USER, $OUTPUT;
-        $context = context_module::instance($this->discussion->get_coursemodule()->id);
-        $firstunreadpost = service\readtracking::get_first_unread_post_id($this->discussion, $USER->id);
-        $answeramount = get_string(((count($this->answers) > 0) ? 'answers' : 'answer'), 'moodleoverflow', count($this->answers));
-
-        // Get the rendered posts.
-        $firstpost = $OUTPUT->render(new post_card($this->firstpost, $this->firstpost->get_id() == $firstunreadpost, $context));
-
-        // Organize the answer posts as comment and answers are mixed and need to be categorized correctly.
-        $answersorganized = $this->answers;
-        $firstpostid = $this->firstpost->get_id();
-
-        // Rank the direct answers by marks and votes, depending on the "Display first" setting.
-        $moodleoverflow = $this->discussion->get_moodleoverflow();
-        $discussionratings = service\rating::get_post_ratings($this->discussion);
-        $sortdata = [];
-        foreach ($this->answers as $post) {
-            if ($post->get_parentid() != $firstpostid) {
-                continue;
-            }
-            $rating = $discussionratings[$post->get_id()];
-            $sortdata[] = (object) [
-                'id' => $post->get_id(),
-                'modified' => $post->modified,
-                'votesdifference' => $rating->upvotes - $rating->downvotes,
-                'markedsolution' => $rating->issolved,
-                'markedhelpful' => $rating->ishelpful,
-            ];
-        }
-        $sorted = service\rating::sort_answers($sortdata, $moodleoverflow->get_rating_preference());
-        $rank = array_flip(array_keys($sorted));
-
-        // Sort direct answers by their rank. Put comments of an answer after the answer, sorted by date.
-        usort($answersorganized, function ($a, $b) use ($answersorganized, $firstpostid, $rank) {
-            $aparent = $a->get_parentid() == $firstpostid ? $a : ($answersorganized[$a->get_parentid()] ?? $a);
-            $bparent = $b->get_parentid() == $firstpostid ? $b : ($answersorganized[$b->get_parentid()] ?? $b);
-            if ($aparent->get_id() != $bparent->get_id()) {
-                return ($rank[$aparent->get_id()] ?? PHP_INT_MAX) <=> ($rank[$bparent->get_id()] ?? PHP_INT_MAX);
-            }
-            return $a->created <=> $b->created;
-        });
-
-        $answers = array_map(
-            fn($post) => $OUTPUT->render(new post_card($post, $post->get_id() == $firstunreadpost, $context)),
-            $answersorganized
+        global $USER;
+        $context = $this->discussion->get_moodleoverflow()->get_context();
+        $tree = service\discussion::get_posts_tree($this->discussion, $USER->id);
+        $ratings = service\rating::get_post_ratings($this->discussion);
+        $firstunread = service\readtracking::get_first_unread_post_id($this->discussion, $USER->id);
+        $render = fn(post $post) => $output->render(
+            new post_card($post, $post->get_id() == $firstunread, $ratings[$post->get_id()], $context)
         );
 
+        // The template lists the answers flat; a comment is indented by its post card.
+        $answers = [];
+        foreach ($tree['answers'] as $branch) {
+            $answers[] = $render($branch['answer']);
+            array_push($answers, ...array_map($render, $branch['comments']));
+        }
+
         return (object) [
-            'answeramount' => $answeramount,
-            'firstpost' => $firstpost,
+            'answeramount' => get_string(count($answers) > 0 ? 'answers' : 'answer', 'moodleoverflow', count($answers)),
+            'firstpost' => $render($tree['question']),
             'answers' => $answers,
         ];
     }

@@ -41,6 +41,9 @@ class post_card implements named_templatable, renderable {
     /** @var bool If the post is the first unread post of the discussion */
     public bool $isfirstunread;
 
+    /** @var object The ratings of the post: upvotes, downvotes, issolved, ishelpful */
+    public object $ratings;
+
     /** @var \context_module The context. Is given by the printing function.*/
     public \context_module $context;
 
@@ -48,11 +51,13 @@ class post_card implements named_templatable, renderable {
      * Constructor.
      * @param post $post
      * @param bool $isfirstunread if the post is the first unread post in the discussion.
+     * @param object $ratings The row of the post from service\rating::get_post_ratings()
      * @param \context_module $context
      */
-    public function __construct(post $post, bool $isfirstunread, \context_module $context) {
+    public function __construct(post $post, bool $isfirstunread, object $ratings, \context_module $context) {
         $this->post = $post;
         $this->isfirstunread = $isfirstunread;
+        $this->ratings = $ratings;
         $this->context = $context;
     }
 
@@ -72,16 +77,15 @@ class post_card implements named_templatable, renderable {
         $moodleoverflow = $discussion->get_moodleoverflow();
 
         // Build the postclass, which has additional css classes that show if a post solution/helpful marks and readtracking status.
-        $ratings = service\rating::get_post_ratings($discussion)[$this->post->get_id()];
         $isread = service\readtracking::is_post_read($this->post, $USER->id);
-        $issolved = $ratings->issolved > 0 ? 'markedsolution' : '';
-        $ishelpful = $ratings->ishelpful > 0 ? 'markedhelpful' : '';
+        $issolved = $this->ratings->issolved > 0 ? 'markedsolution' : '';
+        $ishelpful = $this->ratings->ishelpful > 0 ? 'markedhelpful' : '';
 
         // Get voting data for the voting template as well as reputation rating.
         $vote = service\rating::get_user_vote($this->post, $USER->id);
         $showvotes = $moodleoverflow->is_rating_enabled() ? [
             'postid' => $this->post->get_id(),
-            'votes' => $ratings->upvotes - $ratings->downvotes,
+            'votes' => $this->ratings->upvotes - $this->ratings->downvotes,
             'userupvoted' => $vote === rating_type::UPVOTE,
             'userdownvoted' => $vote === rating_type::DOWNVOTE,
             'canchange' => service\rating::can_change_vote($this->post, $USER->id),
@@ -136,7 +140,6 @@ class post_card implements named_templatable, renderable {
         $discussion = $this->post->get_discussion();
         $moodleoverflow = $discussion->get_moodleoverflow();
         $parentpost = $this->post->get_parentpost();
-        $ratings = service\rating::get_post_ratings($discussion)[$this->post->get_id()];
 
         $commands = [];
         // Without multiple marks, marking another answer moves the mark, so there is no "also mark".
@@ -144,7 +147,7 @@ class post_card implements named_templatable, renderable {
 
         // Mark helpful — discussion starter only, direct answers only.
         if (permissions::can_mark_helpful($this->post, $USER->id)) {
-            if ($ratings->ishelpful) {
+            if ($this->ratings->ishelpful) {
                 $label = get_string('marknothelpful', 'moodleoverflow');
             } else if ($multiplemarks && service\rating::get_marked_post_ids($discussion, rating_type::HELPFUL)) {
                 $label = get_string('alsomarkhelpful', 'moodleoverflow');
@@ -160,7 +163,7 @@ class post_card implements named_templatable, renderable {
 
         // Mark solved — teachers only, direct answers only.
         if (permissions::can_mark_solved($this->post, $USER->id)) {
-            if ($ratings->issolved) {
+            if ($this->ratings->issolved) {
                 $label = get_string('marknotsolved', 'moodleoverflow');
             } else if ($multiplemarks && service\rating::get_marked_post_ids($discussion, rating_type::SOLVED)) {
                 $label = get_string('alsomarksolved', 'moodleoverflow');
