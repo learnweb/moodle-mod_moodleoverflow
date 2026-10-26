@@ -86,10 +86,9 @@ class view_page implements named_templatable, renderable {
         // Load the visible discussions and cut out the current page.
         $discussions = service\discussion::get_discussions($this->modflow, $USER->id);
         $discussioncount = count($discussions);
-        $context = $this->modflow->get_context();
 
         $items = array_map(
-            fn(models\discussion $discussion) => $OUTPUT->render(new discussion_card($discussion, $context, !empty($destinations))),
+            fn(models\discussion $discussion) => $OUTPUT->render(new discussion_card($discussion, !empty($destinations))),
             array_slice($discussions, $limitfrom, $limitamount)
         );
 

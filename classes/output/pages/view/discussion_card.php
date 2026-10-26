@@ -23,6 +23,7 @@ use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\rating;
 use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\local\service\review;
@@ -39,9 +40,6 @@ use moodle_url;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class discussion_card implements named_templatable, renderable {
-    /** @var \context_module The context. Is given by the printing function.*/
-    public \context_module $context;
-
     /** @var object The moodleoverflow database object */
     public object $modflow;
 
@@ -57,21 +55,14 @@ class discussion_card implements named_templatable, renderable {
     /** @var bool If discussion can be moved */
     public bool $movepossible;
 
-    /** @var array All important base links*/
-    private array $l = [
-        'disc' => '/mod/moodleoverflow/discussion.php',
-    ];
-
     /**
      * Constructor
      * @param discussion $discussion
-     * @param \context_module $context
      * @param bool $movepossible If the discussion can be moved to another moodleoverflow
      * @throws \dml_exception
      * @throws moodle_exception
      */
-    public function __construct(discussion $discussion, \context_module $context, bool $movepossible) {
-        $this->context = $context;
+    public function __construct(discussion $discussion, bool $movepossible) {
         $this->discussion = $discussion;
         $this->firstpost = $this->discussion->get_first_post();
         $this->lastpost = $this->discussion->get_last_post();
@@ -90,13 +81,11 @@ class discussion_card implements named_templatable, renderable {
         // Check if the post was marked as helpful or as solution.
         $helpful = rating::get_marked_post_ids($this->discussion, rating_type::HELPFUL);
         if ($helpful) {
-            $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$helpful[0]}");
-            $helpful = ['link' => $link->out()];
+            $helpful = ['link' => (new moodle_url($this->discussion->get_link(), [], "p{$helpful[0]}"))->out()];
         }
         $solution = rating::get_marked_post_ids($this->discussion, rating_type::SOLVED);
         if ($solution) {
-            $link = new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], "#p{$solution[0]}");
-            $solution = ['link' => $link->out()];
+            $solution = ['link' => (new moodle_url($this->discussion->get_link(), [], "p{$solution[0]}"))->out()];
         }
 
         // The starter and the last poster, as the user may see them.
@@ -118,7 +107,7 @@ class discussion_card implements named_templatable, renderable {
             'domain' => 'discussion',
             'instanceid' => $this->discussion->get_id(),
             'userid' => $USER->id,
-            'unreadlink' => (new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()], '#unread'))->out(),
+            'unreadlink' => (new moodle_url($this->discussion->get_link(), [], 'unread'))->out(),
             'unreadamount' => $unreadcount,
         ];
 
@@ -140,10 +129,10 @@ class discussion_card implements named_templatable, renderable {
             'markedhelpful' => $helpful,
             'markedsolution' => $solution,
             'subjecttext' => format_string($this->discussion->name), // The discussion name, use format_text perhaps.
-            'subjectlink' => (new moodle_url($this->l['disc'], ['d' => $this->discussion->get_id()]))->out(),
+            'subjectlink' => $this->discussion->get_link()->out(),
             'userfirstpost' => $userfirstpost,
             'userlastpost' => $userlastpost,
-            'replyamount' => count($this->discussion->get_posts()),
+            'replyamount' => $this->count_replies(),
             'unread' => $unreadcount > 0 ? $unreaddata : [],
             'canreview' => permissions::can_review_posts($this->modflow, $USER->id),
             'needreview' => $reviewpostcount,
@@ -157,5 +146,16 @@ class discussion_card implements named_templatable, renderable {
                 'icononly' => true,
             ] : [],
         ];
+    }
+
+    /**
+     * Counts the answers and comments the user sees, like the discussion page.
+     * @return int
+     * @throws moodle_exception
+     */
+    private function count_replies(): int {
+        global $USER;
+        $tree = service\discussion::get_posts_tree($this->discussion, $USER->id);
+        return array_sum(array_map(fn(array $branch) => 1 + count($branch['comments']), $tree['answers']));
     }
 }
