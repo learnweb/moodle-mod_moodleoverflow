@@ -47,14 +47,16 @@ class discussion_page_data {
      * Constructor.
      * @param discussion $discussion
      * @param int $userid The user who sees the page
+     * @param object[] $ratings The ratings of every post, from service\rating::get_post_ratings()
      * @throws moodle_exception
      */
     public function __construct(
         /** @var discussion The discussion of the page */
         private discussion $discussion,
-        int $userid
+        int $userid,
+        array $ratings
     ) {
-        $this->ratings = service\rating::get_post_ratings($discussion);
+        $this->ratings = $ratings;
         $this->votes = service\rating::get_user_votes($discussion, $userid);
         $this->unread = service\readtracking::get_unread_post_ids($discussion, $userid);
     }

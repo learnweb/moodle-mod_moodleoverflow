@@ -51,8 +51,9 @@ class discussion_page implements named_templatable, renderable {
     #[\Override]
     public function export_for_template(renderer_base $output): object {
         global $USER;
-        $tree = service\discussion::get_posts_tree($this->discussion, $USER->id);
-        $data = new discussion_page_data($this->discussion, $USER->id);
+        $ratings = service\rating::get_post_ratings($this->discussion);
+        $tree = service\discussion::get_posts_tree($this->discussion, $USER->id, $ratings);
+        $data = new discussion_page_data($this->discussion, $USER->id, $ratings);
         $render = fn(post $post) => $output->render(new post_card($post, $data));
 
         // The template lists the answers flat; a comment is indented by its post card.

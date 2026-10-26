@@ -200,6 +200,36 @@ class readtracking {
     }
 
     /**
+     * Counts the unread posts of several discussions of one moodleoverflow in one query, e.g. for a page of the
+     * discussion list. The visibility is checked on the post objects of the discussions.
+     * @param moodleoverflow $modflow The moodleoverflow of the discussions
+     * @param discussion[] $discussions
+     * @param int $userid
+     * @return int[] Indexed by discussion id.
+     * @throws moodle_exception
+     */
+    public static function count_unread_posts_per_discussion(moodleoverflow $modflow, array $discussions, int $userid): array {
+        global $DB;
+        $counts = [];
+        foreach ($discussions as $discussion) {
+            $counts[$discussion->get_id()] = 0;
+        }
+        if (!$counts || !self::is_tracked($modflow, $userid)) {
+            return $counts;
+        }
+        [$insql, $params] = $DB->get_in_or_equal(array_keys($counts), SQL_PARAMS_NAMED);
+        $records = self::get_unread_records($userid, "d.id $insql", $params);
+        foreach ($discussions as $discussion) {
+            $posts = $discussion->get_posts();
+            $counts[$discussion->get_id()] = count(array_filter(
+                array_keys($records),
+                fn(int $id) => isset($posts[$id]) && permissions::can_view_post($posts[$id], $userid)
+            ));
+        }
+        return $counts;
+    }
+
+    /**
      * Returns the id of the first unread post in a discussion. Useful to point to the post in a discussion that is unread.
      * @param discussion $discussion
      * @param int $userid
@@ -264,8 +294,17 @@ class readtracking {
      * @return post[]
      */
     private static function get_unread_posts(int $userid, string $where, array $params): array {
-        $posts = array_map(fn($record) => post::from_record($record), self::get_unread_records($userid, $where, $params));
-        return array_filter($posts, fn($post) => permissions::can_view_post($post, $userid));
+        // Load each discussion once and take the posts from it, instead of one discussion per post.
+        $discussions = [];
+        $posts = [];
+        foreach (self::get_unread_records($userid, $where, $params) as $id => $record) {
+            $discussion = $discussions[$record->discussion] ??= discussion::from_id($record->discussion);
+            $post = $discussion->get_posts()[$id] ?? null;
+            if ($post && permissions::can_view_post($post, $userid)) {
+                $posts[$id] = $post;
+            }
+        }
+        return $posts;
     }
 
     /**

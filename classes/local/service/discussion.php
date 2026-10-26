@@ -100,16 +100,17 @@ class discussion {
      *
      * @param models\discussion $discussion
      * @param int $userid
+     * @param object[]|null $ratings The ratings of the discussion (rating::get_post_ratings()), if the caller has them
      * @return array{question: models\post, answers: array{answer: models\post, comments: models\post[]}[]}
      * @throws moodle_exception|dml_exception
      */
-    public static function get_posts_tree(models\discussion $discussion, int $userid): array {
+    public static function get_posts_tree(models\discussion $discussion, int $userid, ?array $ratings = null): array {
         permissions::ensure(permissions::can_view_discussion($discussion, $userid), 'noviewdiscussionspermission');
         $posts = $discussion->get_posts();
         $visible = array_filter($posts, fn(models\post $post) => permissions::can_view_post($post, $userid));
 
         // Rank the direct answers; the result is indexed by post id.
-        $ratings = rating::get_post_ratings($discussion);
+        $ratings ??= rating::get_post_ratings($discussion);
         $sortdata = [];
         foreach (array_filter($visible, fn(models\post $post) => $post->is_direct_answer()) as $answer) {
             $rating = $ratings[$answer->get_id()];
