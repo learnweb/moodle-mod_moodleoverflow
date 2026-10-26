@@ -363,5 +363,20 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
         upgrade_mod_savepoint(true, 2026050705, 'moodleoverflow');
     }
+
+    if ($oldversion < 2026050707) {
+        // Upgraded sites differ from install.xml.
+        // Gradepass got a default of 0, and moodleoverflow_grades never got its index on userid.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('gradepass', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'gradescalefactor');
+        $dbman->change_field_default($table, $field);
+
+        $table = new xmldb_table('moodleoverflow_grades');
+        $index = new xmldb_index('userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        upgrade_mod_savepoint(true, 2026050707, 'moodleoverflow');
+    }
     return true;
 }
