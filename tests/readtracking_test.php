@@ -34,11 +34,6 @@ use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * PHPUnit Tests for testing readtracking.
  *
@@ -60,13 +55,13 @@ final class readtracking_test extends advanced_testcase {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
-        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF]; // Off.
+        $options = ['course' => $course->id, 'trackingtype' => tracking_type::OFF->value]; // Off.
         $mooff = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
-        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED]; // On.
+        $options = ['course' => $course->id, 'trackingtype' => tracking_type::FORCED->value]; // On.
         $moforce = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
-        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL]; // Optional.
+        $options = ['course' => $course->id, 'trackingtype' => tracking_type::OPTIONAL->value]; // Optional.
         $mooptional = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
         // Users: an enrolled student, a user that is not enrolled and the guest user.
@@ -126,13 +121,13 @@ final class readtracking_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
-        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL];
+        $options = ['course' => $course->id, 'trackingtype' => tracking_type::OPTIONAL->value];
         $mooptional = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
-        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_FORCED];
+        $options = ['course' => $course->id, 'trackingtype' => tracking_type::FORCED->value];
         $moforce = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
-        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF];
+        $options = ['course' => $course->id, 'trackingtype' => tracking_type::OFF->value];
         $mooff = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
         // Allow force.
@@ -196,7 +191,7 @@ final class readtracking_test extends advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
         $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
-        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OPTIONAL];
+        $options = ['course' => $course->id, 'trackingtype' => tracking_type::OPTIONAL->value];
         $modflow = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
         $sink = $this->redirectEvents();
@@ -211,7 +206,7 @@ final class readtracking_test extends advanced_testcase {
         $this->assertEquals($student->id, $events[0]->relateduserid);
 
         // Users that cannot change the tracking (here: tracking is off) get an exception.
-        $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF];
+        $options = ['course' => $course->id, 'trackingtype' => tracking_type::OFF->value];
         $mooff = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
         $this->expectException(\moodle_exception::class);
         service\readtracking::stop_tracking($mooff, $student->id);

@@ -20,10 +20,6 @@
  * All the core Moodle functions, neeeded to allow the module to work
  * integrated in Moodle should be placed here.
  *
- * All the moodleoverflow specific functions, needed to implement all the module
- * logic, should go to locallib.php. This will help to save some memory when
- * Moodle is performing actions across all modules.
- *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -37,9 +33,6 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\subscription;
-
-defined('MOODLE_INTERNAL') || die();
-require_once(dirname(__FILE__) . '/locallib.php');
 
 // LEARNWEB-TODO: Use new enums instead of these constants if possible.
 // Readtracking constants.
@@ -239,7 +232,6 @@ function moodleoverflow_delete_instance($id) {
 
     // Delete the discussions.
     if ($discussions = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $moodleoverflow->id])) {
-        require_once('locallib.php');
         foreach ($discussions as $discussion) {
             discussion::from_record($discussion)->delete($USER->id);
         }

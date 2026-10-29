@@ -32,8 +32,7 @@ use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\output\author;
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
-global $CFG, $USER, $PAGE, $OUTPUT;
-require_once(dirname(__FILE__) . '/locallib.php');
+global $USER, $PAGE, $OUTPUT;
 
 // Which operation on which object: on the first request from the URL, on the submission from the hidden form fields.
 $create = optional_param('moodleoverflow', 0, PARAM_INT);

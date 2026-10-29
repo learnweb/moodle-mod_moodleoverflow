@@ -28,11 +28,6 @@ use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
 use core\exception\moodle_exception;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * Class implementing the external API, esp. for AJAX functions.
  * Adds or removes a vote or a mark and returns the new state of the post.

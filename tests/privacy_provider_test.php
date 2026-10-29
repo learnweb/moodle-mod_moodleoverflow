@@ -39,11 +39,6 @@ use mod_moodleoverflow\privacy\data_export_helper;
 use mod_moodleoverflow\privacy\provider;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
  *

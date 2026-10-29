@@ -185,7 +185,7 @@ class mail_manager {
             // Check if an error occurred and mark the post as mailed_error.
             if (!$mailsent) {
                 // A mail does not get resend if it was not sent successfully.
-                $DB->set_field('moodleoverflow_posts', 'mailed', MOODLEOVERFLOW_MAILED_ERROR, ['id' => $record->postid]);
+                $DB->set_field('moodleoverflow_posts', 'mailed', self::MOODLEOVERFLOW_MAILED_ERROR, ['id' => $record->postid]);
             }
         }
 

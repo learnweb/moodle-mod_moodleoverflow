@@ -25,11 +25,6 @@ use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use core\exception\moodle_exception;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * Tests moving a discussion to another moodleoverflow: everything that belongs to the discussion has to move with it.
  *

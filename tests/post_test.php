@@ -28,9 +28,6 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
-defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/../locallib.php');
-
 /**
  *
  * Tests if the functions from the post class are working correctly.

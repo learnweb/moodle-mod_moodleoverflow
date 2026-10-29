@@ -18,11 +18,9 @@ namespace mod_moodleoverflow\task;
 
 use core\cron;
 use Exception;
+use mod_moodleoverflow\local\manager\mail_manager;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\output\moodleoverflow_email;
-
-defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/../../locallib.php');
 
 /**
  * A scheduled task for moodleoverflow cron to send mails to users that need to review a moodleoverflow post.
@@ -61,7 +59,7 @@ class send_review_mails extends \core\task\scheduled_task {
             "WHERE p.mailed = :mailpending AND p.reviewed = 0 AND p.created < :timecutoff " .
             "ORDER BY d.course, d.moodleoverflow, d.id",
             [
-                'mailpending' => MOODLEOVERFLOW_MAILED_PENDING,
+                'mailpending' => mail_manager::MOODLEOVERFLOW_MAILED_PENDING,
                 'timecutoff' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime'),
             ]
         );
@@ -146,7 +144,7 @@ class send_review_mails extends \core\task\scheduled_task {
             $DB->set_field_select(
                 'moodleoverflow_posts',
                 'mailed',
-                MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS,
+                mail_manager::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS,
                 'id ' . $insql,
                 $inparams
             );

@@ -18,9 +18,6 @@ namespace mod_moodleoverflow\task;
 
 use mod_moodleoverflow\local\service\readtracking;
 
-defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/../../locallib.php');
-
 /**
  * A scheduled task for moodleoverflow cron to clean up old read records.
  *

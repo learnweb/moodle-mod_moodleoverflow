@@ -22,7 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Include config and locallib.
 use mod_moodleoverflow\event\discussion_viewed;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\permissions;
@@ -31,8 +30,7 @@ use mod_moodleoverflow\local\service\subscription;
 use mod_moodleoverflow\output\pages\discussion\discussion_page;
 
 require_once('../../config.php');
-global $CFG, $DB, $PAGE, $USER, $SESSION, $OUTPUT;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
+global $PAGE, $USER, $SESSION, $OUTPUT;
 
 // Declare parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.

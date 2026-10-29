@@ -38,11 +38,6 @@ use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use stdClass;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * PHPUnit tests for ratings: votes, marks, reputation, grades and the sorting of answers.
  *

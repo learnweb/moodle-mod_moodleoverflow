@@ -208,8 +208,8 @@ if ($ADMIN->fulltree) {
         PARAM_INT
     ));
 
-    // Number of discussions per page.
-    $settings->add($votesettings[] = new admin_setting_configtext(
+    // Posts older than this number of hours are not mailed, e.g. after the cron did not run for a long time.
+    $settings->add(new admin_setting_configtext(
         'moodleoverflow/maxmailingtime',
         get_string('maxmailingtime', 'moodleoverflow'),
         get_string('configmaxmailingtime', 'moodleoverflow'),
@@ -218,7 +218,7 @@ if ($ADMIN->fulltree) {
     ));
 
     foreach ($votesettings as $setting) {
-        $setting->set_updatedcallback('moodleoverflow_update_all_grades');
+        $setting->set_updatedcallback('\mod_moodleoverflow\local\service\rating::update_all_instances_grades');
     }
 
     // Allow teachers to see cumulative userstats.
