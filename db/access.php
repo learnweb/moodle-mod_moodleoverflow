@@ -71,7 +71,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:viewdiscussion',
     ],
-
     'mod/moodleoverflow:replypost' => [
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -84,7 +83,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:replypost',
     ],
-
     'mod/moodleoverflow:startdiscussion' => [
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -97,7 +95,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:startdiscussion',
     ],
-
     'mod/moodleoverflow:editanypost' => [
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -109,7 +106,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:editanypost',
     ],
-
     'mod/moodleoverflow:deleteownpost' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -121,7 +117,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:deleteownpost',
     ],
-
     'mod/moodleoverflow:deleteanypost' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -143,7 +138,6 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
-
     'mod/moodleoverflow:marksolved' => [
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -155,7 +149,6 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
-
     'mod/moodleoverflow:managesubscriptions' => [
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -167,7 +160,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:managesubscriptions',
     ],
-
     'mod/moodleoverflow:allowforcesubscribe' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
@@ -179,7 +171,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:allowforcesubscribe',
     ],
-
     'mod/moodleoverflow:createattachment' => [
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
@@ -192,7 +183,6 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:createattachment',
     ],
-
     'mod/moodleoverflow:reviewpost' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -201,7 +191,6 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
         ],
     ],
-
     'mod/moodleoverflow:movetopic' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -211,7 +200,6 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
-
     'mod/moodleoverflow:viewanyrating' => [
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'read',
@@ -223,5 +211,15 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/forum:viewanyrating',
     ],
-
+    'mod/moodleoverflow:canignorelimitedanswer' => [
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'mod/moodleoverflow:editanypost',
+    ],
 ];

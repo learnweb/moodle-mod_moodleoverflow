@@ -171,7 +171,7 @@ class permissions {
             && $post->reviewed === 1
             && (
                 $post->get_moodleoverflow()->is_answer_window_open()
-                || has_capability('mod/moodleoverflow:addinstance', $post->get_context(), $userid)
+                || has_capability('mod/moodleoverflow:canignorelimitedanswer', $post->get_context(), $userid)
             );
     }
 

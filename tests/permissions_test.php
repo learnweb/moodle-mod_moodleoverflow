@@ -253,13 +253,15 @@ final class permissions_test extends \advanced_testcase {
         $this->assertTrue(permissions::can_reply($question, $this->otherstudent->id));
         $this->assertFalse(permissions::can_reply($question, $this->notenrolled->id));
 
-        // Before the answer window opens only teachers can reply, to questions and to answers.
+        // Before the answer window opens only teachers and tutors can reply, to questions and to answers.
         $modflow = $this->create_moodleoverflow(['la_starttime' => time() + DAYSECS]);
         $question = $this->generator->create_question($modflow, $this->teacher);
         $answer = $this->generator->create_reply($question, $this->teacher);
+        $tutor = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
         $this->assertFalse(permissions::can_reply($question, $this->student->id));
         $this->assertFalse(permissions::can_reply($answer, $this->student->id));
         $this->assertTrue(permissions::can_reply($question, $this->teacher->id));
+        $this->assertTrue(permissions::can_reply($answer, $tutor->id));
     }
 
     /**
