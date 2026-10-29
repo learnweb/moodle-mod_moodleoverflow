@@ -28,6 +28,7 @@ use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 defined('MOODLE_INTERNAL') || die();
 
@@ -44,6 +45,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\models\moodleoverflow
  */
+#[CoversClass(moodleoverflow::class)]
 final class moodleoverflow_test extends \advanced_testcase {
     /** @var stdClass test course */
     private $course;

@@ -25,6 +25,8 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\service\subscription;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Tests the rule "is subscribed", the subscription actions and the side effects of the subscription service.
@@ -33,6 +35,7 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\service\subscription
  */
+#[CoversClass(subscription::class)]
 final class subscription_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -58,6 +61,7 @@ final class subscription_test extends \advanced_testcase {
      * @param int|null $discussionchoice The choice for the discussion, null for none
      * @param bool $expected
      */
+    #[DataProvider('rule_provider')]
     public function test_rule(
         subscription_mode $mode,
         bool $isdefault,
@@ -226,6 +230,7 @@ final class subscription_test extends \advanced_testcase {
      * @param int $autosubscribe The profile setting of the user
      * @param int|null $expected The choice for the discussion after posting, null for none
      */
+    #[DataProvider('follow_on_post_provider')]
     public function test_follow_on_post(
         subscription_mode $mode,
         ?int $discussionchoice,

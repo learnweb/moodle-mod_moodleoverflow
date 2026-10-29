@@ -29,6 +29,7 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests if the functions from the discussion class are working correctly.
@@ -39,6 +40,7 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\models\discussion
  */
+#[CoversClass(discussion::class)]
 final class discussion_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

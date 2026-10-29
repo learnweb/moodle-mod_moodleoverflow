@@ -36,6 +36,7 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
 /**
@@ -47,6 +48,8 @@ use stdClass;
  * @covers \mod_moodleoverflow\local\service\rating
  * @covers \mod_moodleoverflow\external\record_vote
  */
+#[CoversClass(service\rating::class)]
+#[CoversClass(record_vote::class)]
 final class ratings_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

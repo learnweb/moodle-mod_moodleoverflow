@@ -33,6 +33,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * PHPUnit Tests for testing readtracking.
@@ -41,13 +42,15 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\service\readtracking
+ * @covers \mod_moodleoverflow\local\permissions
  */
+#[CoversClass(service\readtracking::class)]
+#[CoversClass(permissions::class)]
 final class readtracking_test extends advanced_testcase {
     use moodleoverflow_test_trait;
 
     /**
      * Test the logic in permissions::can_track().
-     * @covers \mod_moodleoverflow\local\permissions::can_track
      */
     public function test_can_track(): void {
 
@@ -113,7 +116,6 @@ final class readtracking_test extends advanced_testcase {
 
     /**
      * Test the logic in readtracking::is_tracked() and the user preference set by start_tracking() / stop_tracking().
-     * @covers \mod_moodleoverflow\local\service\readtracking::is_tracked
      */
     public function test_is_tracked(): void {
         $this->resetAfterTest();
@@ -183,8 +185,6 @@ final class readtracking_test extends advanced_testcase {
 
     /**
      * Test that start_tracking() / stop_tracking() fire their events and check the permission.
-     * @covers \mod_moodleoverflow\local\service\readtracking::start_tracking
-     * @covers \mod_moodleoverflow\local\service\readtracking::stop_tracking
      */
     public function test_tracking_events(): void {
         $this->resetAfterTest();

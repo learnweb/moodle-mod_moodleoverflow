@@ -28,6 +28,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\tables\userstats_table;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -44,6 +45,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  *
  * @covers \mod_moodleoverflow\local\tables\userstats_table
  */
+#[CoversClass(userstats_table::class)]
 final class userstats_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -75,7 +77,6 @@ final class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if a upvote is being counted.
-     * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_upvote(): void {
         // Teacher upvotes the answer of the other student.
@@ -89,7 +90,6 @@ final class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if a downvote is being counted.
-     * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_downvote(): void {
         // Teacher downvotes the answer of the student.
@@ -103,7 +103,6 @@ final class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if the activity is calculated correctly.
-     * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_activity(): void {
         // The student rates 3 times.
@@ -119,7 +118,6 @@ final class userstats_test extends \advanced_testcase {
     }
     /**
      * Test, if the reputation is calculated correctly.
-     * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_reputation(): void {
         // The student and the teacher rate the other student.
@@ -142,7 +140,6 @@ final class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if userstats are calculated correctly if the moodleoverflow is partially anonymous.
-     * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_partial_anonymous(): void {
         // Test case: Only topic startes are anonymous.
@@ -196,7 +193,6 @@ final class userstats_test extends \advanced_testcase {
 
     /**
      * Test, if userstats are calculated correctly if the moodleoverflow is totally anonymous.
-     * @covers \mod_moodleoverflow\local\tables\userstats_table
      */
     public function test_total_anonymous(): void {
         // Test case: Only topic startes are anonymous.

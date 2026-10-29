@@ -24,6 +24,8 @@ use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use moodle_url;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -44,6 +46,9 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow\search\post
  * @covers \mod_moodleoverflow\search\activity
  */
+#[Group('mod_moodleoverflow')]
+#[CoversClass(post::class)]
+#[CoversClass(activity::class)]
 final class search_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

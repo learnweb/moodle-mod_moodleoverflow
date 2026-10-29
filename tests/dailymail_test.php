@@ -28,6 +28,7 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_daily_mails;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -44,6 +45,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\task\send_daily_mails::execute
  */
+#[CoversClass(send_daily_mails::class)]
 final class dailymail_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

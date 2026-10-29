@@ -27,6 +27,7 @@ use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests the posting service: start a discussion, reply, edit and delete.
@@ -38,6 +39,7 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\service\posting
  */
+#[CoversClass(posting::class)]
 final class posting_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

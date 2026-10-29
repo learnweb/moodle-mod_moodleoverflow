@@ -31,6 +31,8 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -44,6 +46,7 @@ require_once($CFG->dirroot . '/course/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\permissions
  */
+#[CoversClass(permissions::class)]
 final class permissions_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -443,6 +446,7 @@ final class permissions_test extends \advanced_testcase {
      * @param bool $expectstudent
      * @param bool $expectmanager
      */
+    #[DataProvider('can_change_subscription_provider')]
     public function test_can_change_subscription(subscription_mode $mode, bool $expectstudent, bool $expectmanager): void {
         $modflow = $this->create_moodleoverflow(['forcesubscribe' => $mode->value]);
         $manager = $this->getDataGenerator()->create_and_enrol($this->course, 'manager');

@@ -24,6 +24,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use core\exception\moodle_exception;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests moving a discussion to another moodleoverflow: everything that belongs to the discussion has to move with it.
@@ -34,6 +35,8 @@ use core\exception\moodle_exception;
  * @covers \mod_moodleoverflow\local\service\discussion
  * @covers \mod_moodleoverflow\local\models\discussion
  */
+#[CoversClass(service\discussion::class)]
+#[CoversClass(discussion::class)]
 final class discussion_move_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

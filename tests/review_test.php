@@ -36,6 +36,9 @@ use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_review_mails;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -54,6 +57,10 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow\external\review_reject_post::execute
  * @covers \mod_moodleoverflow\local\service\review
  */
+#[Group('mod_moodleoverflow')]
+#[CoversClass(review_approve_post::class)]
+#[CoversClass(review_reject_post::class)]
+#[CoversClass(service\review::class)]
 final class review_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -97,6 +104,7 @@ final class review_test extends \advanced_testcase {
      *
      * @runInSeparateProcess
      */
+    #[RunInSeparateProcess]
     public function test_forum_review_everything(): void {
         global $DB;
 
@@ -162,6 +170,7 @@ final class review_test extends \advanced_testcase {
      *
      * @runInSeparateProcess
      */
+    #[RunInSeparateProcess]
     public function test_forum_review_only_questions(): void {
         global $DB;
 

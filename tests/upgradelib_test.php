@@ -25,6 +25,7 @@ namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversFunction;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -38,6 +39,7 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/db/upgradelib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers ::mod_moodleoverflow_convert_subscription_choices
  */
+#[CoversFunction('mod_moodleoverflow_convert_subscription_choices')]
 final class upgradelib_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
