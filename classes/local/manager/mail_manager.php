@@ -39,19 +39,19 @@ class mail_manager {
     /**
      * Mail is pending.
      */
-    const MOODLEOVERFLOW_MAILED_PENDING = 0;
+    const MAILED_PENDING = 0;
     /**
-     * Sucessfully send.
+     * Sucessfully sent.
      */
-    const MOODLEOVERFLOW_MAILED_SUCCESS = 1;
+    const MAILED_SUCCESS = 1;
     /**
      * Error occurred.
      */
-    const MOODLEOVERFLOW_MAILED_ERROR = 2;
+    const MAILED_ERROR = 2;
     /**
      * Mail successfully reviewed.
      */
-    const MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS = 3;
+    const MAILED_REVIEW_SUCCESS = 3;
 
     /**
      * This functions executes the task of sending a notification mail to users that are subscribed to a moodleoverflow.
@@ -185,7 +185,7 @@ class mail_manager {
             // Check if an error occurred and mark the post as mailed_error.
             if (!$mailsent) {
                 // A mail does not get resend if it was not sent successfully.
-                $DB->set_field('moodleoverflow_posts', 'mailed', self::MOODLEOVERFLOW_MAILED_ERROR, ['id' => $record->postid]);
+                $DB->set_field('moodleoverflow_posts', 'mailed', self::MAILED_ERROR, ['id' => $record->postid]);
             }
         }
 
@@ -238,8 +238,8 @@ class mail_manager {
 
         // Load the unmailed posts, one row per post.
         $params = [
-            'pendingmail' => self::MOODLEOVERFLOW_MAILED_PENDING,
-            'reviewsent' => self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS,
+            'pendingmail' => self::MAILED_PENDING,
+            'reviewsent' => self::MAILED_REVIEW_SUCCESS,
             'ptimestart' => $starttime,
             'ptimeend' => $endtime,
         ];
@@ -394,11 +394,11 @@ class mail_manager {
 
         // Define variables for the sql query.
         $params = [];
-        $params['mailedsuccess'] = self::MOODLEOVERFLOW_MAILED_SUCCESS;
-        $params['mailedreviewsent'] = self::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS;
+        $params['mailedsuccess'] = self::MAILED_SUCCESS;
+        $params['mailedreviewsent'] = self::MAILED_REVIEW_SUCCESS;
         $params['now'] = $now;
         $params['endtime'] = $endtime;
-        $params['mailedpending'] = self::MOODLEOVERFLOW_MAILED_PENDING;
+        $params['mailedpending'] = self::MAILED_PENDING;
 
         // Define the sql query.
         $sql = "UPDATE {moodleoverflow_posts}

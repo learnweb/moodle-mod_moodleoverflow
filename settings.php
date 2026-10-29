@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_moodleoverflow\local\enum\tracking_type;
+
 defined('MOODLE_INTERNAL') || die;
 
 if ($ADMIN->fulltree) {
@@ -70,14 +72,14 @@ if ($ADMIN->fulltree) {
 
     // Default read tracking settings.
     $options = [];
-    $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
-    $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
-    $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
+    $options[tracking_type::OPTIONAL->value] = get_string('trackingoptional', 'moodleoverflow');
+    $options[tracking_type::OFF->value] = get_string('trackingoff', 'moodleoverflow');
+    $options[tracking_type::FORCED->value] = get_string('trackingon', 'moodleoverflow');
     $settings->add(new admin_setting_configselect(
         'moodleoverflow/trackingtype',
         get_string('trackingtype', 'moodleoverflow'),
         get_string('configtrackingtype', 'moodleoverflow'),
-        MOODLEOVERFLOW_TRACKING_OPTIONAL,
+        tracking_type::OPTIONAL->value,
         $options
     ));
 

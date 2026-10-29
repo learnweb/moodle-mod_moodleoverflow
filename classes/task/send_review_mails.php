@@ -59,7 +59,7 @@ class send_review_mails extends \core\task\scheduled_task {
             "WHERE p.mailed = :mailpending AND p.reviewed = 0 AND p.created < :timecutoff " .
             "ORDER BY d.course, d.moodleoverflow, d.id",
             [
-                'mailpending' => mail_manager::MOODLEOVERFLOW_MAILED_PENDING,
+                'mailpending' => mail_manager::MAILED_PENDING,
                 'timecutoff' => time() - get_config('moodleoverflow', 'reviewpossibleaftertime'),
             ]
         );
@@ -144,7 +144,7 @@ class send_review_mails extends \core\task\scheduled_task {
             $DB->set_field_select(
                 'moodleoverflow_posts',
                 'mailed',
-                mail_manager::MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS,
+                mail_manager::MAILED_REVIEW_SUCCESS,
                 'id ' . $insql,
                 $inparams
             );

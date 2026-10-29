@@ -34,44 +34,6 @@ use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\subscription;
 
-// LEARNWEB-TODO: Use new enums instead of these constants if possible.
-// Readtracking constants.
-define('MOODLEOVERFLOW_TRACKING_OFF', 0);
-define('MOODLEOVERFLOW_TRACKING_OPTIONAL', 1);
-define('MOODLEOVERFLOW_TRACKING_FORCED', 2);
-
-// Subscription constants.
-define('MOODLEOVERFLOW_CHOOSESUBSCRIBE', 0);
-define('MOODLEOVERFLOW_FORCESUBSCRIBE', 1);
-define('MOODLEOVERFLOW_INITIALSUBSCRIBE', 2);
-define('MOODLEOVERFLOW_DISALLOWSUBSCRIBE', 3);
-
-// Mailing state constants.
-define('MOODLEOVERFLOW_MAILED_PENDING', 0);
-define('MOODLEOVERFLOW_MAILED_SUCCESS', 1);
-define('MOODLEOVERFLOW_MAILED_ERROR', 2);
-define('MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS', 3);
-
-// Constants for the post rating.
-define('MOODLEOVERFLOW_PREFERENCE_STARTER', 0);
-define('MOODLEOVERFLOW_PREFERENCE_TEACHER', 1);
-
-// Reputation constants.
-define('MOODLEOVERFLOW_REPUTATION_MODULE', 0);
-define('MOODLEOVERFLOW_REPUTATION_COURSE', 1);
-
-// Allow ratings?
-define('MOODLEOVERFLOW_RATING_FORBID', 0);
-define('MOODLEOVERFLOW_RATING_ALLOW', 1);
-
-// Allow reputations?
-define('MOODLEOVERFLOW_REPUTATION_FORBID', 0);
-define('MOODLEOVERFLOW_REPUTATION_ALLOW', 1);
-
-// Allow negative reputations?
-define('MOODLEOVERFLOW_REPUTATION_POSITIVE', 0);
-define('MOODLEOVERFLOW_REPUTATION_NEGATIVE', 1);
-
 /* Moodle core API */
 
 /**
