@@ -22,11 +22,6 @@ use core_external\external_function_parameters;
 use core_external\external_api;
 use core_external\external_value;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * Class implementing the external API, esp. for AJAX functions.
  * Approves a post that is currently reviewed.

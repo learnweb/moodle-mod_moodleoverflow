@@ -20,10 +20,6 @@
  * All the core Moodle functions, neeeded to allow the module to work
  * integrated in Moodle should be placed here.
  *
- * All the moodleoverflow specific functions, needed to implement all the module
- * logic, should go to locallib.php. This will help to save some memory when
- * Moodle is performing actions across all modules.
- *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -37,47 +33,6 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\subscription;
-
-defined('MOODLE_INTERNAL') || die();
-require_once(dirname(__FILE__) . '/locallib.php');
-
-// LEARNWEB-TODO: Use new enums instead of these constants if possible.
-// Readtracking constants.
-define('MOODLEOVERFLOW_TRACKING_OFF', 0);
-define('MOODLEOVERFLOW_TRACKING_OPTIONAL', 1);
-define('MOODLEOVERFLOW_TRACKING_FORCED', 2);
-
-// Subscription constants.
-define('MOODLEOVERFLOW_CHOOSESUBSCRIBE', 0);
-define('MOODLEOVERFLOW_FORCESUBSCRIBE', 1);
-define('MOODLEOVERFLOW_INITIALSUBSCRIBE', 2);
-define('MOODLEOVERFLOW_DISALLOWSUBSCRIBE', 3);
-
-// Mailing state constants.
-define('MOODLEOVERFLOW_MAILED_PENDING', 0);
-define('MOODLEOVERFLOW_MAILED_SUCCESS', 1);
-define('MOODLEOVERFLOW_MAILED_ERROR', 2);
-define('MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS', 3);
-
-// Constants for the post rating.
-define('MOODLEOVERFLOW_PREFERENCE_STARTER', 0);
-define('MOODLEOVERFLOW_PREFERENCE_TEACHER', 1);
-
-// Reputation constants.
-define('MOODLEOVERFLOW_REPUTATION_MODULE', 0);
-define('MOODLEOVERFLOW_REPUTATION_COURSE', 1);
-
-// Allow ratings?
-define('MOODLEOVERFLOW_RATING_FORBID', 0);
-define('MOODLEOVERFLOW_RATING_ALLOW', 1);
-
-// Allow reputations?
-define('MOODLEOVERFLOW_REPUTATION_FORBID', 0);
-define('MOODLEOVERFLOW_REPUTATION_ALLOW', 1);
-
-// Allow negative reputations?
-define('MOODLEOVERFLOW_REPUTATION_POSITIVE', 0);
-define('MOODLEOVERFLOW_REPUTATION_NEGATIVE', 1);
 
 /* Moodle core API */
 
@@ -239,7 +194,6 @@ function moodleoverflow_delete_instance($id) {
 
     // Delete the discussions.
     if ($discussions = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $moodleoverflow->id])) {
-        require_once('locallib.php');
         foreach ($discussions as $discussion) {
             discussion::from_record($discussion)->delete($USER->id);
         }
@@ -292,18 +246,6 @@ function moodleoverflow_user_outline($course, $user, $mod, $moodleoverflow) {
  */
 function moodleoverflow_print_recent_activity($course, $viewfullnames, $timestart) {
     return false;
-}
-
-/**
- * Returns all other caps used in the module.
- *
- * For example, this could be ['moodle/site:accessallgroups'] if the
- * module uses that capability.
- *
- * @return array
- */
-function moodleoverflow_get_extra_capabilities() {
-    return [];
 }
 
 /* File API */

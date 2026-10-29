@@ -27,9 +27,7 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
-
-defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/../locallib.php');
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  *
@@ -40,6 +38,7 @@ require_once(__DIR__ . '/../locallib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\models\post
  */
+#[CoversClass(post::class)]
 final class post_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -123,7 +122,6 @@ final class post_test extends \advanced_testcase {
 
     /**
      * Test, if a post and its attachment are deleted successfully.
-     * @covers \mod_moodleoverflow\local\models\post::delete
      */
     public function test_moodleoverflow_delete_post(): void {
         global $DB;

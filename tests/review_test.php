@@ -28,6 +28,7 @@ use mod_moodleoverflow\external\review_approve_post;
 use mod_moodleoverflow\external\review_reject_post;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\enum\subscription_mode;
+use mod_moodleoverflow\local\manager\mail_manager;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
@@ -35,6 +36,9 @@ use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\task\send_review_mails;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -53,6 +57,10 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @covers \mod_moodleoverflow\external\review_reject_post::execute
  * @covers \mod_moodleoverflow\local\service\review
  */
+#[Group('mod_moodleoverflow')]
+#[CoversClass(review_approve_post::class)]
+#[CoversClass(review_reject_post::class)]
+#[CoversClass(service\review::class)]
 final class review_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -96,13 +104,14 @@ final class review_test extends \advanced_testcase {
      *
      * @runInSeparateProcess
      */
+    #[RunInSeparateProcess]
     public function test_forum_review_everything(): void {
         global $DB;
 
         $options = ['needsreview' => review_level::EVERYTHING->value, 'forcesubscribe' => subscription_mode::FORCED->value];
 
         $posts = $this->create_post($options);
-        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
+        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, mail_manager::MAILED_REVIEW_SUCCESS);
 
         // There should be one review mail for the teacher.
         // And 1 notification mail for the student (teacher does not get a notification mail for his own post).
@@ -117,7 +126,7 @@ final class review_test extends \advanced_testcase {
         $this->run_task(new send_review_mails());
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->get_id()]);
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
+        $this->assert_matches_properties(['mailed' => mail_manager::MAILED_SUCCESS, 'reviewed' => 1], $post);
         $this->assertNotNull($post->timereviewed ?? null);
 
         // There should be one notification mail for the approved post.
@@ -161,12 +170,13 @@ final class review_test extends \advanced_testcase {
      *
      * @runInSeparateProcess
      */
+    #[RunInSeparateProcess]
     public function test_forum_review_only_questions(): void {
         global $DB;
 
         $options = ['needsreview' => review_level::QUESTIONS->value, 'forcesubscribe' => subscription_mode::FORCED->value];
         $posts = $this->create_post($options);
-        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, MOODLEOVERFLOW_MAILED_REVIEW_SUCCESS);
+        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, mail_manager::MAILED_REVIEW_SUCCESS);
 
         // There should be one review needed mail for the teacher and one notification mail for the student.
         $this->assertEquals(2, $this->mailsink->count());
@@ -180,7 +190,7 @@ final class review_test extends \advanced_testcase {
         $this->run_task(new send_review_mails());
 
         $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->get_id()]);
-        $this->assert_matches_properties(['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS, 'reviewed' => 1], $post);
+        $this->assert_matches_properties(['mailed' => mail_manager::MAILED_SUCCESS, 'reviewed' => 1], $post);
         $this->assertNotNull($post->timereviewed ?? null);
 
         // There should be one notification mail for the student for the approved post.
@@ -189,7 +199,7 @@ final class review_test extends \advanced_testcase {
         $studentanswer1 = $this->generator->create_reply($posts['teacherpost'], $this->student);
         $studentanswer2 = $this->generator->create_reply($posts['teacherpost'], $this->student);
 
-        $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
+        $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, mail_manager::MAILED_SUCCESS);
     }
 
     /**
@@ -201,7 +211,7 @@ final class review_test extends \advanced_testcase {
         set_config('allowreview', 0, 'moodleoverflow');
 
         $posts = $this->create_post($options);
-        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
+        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 1, mail_manager::MAILED_SUCCESS);
 
         // There should be 2 notifications mails (one for each post).
         $this->assertEquals(2, $this->mailsink->count()); // Teacher has to approve student message.
@@ -213,7 +223,7 @@ final class review_test extends \advanced_testcase {
         $studentanswer2 = $this->generator->create_reply($posts['teacherpost'], $this->student);
         $this->setAdminUser();
 
-        $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, MOODLEOVERFLOW_MAILED_SUCCESS);
+        $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, mail_manager::MAILED_SUCCESS);
     }
 
     /**
@@ -443,12 +453,12 @@ final class review_test extends \advanced_testcase {
         global $DB;
 
         $this->assert_matches_properties(
-            ['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
+            ['mailed' => mail_manager::MAILED_PENDING,
                                           'reviewed' => $review1, 'timereviewed' => null, ],
             $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->get_id()])
         );
         $this->assert_matches_properties(
-            ['mailed' => MOODLEOVERFLOW_MAILED_PENDING,
+            ['mailed' => mail_manager::MAILED_PENDING,
                                           'reviewed' => $review2, 'timereviewed' => null, ],
             $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->get_id()])
         );
@@ -457,7 +467,7 @@ final class review_test extends \advanced_testcase {
         $this->run_task(new send_review_mails());
 
         $this->assert_matches_properties(
-            ['mailed' => MOODLEOVERFLOW_MAILED_SUCCESS,
+            ['mailed' => mail_manager::MAILED_SUCCESS,
                                           'reviewed' => $review1, 'timereviewed' => null, ],
             $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->get_id()])
         );

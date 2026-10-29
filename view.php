@@ -29,8 +29,7 @@ use mod_moodleoverflow\local\service\subscription;
 use mod_moodleoverflow\output\pages\view\view_page;
 
 require_once(__DIR__ . '/../../config.php');
-global $CFG, $PAGE, $OUTPUT, $SESSION, $USER;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
+global $PAGE, $OUTPUT, $SESSION, $USER;
 
 // Declare optional parameters.
 $id = optional_param('id', 0, PARAM_INT);       // Course Module ID.

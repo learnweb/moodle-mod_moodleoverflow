@@ -276,11 +276,13 @@ class readtracking {
         if (!$maxage) {
             return;
         }
-        // Delete the read records of posts that are older than allowed.
+        // Delete the read records of posts that became visible before the cutoff date.
+        $cutoff = time() - $maxage;
         $DB->delete_records_select(
             'moodleoverflow_read',
-            'postid IN (SELECT p.id FROM {moodleoverflow_posts} p WHERE p.modified < :cutoff)',
-            ['cutoff' => time() - $maxage]
+            'postid IN (SELECT p.id FROM {moodleoverflow_posts} p
+                         WHERE p.modified < :cutoff AND (p.timereviewed IS NULL OR p.timereviewed < :reviewcutoff))',
+            ['cutoff' => $cutoff, 'reviewcutoff' => $cutoff]
         );
     }
 
@@ -317,13 +319,15 @@ class readtracking {
      */
     private static function get_unread_records(int $userid, string $where, array $params): array {
         global $DB;
+        // A post counts from the time it became visible: written, edited or approved (post::get_time_active()).
         $sql = "SELECT p.*
               FROM {moodleoverflow_posts} p
               JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
          LEFT JOIN {moodleoverflow_read} r ON r.postid = p.id AND r.userid = :userid
-             WHERE $where AND p.modified >= :cutoff AND r.id IS NULL
+             WHERE $where AND (p.modified >= :cutoff OR p.timereviewed >= :reviewcutoff) AND r.id IS NULL
           ORDER BY p.created, p.id";
-        $params += ['userid' => $userid, 'cutoff' => time() - moodleoverflow::get_old_post_age()];
+        $cutoff = time() - moodleoverflow::get_old_post_age();
+        $params += ['userid' => $userid, 'cutoff' => $cutoff, 'reviewcutoff' => $cutoff];
         return $DB->get_records_sql($sql, $params);
     }
 
@@ -356,22 +360,24 @@ class readtracking {
      */
     private static function add_read_record(post $post, int $userid): bool {
         global $DB;
-
-        // Get the current time and the cutoffdate.
         $now = time();
-        $cutoffdate = $now - moodleoverflow::get_old_post_age();
+
+        // Posts that became visible before the cutoff date count as read without a record.
+        if ($post->get_time_active() < $now - moodleoverflow::get_old_post_age()) {
+            return false;
+        }
 
         // Check for read records for this user an this post.
         $oldrecord = $DB->get_record('moodleoverflow_read', ['postid' => $post->get_id(), 'userid' => $userid]);
         if (!$oldrecord) {
-            // If there are no old records, create a new one.
-            $sql = "INSERT INTO {moodleoverflow_read} (userid, postid, discussionid, moodleoverflowid, firstread, lastread)
-                 SELECT ?, p.id, p.discussion, d.moodleoverflow, ?, ?
-                   FROM {moodleoverflow_posts} p
-                        JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-                  WHERE p.id = ? AND p.modified >= ?";
-
-            return $DB->execute($sql, [$userid, $now, $now, $post->get_id(), $cutoffdate]);
+            return (bool) $DB->insert_record('moodleoverflow_read', [
+                'userid' => $userid,
+                'postid' => $post->get_id(),
+                'discussionid' => $post->get_discussionid(),
+                'moodleoverflowid' => $post->get_moodleoverflow()->id,
+                'firstread' => $now,
+                'lastread' => $now,
+            ]);
         }
 
         // Else update the existing one.

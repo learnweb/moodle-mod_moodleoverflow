@@ -16,9 +16,14 @@
 
 namespace mod_moodleoverflow;
 
-
 use dml_exception;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversFunction;
+
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
 /**
  * Unit tests for mod_moodleoverflow.
@@ -35,8 +40,9 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
  * @copyright 2025 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
- * @covers \mod_moodleoverflow\
+ * @covers ::moodleoverflow_add_instance
  */
+#[CoversFunction('moodleoverflow_add_instance')]
 final class activity_completion_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

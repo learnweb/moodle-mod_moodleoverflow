@@ -78,24 +78,27 @@ function mod_moodleoverflow_file_rewrite_urls_to_pluginfile($text, $draftitemid,
  * @param string $filearea indentifies the file area.
  * @param int $itemid helps identifies the file area.
  * @param context_user $usercontext
- * @param array $options area options (subdirs=>false, maxfiles=-1, maxbytes=0)
- * @param string $text some html content that needs to have embedded links rewritten
+ * @param ?array $options area options (subdirs=>false, maxfiles=-1, maxbytes=0)
+ * @param ?string $text some html content that needs to have embedded links rewritten
  *      to the @@PLUGINFILE@@ form for saving in the database.
  * @param bool $forcehttps force https urls.
  * @return string|null if $text was passed in, the rewritten $text is returned. Otherwise NULL.
  */
-function mod_moodleoverflow_file_save_draft_area_files($draftitemid, $contextid, $component, $filearea, $itemid, $usercontext, array $options=null, $text=null, $forcehttps=false) {
-
+function mod_moodleoverflow_file_save_draft_area_files(
+    int $draftitemid,
+    int $contextid,
+    string $component,
+    string $filearea,
+    int $itemid,
+    context_user $usercontext,
+    ?array $options = null,
+    ?string $text = null,
+    bool $forcehttps = false
+) {
     // Do not merge files, leave it as it was.
     if ($draftitemid === IGNORE_FILE_MERGE) {
         // Safely return $text, no need to rewrite pluginfile because this is mostly comming from an external client like the app.
         return $text;
-    }
-
-    if ($itemid === false) {
-        // Catch a potentially dangerous coding error.
-        throw new coding_exception('file_save_draft_area_files was called with $itemid false. ' .
-                "This suggests a bug, because it would wipe all ($contextid, $component, $filearea) files.");
     }
 
     $fs = get_file_storage();

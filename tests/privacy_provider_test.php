@@ -38,11 +38,8 @@ use mod_moodleoverflow\local\service\readtracking;
 use mod_moodleoverflow\privacy\data_export_helper;
 use mod_moodleoverflow\privacy\provider;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for the moodleoverflow implementation of the Privacy Provider API.
@@ -52,8 +49,11 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @group mod_moodleoverflow
  * @group mod_moodleoverflow_privacy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \provider
+ * @covers \mod_moodleoverflow\privacy\provider
  */
+#[Group('mod_moodleoverflow')]
+#[Group('mod_moodleoverflow_privacy')]
+#[CoversClass(provider::class)]
 final class privacy_provider_test extends \core_privacy\tests\provider_testcase {
     use moodleoverflow_test_trait;
 

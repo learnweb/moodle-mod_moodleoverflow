@@ -23,11 +23,6 @@ use mod_moodleoverflow\local\models;
 use mod_moodleoverflow\local\permissions;
 use core\exception\moodle_exception;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * Service class for use cases that concern a discussion as a whole.
  *

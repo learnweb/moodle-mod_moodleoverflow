@@ -1,61 +1,122 @@
-# ![moodle-mod_groupmembers](pix/icon.png) Activity Module: Moodleoverflow
+# ![Moodleoverflow](pix/icon.png) Moodleoverflow
 
-The Moodleoverflow activity provides users the ability to create discussion forums that are not strictly linear or chronological.
-It has similarities to the Moodle _forum_, but it is more intended for question-and-answer style discussions and provides additional features that support meaningful interaction. Moodleoverflow features
-are highly customizable to ensure that it fits the needs of all users. A Moodleoverflow instance represents a forum that contains multiple discussions with posts.
+![Moodle 4.5–5.2](https://img.shields.io/badge/Moodle-4.5%E2%80%935.2-f98012)
+[![Latest release](https://img.shields.io/github/v/release/learnweb/moodle-mod_moodleoverflow)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/latest)
+
+**Question-and-answer forums for your Moodle courses, inspired by Stack Overflow.** Students ask, the course answers,
+and the best answers rise to the top.
+
+<!-- Image: a lively discussion. A question, several answers with votes, one marked as solution (green) and one as
+helpful (orange), a comment below an answer, reputation next to the names. -->
+
+---
+
+## Why Moodleoverflow?
+
+In a classic forum, the answer to a question is often hidden somewhere in a long thread. Moodleoverflow is built for
+questions and answers:
+
+- **The best answer is on top.** Students vote answers up or down, the questioner marks the answer that helped, and
+  teachers mark the solution. Moodleoverflow sorts the answers accordingly, so nobody needs to read through 40 posts.
+- **Students help each other.** Every good answer earns reputation. It shows who knows their way around and makes
+  helping others visible and worthwhile.
+- **Every question gets asked.** In anonymous forums, students ask without their name being shown, which often brings
+  out exactly the questions that many have but nobody dares to ask.
+- **Teachers stay in control.** Approve posts before they are published, mark the correct solution, decide when
+  answers are allowed, and move discussions to the right forum.
+- **Participation can count.** Turn reputation into a grade in the gradebook.
+- **Fits every course.** Each forum can be set up for its purpose: with or without votes, reputation and grades,
+  anonymous or with names, moderated or open, with answers allowed at any time or only within a time window.
+  Administrators decide which of these options teachers may use.
+
+---
+
+## How courses use it
+
+### Questions about the lecture
+
+Students ask about the lecture, fellow students answer, and the teacher marks the correct solution. Next semester's
+students find the answer to the same question right away.
+
+<!-- Image: a discussion with a solution mark from the teacher and an upvoted answer of a student. -->
+
+### Anonymous questions before the exam
+
+Exam preparation brings questions that nobody wants to ask with their name. In an anonymous forum, authors appear as
+"Questioner" and "Answerer #1", "Answerer #2"... Readers can still tell which answers come from the same person, but
+not who it is.
+
+<!-- Image: an anonymous discussion with "Questioner" and numbered answerers. -->
+
+### Collect questions first, answer later
+
+With the limited answer mode, the forum collects questions first, for example during a lecture, and opens for answers
+at a time the teacher sets. It can also close answering at a deadline.
+
+<!-- Image: the list of discussions with several questions and the note that answering opens later. -->
+
+### Check posts before they are published
+
+In a moderated forum, a teacher approves new questions, or all posts, before the other participants see them. Wrong
+answers do not mislead anybody, solutions to graded exercises are not shared, and nothing inappropriate appears.
+Rejected posts can come with a short reason for the author.
+
+<!-- Image: a post waiting for review, with the approve and reject buttons. -->
+
+### Recognise helpful students
+
+Teachers can see in an overview who contributes the most: how many posts, received votes and how much reputation each
+participant has, per forum and for the whole course. It shows only what is visible in the forums anyway, and it is
+switched off unless the administrator enables it.
+
+<!-- Image: the user statistics table. -->
+
+---
+
+## Features
+
+- **Votes, helpful and solution marks** that sort the answers ([details][wiki-ratings])
+- **Reputation** per forum or for the whole course, with points the administrator can adjust ([details][wiki-reputation])
+- **Grading** based on reputation ([details][wiki-grading])
+- **User statistics** for teachers ([details][wiki-userstats])
+- **Anonymous mode** for questioners or for everyone ([details][wiki-anonymous])
+- **Review** of questions or of all posts before they are published ([details][wiki-review])
+- **Limited answer mode** with a start and an end for answers ([details][wiki-limited])
+- **Subscriptions** to forums or single discussions, with email notifications or a daily summary ([details][wiki-subscriptions])
+- **Read tracking** that highlights new posts ([details][wiki-readtracking])
+- **Moving discussions** to another forum of the course ([details][wiki-move])
+- **Attachments**, privacy API, backup and restore, global search, activity completion
+
+Every feature can be adjusted: administrators set what teachers may use, teachers decide for each forum. All settings
+are explained in the [documentation for administrators][wiki].
+
+---
 
 ## Installation
-Clone the content into `{your/moodle/dirroot}/mod/moodleoverflow` and complete the installation in 
-_Site administration > Notifications_ or run  `$ php admin/cli/upgrade.php` in your cli.
 
-## Core features
-The main features of Moodleoverflow are the *rating and reputation system*, *subscription and read tracking*, the *anonymous mode* and *other forms of moderation*.
+Install the plugin from the [Moodle plugins directory](https://moodle.org/plugins/mod_moodleoverflow), or clone this
+repository into `{your/moodle/dirroot}/mod/moodleoverflow`. Then complete the installation in
+_Site administration > Notifications_, or run `php admin/cli/upgrade.php` on the command line.
 
-### Rating and reputation system
-Like in _Stackoverflow_, users can rate posts with up- and downvotes, which rank the posts in a discussion. Additionally, the user that started the
-discussion can mark posts as _"helpful"_(orange) and course teachers can mark a post as _"solution"_(green).
+## Documentation and support
 
-If enabled, Moodleoverflow tracks the users activity within a single course with a *reputation* score. Activities like voting or getting upvotes and helpful/solution marks
-increase the reputation, while downvotes decrease it. A user's reputation is displayed when they write a post. Detailed explanation as well as instructions on how
-to tailor the reputation system to your own needs can be found [here](https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators).
-
-What a typical discussion looks like:
-
-<img width="811" height="740" alt="lively_discussion" src="https://github.com/user-attachments/assets/11d2ab6a-e12a-470e-8666-dfcd5b3408e9" />
-
-Moodleoverflow offers the ability for teachers to show the user statistics for a single course. Teachers can then see which students are particularly active in Moodleoverflow forums:
-
-<img width="1510" height="398" alt="userstats" src="https://github.com/user-attachments/assets/528bd76b-9967-43d7-b597-fc7f6107bb9e" />
-
-<br>
-
-### Subscription and read tracking
-Users can subscribe to individual discussions or entire forums to receive notifications via email. Teachers have the ability to enforce subscriptions for important forums.
-Moodleoverflow can track unread discussions and display a visual hint. All users can control their personal moodleoverflow settings in the overview:
-
-<img width="843" height="269" alt="overview" src="https://github.com/user-attachments/assets/7eb3ee9f-5227-4922-96dd-0d2b37176c67" />
-
-A forum with unread posts:
-
-<img width="796" height="318" alt="unread_posts" src="https://github.com/user-attachments/assets/25d459d1-62ec-413c-950b-0931d9b938d7" />
-
-<br>
-
-### Moderation options
-Teachers can restrict certain features in a forum. With the *anonymous mode* certain users (the discussion starter or all users) are anonymous within a forum. This can motivate users
-to interact with other students and increase their activity in discussions. Especially in Q&A this can be an ice breaker.
-
-<img width="817" height="587" alt="anonymous_forum" src="https://github.com/user-attachments/assets/bd5c273b-c371-4a10-b9b8-694f32ddfb79" />
-
-
-If teachers want to limit the time users can post replies, the *limited answer mode* can be activated when creating a moodleoverflow. The teacher sets a time frame in which
-the students can write posts. This can be used to collect questions before answers are allowed, or to enforce a posting deadline.
+- [Documentation for administrators][wiki]: every feature and setting explained.
+- Found a bug or have an idea? Open an [issue](https://github.com/learnweb/moodle-mod_moodleoverflow/issues).
 
 ---
-## Settings
 
-The global settings allow administrators to enable or disable core features or to set the boundaries of what the teachers can customize in the local settings.
-With the local settings in each moodleoverflow teachers can specify the use case of a forum and make use of the core features A detailed explanation of the settings can be found [here](https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators)
+Moodleoverflow was initially implemented by Kennet Winter. It is developed and maintained by the
+[Learnweb development team](https://github.com/learnweb) of the University of Münster, together with
+[all contributors](https://github.com/learnweb/moodle-mod_moodleoverflow/graphs/contributors).
 
----
-This plugin was initially implemented by Kennet Winter and is further developed and maintained by the [Learnweb development team](https://github.com/learnweb) (University of Münster)
+[wiki]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators
+[wiki-ratings]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#3-votes-marks-and-the-order-of-answers
+[wiki-reputation]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#4-reputation
+[wiki-grading]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#5-grading
+[wiki-userstats]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#6-user-statistics
+[wiki-anonymous]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#7-anonymous-mode
+[wiki-review]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#8-review-moderated-forums
+[wiki-limited]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#9-limited-answer-mode
+[wiki-subscriptions]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#10-subscriptions-and-email-notifications
+[wiki-readtracking]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#11-read-tracking
+[wiki-move]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#12-moving-discussions

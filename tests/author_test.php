@@ -17,9 +17,11 @@
 namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\local\enum\anonymity;
+use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\output\author;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests how the author of a post is shown.
@@ -30,6 +32,8 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
  * @covers \mod_moodleoverflow\output\author
  * @covers \mod_moodleoverflow\local\models\discussion::get_pseudonym
  */
+#[CoversClass(author::class)]
+#[CoversClass(discussion::class)]
 final class author_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

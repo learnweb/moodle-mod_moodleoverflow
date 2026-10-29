@@ -30,11 +30,6 @@ use mod_moodleoverflow\local\service\subscription;
 use moodle_url;
 use Throwable;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * Class for working with posts
  * This class represents a discussion. A discussion administrates the posts and has one parent post, that started the discussion.

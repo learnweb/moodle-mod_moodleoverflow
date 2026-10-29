@@ -22,12 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core\output\notification;
 use core\user;
 
 require_once('../../config.php');
 global $CFG, $PAGE, $OUTPUT, $USER;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 // Declare the parameters. The course is optional and only tells where the user came from.
 $userid = required_param('user', PARAM_INT);
@@ -78,15 +76,6 @@ $PAGE->set_context(context_user::instance($userid));
 $PAGE->set_title(get_string('moodleoverflowposts', 'mod_moodleoverflow'));
 $PAGE->set_heading(fullname($user));
 
-// Initiate the page.
-moodleoverflow_cache_strings();
-
 echo $OUTPUT->header();
-
-if ($CFG->branch >= 503) {
-    $params = (object) ['userid' => $userid, 'courseid' => $courseid];
-    echo $OUTPUT->render_react_component('mod_moodleoverflow/UserPage', $params);
-} else {
-    echo $OUTPUT->notification(get_string('featurenotavailable', 'mod_moodleoverflow'), notification::NOTIFY_WARNING);
-}
+echo $PAGE->get_renderer('mod_moodleoverflow')->render_react('UserPage', (object) ['userid' => $userid, 'courseid' => $courseid]);
 echo $OUTPUT->footer();

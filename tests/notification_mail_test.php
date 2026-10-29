@@ -22,6 +22,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service\subscription;
 use mod_moodleoverflow\task\send_mails;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests who gets a notification mail about a new post. The recipients follow the rules of the subscription service.
@@ -30,6 +31,7 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\manager\mail_manager
  */
+#[CoversClass(mail_manager::class)]
 final class notification_mail_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 

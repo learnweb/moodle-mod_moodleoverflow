@@ -31,6 +31,8 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -44,6 +46,7 @@ require_once($CFG->dirroot . '/course/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\permissions
  */
+#[CoversClass(permissions::class)]
 final class permissions_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -250,13 +253,15 @@ final class permissions_test extends \advanced_testcase {
         $this->assertTrue(permissions::can_reply($question, $this->otherstudent->id));
         $this->assertFalse(permissions::can_reply($question, $this->notenrolled->id));
 
-        // Before the answer window opens only teachers can reply, to questions and to answers.
+        // Before the answer window opens only teachers and tutors can reply, to questions and to answers.
         $modflow = $this->create_moodleoverflow(['la_starttime' => time() + DAYSECS]);
         $question = $this->generator->create_question($modflow, $this->teacher);
         $answer = $this->generator->create_reply($question, $this->teacher);
+        $tutor = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
         $this->assertFalse(permissions::can_reply($question, $this->student->id));
         $this->assertFalse(permissions::can_reply($answer, $this->student->id));
         $this->assertTrue(permissions::can_reply($question, $this->teacher->id));
+        $this->assertTrue(permissions::can_reply($answer, $tutor->id));
     }
 
     /**
@@ -443,6 +448,7 @@ final class permissions_test extends \advanced_testcase {
      * @param bool $expectstudent
      * @param bool $expectmanager
      */
+    #[DataProvider('can_change_subscription_provider')]
     public function test_can_change_subscription(subscription_mode $mode, bool $expectstudent, bool $expectmanager): void {
         $modflow = $this->create_moodleoverflow(['forcesubscribe' => $mode->value]);
         $manager = $this->getDataGenerator()->create_and_enrol($this->course, 'manager');

@@ -26,11 +26,6 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\service;
 use core\exception\moodle_exception;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
-
 /**
  * Class implementing the external API, esp. for AJAX functions.
  * Moves a discussion to another moodleoverflow

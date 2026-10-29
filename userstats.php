@@ -22,10 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Include config and locallib.
 require_once(__DIR__ . '/../../config.php');
-global $CFG, $PAGE, $DB, $OUTPUT, $SESSION, $USER;
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
+global $PAGE, $OUTPUT, $SESSION, $USER;
 
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;

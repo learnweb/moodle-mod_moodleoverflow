@@ -396,6 +396,18 @@ class rating {
         self::update_grades($modflow, array_merge($authors, $raters));
     }
 
+    /**
+     * Recomputes the grades of every graded instance of the site. Is called from the admin settings.
+     * @return void
+     * @throws dml_exception|coding_exception
+     */
+    public static function update_all_instances_grades(): void {
+        global $DB;
+        foreach ($DB->get_records_select('moodleoverflow', 'grademaxgrade > 0 AND gradescalefactor > 0') as $record) {
+            self::update_all_grades(moodleoverflow::from_record($record));
+        }
+    }
+
     // Private helper functions.
 
     /**

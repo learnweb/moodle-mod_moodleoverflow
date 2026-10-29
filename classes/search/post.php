@@ -28,9 +28,6 @@ use mod_moodleoverflow\local\permissions;
 use moodle_recordset;
 use moodle_url;
 use stdClass;
-defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 
 /**
  * Moodleoverflow posts search area.

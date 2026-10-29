@@ -24,7 +24,6 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\service;
 global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
-require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
 require_once($CFG->libdir . '/tablelib.php');
 
 /**

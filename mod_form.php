@@ -26,8 +26,10 @@
  */
 
 use mod_moodleoverflow\local\enum\anonymity;
+use mod_moodleoverflow\local\enum\rating_preference;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\enum\subscription_mode;
+use mod_moodleoverflow\local\enum\tracking_type;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -151,10 +153,10 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Set the options for the default readtracking.
         $options = [];
-        $options[MOODLEOVERFLOW_TRACKING_OPTIONAL] = get_string('trackingoptional', 'moodleoverflow');
-        $options[MOODLEOVERFLOW_TRACKING_OFF] = get_string('trackingoff', 'moodleoverflow');
+        $options[tracking_type::OPTIONAL->value] = get_string('trackingoptional', 'moodleoverflow');
+        $options[tracking_type::OFF->value] = get_string('trackingoff', 'moodleoverflow');
         if (get_config('moodleoverflow', 'allowforcedreadtracking')) {
-            $options[MOODLEOVERFLOW_TRACKING_FORCED] = get_string('trackingon', 'moodleoverflow');
+            $options[tracking_type::FORCED->value] = get_string('trackingon', 'moodleoverflow');
         }
 
         // Create the option to set the readtracking state.
@@ -163,8 +165,8 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Choose the default tracking type.
         $default = get_config('moodleoverflow', 'trackingtype');
-        if ((!get_config('moodleoverflow', 'allowforcedreadtracking')) && ($default == MOODLEOVERFLOW_TRACKING_FORCED)) {
-            $default = MOODLEOVERFLOW_TRACKING_OPTIONAL;
+        if ((!get_config('moodleoverflow', 'allowforcedreadtracking')) && ($default == tracking_type::FORCED->value)) {
+            $default = tracking_type::OPTIONAL->value;
         }
         $mform->setDefault('trackingtype', $default);
 
@@ -216,34 +218,34 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
 
         // Which rating is more important?
         $options = [];
-        $options[MOODLEOVERFLOW_PREFERENCE_STARTER] = get_string('starterrating', 'moodleoverflow');
-        $options[MOODLEOVERFLOW_PREFERENCE_TEACHER] = get_string('teacherrating', 'moodleoverflow');
+        $options[rating_preference::STARTER->value] = get_string('starterrating', 'moodleoverflow');
+        $options[rating_preference::TEACHER->value] = get_string('teacherrating', 'moodleoverflow');
         $mform->addElement('select', 'ratingpreference', get_string('ratingpreference', 'moodleoverflow'), $options);
         $mform->addHelpButton('ratingpreference', 'ratingpreference', 'moodleoverflow');
-        $mform->setDefault('ratingpreference', MOODLEOVERFLOW_PREFERENCE_STARTER);
+        $mform->setDefault('ratingpreference', rating_preference::STARTER->value);
 
         if (get_config('moodleoverflow', 'allowdisablerating') == 1) {
             // Allow Rating.
             $mform->addElement('selectyesno', 'allowrating', get_string('allowrating', 'moodleoverflow'));
             $mform->addHelpButton('allowrating', 'allowrating', 'moodleoverflow');
-            $mform->setDefault('allowrating', MOODLEOVERFLOW_RATING_ALLOW);
+            $mform->setDefault('allowrating', 1);
 
             // Allow Reputation.
             $mform->addElement('selectyesno', 'allowreputation', get_string('allowreputation', 'moodleoverflow'));
             $mform->addHelpButton('allowreputation', 'allowreputation', 'moodleoverflow');
-            $mform->setDefault('allowreputation', MOODLEOVERFLOW_REPUTATION_ALLOW);
+            $mform->setDefault('allowreputation', 1);
         }
 
         // Course wide reputation?
         $mform->addElement('selectyesno', 'coursewidereputation', get_string('coursewidereputation', 'moodleoverflow'));
         $mform->addHelpButton('coursewidereputation', 'coursewidereputation', 'moodleoverflow');
-        $mform->setDefault('coursewidereputation', MOODLEOVERFLOW_REPUTATION_COURSE);
+        $mform->setDefault('coursewidereputation', 1);
         $mform->hideIf('coursewidereputation', 'anonymous', 'gt', 0);
 
         // Allow negative reputations?
         $mform->addElement('selectyesno', 'allownegativereputation', get_string('allownegativereputation', 'moodleoverflow'));
         $mform->addHelpButton('allownegativereputation', 'allownegativereputation', 'moodleoverflow');
-        $mform->setDefault('allownegativereputation', MOODLEOVERFLOW_REPUTATION_NEGATIVE);
+        $mform->setDefault('allownegativereputation', 1);
 
         // Allow multiple marks of helpful/solved.
         $mform->addElement('advcheckbox', 'allowmultiplemarks', get_string('allowmultiplemarks', 'moodleoverflow'));

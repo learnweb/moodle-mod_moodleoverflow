@@ -23,6 +23,7 @@ use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests the discussion list and the post tree of the discussion service.
@@ -32,6 +33,7 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\service\discussion
  */
+#[CoversClass(service\discussion::class)]
 final class discussion_service_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
