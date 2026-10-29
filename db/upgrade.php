@@ -376,5 +376,11 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         }
         upgrade_mod_savepoint(true, 2026050707, 'moodleoverflow');
     }
+
+    if ($oldversion < 2026050708) {
+        // Delete the setting to change the time of clean read-records task (tasks should not be managed from plugin site settings).
+        unset_config('cleanreadtime', 'moodleoverflow');
+        upgrade_mod_savepoint(true, 2026050708, 'moodleoverflow');
+    }
     return true;
 }

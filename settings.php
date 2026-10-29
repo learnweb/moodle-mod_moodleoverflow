@@ -108,19 +108,6 @@ if ($ADMIN->fulltree) {
         PARAM_INT
     ));
 
-    // Default time (hour) to execute 'clean_read_records' cron.
-    $options = [];
-    for ($i = 0; $i < 24; $i++) {
-        $options[$i] = sprintf("%02d", $i);
-    }
-    $settings->add(new admin_setting_configselect(
-        'moodleoverflow/cleanreadtime',
-        get_string('cleanreadtime', 'moodleoverflow'),
-        get_string('configcleanreadtime', 'moodleoverflow'),
-        2,
-        $options
-    ));
-
     $url = new moodle_url('/mod/moodleoverflow/resetanonymous.php');
 
     $settings->add(new admin_setting_configcheckbox(

@@ -41,11 +41,11 @@ $tasks = [
     [
         'classname' => 'mod_moodleoverflow\task\clean_readrecords',
         'blocking' => 0,
-        'minute' => '*',
-        'hour' => '*',
+        'minute' => '0',
+        'hour' => '2',
         'day' => '*',
-        'month' => '*',
         'dayofweek' => '*',
+        'month' => '*',
     ],
 
     // Send daily digest mail of unread posts.
