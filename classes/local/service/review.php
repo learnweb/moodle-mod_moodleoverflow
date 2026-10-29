@@ -33,7 +33,8 @@ class review {
     // Write functions that change the review status of a post.
 
     /**
-     * Approves a post to be shown on a discussion and sets it as "reviewed successfully".
+     * Approves a post to be shown on a discussion and sets it as "reviewed successfully". The subscribers are
+     * notified about it.
      * @param post $post
      * @param int $userid The user that approves the post
      * @return void
@@ -43,6 +44,7 @@ class review {
         permissions::ensure(permissions::can_review_post($post, $userid), 'cannotreviewpost');
         $post->mark_reviewed();
         $post->get_discussion()->update_last_activity();
+        mail::queue_notification($post);
     }
 
     /**

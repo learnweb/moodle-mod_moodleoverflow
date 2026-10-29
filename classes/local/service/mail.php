@@ -1,0 +1,162 @@
+<?php
+// This file is part of a plugin for Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+namespace mod_moodleoverflow\local\service;
+
+use core\exception\moodle_exception;
+use core\task\manager;
+use core_user;
+use dml_exception;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\output\mail\message;
+use mod_moodleoverflow\output\mail\notification;
+use mod_moodleoverflow\task\send_post_notification;
+use stdClass;
+use Throwable;
+
+/**
+ * Service class for the mails of the plugin: who gets which message and when.
+ *
+ * Mails are sent through the message API from the no-reply user. A message is queued as an ad hoc task with the post
+ * id only and built when the task runs, so it always shows the current state of the post. What a message says is
+ * prepared by the classes in output\mail and written in the templates in templates/mail.
+ *
+ * @package   mod_moodleoverflow
+ * @copyright 2026 Tamaro Walter
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class mail {
+    // Notifications about new posts.
+
+    /**
+     * Queues the notification about a post. It is sent once the author can no longer edit the post, so subscribers
+     * get its final version. No permission checks: only call it after the post was created or approved.
+     *
+     * @param post $post
+     * @return void
+     * @throws moodle_exception
+     */
+    public static function queue_notification(post $post): void {
+        $task = new send_post_notification();
+        $task->set_custom_data(['postid' => $post->get_id()]);
+        $task->set_next_run_time(max(time(), $post->created + $post->get_moodleoverflow()->get_edit_window()));
+        manager::queue_adhoc_task($task);
+    }
+
+    /**
+     * Sends the notification about a post to everybody who is subscribed to its discussion and may see the post.
+     * Users who chose a digest in their profile get the post in their daily summary instead. Posts that wait for a
+     * review, and posts that became visible longer ago than the setting "maxmailingtime" allows, are not sent.
+     *
+     * A recipient for whom sending fails does not stop the others. The failures are returned instead of thrown, so the
+     * calling task ends normally and is not run again: nobody gets the mail twice.
+     *
+     * @param post $post
+     * @return string[] The reasons sending failed, indexed by the id of the recipient
+     * @throws dml_exception|moodle_exception
+     */
+    public static function send_notification(post $post): array {
+        global $DB;
+        $modflow = $post->get_moodleoverflow();
+        $maxage = $modflow->get_edit_window() + (int) get_config('moodleoverflow', 'maxmailingtime') * HOURSECS;
+        if ($post->reviewed !== 1 || $post->get_time_active() < time() - $maxage) {
+            return [];
+        }
+
+        $recipientids = array_filter(
+            subscription::get_recipients($post->get_discussion()),
+            fn(int $userid) => $userid !== $post->get_userid() && permissions::can_view_post($post, $userid)
+        );
+        $failures = [];
+        foreach ($DB->get_records_list('user', 'id', $recipientids) as $recipient) {
+            try {
+                if ($recipient->maildigest) {
+                    self::add_to_digest($post, (int) $recipient->id);
+                    continue;
+                }
+
+                $result = self::send('posts', new notification($post, $recipient), $recipient);
+                if (!$result) {
+                    $failures[$recipient->id] = 'The message API did not send the message.';
+                }
+            } catch (Throwable $e) {
+                $failures[$recipient->id] = $e->getMessage();
+            }
+        }
+        return $failures;
+    }
+
+    // Private helper functions.
+
+    /**
+     * Sends a message to a user in their language. Every kind of mail is sent through this function: it only uses
+     * what the interface output\mail\message offers, not which mail it is.
+     *
+     * @param string $provider The message provider of the plugin, see db/messages.php
+     * @param message $mail Any kind of mail (notification, digest, ...)
+     * @param stdClass $recipient
+     * @return bool Whether the message API sent the message
+     * @throws moodle_exception
+     */
+    private static function send(string $provider, message $mail, stdClass $recipient): bool {
+        // Build the message in the recipient's language.
+        $previouslanguage = force_current_language($recipient->lang);
+        try {
+            $message = new \core\message\message();
+            $message->component = 'mod_moodleoverflow';
+            $message->name = $provider;
+            $message->notification = 1;
+            $message->userfrom = core_user::get_noreply_user();
+            $message->userto = $recipient;
+            $message->courseid = $mail->get_courseid();
+            $message->subject = $mail->get_subject();
+            $message->smallmessage = $message->subject;
+            $message->fullmessage = $mail->render_text();
+            $message->fullmessageformat = FORMAT_PLAIN;
+            $message->fullmessagehtml = '';
+            $message->contexturl = $mail->get_url()->out(false);
+            $message->contexturlname = $message->subject;
+        } finally {
+            force_current_language($previouslanguage);
+        }
+        return message_send($message) !== false;
+    }
+
+    /**
+     * Counts a post for the daily digest of a user.
+     *
+     * @param post $post
+     * @param int $userid
+     * @return void
+     * @throws dml_exception|moodle_exception
+     */
+    private static function add_to_digest(post $post, int $userid): void {
+        global $DB;
+        $modflow = $post->get_moodleoverflow();
+        $params = [
+            'userid' => $userid,
+            'courseid' => $modflow->course,
+            'forumid' => $modflow->id,
+            'forumdiscussionid' => $post->get_discussionid(),
+        ];
+        if ($record = $DB->get_record('moodleoverflow_mail_info', $params)) {
+            $DB->set_field('moodleoverflow_mail_info', 'numberofposts', $record->numberofposts + 1, ['id' => $record->id]);
+        } else {
+            $DB->insert_record('moodleoverflow_mail_info', (object) ($params + ['numberofposts' => 1]));
+        }
+    }
+}

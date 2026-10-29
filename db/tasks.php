@@ -58,15 +58,4 @@ $tasks = [
         'month' => '*',
         'dayofweek' => '*',
     ],
-
-    // Task to send mail notification of new posts in subscribed discussions.
-    [
-        'classname' => 'mod_moodleoverflow\task\send_mails',
-        'blocking' => 0,
-        'minute' => '*',
-        'hour' => '*',
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*',
-    ],
 ];

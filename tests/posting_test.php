@@ -77,7 +77,8 @@ final class posting_test extends \advanced_testcase {
     }
 
     /**
-     * Test, if a question of a student waits for review, but not the question of a reviewer.
+     * Test, if a question of a student waits for review, but not the question of a reviewer. Only the reviewed
+     * question is announced to the subscribers now, the other one once it is approved.
      */
     public function test_create_discussion_review_status(): void {
         $modflow = $this->create_moodleoverflow(['needsreview' => review_level::QUESTIONS->value]);
@@ -87,6 +88,7 @@ final class posting_test extends \advanced_testcase {
 
         $this->assertEquals(0, $student->get_first_post()->reviewed);
         $this->assertEquals(1, $teacher->get_first_post()->reviewed);
+        $this->assertEquals([$teacher->get_first_post()->get_id()], $this->get_queued_notifications());
     }
 
     /**
@@ -143,18 +145,23 @@ final class posting_test extends \advanced_testcase {
     }
 
     /**
-     * Test, if replies follow the review level for answers, not the one for questions.
+     * Test, if replies follow the review level for answers, not the one for questions. Only reviewed replies are
+     * announced to the subscribers now.
      */
     public function test_reply_review_status(): void {
         $questionsonly = $this->create_moodleoverflow(['needsreview' => review_level::QUESTIONS->value]);
         $everything = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
 
         $question = $this->generator->create_question($questionsonly, $this->teacher);
-        $this->assertEquals(1, posting::reply($question, $this->student->id, $this->content('Answer'))->reviewed);
+        $reviewed = posting::reply($question, $this->student->id, $this->content('Answer'));
+        $this->assertEquals(1, $reviewed->reviewed);
 
         $question = $this->generator->create_question($everything, $this->teacher);
         $this->assertEquals(0, posting::reply($question, $this->student->id, $this->content('Answer'))->reviewed);
-        $this->assertEquals(1, posting::reply($question, $this->teacher->id, $this->content('Answer'))->reviewed);
+        $byreviewer = posting::reply($question, $this->teacher->id, $this->content('Answer'));
+        $this->assertEquals(1, $byreviewer->reviewed);
+
+        $this->assertEquals([$reviewed->get_id(), $byreviewer->get_id()], $this->get_queued_notifications());
     }
 
     /**

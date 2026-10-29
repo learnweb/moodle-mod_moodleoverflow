@@ -25,7 +25,8 @@ namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\task\send_mails;
+use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\task\send_daily_mails;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -93,11 +94,14 @@ final class dailymail_test extends \advanced_testcase {
     }
 
     /**
-     * Run the send daily mail task.
+     * Sends the notifications of all posts, which fills the digests, and runs the send daily mail task.
      * @return string
      */
     private function helper_run_send_daily_mails() {
-        $this->run_task(new send_mails());
+        global $DB;
+        foreach ($DB->get_records('moodleoverflow_posts') as $record) {
+            service\mail::send_notification(post::from_record($record));
+        }
         return $this->run_task(new send_daily_mails());
     }
 

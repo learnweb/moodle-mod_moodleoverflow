@@ -16,8 +16,10 @@
 
 namespace mod_moodleoverflow\tests;
 
+use core\task\manager;
 use core\task\task_base;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\task\send_post_notification;
 use mod_moodleoverflow_generator;
 use phpunit_phpmailer_sink;
 use stdClass;
@@ -98,6 +100,20 @@ trait moodleoverflow_test_trait {
         set_config('maxeditingtime', -10, 'moodleoverflow');
         set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
         return $this->redirectEmails();
+    }
+
+    /**
+     * Returns the ids of the posts whose notification mail is queued.
+     *
+     * @return int[] Sorted
+     */
+    protected function get_queued_notifications(): array {
+        $postids = array_map(
+            fn(send_post_notification $task) => (int) $task->get_custom_data()->postid,
+            manager::get_adhoc_tasks(send_post_notification::class)
+        );
+        sort($postids);
+        return $postids;
     }
 
     /**
