@@ -248,18 +248,6 @@ function moodleoverflow_print_recent_activity($course, $viewfullnames, $timestar
     return false;
 }
 
-/**
- * Returns all other caps used in the module.
- *
- * For example, this could be ['moodle/site:accessallgroups'] if the
- * module uses that capability.
- *
- * @return array
- */
-function moodleoverflow_get_extra_capabilities() {
-    return [];
-}
-
 /* File API */
 
 /**
