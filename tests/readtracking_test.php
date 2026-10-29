@@ -24,9 +24,15 @@
 namespace mod_moodleoverflow;
 
 use advanced_testcase;
+use mod_moodleoverflow\event\readtracking_disabled;
+use mod_moodleoverflow\event\readtracking_enabled;
+use mod_moodleoverflow\local\enum\review_level;
+use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\local\service\readtracking;
+use mod_moodleoverflow\local\service;
+use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -42,6 +48,8 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/locallib.php');
  * @covers \mod_moodleoverflow\local\service\readtracking
  */
 final class readtracking_test extends advanced_testcase {
+    use moodleoverflow_test_trait;
+
     /**
      * Test the logic in permissions::can_track().
      * @covers \mod_moodleoverflow\local\permissions::can_track
@@ -131,51 +139,51 @@ final class readtracking_test extends advanced_testcase {
         set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
-        $this->assertEquals(false, readtracking::is_tracked($mooff, $student->id));
+        $this->assertEquals(false, service\readtracking::is_tracked($mooff, $student->id));
 
         // Moodleoverflow forced, should be on.
-        $this->assertEquals(true, readtracking::is_tracked($moforce, $student->id));
+        $this->assertEquals(true, service\readtracking::is_tracked($moforce, $student->id));
 
         // Moodleoverflow optional, should be on.
-        $this->assertEquals(true, readtracking::is_tracked($mooptional, $student->id));
+        $this->assertEquals(true, service\readtracking::is_tracked($mooptional, $student->id));
 
         // Don't allow force.
         set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
         // Moodleoverflow off, should be off.
-        $this->assertEquals(false, readtracking::is_tracked($mooff, $student->id));
+        $this->assertEquals(false, service\readtracking::is_tracked($mooff, $student->id));
 
         // Moodleoverflow forced, counts as optional now, should be on.
-        $this->assertEquals(true, readtracking::is_tracked($moforce, $student->id));
+        $this->assertEquals(true, service\readtracking::is_tracked($moforce, $student->id));
 
         // Moodleoverflow optional, should be on.
-        $this->assertEquals(true, readtracking::is_tracked($mooptional, $student->id));
+        $this->assertEquals(true, service\readtracking::is_tracked($mooptional, $student->id));
 
         // Stop tracking. While forcing is not allowed, the forced moodleoverflow can be untracked as well.
-        readtracking::stop_tracking($moforce, $student->id);
-        readtracking::stop_tracking($mooptional, $student->id);
+        service\readtracking::stop_tracking($moforce, $student->id);
+        service\readtracking::stop_tracking($mooptional, $student->id);
 
         // Allow force.
         set_config('allowforcedreadtracking', 1, 'moodleoverflow');
 
         // Preference off, moodleoverflow forced, should be on: forced tracking ignores the preference.
-        $this->assertEquals(true, readtracking::is_tracked($moforce, $student->id));
+        $this->assertEquals(true, service\readtracking::is_tracked($moforce, $student->id));
 
         // Preference off, moodleoverflow optional, should be off.
-        $this->assertEquals(false, readtracking::is_tracked($mooptional, $student->id));
+        $this->assertEquals(false, service\readtracking::is_tracked($mooptional, $student->id));
 
         // Don't allow force.
         set_config('allowforcedreadtracking', 0, 'moodleoverflow');
 
         // Preference off, moodleoverflow forced (counts as optional), should be off.
-        $this->assertEquals(false, readtracking::is_tracked($moforce, $student->id));
+        $this->assertEquals(false, service\readtracking::is_tracked($moforce, $student->id));
 
         // Preference off, moodleoverflow optional, should be off.
-        $this->assertEquals(false, readtracking::is_tracked($mooptional, $student->id));
+        $this->assertEquals(false, service\readtracking::is_tracked($mooptional, $student->id));
 
         // Start tracking again, should be on.
-        readtracking::start_tracking($mooptional, $student->id);
-        $this->assertEquals(true, readtracking::is_tracked($mooptional, $student->id));
+        service\readtracking::start_tracking($mooptional, $student->id);
+        $this->assertEquals(true, service\readtracking::is_tracked($mooptional, $student->id));
     }
 
     /**
@@ -192,20 +200,51 @@ final class readtracking_test extends advanced_testcase {
         $modflow = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
 
         $sink = $this->redirectEvents();
-        readtracking::stop_tracking($modflow, $student->id);
-        readtracking::start_tracking($modflow, $student->id);
+        service\readtracking::stop_tracking($modflow, $student->id);
+        service\readtracking::start_tracking($modflow, $student->id);
         $events = $sink->get_events();
         $sink->close();
 
         $this->assertCount(2, $events);
-        $this->assertInstanceOf(\mod_moodleoverflow\event\readtracking_disabled::class, $events[0]);
-        $this->assertInstanceOf(\mod_moodleoverflow\event\readtracking_enabled::class, $events[1]);
+        $this->assertInstanceOf(readtracking_disabled::class, $events[0]);
+        $this->assertInstanceOf(readtracking_enabled::class, $events[1]);
         $this->assertEquals($student->id, $events[0]->relateduserid);
 
         // Users that cannot change the tracking (here: tracking is off) get an exception.
         $options = ['course' => $course->id, 'trackingtype' => MOODLEOVERFLOW_TRACKING_OFF];
         $mooff = moodleoverflow::from_record($this->getDataGenerator()->create_module('moodleoverflow', $options));
         $this->expectException(\moodle_exception::class);
-        readtracking::stop_tracking($mooff, $student->id);
+        service\readtracking::stop_tracking($mooff, $student->id);
+    }
+
+    /**
+     * Test, if a post that was written before the cutoff date but approved after it counts as unread and can be
+     * marked as read.
+     */
+    public function test_post_approved_after_cutoff_is_unread(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setup_course();
+        set_config('oldpostdays', 14, 'moodleoverflow');
+        $modflow = $this->create_moodleoverflow([
+            'needsreview' => review_level::EVERYTHING->value,
+            'trackingtype' => tracking_type::OPTIONAL->value,
+        ]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $answer = $this->generator->create_reply($question, $this->student);
+
+        // The answer was written 20 days ago and waited for its review since then.
+        $written = time() - 20 * DAYSECS;
+        $params = (object) ['id' => $answer->get_id(), 'created' => $written, 'modified' => $written];
+        $DB->update_record('moodleoverflow_posts', $params);
+        $answer = post::from_id($answer->get_id());
+        service\review::approve($answer, $this->teacher->id);
+
+        $unread = service\readtracking::get_unread_post_ids($answer->get_discussion(), $this->otherstudent->id);
+        $this->assertContains($answer->get_id(), $unread);
+
+        service\readtracking::mark_post_read($answer, $this->otherstudent->id);
+        $params = ['postid' => $answer->get_id(), 'userid' => $this->otherstudent->id];
+        $this->assertTrue($DB->record_exists('moodleoverflow_read', $params));
     }
 }
