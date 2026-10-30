@@ -1,0 +1,44 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/mail/post_content_html
+
+  One post in an HTML mail, included by the mails that show posts. Data from output\mail\post_content.
+
+  Context variables required for this template:
+  * headline - "<author> answered in "<discussion>"" (and the like), or null to show the author next to the date
+  * author - The author as the recipient may see them, or null if the headline names them
+  * date - The creation date in the recipient's timezone
+  * messagehtml - The formatted post
+
+  Example context (json):
+  {
+    "headline": null,
+    "author": "Jacob Brown",
+    "date": "Monday, 2 November 2026, 10:15 AM",
+    "messagehtml": "<p>Your function has no base case.</p>"
+  }
+}}
+{{#headline}}
+<h2 style="margin:20px 0 4px;font-size:16px;line-height:1.4;font-weight:600;color:#1d2125;">{{headline}}</h2>
+{{/headline}}
+<div style="font-size:13px;line-height:1.5;color:#6a737b;">
+    {{#author}}<span style="font-weight:600;color:#1d2125;">{{author}}</span> &middot; {{/author}}{{date}}
+</div>
+<div style="margin-top:12px;padding:2px 14px;background-color:#f6f8fb;border-radius:8px;">
+    {{{messagehtml}}}
+</div>

@@ -1,0 +1,74 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/mail/layout_html
+
+  The frame of every HTML mail: one column with the heading, the content and a muted footer below it. The mails
+  extend it and fill its blocks. Mail clients ignore stylesheets, so all styles are inline and the layout uses tables;
+  core wraps the result in core/email_html, so this is a body fragment without <html> and <head>.
+
+  Context variables required for this template:
+  * heading - What the mail is about, e.g. "New post in the course Programming 101"
+  * subheading - Optional second line below the heading, e.g. "Forum: Lecture Q&A"
+  * footerlinks - Links below the content (e.g. to unsubscribe), each with url and label
+
+  Blocks:
+  * preheader - The text mail clients show next to the subject in the inbox
+  * content - The mail itself, below the heading
+
+  The footer links work like table cells without media queries (many mail clients ignore them): each link is at
+  least 196px wide (with its gap) and never wraps, so three fit in a row of the 600px column, and on a phone every
+  link gets its own line. font-size:0 on the row removes the gaps between the inline blocks.
+
+  Example context (json):
+  {
+    "heading": "New post in the course Programming 101",
+    "subheading": "Forum: Lecture Q&A",
+    "footerlinks": [
+      {"url": "https://example.com/mod/moodleoverflow/discussion.php?d=2&unsubscribe=1",
+       "label": "Unsubscribe from this discussion"},
+      {"url": "https://example.com/user/forum.php", "label": "Forum preferences"}
+    ]
+  }
+}}
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">{{$preheader}}{{/preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;">
+<tr><td align="center" style="padding:24px 12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="max-width:600px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+    <tr><td style="font-size:15px;line-height:1.6;color:#1d2125;">
+        <h1 style="margin:0;font-size:20px;line-height:1.3;font-weight:600;color:#1d2125;">{{heading}}</h1>
+        {{#subheading}}
+        <div style="margin-top:4px;font-size:15px;color:#6a737b;">{{subheading}}</div>
+        {{/subheading}}
+        <div style="margin-top:16px;border-top:1px solid #e9ecef;"></div>
+        {{$content}}{{/content}}
+    </td></tr>
+    {{#footerlinks.0}}
+    <tr><td style="padding-top:32px;font-size:0;line-height:0;">
+        <div style="margin-bottom:12px;border-top:1px solid #e9ecef;"></div>
+        {{#footerlinks}}
+        <div style="display:inline-block;min-width:180px;padding:4px 16px 4px 0;white-space:nowrap;vertical-align:top;
+                    font-size:12px;line-height:1.6;">
+            <a href="{{url}}" style="color:#6a737b;">{{label}}</a>
+        </div>
+        {{/footerlinks}}
+    </td></tr>
+    {{/footerlinks.0}}
+    </table>
+</td></tr>
+</table>
