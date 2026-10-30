@@ -404,5 +404,16 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         }
         upgrade_mod_savepoint(true, 2026050712, 'moodleoverflow');
     }
+
+    if ($oldversion < 2026050714) {
+        // Drop the mailed field as it is not used anymore.
+        $table = new xmldb_table('moodleoverflow_posts');
+        $field = new xmldb_field('mailed');
+
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026050714, 'moodleoverflow');
+    }
     return true;
 }

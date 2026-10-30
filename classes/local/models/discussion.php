@@ -187,7 +187,6 @@ class discussion {
                 $content->message,
                 $content->messageformat,
                 "",
-                0,
                 (int) $reviewed,
                 null
             );
@@ -271,7 +270,6 @@ class discussion {
             $content->message,
             $content->messageformat,
             "",
-            0,
             (int) $reviewed,
             null
         );

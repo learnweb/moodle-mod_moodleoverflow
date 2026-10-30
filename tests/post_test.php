@@ -80,7 +80,6 @@ final class post_test extends \advanced_testcase {
             $message,
             0,
             '',
-            0,
             1,
             null
         );

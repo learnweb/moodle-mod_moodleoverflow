@@ -1245,7 +1245,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         }
 
         // The queue alone makes a context contain data of the user.
-        $this->assertContains($contexts[0]->id, provider::get_contexts_for_userid($user3->id)->get_contextids());
+        $this->assertContains("{$contexts[0]->id}", provider::get_contexts_for_userid($user3->id)->get_contextids());
 
         // Delete the data of a single user in the first forum.
         provider::delete_data_for_user(new approved_contextlist($user1, 'mod_moodleoverflow', [$contexts[0]->id]));

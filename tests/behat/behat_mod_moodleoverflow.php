@@ -120,7 +120,7 @@ class behat_mod_moodleoverflow extends behat_base {
         // Create teacher's post.
         $teacherpostid = $DB->insert_record('moodleoverflow_posts', ['discussion' => $discussionid,
             'moodleoverflow' => $moodleoverflow->id, 'parent' => 0, 'userid' => $teacher->id, 'created' => $time,
-            'modified' => $time, 'message' => 'Message from teacher', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1,
+            'modified' => $time, 'message' => 'Message from teacher', 'messageformat' => 1, 'attachment' => '',
             'reviewed' => '1', 'timereviewed' => null,
         ]);
 
@@ -132,7 +132,7 @@ class behat_mod_moodleoverflow extends behat_base {
         // Create student reply.
         $DB->insert_record('moodleoverflow_posts', ['discussion' => $discussionid, 'moodleoverflow' => $moodleoverflow->id,
             'parent' => $teacherpostid, 'userid' => $student->id, 'created' => $time, 'modified' => $time,
-            'message' => 'Answer from student', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1, 'reviewed' => '1',
+            'message' => 'Answer from student', 'messageformat' => 1, 'attachment' => '', 'reviewed' => '1',
             'timereviewed' => null,
         ]);
     }
@@ -181,7 +181,7 @@ class behat_mod_moodleoverflow extends behat_base {
         ]);
         $teacherpostid = $DB->insert_record('moodleoverflow_posts', ['discussion' => $discussionid,
             'moodleoverflow' => $moodleoverflow->id, 'parent' => 0, 'userid' => $teacher->id, 'created' => $time,
-            'modified' => $time, 'message' => 'Message from teacher', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1,
+            'modified' => $time, 'message' => 'Message from teacher', 'messageformat' => 1, 'attachment' => '',
             'reviewed' => 1, 'timereviewed' => $time,
         ]);
 
@@ -193,7 +193,7 @@ class behat_mod_moodleoverflow extends behat_base {
         // Create the student reply that is still pending review.
         $DB->insert_record('moodleoverflow_posts', ['discussion' => $discussionid, 'moodleoverflow' => $moodleoverflow->id,
             'parent' => $teacherpostid, 'userid' => $student->id, 'created' => $pasttime, 'modified' => $pasttime,
-            'message' => 'Answer from student', 'messageformat' => 1, 'attachment' => '', 'mailed' => 1, 'reviewed' => 0,
+            'message' => 'Answer from student', 'messageformat' => 1, 'attachment' => '', 'reviewed' => 0,
             'timereviewed' => null,
         ]);
     }

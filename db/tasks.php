@@ -41,7 +41,7 @@ $tasks = [
     [
         'classname' => 'mod_moodleoverflow\task\send_daily_mails',
         'blocking' => 0,
-        'minute' => '0',    
+        'minute' => '0',
         'hour' => '17',
         'day' => '*',
         'month' => '*',

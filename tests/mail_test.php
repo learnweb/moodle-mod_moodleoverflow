@@ -156,13 +156,12 @@ final class mail_test extends \advanced_testcase {
      * Test, if the digest leaves out posts the user can no longer see, and is not sent when none are left.
      */
     public function test_digest_skips_hidden_posts(): void {
-        global $CFG, $DB;
-        require_once($CFG->dirroot . '/course/lib.php');
+        global $DB;
         $DB->set_field('user', 'maildigest', 2, ['id' => $this->student->id]);
-        $modflow = $this->create_moodleoverflow();
-        $question = $this->generator->create_question($modflow, $this->teacher);
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        // The question of the other student still waits for its review, so the student may not see it.
+        $question = $this->generator->create_question($modflow, $this->otherstudent);
         $DB->insert_record('moodleoverflow_digest_queue', ['userid' => $this->student->id, 'postid' => $question->get_id()]);
-        set_coursemodule_visible($modflow->get_cm()->id, 0);
         $sink = $this->redirectMessages();
 
         service\mail::send_digests();
