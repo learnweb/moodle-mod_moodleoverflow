@@ -18,7 +18,7 @@ Feature: Users vote on posts and mark answers as solution or helpful
     And User "teacher1" replies "Question from student1" with "Second answer" automatically
 
   Scenario: A student votes on an answer, changes the vote and removes it
-    When I navigate as "student1" to "Course 1" "Test moodleoverflow" "Question topic"
+    When I am on the "Question topic" "mod_moodleoverflow > Discussion" page logged in as "student1"
     And I click on the "upvote" button of the moodleoverflow post "First answer"
     Then the "upvote" button of the moodleoverflow post "First answer" should be "clicked"
     And the moodleoverflow post "First answer" should have "1" votes
@@ -36,7 +36,7 @@ Feature: Users vote on posts and mark answers as solution or helpful
   Scenario: Without rating changes the vote buttons stay visible but cannot be clicked after voting
     Given the following config values are set as admin:
       | allowratingchange | 0 | moodleoverflow |
-    When I navigate as "student1" to "Course 1" "Test moodleoverflow" "Question topic"
+    When I am on the "Question topic" "mod_moodleoverflow > Discussion" page logged in as "student1"
     And I click on the "upvote" button of the moodleoverflow post "First answer"
     Then the "downvote" button of the moodleoverflow post "First answer" should be "disabled"
     And the "upvote" button of the moodleoverflow post "First answer" should be "clicked"
@@ -49,7 +49,7 @@ Feature: Users vote on posts and mark answers as solution or helpful
     And the "upvote" button of the moodleoverflow post "Second answer" should be "notclicked"
 
   Scenario: A teacher marks an answer as solution and the mark moves to another answer
-    When I navigate as "teacher1" to "Course 1" "Test moodleoverflow" "Question topic"
+    When I am on the "Question topic" "mod_moodleoverflow > Discussion" page logged in as "teacher1"
     And I click on the "solved" button of the moodleoverflow post "First answer"
     Then the moodleoverflow post "First answer" should be marked as "solution"
     And I should see "Remove solution mark" in the moodleoverflow post "First answer"
@@ -75,7 +75,7 @@ Feature: Users vote on posts and mark answers as solution or helpful
     And User "student1" adds to "Multiple marks moodleoverflow" a discussion with topic "Multiple topic" and message "Multiple question" automatically
     And User "student2" replies "Multiple question" with "Answer one" automatically
     And User "teacher1" replies "Multiple question" with "Answer two" automatically
-    When I navigate as "student1" to "Course 1" "Multiple marks moodleoverflow" "Multiple topic"
+    When I am on the "Multiple topic" "mod_moodleoverflow > Discussion" page logged in as "student1"
     And I click on the "helpful" button of the moodleoverflow post "Answer one"
     Then the moodleoverflow post "Answer one" should be marked as "helpful"
     And I should see "Not Helpful" in the moodleoverflow post "Answer one"

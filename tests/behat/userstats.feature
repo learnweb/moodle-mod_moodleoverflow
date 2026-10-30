@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow @javascript
+@mod @mod_moodleoverflow
 Feature: If the admin enabled user statistics, the teacher can see the activity of students in the course
 
   Background:
@@ -10,18 +10,16 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
       | activity       | name                      | intro                            | course  |  idnumber |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        |
     And User "teacher1" adds to "Test Moodleoverflow" a discussion with topic "Topic question" and message "This is a question" automatically
-    And I log in as "teacher1"
-    And I am on "Course 1" course homepage
 
   Scenario: Userstats are not enabled per default. The teacher should not see the user statistics
-    And I follow "Test Moodleoverflow"
+    When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
     Then I should not see "View user statistics"
 
   Scenario: Userstats are enabled. The teacher should see the user statistics. The teacher should already have an acitivty point
             for writing a post.
     Given the following config values are set as admin:
       | showuserstats | 1 | moodleoverflow |
-    And I follow "Test Moodleoverflow"
+    When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
     Then I should see "View user statistics"
     When I click on "View user statistics" "text"
     Then the following should exist in the "statisticstable" table:
@@ -29,16 +27,16 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
       | Teacher 1      | 0                | 0                  | 1                     | 1                     |
       | Student 1      | 0                | 0                  | 0                     | 0                     |
 
+  @javascript
   Scenario: Test if reputation appears in the user statistics
     Given the following config values are set as admin:
       | showuserstats | 1 | moodleoverflow |
-    And I navigate as "student1" to "Course 1" "Test Moodleoverflow" "Topic question"
+    And I am on the "Topic question" "mod_moodleoverflow > Discussion" page logged in as "student1"
     And I click on "Answer" "link"
     And I set the following fields to these values:
       | Message | This is an answer |
     And I press "Post to forum"
-    And I log out
-    And I navigate as "teacher1" to "Course 1" "Test Moodleoverflow" "Topic question"
+    And I am on the "Topic question" "mod_moodleoverflow > Discussion" page logged in as "teacher1"
     And I click on "Mark as solution" "text"
     And I follow "Test Moodleoverflow"
     And I click on "View user statistics" "text"

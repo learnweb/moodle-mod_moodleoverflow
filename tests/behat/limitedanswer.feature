@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow @javascript
+@mod @mod_moodleoverflow
 Feature: Moodleoverflows can start in a limited answer mode, where answers from students are not enabled until a set date.
 
   Background:
@@ -13,15 +13,12 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
       | activity       | name                      | intro                            | course  |  idnumber | la_starttime   |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        | ##now +1 day## |
     And User "admin" adds to "Test Moodleoverflow" a discussion with topic "Forum post 1" and message "This is the question message" automatically
-    And I log out
-    When I navigate as "student1" to "Course 1" "Test Moodleoverflow" "Forum post 1"
-    And I click on "Answer" "text"
-    Then I should not see "Your reply"
+    When I am on the "Forum post 1" "mod_moodleoverflow > Discussion" page logged in as "student1"
+    # Before the start time, "Answer" is only a text with a help icon, not a link.
+    Then "Answer" "link" should not exist
     When I set the "Test Moodleoverflow" moodleoverflow limitedanswerstarttime to now
-    And I am on "Course 1" course homepage
-    And I click in moodleoverflow on "link" type:
-      | Test Moodleoverflow| Forum post 1|
-    And I click on "Answer" "text"
+    And I am on the "Forum post 1" "mod_moodleoverflow > Discussion" page
+    And I click on "Answer" "link"
     Then I should see "Your reply"
     And I set the following fields to these values:
       | Message | This is the answer message |
@@ -29,12 +26,12 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
     Then I should "" see the elements:
       | This is the answer message | This is the question message |
 
+  @javascript
   Scenario: Setting up the limited answer mode, the times need to be in the right order
     Given the following "activities" exist:
       | activity       | name                      | intro                            | course  |  idnumber |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        |
-    And I navigate as "teacher1" to "Course 1" "Test Moodleoverflow" ""
-    And I navigate to "Settings" in current page administration
+    And I am on the "Test Moodleoverflow" "moodleoverflow activity editing" page logged in as "teacher1"
     And I follow "Limited Answer Mode"
     And I click on "la_starttime[enabled]" "checkbox"
     And I set the following fields to these values:
@@ -56,12 +53,12 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
     Then I should "" see the elements:
       | End time must be in the future | The end time must be after the start time |
 
+  @javascript
   Scenario: Setting up the limited answer mode, the start times need to be in the future
     Given the following "activities" exist:
       | activity       | name                      | intro                            | course  |  idnumber |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        |
-    And I navigate as "teacher1" to "Course 1" "Test Moodleoverflow" ""
-    And I navigate to "Settings" in current page administration
+    And I am on the "Test Moodleoverflow" "moodleoverflow activity editing" page logged in as "teacher1"
     And I follow "Limited Answer Mode"
     And I click on "la_starttime[enabled]" "checkbox"
     And I set the following fields to these values:

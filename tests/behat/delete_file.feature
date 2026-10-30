@@ -11,19 +11,13 @@ Feature: Delete attachments
       | activity       | name                      | intro                            | course  |  idnumber |
       | moodleoverflow | Test moodleoverflow name  | Test moodleoverflow description  | C1      |  1        |
     And User "teacher1" adds to "Test moodleoverflow name" a discussion with topic "Forum post 1" and message "This is the body" automatically
-    And I log in as "student1"
-    And I am on "Course 1" course homepage
-    And I follow "Test moodleoverflow name"
-    And I follow "Forum post 1"
+    And I am on the "Forum post 1" "mod_moodleoverflow > Discussion" page logged in as "student1"
     And I click on "Answer" "link"
     And I set the following fields to these values:
       | Message | This is the message of the answer post |
     And I upload "mod/moodleoverflow/tests/fixtures/NH.jpg" file to "Attachment" filemanager
     And I press "Post to forum"
-    When I log in as "student1"
-    And I am on "Course 1" course homepage
-    And I follow "Test moodleoverflow name"
-    And I follow "Forum post 1"
+    When I am on the "Forum post 1" "mod_moodleoverflow > Discussion" page
     And I should see "This is the message of the answer post"
     And "//div[contains(@class, 'moodleoverflowpost')]//div[contains(@class, 'attachments')]//img[contains(@src, 'NH.jpg')]" "xpath_element" should exist
     And I click on "Delete" "link"
