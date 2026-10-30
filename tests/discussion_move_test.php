@@ -83,8 +83,6 @@ final class discussion_move_test extends \advanced_testcase {
             'lastread' => time(), ]);
         $DB->insert_record('moodleoverflow_discuss_subs', ['userid' => $this->otherstudent->id,
             'moodleoverflow' => $this->source->id, 'discussion' => $discussionid, 'preference' => time(), ]);
-        $DB->insert_record('moodleoverflow_mail_info', ['userid' => $this->student->id, 'courseid' => $this->course->id,
-            'forumid' => $this->source->id, 'forumdiscussionid' => $discussionid, 'numberofposts' => 1, ]);
     }
 
     /**
@@ -122,13 +120,11 @@ final class discussion_move_test extends \advanced_testcase {
         $this->assertEquals(0, $this->helper_get_grade($this->source, $this->otherstudent));
         $this->assertEquals($upvote, $this->helper_get_grade($this->destination, $this->otherstudent));
 
-        // Read records, discussion subscriptions and the digest queue.
+        // Read records and discussion subscriptions.
         $this->assertTrue($DB->record_exists('moodleoverflow_read', ['discussionid' => $id,
             'moodleoverflowid' => $this->destination->id]));
         $this->assertTrue($DB->record_exists('moodleoverflow_discuss_subs', ['discussion' => $id,
             'moodleoverflow' => $this->destination->id]));
-        $this->assertTrue($DB->record_exists('moodleoverflow_mail_info', ['forumdiscussionid' => $id,
-            'forumid' => $this->destination->id]));
 
         // The posts are indexed again in the destination.
         $this->assertTrue($DB->record_exists('search_index_requests', ['contextid' => $destinationcontextid,

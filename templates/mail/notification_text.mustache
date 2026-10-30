@@ -22,20 +22,17 @@
 
   Context variables required for this template:
   * intro - "There is a new post in <moodleoverflow> -> <discussion>"
-  * url - Link to the post
-  * by - "by <author> - <date>"
-  * message - The post as plain text
+  * post - The post, see mail/post_content_text
   * reply, unsubscribeforum, unsubscribediscussion - Lines with a link, or null if not available
 
   Example context (json):
   {
     "intro": "There is a new post in Lecture Q&A -> Why does my recursive function never stop?",
-    "isquestion": false,
-    "url": "https://example.com/mod/moodleoverflow/discussion.php?d=2#p5",
-    "authorname": "Jacob Brown",
-    "authorpicture": "",
-    "by": "by Jacob Brown - Monday, 2 November 2026, 10:15 AM",
-    "message": "Your function has no base case.",
+    "post": {
+      "url": "https://example.com/mod/moodleoverflow/discussion.php?d=2#p5",
+      "by": "by Jacob Brown - Monday, 2 November 2026, 10:15 AM",
+      "message": "Your function has no base case."
+    },
     "reply": "This is a copy of a message posted in learnweb. To reply click on this link: https://example.com/mod/moodleoverflow/post.php?reply=5",
     "unsubscribeforum": null,
     "unsubscribediscussion": "Unsubscribe from this discussion: https://example.com/mod/moodleoverflow/discussion.php?d=2&unsubscribe=1"
@@ -43,12 +40,9 @@
 }}
 {{{intro}}}
 
-{{{url}}}
-
-{{{by}}}
----------------------------------------------------------------------
-{{{message}}}
----------------------------------------------------------------------
+{{#post}}
+{{> mod_moodleoverflow/mail/post_content_text}}
+{{/post}}
 {{#reply}}
 {{{reply}}}
 {{/reply}}

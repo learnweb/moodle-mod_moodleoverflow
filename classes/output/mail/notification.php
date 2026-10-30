@@ -17,11 +17,9 @@
 namespace mod_moodleoverflow\output\mail;
 
 use core\output\renderer_base;
-use core_date;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\subscription;
-use mod_moodleoverflow\output\author;
 use moodle_url;
 
 /**
@@ -74,10 +72,8 @@ class notification implements message {
     public function export_for_template(renderer_base $output): array {
         $modflow = $this->post->get_moodleoverflow();
         $discussion = $this->post->get_discussion();
-        $context = $this->post->get_context();
         // The text template prints the names as they are, so they are not escaped.
-        $options = ['context' => $context, 'escape' => false];
-        $author = (new author($this->post, $this->recipient->id))->export_for_template($output);
+        $options = ['context' => $this->post->get_context(), 'escape' => false];
 
         // A reply to a comment goes to its answer, like on the discussion page.
         $replytarget = $this->post->is_comment() ? $this->post->get_parentpost() : $this->post;
@@ -91,29 +87,12 @@ class notification implements message {
         $unsubscribediscussion = permissions::can_change_discussion_subscription($discussion, $this->recipient->id)
             && subscription::is_subscribed_to_discussion($discussion, $this->recipient->id);
 
-        $message = file_rewrite_pluginfile_urls(
-            $this->post->message,
-            'pluginfile.php',
-            $context->id,
-            'mod_moodleoverflow',
-            'post',
-            $this->post->get_id()
-        );
-
         return [
             'intro' => get_string('mailnotificationintro', 'moodleoverflow', [
                 'moodleoverflow' => format_string($modflow->name, true, $options),
                 'discussion' => format_string($discussion->name, true, $options),
             ]),
-            'isquestion' => $this->post->is_question(),
-            'url' => $this->post->get_link()->out(false),
-            'authorname' => $author['name'],
-            'authorpicture' => $author['picture'],
-            'by' => get_string('bynameondatenorating', 'moodleoverflow', [
-                'name' => $author['name'],
-                'date' => userdate($this->post->created, '', core_date::get_user_timezone($this->recipient)),
-            ]),
-            'message' => format_text_email($message, $this->post->messageformat),
+            'post' => (new post_content($this->post, $this->recipient))->export_for_template($output),
             'reply' => $replyurl
                 ? get_string('postmailinfolink', 'moodleoverflow', [
                     'coursename' => format_string($modflow->get_course()->shortname, true, $options),

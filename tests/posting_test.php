@@ -253,13 +253,8 @@ final class posting_test extends \advanced_testcase {
     public function test_delete_question(): void {
         global $DB;
         $discussion = posting::create_discussion($this->modflow, $this->student->id, $this->content('Question', 'Topic'));
-        $DB->insert_record('moodleoverflow_mail_info', [
-            'userid' => $this->teacher->id,
-            'courseid' => $this->course->id,
-            'forumid' => $this->modflow->id,
-            'forumdiscussionid' => $discussion->get_id(),
-            'numberofposts' => 1,
-        ]);
+        $questionid = $discussion->get_first_post()->get_id();
+        $DB->insert_record('moodleoverflow_digest_queue', ['userid' => $this->teacher->id, 'postid' => $questionid]);
         // Deleting clears the id of the discussion, so save it first.
         $discussionid = $discussion->get_id();
 
@@ -268,7 +263,7 @@ final class posting_test extends \advanced_testcase {
         $this->assertFalse($DB->record_exists('moodleoverflow_discussions', ['id' => $discussionid]));
         $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['discussion' => $discussionid]));
         $this->assertFalse($DB->record_exists('moodleoverflow_discuss_subs', ['discussion' => $discussionid]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_mail_info', ['forumdiscussionid' => $discussionid]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_digest_queue', ['postid' => $questionid]));
     }
 
     /**

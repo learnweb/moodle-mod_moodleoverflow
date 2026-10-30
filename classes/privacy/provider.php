@@ -100,6 +100,16 @@ class provider implements
             'privacy:metadata:moodleoverflow_discuss_subs'
         );
 
+        // The digest queue only holds posts until the next digest is sent, so it is deleted but not exported.
+        $collection->add_database_table(
+            'moodleoverflow_digest_queue',
+            [
+                'userid' => 'privacy:metadata:moodleoverflow_digest_queue:userid',
+                'postid' => 'privacy:metadata:moodleoverflow_digest_queue:postid',
+            ],
+            'privacy:metadata:moodleoverflow_digest_queue'
+        );
+
         $collection->add_database_table(
             'moodleoverflow_ratings',
             [
@@ -170,6 +180,12 @@ class provider implements
                 ) OR EXISTS (
                     SELECT 1 FROM {moodleoverflow_discuss_subs} ds WHERE ds.moodleoverflow = mof.id AND ds.userid = :dsuserid
                 ) OR EXISTS (
+                    SELECT 1
+                    FROM {moodleoverflow_digest_queue} q
+                    JOIN {moodleoverflow_posts} qp ON qp.id = q.postid
+                    JOIN {moodleoverflow_discussions} qd ON qd.id = qp.discussion
+                    WHERE qd.moodleoverflow = mof.id AND q.userid = :quserid
+                ) OR EXISTS (
                     SELECT 1 FROM {moodleoverflow_ratings} ra WHERE ra.moodleoverflowid = mof.id AND ra.userid = :rauserid
                 ) OR EXISTS (
                     SELECT 1 FROM {moodleoverflow_tracking} track WHERE track.moodleoverflowid = mof.id AND track.userid = :tuserid
@@ -186,6 +202,7 @@ class provider implements
             'ruserid' => $userid,
             'suserid' => $userid,
             'dsuserid' => $userid,
+            'quserid' => $userid,
             'rauserid' => $userid,
             'tuserid' => $userid,
             'guserid' => $userid,
@@ -296,6 +313,14 @@ class provider implements
         $DB->delete_records('moodleoverflow_ratings', ['moodleoverflowid' => $forum->id]);
         $DB->delete_records('moodleoverflow_discuss_subs', ['moodleoverflow' => $forum->id]);
         $DB->delete_records_select(
+            'moodleoverflow_digest_queue',
+            "postid IN (SELECT p.id
+                          FROM {moodleoverflow_posts} p
+                          JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                         WHERE d.moodleoverflow = :forum)",
+            ['forum' => $forum->id]
+        );
+        $DB->delete_records_select(
             'moodleoverflow_posts',
             "discussion IN (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :forum)",
             [
@@ -344,6 +369,12 @@ class provider implements
             $DB->delete_records('moodleoverflow_discuss_subs', [
                 'moodleoverflow' => $forum->id,
                 'userid' => $userid, ]);
+
+            $queuesql = "userid = :userid AND postid IN (SELECT p.id
+                                                           FROM {moodleoverflow_posts} p
+                                                           JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                                                          WHERE d.moodleoverflow = :forum)";
+            $DB->delete_records_select('moodleoverflow_digest_queue', $queuesql, ['forum' => $forum->id, 'userid' => $userid]);
 
             $DB->delete_records('moodleoverflow_tracking', [
                 'moodleoverflowid' => $forum->id,
@@ -443,6 +474,17 @@ class provider implements
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
 
+        // Digest queue.
+        $sql = "SELECT q.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {moodleoverflow} f ON f.id = cm.instance
+                  JOIN {moodleoverflow_discussions} d ON d.moodleoverflow = f.id
+                  JOIN {moodleoverflow_posts} p ON p.discussion = d.id
+                  JOIN {moodleoverflow_digest_queue} q ON q.postid = p.id
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
         // Read Posts.
         $sql = "SELECT hasread.userid
                   FROM {course_modules} cm
@@ -504,6 +546,11 @@ class provider implements
         $DB->delete_records_select('moodleoverflow_read', $selectmoidanduser, $params);
         $DB->delete_records_select('moodleoverflow_discuss_subs', $selectmoanduser, $params);
         $DB->delete_records_select('moodleoverflow_grades', $selectmoidanduser, $params);
+        $queuesql = "userid {$userinsql} AND postid IN (SELECT p.id
+                                                         FROM {moodleoverflow_posts} p
+                                                         JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                                                        WHERE d.moodleoverflow = :moodleoverflowid)";
+        $DB->delete_records_select('moodleoverflow_digest_queue', $queuesql, $params);
 
         $postsql = "userid {$userinsql} AND discussion IN
             (SELECT id FROM {moodleoverflow_discussions} WHERE moodleoverflow = :moodleoverflowid)";

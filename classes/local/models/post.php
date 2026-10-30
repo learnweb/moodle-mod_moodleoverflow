@@ -227,7 +227,7 @@ class post {
     }
 
     /**
-     * Deletes this post with its replies, their ratings, read records and files (attachments and embedded files).
+     * Deletes this post with its replies, their ratings, read records, digest entries and files (attachments, embedded files).
      *
      * The discussion updates its last post afterward; the question is only deleted through discussion::delete().
      *
@@ -251,6 +251,7 @@ class post {
             // Delete all associated ratings.
             $DB->delete_records('moodleoverflow_ratings', ['postid' => $this->id]);
             readtracking::delete_read_records(postid: $this->id);
+            $DB->delete_records('moodleoverflow_digest_queue', ['postid' => $this->id]);
 
             // Delete all files.
             $fs = get_file_storage();

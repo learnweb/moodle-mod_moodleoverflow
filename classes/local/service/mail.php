@@ -22,6 +22,7 @@ use core_user;
 use dml_exception;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\output\mail\digest;
 use mod_moodleoverflow\output\mail\message;
 use mod_moodleoverflow\output\mail\notification;
 use mod_moodleoverflow\task\send_post_notification;
@@ -31,9 +32,10 @@ use Throwable;
 /**
  * Service class for the mails of the plugin: who gets which message and when.
  *
- * Mails are sent through the message API from the no-reply user. A message is queued as an ad hoc task with the post
- * id only and built when the task runs, so it always shows the current state of the post. What a message says is
- * prepared by the classes in output\mail and written in the templates in templates/mail.
+ * Mails are sent through the message API from the no-reply user. A notification is queued as an ad hoc task with the
+ * post id only, a post for a digest waits in the table moodleoverflow_digest_queue until the daily task. Both are built
+ * when they are sent, so they always show the current state of the post. What a message says is prepared by the
+ * classes in output\mail and written in the templates in templates/mail.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
@@ -100,6 +102,54 @@ class mail {
         return $failures;
     }
 
+    // Daily digests.
+
+    /**
+     * Sends every user with queued posts their daily digest and empties the queue.
+     *
+     * Every post is checked again, as it may have changed since it was queued: deleted posts and posts the user can no
+     * longer see are left out. A user who switched the digest off in their profile in the meantime gets nothing. Like
+     * the notifications, a digest that fails is not sent again: the failures are returned instead of thrown.
+     *
+     * @return string[] The reasons sending failed, indexed by the id of the recipient
+     * @throws dml_exception
+     */
+    public static function send_digests(): array {
+        global $DB;
+        $failures = [];
+        foreach ($DB->get_fieldset_sql('SELECT DISTINCT userid FROM {moodleoverflow_digest_queue}') as $userid) {
+            try {
+                $postids = $DB->get_fieldset_select('moodleoverflow_digest_queue', 'postid', 'userid = ?', [$userid]);
+                // Emptied before sending, so a failed digest is not sent again with the next one.
+                $DB->delete_records('moodleoverflow_digest_queue', ['userid' => $userid]);
+
+                $recipient = core_user::get_user($userid);
+                if (!$recipient || $recipient->deleted || !$recipient->maildigest) {
+                    continue;
+                }
+
+                // Posts deleted since then are not found anymore.
+                $posts = [];
+                foreach ($DB->get_records_list('moodleoverflow_posts', 'id', $postids, 'created') as $record) {
+                    $post = post::from_record($record);
+                    if (permissions::can_view_post($post, (int) $userid)) {
+                        $posts[] = $post;
+                    }
+                }
+                // Nothing left to tell the user, so no empty digest.
+                if (!$posts) {
+                    continue;
+                }
+                if (!self::send('digests', new digest($posts, $recipient), $recipient)) {
+                    $failures[$userid] = 'The message API did not send the message.';
+                }
+            } catch (Throwable $e) {
+                $failures[$userid] = $e->getMessage();
+            }
+        }
+        return $failures;
+    }
+
     // Private helper functions.
 
     /**
@@ -137,7 +187,7 @@ class mail {
     }
 
     /**
-     * Counts a post for the daily digest of a user.
+     * Queues a post for the daily digest of a user. A post that is already queued for the user is not added again.
      *
      * @param post $post
      * @param int $userid
@@ -146,17 +196,9 @@ class mail {
      */
     private static function add_to_digest(post $post, int $userid): void {
         global $DB;
-        $modflow = $post->get_moodleoverflow();
-        $params = [
-            'userid' => $userid,
-            'courseid' => $modflow->course,
-            'forumid' => $modflow->id,
-            'forumdiscussionid' => $post->get_discussionid(),
-        ];
-        if ($record = $DB->get_record('moodleoverflow_mail_info', $params)) {
-            $DB->set_field('moodleoverflow_mail_info', 'numberofposts', $record->numberofposts + 1, ['id' => $record->id]);
-        } else {
-            $DB->insert_record('moodleoverflow_mail_info', (object) ($params + ['numberofposts' => 1]));
+        $record = ['userid' => $userid, 'postid' => $post->get_id()];
+        if (!$DB->record_exists('moodleoverflow_digest_queue', $record)) {
+            $DB->insert_record('moodleoverflow_digest_queue', (object) $record);
         }
     }
 }

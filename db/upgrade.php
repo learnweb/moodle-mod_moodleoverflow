@@ -382,5 +382,27 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         unset_config('cleanreadtime', 'moodleoverflow');
         upgrade_mod_savepoint(true, 2026050708, 'moodleoverflow');
     }
+
+    if ($oldversion < 2026050712) {
+        // The digest now queues one row per user and post instead of counting the posts per discussion.
+        // The counts that wait in the old table are not sent.
+        $table = new xmldb_table('moodleoverflow_mail_info');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        $table = new xmldb_table('moodleoverflow_digest_queue');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('postid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+        $table->add_key('postid', XMLDB_KEY_FOREIGN, ['postid'], 'moodleoverflow_posts', ['id']);
+        $table->add_index('userid-postid', XMLDB_INDEX_UNIQUE, ['userid', 'postid']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_mod_savepoint(true, 2026050712, 'moodleoverflow');
+    }
     return true;
 }

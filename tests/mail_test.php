@@ -20,6 +20,7 @@ use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
+use mod_moodleoverflow\output\mail\digest;
 use mod_moodleoverflow\output\mail\notification;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -33,9 +34,11 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\service\mail
  * @covers \mod_moodleoverflow\output\mail\notification
+ * @covers \mod_moodleoverflow\output\mail\digest
  */
 #[CoversClass(service\mail::class)]
 #[CoversClass(notification::class)]
+#[CoversClass(digest::class)]
 final class mail_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -59,7 +62,10 @@ final class mail_test extends \advanced_testcase {
         $this->assertEquals([], service\mail::send_notification($question));
 
         $this->assertEquals([$this->student->id], array_column($sink->get_messages(), 'useridto'));
-        $this->assertTrue($DB->record_exists('moodleoverflow_mail_info', ['userid' => $this->otherstudent->id]));
+        $this->assertTrue($DB->record_exists('moodleoverflow_digest_queue', [
+            'userid' => $this->otherstudent->id,
+            'postid' => $question->get_id(),
+        ]));
     }
 
     /**
@@ -96,5 +102,64 @@ final class mail_test extends \advanced_testcase {
         foreach ($sink->get_messages() as $message) {
             $this->assertStringNotContainsString(fullname($this->student), $message->fullmessage);
         }
+    }
+
+    /**
+     * Test, if a user gets one digest with the new posts of all their moodleoverflows, and the queue is emptied.
+     */
+    public function test_send_digests(): void {
+        global $DB;
+        $DB->set_field('user', 'maildigest', 2, ['id' => $this->student->id]);
+        $first = $this->create_moodleoverflow(['name' => 'First moodleoverflow']);
+        $second = $this->create_moodleoverflow(['name' => 'Second moodleoverflow']);
+        $question = $this->generator->create_question($first, $this->teacher);
+        $answer = $this->generator->create_reply($question, $this->teacher);
+        $other = $this->generator->create_question($second, $this->teacher);
+        foreach ([$question, $answer, $other] as $post) {
+            $DB->insert_record('moodleoverflow_digest_queue', ['userid' => $this->student->id, 'postid' => $post->get_id()]);
+        }
+        $sink = $this->redirectMessages();
+
+        $this->assertEquals([], service\mail::send_digests());
+
+        $messages = $sink->get_messages();
+        $this->assertEquals([$this->student->id], array_column($messages, 'useridto'));
+        $this->assertStringContainsString('First moodleoverflow', $messages[0]->fullmessage);
+        $this->assertStringContainsString('Second moodleoverflow', $messages[0]->fullmessage);
+        $this->assertFalse($DB->record_exists('moodleoverflow_digest_queue', []));
+    }
+
+    /**
+     * Test, if a user who switched the digest off gets nothing, and their queued posts are deleted.
+     */
+    public function test_digest_switched_off(): void {
+        global $DB;
+        $modflow = $this->create_moodleoverflow();
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $DB->insert_record('moodleoverflow_digest_queue', ['userid' => $this->student->id, 'postid' => $question->get_id()]);
+        $sink = $this->redirectMessages();
+
+        service\mail::send_digests();
+
+        $this->assertEquals(0, $sink->count());
+        $this->assertFalse($DB->record_exists('moodleoverflow_digest_queue', []));
+    }
+
+    /**
+     * Test, if the digest leaves out posts the user can no longer see, and is not sent when none are left.
+     */
+    public function test_digest_skips_hidden_posts(): void {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/course/lib.php');
+        $DB->set_field('user', 'maildigest', 2, ['id' => $this->student->id]);
+        $modflow = $this->create_moodleoverflow();
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $DB->insert_record('moodleoverflow_digest_queue', ['userid' => $this->student->id, 'postid' => $question->get_id()]);
+        set_coursemodule_visible($modflow->get_cm()->id, 0);
+        $sink = $this->redirectMessages();
+
+        service\mail::send_digests();
+
+        $this->assertEquals(0, $sink->count());
     }
 }
