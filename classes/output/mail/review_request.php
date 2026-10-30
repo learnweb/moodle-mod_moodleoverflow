@@ -60,23 +60,33 @@ class review_request implements message {
     }
 
     #[\Override]
-    public function render_text(): string {
-        global $PAGE;
-        // Not $OUTPUT: in the cron it is only a placeholder until its first use.
-        $output = $PAGE->get_renderer('core');
-        return $output->render_from_template('mod_moodleoverflow/mail/review_request_text', $this->export_for_template($output));
+    public function get_template(): string {
+        return 'mod_moodleoverflow/mail/review_request';
     }
 
     #[\Override]
     public function export_for_template(renderer_base $output): array {
-        // The text template prints the names as they are, so they are not escaped.
+        // The text template prints the names as they are, so they are not escaped; the HTML template escapes them.
         $options = ['context' => $this->post->get_context(), 'escape' => false];
+        $modflow = $this->post->get_moodleoverflow();
+        $modflowname = format_string($modflow->name, true, $options);
         return [
             'intro' => get_string('mailreviewrequestintro', 'moodleoverflow', [
-                'moodleoverflow' => format_string($this->post->get_moodleoverflow()->name, true, $options),
+                'moodleoverflow' => $modflowname,
                 'discussion' => format_string($this->post->get_discussion()->name, true, $options),
             ]),
-            'post' => (new post_content($this->post, $this->recipient))->export_for_template($output),
+            'heading' => get_string(
+                'mailreviewrequestheading',
+                'moodleoverflow',
+                format_string($modflow->get_course()->fullname, true, $options)
+            ),
+            'subheading' => get_string('mailforum', 'moodleoverflow', $modflowname),
+            'post' => (new post_content($this->post, $this->recipient, true))->export_for_template($output),
+            // The discussion page shows the review buttons at the post.
+            'actions' => [
+                ['url' => $this->post->get_link()->out(false), 'label' => get_string('mailreviewpost', 'moodleoverflow'),
+                    'primary' => true],
+            ],
         ];
     }
 }

@@ -235,9 +235,16 @@ class mail {
      * @throws moodle_exception
      */
     private static function send(string $provider, message $mail, stdClass $recipient): bool {
+        global $PAGE;
         // Build the message in the recipient's language.
         $previouslanguage = force_current_language($recipient->lang);
         try {
+            // Not $OUTPUT: in the cron it is only a placeholder until its first use.
+            $output = $PAGE->get_renderer('core');
+            // One export for both versions. The data holds the names unescaped: the text templates print them as they
+            // are, the HTML templates escape them.
+            $data = $mail->export_for_template($output);
+
             $message = new \core\message\message();
             $message->component = 'mod_moodleoverflow';
             $message->name = $provider;
@@ -247,9 +254,9 @@ class mail {
             $message->courseid = $mail->get_courseid();
             $message->subject = $mail->get_subject();
             $message->smallmessage = $message->subject;
-            $message->fullmessage = $mail->render_text();
+            $message->fullmessage = $output->render_from_template($mail->get_template() . '_text', $data);
             $message->fullmessageformat = FORMAT_PLAIN;
-            $message->fullmessagehtml = '';
+            $message->fullmessagehtml = $output->render_from_template($mail->get_template() . '_html', $data);
             $message->contexturl = $mail->get_url()->out(false);
             $message->contexturlname = $message->subject;
         } finally {

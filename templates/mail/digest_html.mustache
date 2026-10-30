@@ -1,0 +1,78 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/mail/digest_html
+
+  The HTML daily digest of a user: the new posts grouped by course, moodleoverflow and discussion. Data from
+  output\mail\digest.
+
+  Context variables required for this template:
+  * heading, subheading, footerlinks - See mail/layout_html
+  * courses - The courses, each with name ("Course: <name>"), separator (true for all but the first course, which
+    follows the line below the heading) and moodleoverflows
+    * moodleoverflows - Each with forum ("Forum: <name>") and discussions
+      * discussions - Each with discussion (the name), url (the first new post), count ("2 new posts") and posts
+        (empty unless the digest is complete), see mail/post_content_html
+
+  Example context (json):
+  {
+    "heading": "Daily digest of new posts in Moodleoverflow",
+    "subheading": "New posts in the discussions you are subscribed to",
+    "courses": [{
+      "name": "Course: Programming 101",
+      "separator": false,
+      "moodleoverflows": [{
+        "forum": "Forum: Lecture Q&A",
+        "discussions": [{
+          "discussion": "Why does my recursive function never stop?",
+          "url": "https://example.com/mod/moodleoverflow/discussion.php?d=2#p5",
+          "count": "1 new post",
+          "posts": [{
+            "headline": null,
+            "author": "Jacob Brown",
+            "date": "Monday, 2 November 2026, 10:15 AM",
+            "messagehtml": "<p>Your function has no base case.</p>"
+          }]
+        }]
+      }]
+    }],
+    "footerlinks": [{"url": "https://example.com/user/forum.php", "label": "Forum preferences"}]
+  }
+}}
+{{< mod_moodleoverflow/mail/layout_html}}
+    {{$preheader}}{{subheading}}{{/preheader}}
+    {{$content}}
+        {{#courses}}
+        {{#separator}}
+        <div style="margin-top:28px;border-top:1px solid #e9ecef;"></div>
+        {{/separator}}
+        <h2 style="margin:20px 0 0;font-size:16px;line-height:1.4;font-weight:600;color:#1d2125;">{{name}}</h2>
+        {{#moodleoverflows}}
+        <h3 style="margin:12px 0 0;font-size:15px;line-height:1.4;font-weight:600;color:#495057;">{{forum}}</h3>
+        {{#discussions}}
+        <div style="margin-top:18px;">
+            <a href="{{url}}" style="font-weight:600;color:#0f6cbf;text-decoration:none;">{{discussion}}</a>
+            <span style="font-size:13px;color:#6a737b;">&middot; {{count}}</span>
+        </div>
+        {{#posts}}
+        <div style="margin-top:12px;">{{> mod_moodleoverflow/mail/post_content_html}}</div>
+        {{/posts}}
+        {{/discussions}}
+        {{/moodleoverflows}}
+        {{/courses}}
+    {{/content}}
+{{/ mod_moodleoverflow/mail/layout_html}}

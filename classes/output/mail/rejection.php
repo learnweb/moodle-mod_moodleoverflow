@@ -65,29 +65,42 @@ class rejection implements message {
     }
 
     #[\Override]
-    public function render_text(): string {
-        global $PAGE;
-        // Not $OUTPUT: in the cron it is only a placeholder until its first use.
-        $output = $PAGE->get_renderer('core');
-        return $output->render_from_template('mod_moodleoverflow/mail/rejection_text', $this->export_for_template($output));
+    public function get_template(): string {
+        return 'mod_moodleoverflow/mail/rejection';
     }
 
     #[\Override]
     public function export_for_template(renderer_base $output): array {
-        // The text template prints the names as they are, so they are not escaped.
+        // The text template prints the names as they are, so they are not escaped; the HTML template escapes them.
         $options = ['context' => $this->post->get_context(), 'escape' => false];
+        $modflow = $this->post->get_moodleoverflow();
+        $modflowname = format_string($modflow->name, true, $options);
+        $discussionname = format_string($this->post->get_discussion()->name, true, $options);
         $post = (new post_content($this->post, $this->recipient))->export_for_template($output);
         $post['url'] = null;
+        // The recipient is the author, the HTML mail shows only the date.
+        $post['author'] = null;
 
         return [
             'intro' => get_string('mailrejectionintro', 'moodleoverflow', [
-                'moodleoverflow' => format_string($this->post->get_moodleoverflow()->name, true, $options),
-                'discussion' => format_string($this->post->get_discussion()->name, true, $options),
+                'moodleoverflow' => $modflowname,
+                'discussion' => $discussionname,
             ]),
+            'heading' => get_string(
+                'mailrejectionheading',
+                'moodleoverflow',
+                format_string($modflow->get_course()->fullname, true, $options)
+            ),
+            'subheading' => get_string('mailforum', 'moodleoverflow', $modflowname),
+            'discussion' => $discussionname,
             'reason' => trim($this->reason ?? '') !== ''
                 ? get_string('mailrejectionreason', 'moodleoverflow', format_text_email($this->reason, FORMAT_PLAIN))
                 : null,
             'post' => $post,
+            'actions' => [
+                ['url' => $modflow->get_link()->out(false), 'label' => get_string('mailviewforum', 'moodleoverflow'),
+                    'primary' => true],
+            ],
         ];
     }
 }

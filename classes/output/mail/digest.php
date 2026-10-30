@@ -62,11 +62,8 @@ class digest implements message {
     }
 
     #[\Override]
-    public function render_text(): string {
-        global $PAGE;
-        // Not $OUTPUT: in the cron it is only a placeholder until its first use.
-        $output = $PAGE->get_renderer('core');
-        return $output->render_from_template('mod_moodleoverflow/mail/digest_text', $this->export_for_template($output));
+    public function get_template(): string {
+        return 'mod_moodleoverflow/mail/digest';
     }
 
     #[\Override]
@@ -80,11 +77,13 @@ class digest implements message {
                     $discussions[] = $this->export_discussion($discussionposts, $output);
                 }
                 $modflow = $modflowposts[0]->get_moodleoverflow();
+                $modflowname = format_string($modflow->name, true, self::format_options($modflowposts[0]));
                 $moodleoverflows[] = [
-                    'name' => get_string('maildigestmoodleoverflow', 'moodleoverflow', [
-                        'name' => format_string($modflow->name, true, self::format_options($modflowposts[0])),
+                    'name' => get_string('maildigestforum', 'moodleoverflow', [
+                        'name' => $modflowname,
                         'url' => $modflow->get_link()->out(false),
                     ]),
+                    'forum' => get_string('mailforum', 'moodleoverflow', $modflowname),
                     'discussions' => $discussions,
                 ];
             }
@@ -96,15 +95,21 @@ class digest implements message {
                     format_string($course->fullname, true, self::format_options($courseposts[0]))
                 ),
                 'moodleoverflows' => $moodleoverflows,
+                // The HTML template draws a line between the courses.
+                'separator' => $courses !== [],
             ];
         }
 
-        $preferences = new moodle_url('/user/forum.php', ['id' => $this->recipient->id]);
+        // Without a user id the page opens the preferences of whoever is logged in.
+        $preferences = (new moodle_url('/user/forum.php'))->out(false);
         return [
             'intro' => get_string('maildigestintro', 'moodleoverflow'),
+            'heading' => get_string('maildigestsubject', 'moodleoverflow'),
+            'subheading' => get_string('maildigestsubheading', 'moodleoverflow'),
             'complete' => $this->is_complete(),
             'courses' => $courses,
-            'preferences' => get_string('mailindexlink', 'moodleoverflow', $preferences->out(false)),
+            'preferences' => get_string('mailindexlink', 'moodleoverflow', $preferences),
+            'footerlinks' => [['url' => $preferences, 'label' => get_string('forumpreferences')]],
         ];
     }
 
@@ -119,14 +124,21 @@ class digest implements message {
      */
     private function export_discussion(array $posts, renderer_base $output): array {
         $count = count($posts);
+        $discussionname = format_string($posts[0]->get_discussion()->name, true, self::format_options($posts[0]));
+        $url = $posts[0]->get_link()->out(false);
         $summary = get_string($count === 1 ? 'maildigestnewpost' : 'maildigestnewposts', 'moodleoverflow', [
             'count' => $count,
-            'discussion' => format_string($posts[0]->get_discussion()->name, true, self::format_options($posts[0])),
-            'url' => $posts[0]->get_link()->out(false),
+            'discussion' => $discussionname,
+            'url' => $url,
         ]);
 
         return [
             'summary' => $summary,
+            'discussion' => $discussionname,
+            'url' => $url,
+            'count' => $count === 1
+                ? get_string('maildigestcountone', 'moodleoverflow')
+                : get_string('maildigestcount', 'moodleoverflow', $count),
             'posts' => $this->is_complete()
                 ? array_map(fn(post $post) => (new post_content($post, $this->recipient))->export_for_template($output), $posts)
                 : [],

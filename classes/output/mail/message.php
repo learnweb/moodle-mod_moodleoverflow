@@ -23,7 +23,7 @@ use moodle_url;
  * A mail of the plugin to one recipient: what service\mail::send() needs to send it through the message API.
  *
  * Every kind of mail (notification, digest, ...) implements this interface, so one function sends all of them without
- * knowing which kind of mail it exactly is. Each kind prepares its own data and renders its own template in templates/mail.
+ * knowing which kind of mail it exactly is. Each kind prepares its own data for its templates in templates/mail.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
@@ -49,8 +49,9 @@ interface message extends templatable {
     public function get_courseid(): int;
 
     /**
-     * Renders the plain text of the mail.
+     * Returns the template of the mail without its ending, e.g. 'mod_moodleoverflow/mail/notification'. The mail is sent
+     * with the plain text of '<template>_text' and the HTML of '<template>_html', both filled from export_for_template().
      * @return string
      */
-    public function render_text(): string;
+    public function get_template(): string;
 }

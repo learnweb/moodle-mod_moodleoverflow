@@ -108,6 +108,7 @@ final class mail_test extends \advanced_testcase {
         $this->assertNotEmpty($sink->get_messages());
         foreach ($sink->get_messages() as $message) {
             $this->assertStringNotContainsString(fullname($this->student), $message->fullmessage);
+            $this->assertStringNotContainsString(fullname($this->student), $message->fullmessagehtml);
         }
     }
 

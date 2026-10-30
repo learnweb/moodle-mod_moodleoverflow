@@ -1,0 +1,55 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/mail/notification_html
+
+  The HTML mail to a subscriber about a new post. Data from output\mail\notification.
+
+  Context variables required for this template:
+  * heading, subheading - The header of the mail, see mail/layout_html
+  * post - The post with its headline, see mail/post_content_html
+  * actions - The buttons, see mail/actions_html
+  * footerlinks - The links to unsubscribe (if available) and to the forum preferences, see mail/layout_html
+
+  Example context (json):
+  {
+    "heading": "New post in the course Programming 101",
+    "subheading": "Forum: Lecture Q&A",
+    "post": {
+      "headline": "Jacob Brown answered in \"Why does my recursive function never stop?\"",
+      "author": null,
+      "date": "Monday, 2 November 2026, 10:15 AM",
+      "messagehtml": "<p>Your function has no base case.</p>"
+    },
+    "actions": [
+      {"url": "https://example.com/mod/moodleoverflow/discussion.php?d=2#p5", "label": "View post", "primary": true},
+      {"url": "https://example.com/mod/moodleoverflow/post.php?reply=5", "label": "Comment", "primary": false}
+    ],
+    "footerlinks": [
+      {"url": "https://example.com/mod/moodleoverflow/discussion.php?d=2&unsubscribe=1",
+       "label": "Unsubscribe from this discussion"},
+      {"url": "https://example.com/user/forum.php", "label": "Forum preferences"}
+    ]
+  }
+}}
+{{< mod_moodleoverflow/mail/layout_html}}
+    {{$preheader}}{{#post}}{{headline}}{{/post}}{{/preheader}}
+    {{$content}}
+        {{#post}}{{> mod_moodleoverflow/mail/post_content_html}}{{/post}}
+        {{> mod_moodleoverflow/mail/actions_html}}
+    {{/content}}
+{{/ mod_moodleoverflow/mail/layout_html}}

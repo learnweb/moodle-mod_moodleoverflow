@@ -1,0 +1,59 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/mail/rejection_html
+
+  The HTML mail to the author of a rejected post. The post is deleted, so the button leads to the moodleoverflow. Data
+  from output\mail\rejection.
+
+  Context variables required for this template:
+  * intro - "Your post in <moodleoverflow> -> <discussion> was rejected."
+  * heading, subheading - See mail/layout_html
+  * reason - "Reason: <the reason of the reviewer>", or null if there is none
+  * discussion - The name of the discussion
+  * post - The rejected post without its author (the recipient), see mail/post_content_html
+  * actions - The button to the moodleoverflow, see mail/actions_html
+
+  Example context (json):
+  {
+    "intro": "Your post in Lecture Q&A -> Why does my recursive function never stop? was rejected.",
+    "heading": "Your post in the course Programming 101 was rejected",
+    "subheading": "Forum: Lecture Q&A",
+    "reason": "Reason: Please do not post solutions to the exercises.",
+    "discussion": "Why does my recursive function never stop?",
+    "post": {
+      "headline": null,
+      "author": null,
+      "date": "Monday, 2 November 2026, 10:15 AM",
+      "messagehtml": "<p>Here is my solution for exercise 3.</p>"
+    },
+    "actions": [
+      {"url": "https://example.com/mod/moodleoverflow/view.php?id=4", "label": "View forum", "primary": true}
+    ]
+  }
+}}
+{{< mod_moodleoverflow/mail/layout_html}}
+    {{$preheader}}{{intro}}{{/preheader}}
+    {{$content}}
+        {{#reason}}
+        <p style="margin:20px 0 0;white-space:pre-line;">{{reason}}</p>
+        {{/reason}}
+        <h2 style="margin:20px 0 4px;font-size:16px;line-height:1.4;font-weight:600;color:#1d2125;">{{discussion}}</h2>
+        {{#post}}{{> mod_moodleoverflow/mail/post_content_html}}{{/post}}
+        {{> mod_moodleoverflow/mail/actions_html}}
+    {{/content}}
+{{/ mod_moodleoverflow/mail/layout_html}}
