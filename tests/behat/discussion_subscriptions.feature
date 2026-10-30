@@ -8,8 +8,6 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
     Given I prepare a moodleoverflow feature background with users:
       | username | firstname | lastname | email             | idnumber | role |
       | student1 | Student   | One      | student1@mail.com | 10       | student |
-    And I log in as "admin"
-    And I am on "Course 1" course homepage with editing mode "on"
 
   Scenario: An optional moodleoverflow can have discussions subscribed to
     Given the following "activities" exist:
@@ -17,8 +15,7 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
       | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 0              |
     And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject one" and message "Test post message one" automatically
     And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject two" and message "Test post message two" automatically
-    And I log out
-    When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
+    When I am on the "Test moodleoverflow name" "moodleoverflow activity" page logged in as "student1"
     Then I should see "Subscribe to this forum"
     And "You are not subscribed to this discussion. Click to subscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
     And I click on "You are not subscribed to this discussion. Click to subscribe." "icon" in the "Test post subject one" moodleoverflow discussion card
@@ -45,8 +42,7 @@ Feature: A user can control their own moodleoverflow subscription preferences fo
       | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 2              |
     And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject one" and message "Test post message one" automatically
     And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject two" and message "Test post message two" automatically
-    And I log out
-    When I navigate as "student1" to "Course 1" "Test moodleoverflow name" ""
+    When I am on the "Test moodleoverflow name" "moodleoverflow activity" page logged in as "student1"
     Then I should see "Unsubscribe from this forum"
     And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "" exist in the "Test post subject one" and "Test post subject two" moodleoverflow discussion card
     And I click on "You are subscribed to this discussion. Click to unsubscribe." "icon" in the "Test post subject one" moodleoverflow discussion card

@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow @javascript
+@mod @mod_moodleoverflow
 Feature: Students can edit or delete their moodleoverflow posts within a set time limit
   In order to refine moodleoverflow posts
   As a user
@@ -12,7 +12,7 @@ Feature: Students can edit or delete their moodleoverflow posts within a set tim
       | activity       | name                | intro                            | course  | idnumber       |
       | moodleoverflow | Test moodleoverflow | Test moodleoverflow description  | C1      | 1              |
     And User "student1" adds to "Test moodleoverflow" a discussion with topic "Moodleoverflow post subject" and message "This is the body" automatically
-    And I navigate as "student1" to "Course 1" "Test moodleoverflow" ""
+    And I am on the "Test moodleoverflow" "moodleoverflow activity" page logged in as "student1"
 
   Scenario: Edit moodleoverflow post
     Given I click in moodleoverflow on "link" type:
@@ -25,6 +25,7 @@ Feature: Students can edit or delete their moodleoverflow posts within a set tim
     Then I should "" see the elements:
       | Edited post subject | Edited post body |
 
+  @javascript
   Scenario: Delete moodleoverflow post
     Given I click in moodleoverflow on "link" type:
       | Moodleoverflow post subject | Delete |

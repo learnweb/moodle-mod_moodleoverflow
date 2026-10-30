@@ -1,4 +1,4 @@
-@mod @mod_moodleoverflow @javascript
+@mod @mod_moodleoverflow
 Feature: Teachers can move a discussion in one moodleoverflow forum to another moodleoverflow.
 
   Background:
@@ -13,35 +13,32 @@ Feature: Teachers can move a discussion in one moodleoverflow forum to another m
       | moodleoverflow | everything anonymous      | Test moodleoverflow description  | C1      | 2         | 4        |
     And I log in as "admin"
 
+  @javascript
   Scenario: Move topic from public forum
     Given User "admin" adds to "public moodleoverflow one" a discussion with topic "Public Message" and message "This is the public message" automatically
-    And I am on "Course 1" course homepage
-    And I click on "public moodleoverflow one" "link"
+    And I am on the "public moodleoverflow one" "moodleoverflow activity" page
     And I click on "[data-action='moodleoverflow/movetopic-select']" "css_element"
     Then I should "" see the elements:
       | public moodleoverflow two | question anonymous | everything anonymous |
     And I should not see "Move discussion to public moodleoverflow one"
     When I click on "[data-destinationname='public moodleoverflow two']" "css_element"
-    And I am on "Course 1" course homepage
-    And I follow "public moodleoverflow two"
+    And I am on the "public moodleoverflow two" "moodleoverflow activity" page
     Then I should see "Public Message"
 
+  @javascript
   Scenario: Move topic from question anonymous forum
     Given User "admin" adds to "question anonymous" a discussion with topic "Question Message" and message "This is the question anonymous message" automatically
-    And I am on "Course 1" course homepage
-    And I click on "question anonymous" "link"
+    And I am on the "question anonymous" "moodleoverflow activity" page
     And I click on "[data-action='moodleoverflow/movetopic-select']" "css_element"
     And I should "not" see the elements:
       | Move discussion to public moodleoverflow one | Move discussion to public moodleoverflow two |
     And I should "" see the elements:
       | question anonymous | everything anonymous |
     When I click on "[data-destinationname='everything anonymous']" "css_element"
-    And I am on "Course 1" course homepage
-    And I follow "everything anonymous"
+    And I am on the "everything anonymous" "moodleoverflow activity" page
     Then I should see "Question Message"
 
-  Scenario: Move topic from question anonymous forum
+  Scenario: A topic in an everything anonymous forum cannot be moved
     Given User "admin" adds to "everything anonymous" a discussion with topic "Everything Message" and message "This is the everything anonymous message" automatically
-    Given I am on "Course 1" course homepage
-    And I follow "everything anonymous"
+    Given I am on the "everything anonymous" "moodleoverflow activity" page
     And "[data-action='moodleoverflow/movetopic-select']" "css_element" should not exist

@@ -251,25 +251,32 @@ class behat_mod_moodleoverflow extends behat_base {
     }
 
     /**
-     * Logs in as a user and navigates in a course to dedicated moodleoverflow discussion.
+     * Returns the URL of a moodleoverflow page for the steps "I am on the :identifier :type page (logged in as :user)".
      *
-     * @Given /^I navigate as "(?P<user>[^"]*)" to "(?P<course>[^"]*)" "(?P<modflow>[^"]*)" "(?P<discussion>[^"]*)"$/
+     * Recognised page types are:
+     * | Type       | Identifier                     | Description                                  |
+     * | Discussion | The name of the discussion     | The discussion page with all its posts       |
+     * | User posts | The username of the author     | All moodleoverflow posts of a user (user.php) |
      *
-     * @param string $user The username to log in as
-     * @param string $course The full name of the course
-     * @param string $modflow The name of the moodleoverflow activity
-     * @param string $discussion The name of the discussion
-     * @return void
+     * The forum page itself is a core page type: "I am on the "<name>" "moodleoverflow activity" page".
+     * Discussions and users are searched by their name, so it needs to be unique in the testing scenario.
+     *
+     * @param string $type The page type, e.g. 'Discussion' in "mod_moodleoverflow > Discussion"
+     * @param string $identifier The discussion name or the username
+     * @return moodle_url
      * @throws Exception
      */
-    public function i_navigate_as_user_to_the_discussion(string $user, string $course, string $modflow, string $discussion): void {
-        $this->execute('behat_auth::i_log_in_as', $user);
-        $this->execute('behat_navigation::i_am_on_course_homepage', $course);
-        $this->execute('behat_general::click_link', $this->escape($modflow));
-
-        // Make the navigation to the discussion optional.
-        if ($discussion != "") {
-            $this->execute('behat_general::click_link', $this->escape($discussion));
+    protected function resolve_page_instance_url(string $type, string $identifier): moodle_url {
+        global $DB;
+        switch (strtolower($type)) {
+            case 'discussion':
+                $discussionid = $DB->get_field('moodleoverflow_discussions', 'id', ['name' => $identifier], MUST_EXIST);
+                return new moodle_url('/mod/moodleoverflow/discussion.php', ['d' => $discussionid]);
+            case 'user posts':
+                $userid = $DB->get_field('user', 'id', ['username' => $identifier], MUST_EXIST);
+                return new moodle_url('/mod/moodleoverflow/user.php', ['user' => $userid]);
+            default:
+                throw new Exception("Unrecognised moodleoverflow page type '{$type}'.");
         }
     }
 
@@ -348,29 +355,6 @@ class behat_mod_moodleoverflow extends behat_base {
             'posttomoodleoverflow',
             'moodleoverflow'
         ));
-        $this->execute('behat_general::i_wait_to_be_redirected');
-    }
-
-    /**
-     * Adds a reply to the starter post of the specified moodleoverflow.
-     * The step begins from the moodleoverflow's page or from the moodleoverflow's course page.
-     *
-     * @Given /^I reply "(?P<post_subject_string>(?:[^"]|\\")*)" post
-     * from "(?P<moodleoverflow_name_string>(?:[^"]|\\")*)" moodleoverflow with:$/
-     *
-     * @param string    $postsubject        The subject of the post
-     * @param string    $moodleoverflowname The moodleoverflow name
-     * @param TableNode $table
-     */
-    public function i_reply_post_from_moodleoverflow_with($postsubject, $moodleoverflowname, TableNode $table) {
-        // Navigate to moodleoverflow.
-        $this->execute('behat_general::click_link', $this->escape($moodleoverflowname));
-        $this->execute('behat_general::click_link', $this->escape($postsubject));
-        $this->execute('behat_general::click_link', get_string('reply', 'moodleoverflow'));
-
-        // Fill form and post.
-        $this->execute('behat_forms::i_set_the_following_fields_to_these_values', $table);
-        $this->execute('behat_forms::press_button', get_string('posttomoodleoverflow', 'moodleoverflow'));
         $this->execute('behat_general::i_wait_to_be_redirected');
     }
 
@@ -635,22 +619,6 @@ class behat_mod_moodleoverflow extends behat_base {
             '//*[contains(concat(" ",normalize-space(@class)," ")," moodleoverflowdiscussion ")][.//*[text()="' .
             $discussiontitle . '"]]'
         );
-    }
-
-    /**
-     * Opens the page that lists all moodleoverflow posts of a user.
-     *
-     * IMPORTANT!: The user is searched by their username, so it needs to be unique in the testing scenario.
-     *
-     * @Given /^I am on the moodleoverflow posts page of "(?P<username_string>[^"]*)"$/
-     * @param string $username The user whose posts are listed.
-     * @return void
-     * @throws dml_exception
-     */
-    public function i_am_on_the_moodleoverflow_posts_page_of(string $username): void {
-        global $DB;
-        $userid = $DB->get_field('user', 'id', ['username' => $username], MUST_EXIST);
-        $this->execute('behat_general::i_visit', ['/mod/moodleoverflow/user.php?user=' . $userid]);
     }
 
     // Ratings. The posts are searched by their message, so it needs to be unique in the testing scenario.

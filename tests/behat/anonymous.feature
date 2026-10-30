@@ -14,7 +14,7 @@ Feature: Use moodleoverflow anonymously
 
   @_file_upload
   Scenario: Other people should not see the questioners name in anonymous mode, not even as file author.
-    Given I navigate as "student1" to "Course 1" "Test moodleoverflow" ""
+    Given I am on the "Test moodleoverflow" "moodleoverflow activity" page logged in as "student1"
     And I click on "Add a new discussion topic" "text"
     And I set the following fields to these values:
       | Subject | This is Nina |
@@ -22,8 +22,7 @@ Feature: Use moodleoverflow anonymously
     And I upload "mod/moodleoverflow/tests/fixtures/NH.jpg" file to "Attachment" filemanager
     And I press "Post to forum"
     Then I should see "Anonymous (You)"
-    When I navigate as "teacher1" to "Course 1" "Test moodleoverflow" ""
-    And I follow "This is Nina"
+    When I am on the "This is Nina" "mod_moodleoverflow > Discussion" page logged in as "teacher1"
     Then I should not see "Student 1"
     And I should see "Questioner"
     When I click in moodleoverflow on "link" type:

@@ -16,16 +16,14 @@ Feature: A user can see all posts that a user has written across their courses
     And User "student1" adds to "Secret overflow" a discussion with topic "Secret topic" and message "This post is hidden" automatically
 
   Scenario: A user sees every post they wrote themselves, the anonymous ones included
-    Given I log in as "student1"
-    When I am on the moodleoverflow posts page of "student1"
+    When I am on the "student1" "mod_moodleoverflow > User posts" page logged in as "student1"
     Then I should "" see the elements:
       | Open overflow | Open topic | This post is public |
     And I should "" see the elements:
       | Secret overflow | Secret topic | This post is hidden |
 
   Scenario: A user does not see the anonymous posts of another user from the same course
-    Given I log in as "student2"
-    When I am on the moodleoverflow posts page of "student1"
+    When I am on the "student1" "mod_moodleoverflow > User posts" page logged in as "student2"
     Then I should "" see the elements:
       | Open overflow | Open topic | This post is public |
     And I should "not" see the elements:
@@ -42,8 +40,7 @@ Feature: A user can see all posts that a user has written across their courses
       | activity       | course | name              |
       | moodleoverflow | C2     | Unshared overflow |
     And User "student1" adds to "Unshared overflow" a discussion with topic "Unshared topic" and message "This post is out of reach" automatically
-    And I log in as "student2"
-    When I am on the moodleoverflow posts page of "student1"
+    When I am on the "student1" "mod_moodleoverflow > User posts" page logged in as "student2"
     Then I should "" see the elements:
       | Open overflow | Open topic |
     And I should "not" see the elements:
@@ -54,12 +51,9 @@ Feature: A user can see all posts that a user has written across their courses
       | activity       | course | name              | needsreview |
       | moodleoverflow | C1     | Reviewed overflow | 2           |
     And User "student1" adds to "Reviewed overflow" a discussion with topic "Pending topic" and message "This post is not reviewed yet" automatically
-    And I log in as "student2"
-    When I am on the moodleoverflow posts page of "student1"
+    When I am on the "student1" "mod_moodleoverflow > User posts" page logged in as "student2"
     Then I should "not" see the elements:
       | Pending topic | This post is not reviewed yet |
-    When I log out
-    And I log in as "student1"
-    And I am on the moodleoverflow posts page of "student1"
+    When I am on the "student1" "mod_moodleoverflow > User posts" page logged in as "student1"
     Then I should "" see the elements:
       | Pending topic | This post is not reviewed yet |
