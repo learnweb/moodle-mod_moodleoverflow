@@ -17,11 +17,14 @@
 namespace mod_moodleoverflow;
 
 use mod_moodleoverflow\local\enum\anonymity;
+use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\output\mail\digest;
 use mod_moodleoverflow\output\mail\notification;
+use mod_moodleoverflow\output\mail\rejection;
+use mod_moodleoverflow\output\mail\review_request;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -35,10 +38,14 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * @covers \mod_moodleoverflow\local\service\mail
  * @covers \mod_moodleoverflow\output\mail\notification
  * @covers \mod_moodleoverflow\output\mail\digest
+ * @covers \mod_moodleoverflow\output\mail\review_request
+ * @covers \mod_moodleoverflow\output\mail\rejection
  */
 #[CoversClass(service\mail::class)]
 #[CoversClass(notification::class)]
 #[CoversClass(digest::class)]
+#[CoversClass(review_request::class)]
+#[CoversClass(rejection::class)]
 final class mail_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -161,5 +168,54 @@ final class mail_test extends \advanced_testcase {
         service\mail::send_digests();
 
         $this->assertEquals(0, $sink->count());
+    }
+
+    /**
+     * Test, if the review request goes to the reviewers enrolled in the course, but not to a manager who may review
+     * the post from outside the course.
+     */
+    public function test_send_review_request(): void {
+        global $DB;
+        set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
+        $manager = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->role_assign($DB->get_field('role', 'id', ['shortname' => 'manager']), $manager->id);
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        $sink = $this->redirectMessages();
+
+        $this->assertEquals([], service\mail::send_review_request($question));
+
+        $this->assertEquals([$this->teacher->id], array_column($sink->get_messages(), 'useridto'));
+    }
+
+    /**
+     * Test, if no review request is sent for a post that was reviewed before the request was due.
+     */
+    public function test_no_review_request_after_review(): void {
+        set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        service\review::approve($question, $this->teacher->id);
+        $sink = $this->redirectMessages();
+
+        service\mail::send_review_request($question);
+
+        $this->assertEquals(0, $sink->count());
+    }
+
+    /**
+     * Test, if the author of a rejected post gets the mail with the reason.
+     */
+    public function test_send_rejection(): void {
+        set_config('reviewpossibleaftertime', -10, 'moodleoverflow');
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        $sink = $this->redirectMessages();
+
+        service\review::reject($question, $this->teacher->id, 'Please ask in the forum of your group.');
+
+        $messages = $sink->get_messages();
+        $this->assertEquals([$this->student->id], array_column($messages, 'useridto'));
+        $this->assertStringContainsString('Please ask in the forum of your group.', $messages[0]->fullmessage);
     }
 }

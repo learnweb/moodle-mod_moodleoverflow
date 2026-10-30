@@ -25,10 +25,10 @@ use mod_moodleoverflow\output\author;
 /**
  * One post as a mail shows it: the link to the post, the author with the date, and the text.
  *
- * This is a part of a mail, not a mail itself: the notification shows one post this way, the complete digest every
- * new post. The mails hold it and include its template mail/post_content_text, so the author is hidden in anonymous
- * moodleoverflows the same way in every mail. Everything around the post (intro, reply and unsubscribe links) stays in
- * the mail that shows it.
+ * This is a part of a mail, not a mail itself: the notification, the review request and the rejection show one post
+ * this way, the complete digest every new post. The mails hold it and include its template mail/post_content_text, so
+ * the author is hidden in anonymous moodleoverflows the same way in every mail. Everything around the post (intro,
+ * reply and unsubscribe links) stays in the mail that shows it.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter

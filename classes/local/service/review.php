@@ -22,6 +22,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\permissions;
 use core\exception\moodle_exception;
+use Throwable;
 
 /**
  * Service class for moodleoverflow actions regarding the review of a post.
@@ -48,15 +49,26 @@ class review {
     }
 
     /**
-     * Rejects a post to be shown in a discussion and deletes it.
+     * Rejects a post to be shown in a discussion and deletes it. The author gets a mail with the reason.
      * @param post $post
      * @param int $userid The user that rejects the post
+     * @param string|null $reason The reason for the author, if any
      * @return void
-     * @throws moodle_exception|coding_exception
+     * @throws moodle_exception|coding_exception|Throwable
      */
-    public static function reject(post $post, int $userid): void {
+    public static function reject(post $post, int $userid, ?string $reason = null): void {
+        global $DB;
         permissions::ensure(permissions::can_review_post($post, $userid), 'cannotreviewpost');
-        $post->get_discussion()->delete_post($post, $userid);
+
+        // The mail needs the post, so it is built before the deletion. It is sent only when the transaction commits.
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            mail::send_rejection($post, $reason);
+            $post->get_discussion()->delete_post($post, $userid);
+            $transaction->allow_commit();
+        } catch (Throwable $e) {
+            $transaction->rollback($e);
+        }
     }
 
     // Read only functions.

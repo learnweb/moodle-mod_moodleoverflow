@@ -64,8 +64,10 @@ class posting {
             subscription::follow_on_post($discussion, $userid);
             readtracking::mark_post_read($discussion->get_first_post(), $userid);
             if ($reviewed) {
-                // A question that waits for its review is announced when it is approved.
                 mail::queue_notification($discussion->get_first_post());
+            } else {
+                // The subscribers are notified when the question is approved.
+                mail::queue_review_request($discussion->get_first_post());
             }
             $transaction->allow_commit();
         } catch (Throwable $e) {
@@ -96,8 +98,10 @@ class posting {
             subscription::follow_on_post($discussion, $userid);
             readtracking::mark_post_read($post, $userid);
             if ($reviewed) {
-                // A reply that waits for its review is announced when it is approved.
                 mail::queue_notification($post);
+            } else {
+                // The subscribers are notified when the reply is approved.
+                mail::queue_review_request($post);
             }
             $transaction->allow_commit();
         } catch (Throwable $e) {

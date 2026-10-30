@@ -21,7 +21,7 @@
   braces, as this is text, not HTML. Data from output\mail\post_content.
 
   Context variables required for this template:
-  * url - Link to the post
+  * url - Link to the post, or null if there is none (e.g. the post was rejected and deleted)
   * by - "by <author> - <date>"
   * message - The post as plain text
 
@@ -32,8 +32,10 @@
     "message": "Your function has no base case."
   }
 }}
+{{#url}}
 {{{url}}}
 
+{{/url}}
 {{{by}}}
 ---------------------------------------------------------------------
 {{{message}}}

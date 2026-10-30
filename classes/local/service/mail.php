@@ -25,17 +25,20 @@ use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\output\mail\digest;
 use mod_moodleoverflow\output\mail\message;
 use mod_moodleoverflow\output\mail\notification;
+use mod_moodleoverflow\output\mail\rejection;
+use mod_moodleoverflow\output\mail\review_request;
 use mod_moodleoverflow\task\send_post_notification;
+use mod_moodleoverflow\task\send_review_request;
 use stdClass;
 use Throwable;
 
 /**
  * Service class for the mails of the plugin: who gets which message and when.
  *
- * Mails are sent through the message API from the no-reply user. A notification is queued as an ad hoc task with the
- * post id only, a post for a digest waits in the table moodleoverflow_digest_queue until the daily task. Both are built
- * when they are sent, so they always show the current state of the post. What a message says is prepared by the
- * classes in output\mail and written in the templates in templates/mail.
+ * Mails are sent through the message API from the no-reply user. A notification or review request is queued as an
+ * ad hoc task with the post id only, a post for a digest waits in the table moodleoverflow_digest_queue until the
+ * daily task. Both are built when they are sent, so they always show the current state of the post. What a message
+ * says is prepared by the classes in output\mail and written in the templates in templates/mail.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
@@ -100,6 +103,75 @@ class mail {
             }
         }
         return $failures;
+    }
+
+    // Review requests and rejections.
+
+    /**
+     * Queues the request to review a post. It is sent once the review delay is over, so the reviewers can act on it.
+     * No permission checks: only call it after a post was created that waits for its review.
+     *
+     * @param post $post
+     * @return void
+     * @throws moodle_exception|\dml_write_exception
+     */
+    public static function queue_review_request(post $post): void {
+        $task = new send_review_request();
+        $task->set_custom_data(['postid' => $post->get_id()]);
+        // A post can be reviewed only after the delay is over, not at its last second.
+        $task->set_next_run_time(max(time(), $post->created + $post->get_moodleoverflow()->get_review_delay() + 1));
+        manager::queue_adhoc_task($task);
+    }
+
+    /**
+     * Sends the request to review a post to the users who are enrolled in the course and may review it. Users with the
+     * capability from outside the course (e.g. managers) may review it too, but get no mail. Nothing is sent if the
+     * post was reviewed in the meantime.
+     * Like the notifications, a recipient for whom sending fails does not stop the others, and the failures are
+     * returned instead of thrown.
+     *
+     * @param post $post
+     * @return string[] The reasons sending failed, indexed by the id of the recipient
+     * @throws moodle_exception
+     */
+    public static function send_review_request(post $post): array {
+        if ($post->reviewed !== 0) {
+            return [];
+        }
+
+        $failures = [];
+        foreach (get_enrolled_users($post->get_context(), 'mod/moodleoverflow:reviewpost') as $recipient) {
+            try {
+                if (!permissions::can_review_post($post, (int) $recipient->id)) {
+                    continue;
+                }
+                $result = self::send('reviewneeded', new review_request($post, $recipient), $recipient);
+                if (!$result) {
+                    $failures[$recipient->id] = 'The message API did not send the message.';
+                }
+            } catch (Throwable $e) {
+                $failures[$recipient->id] = $e->getMessage();
+            }
+        }
+        return $failures;
+    }
+
+    /**
+     * Sends the author of a rejected post the mail about it. Call it in the transaction that deletes the post, before
+     * the post is deleted: the message API holds the mail back until the transaction is committed, so the author only
+     * gets it if the post was deleted. A post whose author was removed (user id 0) gets no mail.
+     *
+     * @param post $post
+     * @param string|null $reason The reason the reviewer gave, if any
+     * @return void
+     * @throws moodle_exception
+     */
+    public static function send_rejection(post $post, ?string $reason): void {
+        $recipient = $post->get_userid() ? core_user::get_user($post->get_userid()) : false;
+        if (!$recipient || $recipient->deleted) {
+            return;
+        }
+        self::send('rejected', new rejection($post, $recipient, $reason), $recipient);
     }
 
     // Daily digests.

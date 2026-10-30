@@ -16,6 +16,7 @@
 
 namespace mod_moodleoverflow\tests;
 
+use core\task\adhoc_task;
 use core\task\manager;
 use core\task\task_base;
 use mod_moodleoverflow\local\models\moodleoverflow;
@@ -103,14 +104,15 @@ trait moodleoverflow_test_trait {
     }
 
     /**
-     * Returns the ids of the posts whose notification mail is queued.
+     * Returns the ids of the posts whose mail is queued, by default the notification to the subscribers.
      *
+     * @param string $taskclass The ad hoc task of the mail, e.g. send_review_request::class
      * @return int[] Sorted
      */
-    protected function get_queued_notifications(): array {
+    protected function get_queued_notifications(string $taskclass = send_post_notification::class): array {
         $postids = array_map(
-            fn(send_post_notification $task) => (int) $task->get_custom_data()->postid,
-            manager::get_adhoc_tasks(send_post_notification::class)
+            fn(adhoc_task $task) => (int) $task->get_custom_data()->postid,
+            manager::get_adhoc_tasks($taskclass)
         );
         sort($postids);
         return $postids;
