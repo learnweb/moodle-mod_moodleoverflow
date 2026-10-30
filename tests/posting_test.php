@@ -26,6 +26,7 @@ use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\posting;
+use mod_moodleoverflow\task\send_review_request;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -77,7 +78,8 @@ final class posting_test extends \advanced_testcase {
     }
 
     /**
-     * Test, if a question of a student waits for review, but not the question of a reviewer.
+     * Test, if a question of a student waits for review, but not the question of a reviewer. Only the reviewed
+     * question is announced to the subscribers now, the other one goes to the reviewers.
      */
     public function test_create_discussion_review_status(): void {
         $modflow = $this->create_moodleoverflow(['needsreview' => review_level::QUESTIONS->value]);
@@ -87,6 +89,11 @@ final class posting_test extends \advanced_testcase {
 
         $this->assertEquals(0, $student->get_first_post()->reviewed);
         $this->assertEquals(1, $teacher->get_first_post()->reviewed);
+        $this->assertEquals([$teacher->get_first_post()->get_id()], $this->get_queued_notifications());
+        $this->assertEquals(
+            [$student->get_first_post()->get_id()],
+            $this->get_queued_notifications(send_review_request::class)
+        );
     }
 
     /**
@@ -143,18 +150,25 @@ final class posting_test extends \advanced_testcase {
     }
 
     /**
-     * Test, if replies follow the review level for answers, not the one for questions.
+     * Test, if replies follow the review level for answers, not the one for questions. Only reviewed replies are
+     * announced to the subscribers now, the other one goes to the reviewers.
      */
     public function test_reply_review_status(): void {
         $questionsonly = $this->create_moodleoverflow(['needsreview' => review_level::QUESTIONS->value]);
         $everything = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
 
         $question = $this->generator->create_question($questionsonly, $this->teacher);
-        $this->assertEquals(1, posting::reply($question, $this->student->id, $this->content('Answer'))->reviewed);
+        $reviewed = posting::reply($question, $this->student->id, $this->content('Answer'));
+        $this->assertEquals(1, $reviewed->reviewed);
 
         $question = $this->generator->create_question($everything, $this->teacher);
-        $this->assertEquals(0, posting::reply($question, $this->student->id, $this->content('Answer'))->reviewed);
-        $this->assertEquals(1, posting::reply($question, $this->teacher->id, $this->content('Answer'))->reviewed);
+        $unreviewed = posting::reply($question, $this->student->id, $this->content('Answer'));
+        $this->assertEquals(0, $unreviewed->reviewed);
+        $byreviewer = posting::reply($question, $this->teacher->id, $this->content('Answer'));
+        $this->assertEquals(1, $byreviewer->reviewed);
+
+        $this->assertEquals([$reviewed->get_id(), $byreviewer->get_id()], $this->get_queued_notifications());
+        $this->assertEquals([$unreviewed->get_id()], $this->get_queued_notifications(send_review_request::class));
     }
 
     /**
@@ -246,13 +260,8 @@ final class posting_test extends \advanced_testcase {
     public function test_delete_question(): void {
         global $DB;
         $discussion = posting::create_discussion($this->modflow, $this->student->id, $this->content('Question', 'Topic'));
-        $DB->insert_record('moodleoverflow_mail_info', [
-            'userid' => $this->teacher->id,
-            'courseid' => $this->course->id,
-            'forumid' => $this->modflow->id,
-            'forumdiscussionid' => $discussion->get_id(),
-            'numberofposts' => 1,
-        ]);
+        $questionid = $discussion->get_first_post()->get_id();
+        $DB->insert_record('moodleoverflow_digest_queue', ['userid' => $this->teacher->id, 'postid' => $questionid]);
         // Deleting clears the id of the discussion, so save it first.
         $discussionid = $discussion->get_id();
 
@@ -261,7 +270,7 @@ final class posting_test extends \advanced_testcase {
         $this->assertFalse($DB->record_exists('moodleoverflow_discussions', ['id' => $discussionid]));
         $this->assertFalse($DB->record_exists('moodleoverflow_posts', ['discussion' => $discussionid]));
         $this->assertFalse($DB->record_exists('moodleoverflow_discuss_subs', ['discussion' => $discussionid]));
-        $this->assertFalse($DB->record_exists('moodleoverflow_mail_info', ['forumdiscussionid' => $discussionid]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_digest_queue', ['postid' => $questionid]));
     }
 
     /**

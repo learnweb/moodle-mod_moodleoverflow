@@ -1225,4 +1225,42 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         service\rating::update_all_grades($forum);
         self::assertEmpty($DB->get_records('moodleoverflow_grades', ['moodleoverflowid' => $forum->id], null, 'userid, grade'));
     }
+
+    /**
+     * Tests that the posts queued for the daily digest are found and deleted with the user's data.
+     */
+    public function test_digest_queue_deleted(): void {
+        global $DB;
+        $course = $this->getDataGenerator()->create_course();
+        [$user1, $user2, $user3] = $this->create_students(3, $course);
+        $posts = [];
+        $contexts = [];
+        for ($i = 0; $i < 2; $i++) {
+            $forum = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $course->id]);
+            $contexts[$i] = \context_module::instance($forum->cmid);
+            [, $posts[$i]] = $this->generator->post_to_forum($forum, $user1);
+            foreach ([$user1, $user2, $user3] as $user) {
+                $DB->insert_record('moodleoverflow_digest_queue', ['userid' => $user->id, 'postid' => $posts[$i]->id]);
+            }
+        }
+
+        // The queue alone makes a context contain data of the user.
+        $this->assertContains("{$contexts[0]->id}", provider::get_contexts_for_userid($user3->id)->get_contextids());
+
+        // Delete the data of a single user in the first forum.
+        provider::delete_data_for_user(new approved_contextlist($user1, 'mod_moodleoverflow', [$contexts[0]->id]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_digest_queue', ['userid' => $user1->id, 'postid' => $posts[0]->id]));
+        $this->assertTrue($DB->record_exists('moodleoverflow_digest_queue', ['userid' => $user1->id, 'postid' => $posts[1]->id]));
+        $this->assertEquals(2, $DB->count_records('moodleoverflow_digest_queue', ['postid' => $posts[0]->id]));
+
+        // Delete the data of a list of users in the first forum.
+        provider::delete_data_for_users(new approved_userlist($contexts[0], 'mod_moodleoverflow', [$user2->id]));
+        $this->assertFalse($DB->record_exists('moodleoverflow_digest_queue', ['userid' => $user2->id, 'postid' => $posts[0]->id]));
+        $this->assertTrue($DB->record_exists('moodleoverflow_digest_queue', ['userid' => $user3->id, 'postid' => $posts[0]->id]));
+
+        // Delete the data of all users in the first forum.
+        provider::delete_data_for_all_users_in_context($contexts[0]);
+        $this->assertEquals(0, $DB->count_records('moodleoverflow_digest_queue', ['postid' => $posts[0]->id]));
+        $this->assertEquals(3, $DB->count_records('moodleoverflow_digest_queue', ['postid' => $posts[1]->id]));
+    }
 }

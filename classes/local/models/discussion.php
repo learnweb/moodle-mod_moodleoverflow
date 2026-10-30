@@ -187,7 +187,6 @@ class discussion {
                 $content->message,
                 $content->messageformat,
                 "",
-                0,
                 (int) $reviewed,
                 null
             );
@@ -232,7 +231,6 @@ class discussion {
             $this->posts[$this->firstpost]->delete($userid);
             readtracking::delete_read_records(discussid: $this->id);
             subscription::delete_subscriptions(discussid: $this->id);
-            $DB->delete_records('moodleoverflow_mail_info', ['forumdiscussionid' => $this->id]);
             $DB->delete_records('moodleoverflow_discussions', ['id' => $this->id]);
 
             discussion_deleted::create(['objectid' => $this->id, 'context' => $context])->trigger();
@@ -272,7 +270,6 @@ class discussion {
             $content->message,
             $content->messageformat,
             "",
-            0,
             (int) $reviewed,
             null
         );
@@ -431,7 +428,6 @@ class discussion {
             // Adapt the following tables that store the moodleoverflow id of the discussion.
             $DB->set_field('moodleoverflow_ratings', 'moodleoverflowid', $destination->id, ['discussionid' => $this->id]);
             $DB->set_field('moodleoverflow_discuss_subs', 'moodleoverflow', $destination->id, ['discussion' => $this->id]);
-            $DB->set_field('moodleoverflow_mail_info', 'forumid', $destination->id, ['forumdiscussionid' => $this->id]);
             $DB->set_field('moodleoverflow_read', 'moodleoverflowid', $destination->id, ['discussionid' => $this->id]);
 
             // Adapt the discussion itself.

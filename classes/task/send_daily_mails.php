@@ -16,19 +16,17 @@
 
 namespace mod_moodleoverflow\task;
 
-use dml_missing_record_exception;
-use mod_moodleoverflow\local\models\discussion;
-use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\permissions;
+use core\task\scheduled_task;
+use mod_moodleoverflow\local\service;
 
 /**
- * This task sends a daily mail of unread posts
+ * Sends the daily digest of new posts to every user who chose a digest in their profile.
  *
  * @package   mod_moodleoverflow
- * @copyright 2023 Tamaro Walter
+ * @copyright 2026 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class send_daily_mails extends \core\task\scheduled_task {
+class send_daily_mails extends scheduled_task {
     #[\Override]
     public function get_name() {
         return get_string('tasksenddailymails', 'mod_moodleoverflow');
@@ -36,55 +34,8 @@ class send_daily_mails extends \core\task\scheduled_task {
 
     #[\Override]
     public function execute() {
-        global $DB;
-        // Call your own api.
-        $users = $DB->get_records_sql('SELECT DISTINCT userid FROM {moodleoverflow_mail_info}');
-        if (empty($users)) {
-            mtrace('No daily mail to send.');
-            return;
-        }
-        // Go through each user that has unread posts.
-        foreach ($users as $user) {
-            // Sorts the records with "Order by courseid".
-            $userdata = $DB->get_records('moodleoverflow_mail_info', ['userid' => $user->userid], 'courseid, forumid');
-            $mail = [];
-            // Fill the $mail array.
-            foreach ($userdata as $row) {
-                try {
-                    $discussion = discussion::from_id($row->forumdiscussionid);
-                    $currentforum = moodleoverflow::from_id($row->forumid);
-                    $currentcourse = $currentforum->get_course();
-                } catch (dml_missing_record_exception $e) {
-                    continue;
-                }
-
-                if (!permissions::can_view_discussion($discussion, $user->userid)) {
-                    continue;
-                }
-                $unreadposts = $row->numberofposts;
-
-                // Build url to the course, forum, and discussion.
-                $linktocourse = new \moodle_url('/course/view.php', ['id' => $currentcourse->id]);
-
-                // Now change the url to a clickable html link.
-                $linktocourse = \html_writer::link($linktocourse->out(), $currentcourse->fullname);
-                $linktoforum = \html_writer::link($currentforum->get_link()->out(), $currentforum->name);
-                $linktodiscussion = \html_writer::link($discussion->get_link()->out(), $discussion->name);
-
-                // Build a single line string with the digest information and add it to the mailarray.
-                $string = get_string('digestunreadpost', 'mod_moodleoverflow', ['linktocourse' => $linktocourse,
-                                                                                     'linktoforum' => $linktoforum,
-                                                                                     'linktodiscussion' => $linktodiscussion,
-                                                                                     'unreadposts' => $unreadposts, ]);
-                $mail[] = $string;
-            }
-            // Build the final message and send it to user. Then remove the sent records.
-            $message = implode('<br>', $mail);
-            $userto = $DB->get_record('user', ['id' => $user->userid]);
-            $from = \core_user::get_noreply_user();
-            $subject = get_string('tasksenddailymails', 'mod_moodleoverflow');
-            email_to_user($userto, $from, $subject, $message);
-            $DB->delete_records('moodleoverflow_mail_info', ['userid' => $user->userid]);
+        foreach (service\mail::send_digests() as $userid => $reason) {
+            mtrace("The digest could not be sent to user $userid: $reason");
         }
     }
 }

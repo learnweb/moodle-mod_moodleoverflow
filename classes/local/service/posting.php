@@ -59,9 +59,16 @@ class posting {
         // Start the transaction to build the object and the first post and save them into the DB.
         $transaction = $DB->start_delegated_transaction();
         try {
-            $discussion->add($content, (!$modflow->requires_review(true) || permissions::can_review_posts($modflow, $userid)));
+            $reviewed = !$modflow->requires_review(true) || permissions::can_review_posts($modflow, $userid);
+            $discussion->add($content, $reviewed);
             subscription::follow_on_post($discussion, $userid);
             readtracking::mark_post_read($discussion->get_first_post(), $userid);
+            if ($reviewed) {
+                mail::queue_notification($discussion->get_first_post());
+            } else {
+                // The subscribers are notified when the question is approved.
+                mail::queue_review_request($discussion->get_first_post());
+            }
             $transaction->allow_commit();
         } catch (Throwable $e) {
             $transaction->rollback($e);
@@ -90,6 +97,12 @@ class posting {
             $post = $discussion->add_reply($parent, $userid, $content, $reviewed);
             subscription::follow_on_post($discussion, $userid);
             readtracking::mark_post_read($post, $userid);
+            if ($reviewed) {
+                mail::queue_notification($post);
+            } else {
+                // The subscribers are notified when the reply is approved.
+                mail::queue_review_request($post);
+            }
             $transaction->allow_commit();
         } catch (Throwable $e) {
             $transaction->rollback($e);

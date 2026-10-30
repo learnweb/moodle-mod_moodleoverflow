@@ -24,21 +24,15 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\external\review_approve_post;
 use mod_moodleoverflow\external\review_reject_post;
 use mod_moodleoverflow\local\enum\review_level;
-use mod_moodleoverflow\local\enum\subscription_mode;
-use mod_moodleoverflow\local\manager\mail_manager;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
-use mod_moodleoverflow\task\send_mails;
-use mod_moodleoverflow\task\send_review_mails;
 use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -53,12 +47,10 @@ require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  * @group mod_moodleoverflow
- * @covers \mod_moodleoverflow\external\review_approve_post::execute
  * @covers \mod_moodleoverflow\external\review_reject_post::execute
  * @covers \mod_moodleoverflow\local\service\review
  */
 #[Group('mod_moodleoverflow')]
-#[CoversClass(review_approve_post::class)]
 #[CoversClass(review_reject_post::class)]
 #[CoversClass(service\review::class)]
 final class review_test extends \advanced_testcase {
@@ -100,133 +92,6 @@ final class review_test extends \advanced_testcase {
     }
 
     /**
-     * Test reviews functionality in forums where teachers should review everything.
-     *
-     * @runInSeparateProcess
-     */
-    #[RunInSeparateProcess]
-    public function test_forum_review_everything(): void {
-        global $DB;
-
-        $options = ['needsreview' => review_level::EVERYTHING->value, 'forcesubscribe' => subscription_mode::FORCED->value];
-
-        $posts = $this->create_post($options);
-        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, mail_manager::MAILED_REVIEW_SUCCESS);
-
-        // There should be one review mail for the teacher.
-        // And 1 notification mail for the student (teacher does not get a notification mail for his own post).
-        $this->assertEquals(2, $this->mailsink->count()); // Teacher has to approve student message.
-
-        $this->mailsink->clear();
-
-        $this->setUser($this->teacher);
-        $this->assertSame('', review_approve_post::execute($posts['studentpost']->get_id()));
-
-        $this->run_task(new send_mails());
-        $this->run_task(new send_review_mails());
-
-        $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->get_id()]);
-        $this->assert_matches_properties(['mailed' => mail_manager::MAILED_SUCCESS, 'reviewed' => 1], $post);
-        $this->assertNotNull($post->timereviewed ?? null);
-
-        // There should be one notification mail for the approved post.
-        $this->assertEquals(1, $this->mailsink->count());
-        $this->mailsink->clear();
-
-        $this->setUser($this->student);
-        $studentanswer1 = $this->generator->create_reply($posts['teacherpost'], $this->student);
-        $studentanswer2 = $this->generator->create_reply($posts['teacherpost'], $this->student);
-        $this->setAdminUser();
-
-        $this->run_task(new send_mails());
-        $this->run_task(new send_review_mails());
-
-        // There should be two review mails for the teacher.
-        $this->assertEquals(2, $this->mailsink->count());
-
-        $this->mailsink->clear();
-
-        $this->assertNotEmpty(review_approve_post::execute($studentanswer1->get_id()));
-        $this->assertSame('', review_reject_post::execute($studentanswer2->get_id(), 'This post was not good!'));
-
-        $this->run_task(new send_mails());
-        $this->run_task(new send_review_mails());
-
-        // One review mail for the teacher and one notification mail for the student.
-        $this->assertEquals(2, $this->mailsink->count());
-
-        $rejectionmessage = $this->mailsink->get_messages()[0];
-
-        // Check student gets rejection message.
-        $this->assertStringContainsString('This post was not good', $rejectionmessage->body);
-        $this->assertEquals($this->student->email, $rejectionmessage->to);
-
-        // Check post was deleted.
-        $this->assertEquals(0, $DB->count_records('moodleoverflow_posts', ['id' => $studentanswer2->get_id()]));
-    }
-
-    /**
-     * Test reviews functionality in forums where teachers should review questions.
-     *
-     * @runInSeparateProcess
-     */
-    #[RunInSeparateProcess]
-    public function test_forum_review_only_questions(): void {
-        global $DB;
-
-        $options = ['needsreview' => review_level::QUESTIONS->value, 'forcesubscribe' => subscription_mode::FORCED->value];
-        $posts = $this->create_post($options);
-        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 0, mail_manager::MAILED_REVIEW_SUCCESS);
-
-        // There should be one review needed mail for the teacher and one notification mail for the student.
-        $this->assertEquals(2, $this->mailsink->count());
-
-        $this->mailsink->clear();
-
-        $this->setUser($this->teacher);
-        $this->assertSame('', review_approve_post::execute($posts['studentpost']->get_id()));
-
-        $this->run_task(new send_mails());
-        $this->run_task(new send_review_mails());
-
-        $post = $DB->get_record('moodleoverflow_posts', ['id' => $posts['studentpost']->get_id()]);
-        $this->assert_matches_properties(['mailed' => mail_manager::MAILED_SUCCESS, 'reviewed' => 1], $post);
-        $this->assertNotNull($post->timereviewed ?? null);
-
-        // There should be one notification mail for the student for the approved post.
-        $this->assertEquals(1, $this->mailsink->count());
-
-        $studentanswer1 = $this->generator->create_reply($posts['teacherpost'], $this->student);
-        $studentanswer2 = $this->generator->create_reply($posts['teacherpost'], $this->student);
-
-        $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, mail_manager::MAILED_SUCCESS);
-    }
-
-    /**
-     * Test reviews functionality when reviewing is allowed in admin settings.
-     */
-    public function test_forum_review_disallowed(): void {
-        $options = ['needsreview' => review_level::EVERYTHING->value, 'forcesubscribe' => subscription_mode::FORCED->value];
-
-        set_config('allowreview', 0, 'moodleoverflow');
-
-        $posts = $this->create_post($options);
-        $this->check_mail_records($posts['teacherpost'], $posts['studentpost'], 1, 1, mail_manager::MAILED_SUCCESS);
-
-        // There should be 2 notifications mails (one for each post).
-        $this->assertEquals(2, $this->mailsink->count()); // Teacher has to approve student message.
-
-        $this->mailsink->clear();
-
-        $this->setUser($this->student);
-        $studentanswer1 = $this->generator->create_reply($posts['teacherpost'], $this->student);
-        $studentanswer2 = $this->generator->create_reply($posts['teacherpost'], $this->student);
-        $this->setAdminUser();
-
-        $this->check_mail_records($studentanswer1, $studentanswer2, 1, 1, mail_manager::MAILED_SUCCESS);
-    }
-
-    /**
      * Test, if a refused rejection neither deletes the post nor sends the rejection mail.
      */
     public function test_reject_without_permission_sends_no_mail(): void {
@@ -242,7 +107,8 @@ final class review_test extends \advanced_testcase {
     }
 
     /**
-     * Test, if approving sets the review fields and removes the post from the posts to review.
+     * Test, if approving sets the review fields, removes the post from the posts to review and announces it to the
+     * subscribers.
      */
     public function test_approve(): void {
         global $DB;
@@ -255,6 +121,7 @@ final class review_test extends \advanced_testcase {
         $this->assertEquals(1, $record->reviewed);
         $this->assertNotNull($record->timereviewed);
         $this->assertEquals([], service\review::get_posts_to_review($modflow, $this->teacher->id));
+        $this->assertEquals([$question->get_id()], $this->get_queued_notifications());
     }
 
     /**
@@ -413,20 +280,6 @@ final class review_test extends \advanced_testcase {
     }
 
     /**
-     * Write own function to check if objects match.
-     * @param object|array $expected
-     * @param object|array $actual
-     */
-    private function assert_matches_properties($expected, $actual) {
-        $expected = (array)$expected;
-        $actual = (object)$actual;
-        foreach ($expected as $key => $value) {
-            $this->assertObjectHasProperty($key, $actual, "Failed asserting that attribute '$key' exists.");
-            $this->assertEquals($value, $actual->$key, "Failed asserting that \$obj->$key '" . $actual->$key . "' equals '$value'");
-        }
-    }
-
-    /**
      * Creates a moodleoverflow with a question of the teacher and a question of the student.
      * @param array $options Settings of the moodleoverflow.
      * @return post[] The questions, keyed by 'teacherpost' and 'studentpost'.
@@ -437,44 +290,6 @@ final class review_test extends \advanced_testcase {
             'teacherpost' => $this->generator->create_question($modflow, $this->teacher),
             'studentpost' => $this->generator->create_question($modflow, $this->student),
         ];
-    }
-
-    /**
-     * Check Mail object before and after sending.
-     * @param post $teacherpost
-     * @param post $studentpost
-     * @param int $review1
-     * @param int $review2
-     * @param int $mailed
-     * @return void
-     * @throws \dml_exception
-     */
-    private function check_mail_records($teacherpost, $studentpost, $review1, $review2, $mailed) {
-        global $DB;
-
-        $this->assert_matches_properties(
-            ['mailed' => mail_manager::MAILED_PENDING,
-                                          'reviewed' => $review1, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->get_id()])
-        );
-        $this->assert_matches_properties(
-            ['mailed' => mail_manager::MAILED_PENDING,
-                                          'reviewed' => $review2, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->get_id()])
-        );
-
-        $this->run_task(new send_mails());
-        $this->run_task(new send_review_mails());
-
-        $this->assert_matches_properties(
-            ['mailed' => mail_manager::MAILED_SUCCESS,
-                                          'reviewed' => $review1, 'timereviewed' => null, ],
-            $DB->get_record('moodleoverflow_posts', ['id' => $teacherpost->get_id()])
-        );
-        $this->assert_matches_properties(
-            ['mailed' => $mailed, 'reviewed' => $review2, 'timereviewed' => null],
-            $DB->get_record('moodleoverflow_posts', ['id' => $studentpost->get_id()])
-        );
     }
 
     /**

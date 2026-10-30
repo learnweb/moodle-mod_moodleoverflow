@@ -25,6 +25,32 @@
 defined('MOODLE_INTERNAL') || die();
 
 $messageproviders = [
-    // Ordinary single moodleoverflow posts.
-    'posts' => [],
+    // Notifications about new posts, in the notification bell and by mail.
+    'posts' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
+    ],
+    // Requests to review a post, to the reviewers in the course.
+    'reviewneeded' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
+    ],
+    // The rejection of a post, to its author.
+    'rejected' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
+    ],
+    // The daily digest of new posts, by mail. It can be shown in the notification bell too.
+    'digests' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
+    ],
 ];

@@ -26,17 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
 
-    // Deliver mail notification about posts that need to be reviewed.
-    [
-        'classname' => 'mod_moodleoverflow\task\send_review_mails',
-        'blocking' => 0,
-        'minute' => '*',
-        'hour' => '*',
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*',
-    ],
-
     // Clean old read records.
     [
         'classname' => 'mod_moodleoverflow\task\clean_readrecords',
@@ -54,17 +43,6 @@ $tasks = [
         'blocking' => 0,
         'minute' => '0',
         'hour' => '17',
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*',
-    ],
-
-    // Task to send mail notification of new posts in subscribed discussions.
-    [
-        'classname' => 'mod_moodleoverflow\task\send_mails',
-        'blocking' => 0,
-        'minute' => '*',
-        'hour' => '*',
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*',

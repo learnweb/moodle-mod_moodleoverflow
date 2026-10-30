@@ -67,7 +67,6 @@ class post {
      * @param string $message The message (content) of the post
      * @param int $messageformat The message format
      * @param string $attachment Attachment of the post
-     * @param int $mailed Mailed status
      * @param int $reviewed Review status
      * @param ?int $timereviewed The time when the post was reviewed
      */
@@ -90,8 +89,6 @@ class post {
         public int $messageformat,
         /** @var string Attachment of the post */
         public string $attachment,
-        /** @var int Mailed status */
-        public int $mailed,
         /** @var int Review status */
         public int $reviewed,
         /** @var ?int The time when the post was reviewed */
@@ -115,7 +112,6 @@ class post {
         $message = !empty($record->message) ? $record->message : '';
         $messageformat = !empty($record->messageformat) ? $record->messageformat : 0;
         $attachment = !empty($record->attachment) ? $record->attachment : '';
-        $mailed = !empty($record->mailed) ? $record->mailed : 0;
         $reviewed = $record->reviewed ?? 1;
         $timereviewed = !empty($record->timereviewed) ? $record->timereviewed : null;
 
@@ -129,7 +125,6 @@ class post {
             $message,
             $messageformat,
             $attachment,
-            $mailed,
             $reviewed,
             $timereviewed
         );
@@ -146,7 +141,6 @@ class post {
      * @param string $message The message (content) of the post
      * @param int $messageformat The message format
      * @param string $attachment Attachment of the post
-     * @param int $mailed Mailed status
      * @param int $reviewed Review status
      * @param ?int $timereviewed The time when the post was reviewed
      *
@@ -161,7 +155,6 @@ class post {
         string $message,
         int $messageformat,
         string $attachment,
-        int $mailed,
         int $reviewed,
         ?int $timereviewed
     ): object {
@@ -176,7 +169,6 @@ class post {
             $message,
             $messageformat,
             $attachment,
-            $mailed,
             $reviewed,
             $timereviewed
         );
@@ -227,7 +219,7 @@ class post {
     }
 
     /**
-     * Deletes this post with its replies, their ratings, read records and files (attachments and embedded files).
+     * Deletes this post with its replies, their ratings, read records, digest entries and files (attachments, embedded files).
      *
      * The discussion updates its last post afterward; the question is only deleted through discussion::delete().
      *
@@ -251,6 +243,7 @@ class post {
             // Delete all associated ratings.
             $DB->delete_records('moodleoverflow_ratings', ['postid' => $this->id]);
             readtracking::delete_read_records(postid: $this->id);
+            $DB->delete_records('moodleoverflow_digest_queue', ['postid' => $this->id]);
 
             // Delete all files.
             $fs = get_file_storage();
@@ -647,7 +640,6 @@ class post {
             'message' => $this->message,
             'messageformat' => $this->messageformat,
             'attachment' => $this->attachment,
-            'mailed' => $this->mailed,
             'reviewed' => $this->reviewed,
             'timereviewed' => $this->timereviewed,
         ];
