@@ -19,8 +19,10 @@ namespace mod_moodleoverflow\local\tables;
 defined('MOODLE_INTERNAL') || die();
 
 use core\exception\coding_exception;
+use core\exception\moodle_exception;
 use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
 global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
@@ -105,6 +107,7 @@ class userstats_table extends \flexible_table {
 
         // Step 1.0: Build the datatable with all relevant information.
         $ratingdata = $this->get_rating_data();
+        $this->add_anonymity($ratingdata);
 
         // Step 2.0: Now collect the data for every user in the course.
         foreach ($users as $user) {
@@ -260,7 +263,6 @@ class userstats_table extends \flexible_table {
                             ratings.rating AS rating,
                             ratings.userid AS rateuserid,
                             ratings.postid AS ratepostid,
-                            moodleoverflow.anonymous AS anonymoussetting,
                             moodleoverflow.id AS moodleoverflowid
                       FROM {moodleoverflow_discussions} discuss
                       LEFT JOIN {moodleoverflow_posts} posts ON discuss.id = posts.discussion
@@ -276,8 +278,8 @@ class userstats_table extends \flexible_table {
      * @param object $row
      */
     private function process_received_votes(object $student, object $row) {
-        // Only count received votes if the post is not anonymous (no anonymous setting or only questioner anonymous discussion).
-        if ((($row->anonymoussetting == 0) || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))) {
+        // Only count received votes where the author of the post is visible.
+        if (!$row->authorhidden) {
             if ($row->rating == rating_type::UPVOTE->value) {
                 $student->receivedupvotes += 1;
             } else if ($row->rating == rating_type::DOWNVOTE->value) {
@@ -292,15 +294,13 @@ class userstats_table extends \flexible_table {
      * @param object $row
      */
     private function process_submitted_ratings($student, $row) {
-        // For solution marks: only count a solution if the discussion is not completely anonymous.
-        // For helpful marks: only count helpful marks if the discussion is not any kind of anonymous.
-        // Up and downvotes are always counted.
-        $solvedcheck = ($row->rating == rating_type::SOLVED->value && $row->anonymoussetting != 2);
-        $helpfulcheck = ($row->rating == rating_type::HELPFUL->value && $row->anonymoussetting == 0);
-        $isvote = ($row->rating == rating_type::UPVOTE->value || $row->rating == rating_type::DOWNVOTE->value);
+        // Votes always count, the rater of a vote is never shown. A mark shows who set it (helpful marks come from the
+        // questioner), so it only counts if the rater would be visible as an author in the discussion.
+        $isvote = in_array((int) $row->rating, [rating_type::UPVOTE->value, rating_type::DOWNVOTE->value], true);
+        $ismark = in_array((int) $row->rating, [rating_type::HELPFUL->value, rating_type::SOLVED->value], true);
 
         if (!array_key_exists($row->rateid, $student->ratedposts)) {
-            if ($solvedcheck || $helpfulcheck || $isvote) {
+            if ($isvote || ($ismark && !$row->raterhidden)) {
                 $this->increment_forumactivity($student, $row);
                 $student->courseactivity++;
                 $student->ratedposts[$row->rateid] = $row->rateid;
@@ -314,12 +314,8 @@ class userstats_table extends \flexible_table {
      * @param object $row
      */
     private function process_written_posts($student, $row) {
-        // Only count a written post if: the post is not in an anonymous discussion:
-        // or the post is in a partial anonymous discussion and the user is not the starter of the discussion.
-        if (
-            !array_key_exists($row->postid, $student->submittedposts) &&
-            ($row->anonymoussetting == 0 || ($row->anonymoussetting == 1 && $row->postuserid != $row->discussuserid))
-        ) {
+        // Only count a written post if its author is visible.
+        if (!array_key_exists($row->postid, $student->submittedposts) && !$row->authorhidden) {
             $this->increment_forumactivity($student, $row);
             $student->courseactivity += 1;
             $student->submittedposts[$row->postid] = $row->postid;
@@ -348,5 +344,23 @@ class userstats_table extends \flexible_table {
         $key = $sortorder['sortby'];
         $direction = $sortorder['sortorder'] == SORT_ASC ? 1 : -1;
         usort($this->userstatsdata, fn($a, $b) => $direction * ($a->$key <=> $b->$key));
+    }
+
+    /**
+     * Adds to every row whether its post author and its rater are hidden by the anonymity of their moodleoverflow, so
+     * that the activity of anonymous users does not show who they are. A missing user (no rating, removed author)
+     * counts as hidden.
+     * @param object[] $rows from get_rating_data()
+     * @throws moodle_exception
+     */
+    private function add_anonymity(array $rows): void {
+        $modflows = [];
+        foreach ($rows as $row) {
+            $modflow = $modflows[$row->moodleoverflowid] ??= moodleoverflow::from_id($row->moodleoverflowid);
+            $hidden = fn($userid) => !$userid
+                || permissions::is_hidden_as_author($modflow, (int) $userid, $userid == $row->discussuserid);
+            $row->authorhidden = $hidden($row->postuserid);
+            $row->raterhidden = $hidden($row->rateuserid);
+        }
     }
 }

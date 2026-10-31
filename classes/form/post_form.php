@@ -126,7 +126,7 @@ class post_form extends moodleform {
         );
 
         // The files of an anonymous author must not name the author.
-        if ($post && $modflow->is_author_anonymous($post->get_discussion()->get_userid() === $post->get_userid())) {
+        if ($post && permissions::is_author_hidden($post)) {
             $usercontext = \context_user::instance($USER->id);
             $anonymous = get_string('anonymous', 'moodleoverflow');
             foreach (get_file_storage()->get_area_files($usercontext->id, 'user', 'draft', $attachmentdraftid) as $file) {

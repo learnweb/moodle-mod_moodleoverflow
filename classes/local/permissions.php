@@ -101,9 +101,31 @@ class permissions {
             return false;
         }
         $ownpost = $post->get_userid() === $userid;
-        $isquestioner = $post->get_userid() === $post->get_discussion()->get_userid();
-        return self::can_view_post($post, $userid)
-            && ($ownpost || !$post->get_moodleoverflow()->is_author_anonymous($isquestioner));
+        return self::can_view_post($post, $userid) && ($ownpost || !self::is_author_hidden($post));
+    }
+
+    /**
+     * If the author of a post is hidden from other users. Authors always see their own posts (can_view_author()).
+     * @param post $post
+     * @return bool
+     * @throws moodle_exception
+     */
+    public static function is_author_hidden(post $post): bool {
+        $authorid = $post->get_userid();
+        $isquestioner = $authorid === $post->get_discussion()->get_userid();
+        return self::is_hidden_as_author($post->get_moodleoverflow(), $authorid, $isquestioner);
+    }
+
+    /**
+     * If a user is hidden from other users as the author of a post. This is the only anonymity rule for authors; use it
+     * directly where no post model is loaded (SQL lists, search index).
+     * @param moodleoverflow $modflow
+     * @param int $userid The author
+     * @param bool $isquestioner Whether the author started the discussion of the post
+     * @return bool
+     */
+    public static function is_hidden_as_author(moodleoverflow $modflow, int $userid, bool $isquestioner): bool {
+        return $modflow->is_author_anonymous($isquestioner);
     }
 
     /**
