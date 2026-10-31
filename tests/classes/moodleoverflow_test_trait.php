@@ -28,8 +28,8 @@ use stdClass;
 /**
  * Shared set-up for moodleoverflow unit tests.
  *
- * Only holds what several test files need: a course with users, moodleoverflow instances, mails and tasks. Test data
- * inside a moodleoverflow (posts, ratings, files) is created by the plugin generator.
+ * Only holds what several test files need: a course with users, moodleoverflow instances, capabilities, mails and
+ * tasks. Test data inside a moodleoverflow (posts, ratings, files) is created by the plugin generator.
  *
  * @package    mod_moodleoverflow
  * @copyright  2026 Tamaro Walter
@@ -89,6 +89,21 @@ trait moodleoverflow_test_trait {
             $users[] = $this->getDataGenerator()->create_and_enrol($course ?? $this->course, 'student');
         }
         return $users;
+    }
+
+    /**
+     * Allows a capability for a role in a moodleoverflow. Clears the access caches, so the change also applies to users
+     * whose capabilities were checked before.
+     *
+     * @param string $capability
+     * @param string $role Short name of the role, e.g. 'editingteacher'.
+     * @param moodleoverflow $modflow
+     */
+    protected function allow_capability(string $capability, string $role, moodleoverflow $modflow): void {
+        global $DB;
+        $roleid = $DB->get_field('role', 'id', ['shortname' => $role], MUST_EXIST);
+        assign_capability($capability, CAP_ALLOW, $roleid, $modflow->get_context()->id, true);
+        accesslib_clear_all_caches_for_unit_testing();
     }
 
     /**

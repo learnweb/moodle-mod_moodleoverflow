@@ -28,3 +28,13 @@ Feature: Use moodleoverflow anonymously
     When I click in moodleoverflow on "link" type:
       | Edit | NH.jpg |
     Then the field "Author" matches value "Anonymous"
+
+  Scenario: Teachers who may post with their name are shown by name in anonymous mode
+    Given the following "permission overrides" exist:
+      | capability                      | permission | role           | contextlevel | reference |
+      | mod/moodleoverflow:postwithname | Allow      | editingteacher | System       |           |
+    And User "student1" adds to "Test moodleoverflow" a discussion with topic "Anonymous question" and message "Who answers?" automatically
+    And User "teacher1" replies "Who answers?" with "The teacher answers." automatically
+    When I am on the "Anonymous question" "mod_moodleoverflow > Discussion" page logged in as "student1"
+    Then I should see "Teacher 1" in the moodleoverflow post "The teacher answers."
+    And I should see "Anonymous (You)" in the moodleoverflow post "Who answers?"

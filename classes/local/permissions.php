@@ -123,9 +123,11 @@ class permissions {
      * @param int $userid The author
      * @param bool $isquestioner Whether the author started the discussion of the post
      * @return bool
+     * @throws coding_exception|moodle_exception
      */
     public static function is_hidden_as_author(moodleoverflow $modflow, int $userid, bool $isquestioner): bool {
-        return $modflow->is_author_anonymous($isquestioner);
+        return $modflow->is_author_anonymous($isquestioner)
+            && !($userid && has_capability('mod/moodleoverflow:postwithname', $modflow->get_context(), $userid, false));
     }
 
     /**

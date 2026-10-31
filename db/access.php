@@ -223,4 +223,10 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/moodleoverflow:editanypost',
     ],
+    'mod/moodleoverflow:postwithname' => [
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [],
+    ],
 ];
