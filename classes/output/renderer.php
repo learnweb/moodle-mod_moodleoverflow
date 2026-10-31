@@ -45,7 +45,7 @@ class renderer extends plugin_renderer_base {
         // Preload all plugin strings, because React components read them synchronously (M.util.get_string()).
         $strings = get_string_manager()->load_component_strings('mod_moodleoverflow', current_language());
         $this->page->requires->strings_for_js(array_keys($strings), 'mod_moodleoverflow');
-        $this->page->requires->strings_for_js(['loading', 'noresults', 'nothingtodisplay', 'posts'], 'core');
+        $this->page->requires->strings_for_js(['fullnameuser', 'loading', 'noresults', 'nothingtodisplay', 'posts'], 'core');
 
         return $this->output->render_react_component("mod_moodleoverflow/$component", $props);
     }

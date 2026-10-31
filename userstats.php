@@ -23,11 +23,13 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
-global $PAGE, $OUTPUT, $SESSION, $USER;
+global $CFG, $PAGE, $OUTPUT, $USER;
 
+use mod_moodleoverflow\local\dto\userstats_dto;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\local\tables\userstats_table;
+use mod_moodleoverflow\local\service\userstats;
+use mod_moodleoverflow\output\userstats_table;
 
 // Declare optional parameters.
 $cmid = required_param('id', PARAM_INT); // Course Module ID.
@@ -43,18 +45,22 @@ require_login($course, true, $cm);
 // Set the context.
 $PAGE->set_context($moodleoverflow->get_context());
 
-if (permissions::can_view_userstats($moodleoverflow, $USER->id)) {
-    // Print the page header.
-    $PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id, 'courseid' => $course->id, 'mid' => $moodleoverflow->id]);
-    $PAGE->set_title(get_string('userstats', 'moodleoverflow'));
-    $PAGE->set_heading(get_string('userstatscourse', 'moodleoverflow', $course->fullname));
-
-    // Output starts here.
-    echo $OUTPUT->header();
-    echo $OUTPUT->heading('');
-    $table = new userstats_table('statisticstable', $course->id, $moodleoverflow->id, $PAGE->url);
-    $table->out();
-    echo $OUTPUT->footer();
-} else {
+if (!permissions::can_view_userstats($moodleoverflow, $USER->id)) {
     redirect(new moodle_url('/'));
 }
+
+// Print the page header.
+$PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id]);
+$PAGE->set_title(get_string('userstats', 'moodleoverflow'));
+$PAGE->set_heading(get_string('userstatscourse', 'moodleoverflow', $course->fullname));
+$statistics = userstats::get_statistics($moodleoverflow, $USER->id);
+
+// Output starts here. Moodle versions without React get the old table.
+echo $OUTPUT->header();
+if ($CFG->branch >= 503) {
+    $props = (object) ['users' => array_map(fn(userstats_dto $dto) => $dto->to_array(), $statistics)];
+    echo $PAGE->get_renderer('mod_moodleoverflow')->render_react('UserStatsPage', $props);
+} else {
+    (new userstats_table('statisticstable', $statistics, $PAGE->url))->out();
+}
+echo $OUTPUT->footer();

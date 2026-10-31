@@ -18,6 +18,8 @@ namespace mod_moodleoverflow\local\models;
 
 use cm_info;
 use core\exception\coding_exception;
+use core\exception\moodle_exception;
+use core_availability\info_module;
 use context_module;
 use dml_exception;
 use moodle_url;
@@ -235,6 +237,27 @@ class moodleoverflow {
      */
     public function get_course(): stdClass {
         return get_course($this->course);
+    }
+
+    /**
+     * The participants of this moodleoverflow: the users with an active enrolment who may view its discussions and whom
+     * the access restrictions of the activity let in (groups, groupings, profile fields). Whether the course or the
+     * activity is hidden at the moment does not matter, so a hidden (e.g. archived) course still lists its participants.
+     * @return stdClass[] User records, indexed by id, ordered by name
+     * @throws coding_exception|dml_exception|moodle_exception
+     */
+    public function get_participants(): array {
+        $users = get_enrolled_users(
+            $this->get_context(),
+            'mod/moodleoverflow:viewdiscussion',
+            0,
+            'u.*',
+            'u.lastname, u.firstname, u.id',
+            0,
+            0,
+            true
+        );
+        return (new info_module($this->get_cm()))->filter_user_list($users);
     }
 
     // Posting.

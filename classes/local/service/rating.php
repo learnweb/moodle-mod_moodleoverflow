@@ -209,31 +209,71 @@ class rating {
      * @param moodleoverflow $modflow
      * @param int $userid
      * @return int
-     * @throws dml_exception
+     * @throws dml_exception|moodle_exception
      */
     public static function get_instance_reputation(moodleoverflow $modflow, int $userid): int {
+        return self::get_instance_reputations($modflow, $userid)[$userid] ?? 0;
+    }
+
+    /**
+     * Returns the reputations of the users of a single moodleoverflow instance, computed for all users at once.
+     * @param moodleoverflow $modflow
+     * @param int|null $userid Only compute the reputation of this user; null computes it for every user.
+     * @return int[] The reputation by user id, for every user who received or gave a rating.
+     * @throws dml_exception|moodle_exception
+     */
+    public static function get_instance_reputations(moodleoverflow $modflow, ?int $userid = null): array {
         global $DB;
-        // Ratings the user received. Own ratings on own posts never count.
-        $sql = "SELECT r.id, r.rating, d.userid AS questionerid
+        $reputations = [];
+        $add = function (int $user, int $points) use (&$reputations): void {
+            $reputations[$user] = ($reputations[$user] ?? 0) + $points;
+        };
+
+        // Ratings the users received, where the author is visible. Own ratings on own posts never count.
+        $params = ['modflowid' => $modflow->id];
+        $authorsql = '';
+        if ($userid !== null) {
+            $authorsql = 'AND p.userid = :author';
+            $params['author'] = $userid;
+        }
+        $sql = "SELECT r.id, r.rating, p.userid AS authorid, d.userid AS questionerid
               FROM {moodleoverflow_ratings} r
               JOIN {moodleoverflow_posts} p ON p.id = r.postid
               JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
-             WHERE r.moodleoverflowid = :modflowid AND p.userid = :author AND r.userid <> :rater";
-        $received = $DB->get_records_sql($sql, ['modflowid' => $modflow->id, 'author' => $userid, 'rater' => $userid]);
-
-        $reputation = 0;
-        foreach ($received as $record) {
-            if (!permissions::is_hidden_as_author($modflow, $userid, $userid == $record->questionerid)) {
-                $reputation += rating_type::from($record->rating)->get_author_reputation();
+             WHERE r.moodleoverflowid = :modflowid AND p.userid <> 0 AND r.userid <> p.userid $authorsql";
+        $hidden = [];
+        foreach ($DB->get_records_sql($sql, $params) as $record) {
+            $authorid = (int) $record->authorid;
+            $isquestioner = $authorid === (int) $record->questionerid;
+            $hidden[$authorid][(int) $isquestioner] ??= permissions::is_hidden_as_author($modflow, $authorid, $isquestioner);
+            if (!$hidden[$authorid][(int) $isquestioner]) {
+                $add($authorid, rating_type::from($record->rating)->get_author_reputation());
             }
         }
 
-        // Ratings the user gave.
-        $given = $DB->get_records('moodleoverflow_ratings', ['moodleoverflowid' => $modflow->id, 'userid' => $userid]);
-        foreach ($given as $record) {
-            $reputation += rating_type::from($record->rating)->get_rater_reputation();
+        // Ratings the users gave.
+        $conditions = ['moodleoverflowid' => $modflow->id] + ($userid === null ? [] : ['userid' => $userid]);
+        foreach ($DB->get_records('moodleoverflow_ratings', $conditions, '', 'id, userid, rating') as $record) {
+            $add((int) $record->userid, rating_type::from($record->rating)->get_rater_reputation());
         }
-        return $modflow->allows_negative_reputation() ? $reputation : max(0, $reputation);
+        return $modflow->allows_negative_reputation() ? $reputations : array_map(fn(int $points) => max(0, $points), $reputations);
+    }
+
+    /**
+     * Returns the reputations of the users summed over the moodleoverflows of a course that share their reputation.
+     * @param int $courseid
+     * @return int[] The reputation by user id, for every user who received or gave a rating in such an instance.
+     * @throws dml_exception|moodle_exception
+     */
+    public static function get_course_reputations(int $courseid): array {
+        global $DB;
+        $reputations = [];
+        foreach ($DB->get_records('moodleoverflow', ['course' => $courseid, 'coursewidereputation' => 1]) as $record) {
+            foreach (self::get_instance_reputations(moodleoverflow::from_record($record)) as $userid => $points) {
+                $reputations[$userid] = ($reputations[$userid] ?? 0) + $points;
+            }
+        }
+        return $reputations;
     }
 
     /**

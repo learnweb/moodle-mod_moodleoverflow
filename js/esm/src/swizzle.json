@@ -10,5 +10,9 @@
   "PostFilter": {
     "eject": "risky",
     "wrap": "risky"
+  },
+  "UserStatsPage": {
+    "eject": "risky",
+    "wrap": "risky"
   }
 }
