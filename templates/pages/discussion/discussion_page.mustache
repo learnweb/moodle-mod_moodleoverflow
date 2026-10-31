@@ -15,13 +15,27 @@
   along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-  @template mod_moodleoverflow/post
+  @template mod_moodleoverflow/pages/discussion/discussion_page
 
   Moodleoverflow discussion page template
   This template renders the discussion page.
 
+  Context variables required for this template:
+  * answeramount - Heading with the number of answers
+  * firstpost - Rendered post card of the question
+  * answers - Rendered post cards of the answers and comments
+  * hasneighbours - Whether there is a neighbouring discussion to navigate to
+  * previousdiscussion - Optional url and name of the older neighbouring discussion
+  * nextdiscussion - Optional url and name of the newer neighbouring discussion
+
    Example context (json):
    {
+       "answeramount": "2 Answers",
+       "firstpost": "<div>Question</div>",
+       "answers": ["<div>Answer</div>", "<div>Comment</div>"],
+       "hasneighbours": true,
+       "previousdiscussion": {"url": "https://example.com/mod/moodleoverflow/discussion.php?d=1", "name": "Older question"},
+       "nextdiscussion": {"url": "https://example.com/mod/moodleoverflow/discussion.php?d=3", "name": "Newer question"}
    }
 }}
 
@@ -36,4 +50,21 @@
             {{#answers}}{{{.}}}{{/answers}}
         </div>
     </div>
+    {{#hasneighbours}}
+        <nav class="moodleoverflow-discussion-navigation d-flex justify-content-between border-top pt-3 mt-4"
+             aria-label="{{#str}} discussionnavigation, moodleoverflow {{/str}}">
+            <div class="w-50 pe-2 text-truncate">
+                {{#previousdiscussion}}
+                    <span class="d-block small text-muted">{{#str}} previousdiscussion, moodleoverflow {{/str}}</span>
+                    <a href="{{{url}}}" title="{{name}}">{{#pix}} t/left, core {{/pix}}{{name}}</a>
+                {{/previousdiscussion}}
+            </div>
+            <div class="w-50 ps-2 text-end text-truncate">
+                {{#nextdiscussion}}
+                    <span class="d-block small text-muted">{{#str}} nextdiscussion, moodleoverflow {{/str}}</span>
+                    <a href="{{{url}}}" title="{{name}}">{{name}} {{#pix}} t/right, core {{/pix}}</a>
+                {{/nextdiscussion}}
+            </div>
+        </nav>
+    {{/hasneighbours}}
 </div>

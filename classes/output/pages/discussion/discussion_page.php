@@ -56,6 +56,15 @@ class discussion_page implements named_templatable, renderable {
         $data = new discussion_page_data($this->discussion, $USER->id, $ratings);
         $render = fn(post $post) => $output->render(new post_card($post, $data));
 
+        // Get the list of neighbouring discussions. Discussions are sorted by descending timestart (newest first).
+        $neighbours = array_values(service\discussion::get_discussions($this->discussion->get_moodleoverflow(), $USER->id));
+        $current = array_search($this->discussion->get_id(), array_map(fn($d) => $d->get_id(), $neighbours), true);
+        $context = $this->discussion->get_moodleoverflow()->get_context();
+        $neighbour = fn(int $index) => $current !== false && isset($neighbours[$index]) ? [
+            'url' => $neighbours[$index]->get_link()->out(false),
+            'name' => format_string($neighbours[$index]->name, true, ['context' => $context]),
+        ] : null;
+
         // The template lists the answers flat; a comment is indented by its post card.
         $answers = [];
         foreach ($tree['answers'] as $branch) {
@@ -63,10 +72,17 @@ class discussion_page implements named_templatable, renderable {
             array_push($answers, ...array_map($render, $branch['comments']));
         }
 
+        $previous = $neighbour($current + 1);
+        $next = $neighbour($current - 1);
+
         return (object) [
             'answeramount' => get_string(count($answers) > 0 ? 'answers' : 'answer', 'moodleoverflow', count($answers)),
             'firstpost' => $render($tree['question']),
             'answers' => $answers,
+            // The previous discussion is the older one, so it comes after the current one in the list.
+            'previousdiscussion' => $previous,
+            'nextdiscussion' => $next,
+            'hasneighbours' => $previous || $next,
         ];
     }
 }
