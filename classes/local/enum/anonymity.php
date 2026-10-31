@@ -36,10 +36,8 @@ enum anonymity: int {
     case EVERYTHING = 2;
 
     /**
-     * Whether the author of a post is anonymous by this setting.
-     *
-     * Only the setting is evaluated. Whether a specific user may see the author anyway (capability) is decided
-     * in the access layer.
+     * Whether the author of a post is anonymous by this setting. Only the setting is evaluated. Whether an author is shown anyway
+     * is decided in permissions::is_hidden_as_author().
      *
      * @param bool $isquestioner Whether the author of the post also started the discussion.
      * @return bool

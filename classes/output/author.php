@@ -60,8 +60,7 @@ class author implements templatable {
         }
 
         $profileurl = (new moodle_url('/user/view.php', ['id' => $authorid, 'course' => $modflow->course]))->out(false);
-        $isquestioner = $authorid === $this->post->get_discussion()->get_userid();
-        if ($authorid === $this->userid && $modflow->is_author_anonymous($isquestioner)) {
+        if ($authorid === $this->userid && permissions::is_author_hidden($this->post)) {
             // The user's own post, which the others see anonymously.
             return ['name' => get_string('anonym_you', 'mod_moodleoverflow'), 'profileurl' => $profileurl, 'picture' => ''];
         }

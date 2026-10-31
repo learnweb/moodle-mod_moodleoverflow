@@ -223,7 +223,7 @@ class rating {
 
         $reputation = 0;
         foreach ($received as $record) {
-            if (!$modflow->is_author_anonymous($userid == $record->questionerid)) {
+            if (!permissions::is_hidden_as_author($modflow, $userid, $userid == $record->questionerid)) {
                 $reputation += rating_type::from($record->rating)->get_author_reputation();
             }
         }

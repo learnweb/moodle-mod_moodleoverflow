@@ -320,6 +320,21 @@ final class ratings_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if received ratings count in an anonymous moodleoverflow when the author posts with their name.
+     */
+    public function test_reputation_postwithname(): void {
+        $modflow = $this->create_moodleoverflow(['anonymous' => anonymity::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        $answer = $this->generator->create_reply($question, $this->teacher);
+        $this->generator->create_rating($answer, $this->student, rating_type::UPVOTE);
+        $this->assertEquals(0, service\rating::get_instance_reputation($modflow, $this->teacher->id));
+
+        $this->allow_capability('mod/moodleoverflow:postwithname', 'editingteacher', $modflow);
+        $expected = rating_type::UPVOTE->get_author_reputation();
+        $this->assertEquals($expected, service\rating::get_instance_reputation($modflow, $this->teacher->id));
+    }
+
+    /**
      * Test, if the reputation only becomes negative when the instance allows it.
      */
     public function test_negative_reputation(): void {

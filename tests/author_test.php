@@ -78,6 +78,22 @@ final class author_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if an author who posts with their name is shown by name in an anonymous moodleoverflow, while the numbers
+     * of the hidden authors stay the same.
+     */
+    public function test_postwithname(): void {
+        $modflow = $this->create_moodleoverflow(['anonymous' => anonymity::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        $teacheranswer = $this->generator->create_reply($question, $this->teacher);
+        $answer = $this->generator->create_reply($question, $this->otherstudent);
+
+        $this->allow_capability('mod/moodleoverflow:postwithname', 'editingteacher', $modflow);
+        $this->assertEquals(fullname($this->teacher), $this->get_name($teacheranswer, $this->student->id));
+        $this->assertEquals(fullname($this->teacher), $this->get_name($teacheranswer, $this->teacher->id));
+        $this->assertEquals('Answerer #2', $this->get_name($answer, $this->student->id));
+    }
+
+    /**
      * Returns the author name of a post as a user sees it.
      *
      * @param post $post

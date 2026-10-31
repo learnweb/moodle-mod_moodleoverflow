@@ -209,6 +209,24 @@ final class permissions_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if authors with the capability postwithname are shown in an anonymous moodleoverflow, also on posts written
+     * before they got it, while admins are not exempt by default.
+     */
+    public function test_can_view_author_postwithname(): void {
+        $modflow = $this->create_moodleoverflow(['anonymous' => anonymity::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        $answer = $this->generator->create_reply($question, $this->teacher);
+        $this->assertFalse(permissions::can_view_author($answer, $this->student->id));
+
+        $this->allow_capability('mod/moodleoverflow:postwithname', 'editingteacher', $modflow);
+        $this->assertTrue(permissions::can_view_author($answer, $this->student->id));
+        $this->assertFalse(permissions::can_view_author($question, $this->teacher->id));
+
+        $adminquestion = $this->generator->create_question($modflow, get_admin());
+        $this->assertFalse(permissions::can_view_author($adminquestion, $this->student->id));
+    }
+
+    /**
      * Test, if only users that can view rating information see the user statistics.
      */
     public function test_can_view_userstats(): void {

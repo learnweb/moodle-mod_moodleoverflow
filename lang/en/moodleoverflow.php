@@ -243,6 +243,7 @@ $string['moodleoverflow:editanypost'] = 'Edit posts';
 $string['moodleoverflow:managesubscriptions'] = 'Manage subscriptions';
 $string['moodleoverflow:marksolved'] = 'Mark a post as solution';
 $string['moodleoverflow:movetopic'] = 'Move Topic to another Moddleoverflow Forum';
+$string['moodleoverflow:postwithname'] = 'Always post with visible name, even in anonymous moodleoverflows';
 $string['moodleoverflow:ratehelpful'] = 'Mark a post as helpful';
 $string['moodleoverflow:ratepost'] = 'Rate a post';
 $string['moodleoverflow:replypost'] = 'Reply in discussion';

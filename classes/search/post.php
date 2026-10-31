@@ -103,8 +103,10 @@ class post extends \core_search\base_mod {
         $doc->set('courseid', $record->courseid);
         $doc->set('owneruserid', manager::NO_OWNER_ID);
         $doc->set('modified', $record->modified);
-        if ((int) $record->userid !== 0 && !$moodleoverflow->is_author_anonymous($record->discussionuserid === $record->userid)) {
-            $doc->set('userid', $record->userid);
+        $authorid = (int) $record->userid;
+        $isquestioner = $authorid === (int) $record->discussionuserid;
+        if ($authorid !== 0 && !permissions::is_hidden_as_author($moodleoverflow, $authorid, $isquestioner)) {
+            $doc->set('userid', $authorid);
         }
 
         // Check if this document should be considered new.
