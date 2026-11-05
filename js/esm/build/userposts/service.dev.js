@@ -3,7 +3,7 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
 /**
  * Service class that communicates with moodleoverflows REST API
  *
- * @module     mod_moodleoverflow/service
+ * @module     mod_moodleoverflow/userposts/service
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

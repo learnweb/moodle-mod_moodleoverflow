@@ -19,7 +19,7 @@
  * This component only renders controls and reports the new view upwards. Which posts a view lets
  * through is decided in filters.ts.
  *
- * @module     mod_moodleoverflow/PostFilter
+ * @module     mod_moodleoverflow/userposts/PostFilter
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,7 +27,7 @@
 import {useState} from "react";
 import {UserPost as UserPostType} from "./service";
 import {FilterState} from "./filters";
-import {str} from "./lang";
+import {str} from "../lang";
 
 /** The time spans the time filter offers. The keys are also the language string identifiers. */
 const timespans: {key: string, seconds: number | null}[] = [

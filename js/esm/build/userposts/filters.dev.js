@@ -3,7 +3,7 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
 /**
  * Filter for the User posts.
  *
- * @module     mod_moodleoverflow/filters
+ * @module     mod_moodleoverflow/userposts/filters
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

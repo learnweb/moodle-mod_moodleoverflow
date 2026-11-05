@@ -7,12 +7,12 @@ import { Fragment, jsxDEV } from "react/jsx-dev-runtime";
  * This component only renders controls and reports the new view upwards. Which posts a view lets
  * through is decided in filters.ts.
  *
- * @module     mod_moodleoverflow/PostFilter
+ * @module     mod_moodleoverflow/userposts/PostFilter
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import { useState } from "react";
-import { str } from "./lang";
+import { str } from "../lang";
 const timespans = [
   { key: "alltime", seconds: null },
   { key: "lastweek", seconds: 604800 },
@@ -37,11 +37,11 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
     /* @__PURE__ */ jsxDEV("div", { className: "row g-2 mb-3", children: [
       /* @__PURE__ */ jsxDEV("div", { className: "col-sm input-group", children: [
         /* @__PURE__ */ jsxDEV("span", { className: "input-group-text", children: /* @__PURE__ */ jsxDEV("i", { className: "fa-solid fa-magnifying-glass" }, void 0, false, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 75,
           columnNumber: 46
         }, this) }, void 0, false, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 75,
           columnNumber: 11
         }, this),
@@ -57,14 +57,14 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
           void 0,
           false,
           {
-            fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+            fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
             lineNumber: 76,
             columnNumber: 11
           },
           this
         )
       ] }, void 0, true, {
-        fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
         lineNumber: 74,
         columnNumber: 9
       }, this),
@@ -78,13 +78,13 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
           onClick: () => setOpen(!open),
           children: [
             /* @__PURE__ */ jsxDEV("i", { className: "fa-solid fa-filter me-2" }, void 0, false, {
-              fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+              fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
               lineNumber: 82,
               columnNumber: 13
             }, this),
             str("filterposts"),
             active > 0 && /* @__PURE__ */ jsxDEV("span", { className: "badge text-bg-primary ms-2", children: active }, void 0, false, {
-              fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+              fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
               lineNumber: 84,
               columnNumber: 28
             }, this)
@@ -93,13 +93,13 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
         void 0,
         true,
         {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 80,
           columnNumber: 11
         },
         this
       ) }, void 0, false, {
-        fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
         lineNumber: 79,
         columnNumber: 9
       }, this),
@@ -111,7 +111,7 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
           onClick: () => onSortChange(!newestfirst),
           children: [
             /* @__PURE__ */ jsxDEV("i", { className: `fa-solid me-2 ${newestfirst ? "fa-arrow-down-wide-short" : "fa-arrow-up-short-wide"}` }, void 0, false, {
-              fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+              fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
               lineNumber: 90,
               columnNumber: 13
             }, this),
@@ -121,25 +121,25 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
         void 0,
         true,
         {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 88,
           columnNumber: 11
         },
         this
       ) }, void 0, false, {
-        fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
         lineNumber: 87,
         columnNumber: 9
       }, this)
     ] }, void 0, true, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
       lineNumber: 73,
       columnNumber: 7
     }, this),
     open && /* @__PURE__ */ jsxDEV("div", { id: "moodleoverflow-postfilter", className: "card mb-4", children: /* @__PURE__ */ jsxDEV("div", { className: "card-body", children: [
       /* @__PURE__ */ jsxDEV("fieldset", { className: "mb-3", children: [
         /* @__PURE__ */ jsxDEV("legend", { className: "h6", children: str("coursefilter") }, void 0, false, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 100,
           columnNumber: 15
         }, this),
@@ -156,34 +156,34 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
             void 0,
             false,
             {
-              fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+              fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
               lineNumber: 104,
               columnNumber: 21
             },
             this
           ),
           /* @__PURE__ */ jsxDEV("label", { className: "form-check-label", htmlFor: `moodleoverflow-course-${courseid}`, children: course }, void 0, false, {
-            fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+            fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
             lineNumber: 107,
             columnNumber: 21
           }, this)
         ] }, courseid, true, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 103,
           columnNumber: 19
         }, this)) }, void 0, false, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 101,
           columnNumber: 15
         }, this)
       ] }, void 0, true, {
-        fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
         lineNumber: 99,
         columnNumber: 13
       }, this),
       /* @__PURE__ */ jsxDEV("fieldset", { children: [
         /* @__PURE__ */ jsxDEV("legend", { className: "h6", children: str("timefilter") }, void 0, false, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 116,
           columnNumber: 15
         }, this),
@@ -201,28 +201,28 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
             void 0,
             false,
             {
-              fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+              fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
               lineNumber: 120,
               columnNumber: 21
             },
             this
           ),
           /* @__PURE__ */ jsxDEV("label", { className: "form-check-label", htmlFor: `moodleoverflow-timespan-${key}`, children: str(key) }, void 0, false, {
-            fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+            fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
             lineNumber: 123,
             columnNumber: 21
           }, this)
         ] }, key, true, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 119,
           columnNumber: 19
         }, this)) }, void 0, false, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 117,
           columnNumber: 15
         }, this)
       ] }, void 0, true, {
-        fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
         lineNumber: 115,
         columnNumber: 13
       }, this),
@@ -237,23 +237,23 @@ function PostFilter({ posts, filters, onChange, newestfirst, onSortChange }) {
         void 0,
         false,
         {
-          fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
           lineNumber: 132,
           columnNumber: 15
         },
         this
       )
     ] }, void 0, true, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
       lineNumber: 98,
       columnNumber: 11
     }, this) }, void 0, false, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
       lineNumber: 97,
       columnNumber: 9
     }, this)
   ] }, void 0, true, {
-    fileName: "public/mod/moodleoverflow/js/esm/src/PostFilter.tsx",
+    fileName: "public/mod/moodleoverflow/js/esm/src/userposts/PostFilter.tsx",
     lineNumber: 72,
     columnNumber: 5
   }, this);

@@ -30,7 +30,7 @@ class renderer extends plugin_renderer_base {
     /**
      * Prepares and renders React component.
      *
-     * @param string $component The component in js/esm, e.g. 'UserPage'.
+     * @param string $component The component in js/esm, e.g. 'userposts/UserPage'.
      * @param object $props The properties passed to the component.
      * @return string
      */

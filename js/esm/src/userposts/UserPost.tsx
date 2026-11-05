@@ -16,13 +16,13 @@
 /**
  * A single post of a user, as it is listed on the user.php page.
  *
- * @module     mod_moodleoverflow/UserPost
+ * @module     mod_moodleoverflow/userposts/UserPost
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {UserPost as UserPostType} from "./service";
-import {str} from "./lang";
+import {str} from "../lang";
 
 /**
  * Formats a unix timestamp into a readable date.

@@ -6,12 +6,12 @@ import { fetchUserPosts } from "./service";
 import UserPost from "./UserPost";
 import PostFilter from "./PostFilter";
 import { approvedBy } from "./filters";
-import { str } from "./lang";
+import { str } from "../lang";
 /**
  * React component for the moodleoverflow user page that shows all the users posts,
  * grouped by the moodleoverflow they were written in.
  *
- * @module     mod_moodleoverflow/UserPage
+ * @module     mod_moodleoverflow/userposts/UserPage
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,15 +30,15 @@ function UserPage({ userid, courseid = 0 }) {
   }, [userid]);
   if (posts === null) {
     return /* @__PURE__ */ jsxDEV("div", { className: "text-center py-5", children: /* @__PURE__ */ jsxDEV("div", { className: "spinner-border", role: "status", children: /* @__PURE__ */ jsxDEV("span", { className: "visually-hidden", children: str("loading", true) }, void 0, false, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
       lineNumber: 54,
       columnNumber: 11
     }, this) }, void 0, false, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
       lineNumber: 53,
       columnNumber: 9
     }, this) }, void 0, false, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
       lineNumber: 52,
       columnNumber: 7
     }, this);
@@ -48,17 +48,17 @@ function UserPage({ userid, courseid = 0 }) {
   return /* @__PURE__ */ jsxDEV(Fragment, { children: [
     /* @__PURE__ */ jsxDEV("div", { className: "d-flex align-items-baseline gap-2 mb-3", children: [
       /* @__PURE__ */ jsxDEV("h2", { className: "h4 mb-0", children: str("posts", true) }, void 0, false, {
-        fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
         lineNumber: 71,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ jsxDEV("span", { className: "text-muted", children: matches.length }, void 0, false, {
-        fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
         lineNumber: 72,
         columnNumber: 9
       }, this)
     ] }, void 0, true, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
       lineNumber: 70,
       columnNumber: 7
     }, this),
@@ -74,18 +74,18 @@ function UserPage({ userid, courseid = 0 }) {
       void 0,
       false,
       {
-        fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
         lineNumber: 75,
         columnNumber: 7
       },
       this
     ),
     matches.length === 0 && /* @__PURE__ */ jsxDEV("p", { className: "text-muted", children: /* @__PURE__ */ jsxDEV("em", { children: str(posts.length === 0 ? "nothingtodisplay" : "noresults", true) }, void 0, false, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
       lineNumber: 79,
       columnNumber: 35
     }, this) }, void 0, false, {
-      fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+      fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
       lineNumber: 79,
       columnNumber: 9
     }, this),
@@ -104,7 +104,7 @@ function UserPage({ userid, courseid = 0 }) {
               "aria-label": modflow,
               onClick: () => toggle(modflowurl),
               children: /* @__PURE__ */ jsxDEV("i", { className: `fa-solid fa-fw ${isopen ? "fa-chevron-down" : "fa-chevron-right"}` }, void 0, false, {
-                fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+                fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
                 lineNumber: 92,
                 columnNumber: 17
               }, this)
@@ -112,7 +112,7 @@ function UserPage({ userid, courseid = 0 }) {
             void 0,
             false,
             {
-              fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+              fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
               lineNumber: 90,
               columnNumber: 15
             },
@@ -120,47 +120,47 @@ function UserPage({ userid, courseid = 0 }) {
           ),
           /* @__PURE__ */ jsxDEV("h3", { className: "h6 mb-0", children: [
             /* @__PURE__ */ jsxDEV("a", { href: modflowurl, className: "text-decoration-none", children: modflow }, void 0, false, {
-              fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+              fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
               lineNumber: 95,
               columnNumber: 17
             }, this),
             /* @__PURE__ */ jsxDEV("span", { className: "text-muted fw-normal ms-2", children: course }, void 0, false, {
-              fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+              fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
               lineNumber: 96,
               columnNumber: 17
             }, this)
           ] }, void 0, true, {
-            fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+            fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
             lineNumber: 94,
             columnNumber: 15
           }, this),
           /* @__PURE__ */ jsxDEV("span", { className: "badge text-bg-secondary ms-auto", children: grouped.length }, void 0, false, {
-            fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+            fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
             lineNumber: 98,
             columnNumber: 15
           }, this)
         ] }, void 0, true, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
           lineNumber: 89,
           columnNumber: 13
         }, this),
         isopen && /* @__PURE__ */ jsxDEV("div", { className: "ps-3", children: grouped.map((post) => /* @__PURE__ */ jsxDEV(UserPost, { post }, post.id, false, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
           lineNumber: 102,
           columnNumber: 40
         }, this)) }, void 0, false, {
-          fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+          fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
           lineNumber: 101,
           columnNumber: 15
         }, this)
       ] }, modflowurl, true, {
-        fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+        fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
         lineNumber: 88,
         columnNumber: 11
       }, this);
     })
   ] }, void 0, true, {
-    fileName: "public/mod/moodleoverflow/js/esm/src/UserPage.tsx",
+    fileName: "public/mod/moodleoverflow/js/esm/src/userposts/UserPage.tsx",
     lineNumber: 69,
     columnNumber: 5
   }, this);

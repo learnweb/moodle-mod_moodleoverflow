@@ -18,13 +18,13 @@ import {fetchUserPosts, UserPost as UserPostType} from "./service";
 import UserPost from "./UserPost";
 import PostFilter from "./PostFilter";
 import {approvedBy, FilterState} from "./filters";
-import {str} from "./lang";
+import {str} from "../lang";
 
 /**
  * React component for the moodleoverflow user page that shows all the users posts,
  * grouped by the moodleoverflow they were written in.
  *
- * @module     mod_moodleoverflow/UserPage
+ * @module     mod_moodleoverflow/userposts/UserPage
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
