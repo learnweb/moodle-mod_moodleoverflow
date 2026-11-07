@@ -13,8 +13,8 @@ Feature: Delete attachments
     And User "teacher1" adds to "Test moodleoverflow name" a discussion with topic "Forum post 1" and message "This is the body" automatically
     And I am on the "Forum post 1" "mod_moodleoverflow > Discussion" page logged in as "student1"
     And I click on "Answer" "link"
-    And I set the following fields to these values:
-      | Message | This is the message of the answer post |
+    And I set the field "Message" to "This is the message of the answer post"
+    And I press "Advanced"
     And I upload "mod/moodleoverflow/tests/fixtures/NH.jpg" file to "Attachment" filemanager
     And I press "Post to forum"
     When I am on the "Forum post 1" "mod_moodleoverflow > Discussion" page

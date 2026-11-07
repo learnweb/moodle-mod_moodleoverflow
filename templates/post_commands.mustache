@@ -18,19 +18,20 @@
   @template mod_moodleoverflow/post_commands
 
   The commands below a post. The post menu draws a separator before every element, so the commands are written
-  without whitespace between them. rating.js and deletepost.js find the commands by their classes and data attributes.
+  without whitespace between them. rating.js, deletepost.js and inlinereply.js find the commands by their classes and data
+  attributes.
 
   Example context (json):
   {
       "markhelpful": {"label": "Mark as helpful"},
       "editurl": "https://example.com/mod/moodleoverflow/post.php?edit=12",
       "delete": {"postid": 12, "replies": 2},
-      "reply": {"url": "https://example.com/mod/moodleoverflow/post.php?reply=12#mformmoodleoverflow", "label": "Reply"}
+      "reply": {"url": "https://example.com/mod/moodleoverflow/post.php?reply=12", "postid": 12, "label": "Reply"}
   }
 }}
 {{#markhelpful}}<a class="markhelpful onlyifreviewed" role="button" data-moodleoverflow-action="helpful">{{label}}</a>{{/markhelpful}}{{!
 }}{{#marksolved}}<a class="marksolved onlyifreviewed" role="button" data-moodleoverflow-action="solved">{{label}}</a>{{/marksolved}}{{!
 }}{{#editurl}}<a href="{{editurl}}">{{#str}}edit, mod_moodleoverflow{{/str}}</a>{{/editurl}}{{!
 }}{{#delete}}<a href="#" role="button" data-action="mod_moodleoverflow/delete-post" data-postid="{{postid}}" data-replies="{{replies}}">{{#str}}delete, mod_moodleoverflow{{/str}}</a>{{/delete}}{{!
-}}{{#reply}}<a href="{{url}}" class="onlyifreviewed">{{label}}</a>{{#helpicon}} {{> core/help_icon}}{{/helpicon}}{{/reply}}{{!
+}}{{#reply}}<a href="{{url}}" class="onlyifreviewed" data-action="mod_moodleoverflow/reply" data-postid="{{postid}}">{{label}}</a>{{#helpicon}} {{> core/help_icon}}{{/helpicon}}{{/reply}}{{!
 }}{{#replylater}}<span class="onlyifreviewed text-muted">{{#str}}replyfirst, mod_moodleoverflow{{/str}} {{#helpicon}}{{> core/help_icon}}{{/helpicon}}</span>{{/replylater}}

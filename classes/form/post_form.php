@@ -17,8 +17,10 @@
 namespace mod_moodleoverflow\form;
 
 use core\output\html_writer;
+use mod_moodleoverflow\local\enum\posting_action;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\permissions;
 use moodle_url;
 use moodleform;
@@ -29,16 +31,36 @@ require_once($CFG->libdir . '/formslib.php');
 require_once($CFG->dirroot . '/repository/lib.php');
 
 /**
- * Form to start a discussion, reply to a post or edit a post.
- *
- * Custom data: 'modflow' (moodleoverflow), and either 'parent' (the post to reply to), 'post' (the post to edit) or
- * neither (a new discussion).
+ * Form to start a discussion, reply to a post or edit a post (post.php).
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post_form extends moodleform {
+    /**
+     * Constructor.
+     *
+     * @param moodle_url $url The page of the form
+     * @param posting_action $action What the form does
+     * @param moodleoverflow $modflow The moodleoverflow of the post
+     * @param post|null $post The parent for REPLY, the edited post for EDIT, null for CREATE
+     * @param string $prefill Plain text to start a new post with (the small reply form of the discussion page)
+     */
+    public function __construct(
+        moodle_url $url,
+        /** @var posting_action What the form does */
+        private readonly posting_action $action,
+        /** @var moodleoverflow The moodleoverflow of the post */
+        private readonly moodleoverflow $modflow,
+        /** @var post|null The parent for REPLY, the edited post for EDIT, null for CREATE */
+        private readonly ?post $post,
+        /** @var string Plain text to start a new post with */
+        private readonly string $prefill = '',
+    ) {
+        parent::__construct($url, null, 'post', '', ['id' => 'mformmoodleoverflow']);
+    }
+
     /**
      * Form definition.
      *
@@ -47,12 +69,9 @@ class post_form extends moodleform {
     public function definition() {
         global $USER;
         $mform = $this->_form;
-        $modflow = $this->get_moodleoverflow();
-        $post = $this->get_edited_post();
-        $parent = $this->get_parent();
 
-        $heading = $parent ? get_string('yourreply', 'moodleoverflow') : get_string('yournewtopic', 'moodleoverflow');
-        $mform->addElement('header', 'general', $heading);
+        $heading = $this->action === posting_action::REPLY ? 'yourreply' : 'yournewtopic';
+        $mform->addElement('header', 'general', get_string($heading, 'moodleoverflow'));
 
         // Only the question has a subject: it is the name of the discussion.
         if ($this->has_subject()) {
@@ -67,37 +86,32 @@ class post_form extends moodleform {
             'message',
             get_string('message', 'moodleoverflow'),
             null,
-            $modflow->get_editor_options($post?->get_id())
+            $this->modflow->get_editor_options($this->get_edited_post()?->get_id())
         );
         $mform->setType('message', PARAM_RAW);
         $mform->addRule('message', get_string('required'), 'required', null, 'client');
 
-        if (permissions::can_add_attachments($modflow, $USER->id)) {
+        if (permissions::can_add_attachments($this->modflow, $USER->id)) {
             $mform->addElement(
                 'filemanager',
                 'attachments',
                 get_string('attachment', 'moodleoverflow'),
                 null,
-                $modflow->get_attachment_options()
+                $this->modflow->get_attachment_options()
             );
             $mform->addHelpButton('attachments', 'attachment', 'moodleoverflow');
         }
 
-        $strsubmit = $post ? get_string('savechanges') : get_string('posttomoodleoverflow', 'moodleoverflow');
-        $this->add_action_buttons(true, $strsubmit);
+        $submit = $this->action === posting_action::EDIT
+            ? get_string('savechanges')
+            : get_string('posttomoodleoverflow', 'moodleoverflow');
+        $this->add_action_buttons(true, $submit);
 
-        // Which operation on which object. post.php reads them again on the submission; the constants make sure the
-        // submitted values are the ones the form was built for.
-        $operation = [
-            'moodleoverflow' => ($post || $parent) ? 0 : $modflow->id,
-            'reply' => $parent?->get_id() ?? 0,
-            'edit' => $post?->get_id() ?? 0,
-        ];
-        foreach ($operation as $name => $value) {
-            $mform->addElement('hidden', $name);
-            $mform->setType($name, PARAM_INT);
-            $mform->setConstant($name, $value);
-        }
+        // The action goes with the submission: post.php reads it again from this field.
+        $name = $this->action->value;
+        $mform->addElement('hidden', $name);
+        $mform->setType($name, PARAM_INT);
+        $mform->setConstant($name, $this->post?->get_id() ?? $this->modflow->id);
     }
 
     /**
@@ -108,10 +122,9 @@ class post_form extends moodleform {
      */
     public function set_initial_data(): void {
         global $USER;
-        $modflow = $this->get_moodleoverflow();
         $post = $this->get_edited_post();
         $postid = $post?->get_id();
-        $context = $modflow->get_context();
+        $context = $this->modflow->get_context();
 
         // Copy the attachments into a draft area. A new draft is only created on the first request, so a form that is
         // shown again after a validation error keeps the user's uploads.
@@ -122,7 +135,7 @@ class post_form extends moodleform {
             'mod_moodleoverflow',
             'attachment',
             $postid,
-            $modflow->get_attachment_options()
+            $this->modflow->get_attachment_options()
         );
 
         // The files of an anonymous author must not name the author.
@@ -134,9 +147,18 @@ class post_form extends moodleform {
             }
         }
 
-        // A new post uses the preferred editor format; an edited post keeps its own format.
-        $format = $post ? $post->messageformat : editors_get_preferred_format();
-        $message = $post ? $post->message . $this->get_edited_by_note($post, $format) : '';
+        // An edited post keeps its own format, a new post uses the preferred editor format or starts with the text of
+        // the small reply form.
+        if ($post) {
+            $format = $post->messageformat;
+            $message = $post->message . $this->get_edited_by_note($post, $format);
+        } else if (trim($this->prefill) !== '') {
+            $format = FORMAT_HTML;
+            $message = post_content::plain_text_to_html($this->prefill);
+        } else {
+            $format = editors_get_preferred_format();
+            $message = '';
+        }
 
         // Copy the embedded files of the message into a draft area, so the editor shows and keeps them.
         $messagedraftid = file_get_submitted_draft_itemid('message');
@@ -146,7 +168,7 @@ class post_form extends moodleform {
             'mod_moodleoverflow',
             'post',
             $postid,
-            $modflow->get_editor_options($postid),
+            $this->modflow->get_editor_options($postid),
             $message
         );
 
@@ -158,6 +180,25 @@ class post_form extends moodleform {
             $data['subject'] = $post ? $post->get_discussion()->name : '';
         }
         $this->set_data($data);
+    }
+
+    /**
+     * The content of the submitted form, null if the form was not submitted, was cancelled or is invalid.
+     *
+     * @return post_content|null
+     */
+    public function get_post_content(): ?post_content {
+        $data = $this->get_data();
+        if (!$data) {
+            return null;
+        }
+        return new post_content(
+            message: $data->message['text'],
+            messageformat: $data->message['format'],
+            messagedraftid: $data->message['itemid'],
+            attachmentdraftid: $data->attachments ?? null,
+            subject: $data->subject ?? null
+        );
     }
 
     /**
@@ -180,13 +221,25 @@ class post_form extends moodleform {
     }
 
     /**
+     * The post that is edited, null for a new discussion or a reply.
+     *
+     * @return post|null
+     */
+    private function get_edited_post(): ?post {
+        return $this->action === posting_action::EDIT ? $this->post : null;
+    }
+
+    /**
      * Whether the form has a subject: for a new discussion and when the question is edited.
      *
      * @return bool
      */
     private function has_subject(): bool {
-        $post = $this->get_edited_post();
-        return $post ? $post->is_question() : !$this->get_parent();
+        return match ($this->action) {
+            posting_action::CREATE => true,
+            posting_action::REPLY => false,
+            posting_action::EDIT => $this->post->is_question(),
+        };
     }
 
     /**
@@ -203,39 +256,12 @@ class post_form extends moodleform {
         }
         $data = (object) ['date' => userdate(time())];
         if ($format == FORMAT_HTML) {
-            $profileurl = new moodle_url('/user/view.php', ['id' => $USER->id, 'course' => $this->get_moodleoverflow()->course]);
+            $profileurl = new moodle_url('/user/view.php', ['id' => $USER->id, 'course' => $this->modflow->course]);
             $data->name = html_writer::link($profileurl, fullname($USER));
             $note = html_writer::tag('span', get_string('editedby', 'moodleoverflow', $data), ['class' => 'edited']);
             return html_writer::tag('p', $note);
         }
         $data->name = fullname($USER);
         return "\n\n(" . get_string('editedby', 'moodleoverflow', $data) . ')';
-    }
-
-    /**
-     * The moodleoverflow of the post.
-     *
-     * @return moodleoverflow
-     */
-    private function get_moodleoverflow(): moodleoverflow {
-        return $this->_customdata['modflow'];
-    }
-
-    /**
-     * The post that is edited, null for a new discussion or a reply.
-     *
-     * @return post|null
-     */
-    private function get_edited_post(): ?post {
-        return $this->_customdata['post'] ?? null;
-    }
-
-    /**
-     * The post that is replied to, null for a new discussion or an edit.
-     *
-     * @return post|null
-     */
-    private function get_parent(): ?post {
-        return $this->_customdata['parent'] ?? null;
     }
 }

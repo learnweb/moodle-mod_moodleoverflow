@@ -149,9 +149,10 @@ class post_card implements named_templatable, renderable {
         $windowopen = $this->post->get_moodleoverflow()->is_answer_window_open();
         $helpicon = fn(string $identifier) => (new help_icon($identifier, 'moodleoverflow'))->export_for_template($output);
         if (permissions::can_reply($replytarget, $USER->id)) {
-            $url = new moodle_url('/mod/moodleoverflow/post.php', ['reply' => $replytarget->get_id()], 'mformmoodleoverflow');
+            $url = new moodle_url('/mod/moodleoverflow/post.php', ['reply' => $replytarget->get_id()]);
             $commands['reply'] = [
                 'url' => $url->out(false),
+                'postid' => $replytarget->get_id(),
                 'label' => get_string($this->post->is_question() ? 'replyfirst' : 'reply', 'moodleoverflow'),
                 // Allowed although the window is closed: the teacher bypass, so explain it.
                 'helpicon' => $windowopen ? null : $helpicon('la_teacher_helpicon'),

@@ -24,9 +24,7 @@
 
 use core\output\notification;
 use mod_moodleoverflow\form\post_form;
-use mod_moodleoverflow\local\models\moodleoverflow;
-use mod_moodleoverflow\local\models\post;
-use mod_moodleoverflow\local\models\post_content;
+use mod_moodleoverflow\local\enum\posting_action;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\posting;
 use mod_moodleoverflow\output\author;
@@ -34,20 +32,13 @@ use mod_moodleoverflow\output\author;
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 global $USER, $PAGE, $OUTPUT;
 
-// Which operation on which object: on the first request from the URL, on the submission from the hidden form fields.
-$create = optional_param('moodleoverflow', 0, PARAM_INT);
-$reply = optional_param('reply', 0, PARAM_INT);
-$edit = optional_param('edit', 0, PARAM_INT);
-if (count(array_filter([$create, $reply, $edit])) !== 1) {
-    throw new moodle_exception('wrongparametercount', 'moodleoverflow');
-}
-$post = $edit ? post::from_id($edit) : null;
-$parent = $reply ? post::from_id($reply) : null;
-$modflow = $create ? moodleoverflow::from_id($create) : ($post ?? $parent)->get_moodleoverflow();
+// Which action on which object: on the first request from the URL, on the submission from the hidden form field.
+[$action, $id] = posting_action::from_params(fn(string $name) => optional_param($name, 0, PARAM_INT));
+[$modflow, $post] = $action->load_objects($id);
 $course = $modflow->get_course();
 $cm = $modflow->get_cm();
 
-$PAGE->set_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $create, 'reply' => $reply, 'edit' => $edit]);
+$PAGE->set_url('/mod/moodleoverflow/post.php', [$action->value => $id]);
 $PAGE->set_cm($cm, $course);
 $PAGE->set_title($course->shortname . ': ' . format_string($modflow->name));
 $PAGE->set_heading($course->fullname);
@@ -69,68 +60,52 @@ if (!isloggedin() || isguestuser()) {
 require_login($course, false, $cm);
 
 // May the user open the form? The service checks again when the form is submitted.
-if ($create) {
-    permissions::ensure(permissions::can_start_discussion($modflow, $USER->id), 'nopostmoodleoverflow');
-} else if ($reply) {
-    permissions::ensure(permissions::can_reply($parent, $USER->id), 'cannotreply');
-} else {
-    permissions::ensure(permissions::can_edit_post($post, $USER->id), 'cannoteditposts');
-}
+permissions::ensure(permissions::can_do_posting_action($action, $modflow, $post, $USER->id), $action->get_error_code());
 
-$customdata = ['modflow' => $modflow, 'post' => $post, 'parent' => $parent];
-$form = new post_form($PAGE->url, $customdata, 'post', '', ['id' => 'mformmoodleoverflow']);
+// A reply started in the small form of the discussion page ("Advanced") brings its text along.
+$prefill = optional_param('prefill', '', PARAM_TEXT);
+$form = new post_form($PAGE->url, $action, $modflow, $post, $prefill);
 $form->set_initial_data();
 
 if ($form->is_cancelled()) {
-    redirect($create ? $modflow->get_link() : ($post ?? $parent)->get_discussion()->get_link());
+    redirect($action === posting_action::CREATE ? $modflow->get_link() : $post->get_discussion()->get_link());
 }
 
-// If there is data from the form it means that the user entered information in the form. Execute the right action related to it.
-if ($data = $form->get_data()) {
-    $content = new post_content(
-        message: $data->message['text'],
-        messageformat: $data->message['format'],
-        messagedraftid: $data->message['itemid'],
-        attachmentdraftid: $data->attachments ?? null,
-        subject: $data->subject ?? null
-    );
-
-    if ($create) {
-        posting::create_discussion($modflow, $USER->id, $content);
-        redirect($modflow->get_link(), get_string('postaddedsuccess', 'moodleoverflow'), null, notification::NOTIFY_SUCCESS);
-    }
-
-    if ($reply) {
-        $newpost = posting::reply($parent, $USER->id, $content);
-        $message = get_string('postaddedsuccess', 'moodleoverflow') . ' ' .
-            get_string('postaddedtimeleft', 'moodleoverflow', format_time(get_config('moodleoverflow', 'maxeditingtime')));
-        redirect($newpost->get_link(), $message, null, notification::NOTIFY_SUCCESS);
-    }
-
-    // The post gets edited.
-    $post = posting::edit($post, $USER->id, $content);
-    $message = get_string('postupdated', 'moodleoverflow');
-    if ($post->get_userid() !== (int) $USER->id) {
-        // Name the author whose post was edited, as the editor sees them.
-        $name = (new author($post, $USER->id))->export_for_template($OUTPUT)['name'];
-        $message = get_string('editedpostupdated', 'moodleoverflow', $name);
-    }
-    redirect($post->get_link(), $message, null, notification::NOTIFY_SUCCESS);
+if ($content = $form->get_post_content()) {
+    $saved = match ($action) {
+        posting_action::CREATE => posting::create_discussion($modflow, $USER->id, $content)->get_first_post(),
+        posting_action::REPLY => posting::reply($post, $USER->id, $content),
+        posting_action::EDIT => posting::edit($post, $USER->id, $content),
+    };
+    $edittime = format_time(get_config('moodleoverflow', 'maxeditingtime'));
+    // The author whose post was edited by someone else, as the editor sees them.
+    $authorname = fn() => (new author($saved, $USER->id))->export_for_template($OUTPUT)['name'];
+    $message = match ($action) {
+        posting_action::CREATE => get_string('postaddedsuccess', 'moodleoverflow'),
+        posting_action::REPLY => get_string('postaddedsuccess', 'moodleoverflow') . ' ' .
+            get_string('postaddedtimeleft', 'moodleoverflow', $edittime),
+        posting_action::EDIT => $saved->get_userid() === (int) $USER->id
+            ? get_string('postupdated', 'moodleoverflow')
+            : get_string('editedpostupdated', 'moodleoverflow', $authorname()),
+    };
+    // A new discussion opens the discussion list, a reply or an edit the post.
+    $url = $action === posting_action::CREATE ? $modflow->get_link() : $saved->get_link();
+    redirect($url, $message, null, notification::NOTIFY_SUCCESS);
 }
 
 // Nothing was submitted yet (or the submission was invalid): show the form, for a reply show the parent post.
-if ($parent) {
+if ($action === posting_action::REPLY) {
     $PAGE->requires->js_call_amd('mod_moodleoverflow/show_post', 'init');
 }
 echo $OUTPUT->header();
-if ($parent) {
+if ($action === posting_action::REPLY) {
     echo $OUTPUT->render_from_template('mod_moodleoverflow/post_original', [
-        'postid' => $parent->get_id(),
-        'postcontent' => $parent->get_message_formatted(),
-        'attachments' => $parent->get_attachments($OUTPUT),
+        'postid' => $post->get_id(),
+        'postcontent' => $post->get_message_formatted(),
+        'attachments' => $post->get_attachments($OUTPUT),
         'byname' => $OUTPUT->render_from_template(
             'mod_moodleoverflow/author_link',
-            (new author($parent, $USER->id))->export_for_template($OUTPUT)
+            (new author($post, $USER->id))->export_for_template($OUTPUT)
         ),
     ]);
 }
