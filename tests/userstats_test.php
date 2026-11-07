@@ -23,7 +23,8 @@
  */
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\local\dto\userstats_dto;
+use mod_moodleoverflow\local\dto\userstats\activity_day_dto;
+use mod_moodleoverflow\local\dto\userstats\userstats_dto;
 use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\enum\review_level;
@@ -174,6 +175,55 @@ final class userstats_test extends \advanced_testcase {
 
         $this->expectException(\moodle_exception::class);
         service\userstats::get_statistics($this->modflow, $this->student->id);
+    }
+
+    /**
+     * Test, if the timeline counts the reviewed posts and the votes per day in the timezone of the viewer, for every
+     * forum of the course whose statistics the viewer may see.
+     */
+    public function test_timeline(): void {
+        global $DB;
+        $berlin = new \DateTimeZone('Europe/Berlin');
+        $time = fn(string $datetime) => (new \DateTimeImmutable($datetime, $berlin))->getTimestamp();
+        $created = fn(post $post, string $datetime) =>
+            $DB->set_field('moodleoverflow_posts', 'created', $time($datetime), ['id' => $post->get_id()]);
+        $created($this->question1, '2026-10-24 23:30');
+        $created($this->question2, '2026-10-25 00:30');
+        $created($this->answer1, '2026-10-25 10:00');
+        $created($this->answer2, '2026-10-27 10:00');
+        // A post waiting for its review does not count.
+        $DB->set_field('moodleoverflow_posts', 'reviewed', 0, ['id' => $this->answer2->get_id()]);
+
+        // Votes count on the day they were given, marks do not count.
+        $rated = fn(\stdClass $rating, string $datetime) =>
+            $DB->set_field('moodleoverflow_ratings', 'firstrated', $time($datetime), ['id' => $rating->id]);
+        $rated($this->generator->create_rating($this->question2, $this->student, rating_type::DOWNVOTE), '2026-10-25 12:00');
+        $rated($this->generator->create_rating($this->answer1, $this->teacher, rating_type::UPVOTE), '2026-10-26 12:00');
+        $rated($this->generator->create_rating($this->answer1, $this->otherstudent, rating_type::HELPFUL), '2026-10-26 12:00');
+
+        $days = fn(array $dtos) => array_map(fn(activity_day_dto $dto) => [$dto->day, $dto->posts, $dto->votes], $dtos);
+        $timelines = fn(\DateTimeZone $timezone) =>
+            array_map($days, service\userstats::get_page_data($this->modflow, $this->teacher->id, $timezone)->timeline);
+        $expected = [['2026-10-24', 1, 0], ['2026-10-25', 2, 1], ['2026-10-26', 0, 1]];
+        $this->assertEquals([$this->modflow->id => $expected], $timelines($berlin));
+
+        // The days start at midnight of the viewer: in London, the first two posts were written on the same day.
+        $london = [['2026-10-24', 2, 0], ['2026-10-25', 1, 1], ['2026-10-26', 0, 1]];
+        $this->assertEquals([$this->modflow->id => $london], $timelines(new \DateTimeZone('Europe/London')));
+
+        // Every other forum has its own timeline, also without activity, as long as the viewer may see its statistics.
+        $other = $this->create_moodleoverflow();
+        $empty = $this->create_moodleoverflow();
+        $created($this->generator->create_question($other, $this->student), '2026-10-25 12:00');
+        $this->assertEquals(
+            [$this->modflow->id => $expected, $other->id => [['2026-10-25', 1, 0]], $empty->id => []],
+            $timelines($berlin)
+        );
+
+        $teacherrole = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        assign_capability('mod/moodleoverflow:viewanyrating', CAP_PROHIBIT, $teacherrole, $other->get_context()->id);
+        accesslib_clear_all_caches_for_unit_testing();
+        $this->assertEquals([$this->modflow->id => $expected, $empty->id => []], $timelines($berlin));
     }
 
     /**

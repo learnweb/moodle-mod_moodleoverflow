@@ -24,6 +24,7 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
     And I click on "View user statistics" "text"
     Then "Teacher 1" "table_row" should exist
     And "Student 1" "table_row" should exist
+    And I should see "Posts and votes per day"
 
   Scenario: Test if reputation appears in the user statistics
     Given the following config values are set as admin:

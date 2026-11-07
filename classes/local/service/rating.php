@@ -241,12 +241,10 @@ class rating {
               JOIN {moodleoverflow_posts} p ON p.id = r.postid
               JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
              WHERE r.moodleoverflowid = :modflowid AND p.userid <> 0 AND r.userid <> p.userid $authorsql";
-        $hidden = [];
         foreach ($DB->get_records_sql($sql, $params) as $record) {
             $authorid = (int) $record->authorid;
             $isquestioner = $authorid === (int) $record->questionerid;
-            $hidden[$authorid][(int) $isquestioner] ??= permissions::is_hidden_as_author($modflow, $authorid, $isquestioner);
-            if (!$hidden[$authorid][(int) $isquestioner]) {
+            if (!permissions::is_hidden_as_author($modflow, $authorid, $isquestioner)) {
                 $add($authorid, rating_type::from($record->rating)->get_author_reputation());
             }
         }

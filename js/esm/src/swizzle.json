@@ -11,7 +11,11 @@
     "eject": "risky",
     "wrap": "risky"
   },
-  "UserStatsPage": {
+  "userstats/UserStatsPage": {
+    "eject": "risky",
+    "wrap": "risky"
+  },
+  "userstats/ActivityChart": {
     "eject": "risky",
     "wrap": "risky"
   }

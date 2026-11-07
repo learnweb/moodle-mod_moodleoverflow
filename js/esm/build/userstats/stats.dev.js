@@ -3,7 +3,7 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
 /**
  * The user statistics: their data type, and how they are searched and sorted.
  *
- * @module     mod_moodleoverflow/userstats
+ * @module     mod_moodleoverflow/userstats/stats
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -24,4 +24,4 @@ export {
   scopes,
   sortStats
 };
-//# sourceMappingURL=userstats.dev.js.map
+//# sourceMappingURL=stats.dev.js.map

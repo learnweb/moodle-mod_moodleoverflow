@@ -16,7 +16,7 @@
 /**
  * The user statistics: their data type, and how they are searched and sorted.
  *
- * @module     mod_moodleoverflow/userstats
+ * @module     mod_moodleoverflow/userstats/stats
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,15 +27,18 @@ export type Scope = "forum" | "course";
 /** What is counted for each scope. */
 export type Metric = "activity" | "reputation" | "upvotes" | "downvotes";
 
+/** The name of a number in the statistics: a scope followed by a metric, e.g. "forumactivity" or "coursereputation". */
+export type StatField = `${Scope}${Metric}`;
+
 /** The statistics of one user, as userstats.php passes them (userstats_dto). */
 export type UserStats = {
     userid: number;
     name: string;
     profileurl: string;
-} & Record<`${Scope}${Metric}`, number>;
+} & Record<StatField, number>;
 
 /** The columns the table can be sorted by. */
-export type SortKey = "name" | `${Scope}${Metric}`;
+export type SortKey = "name" | StatField;
 
 /** How the table is sorted. */
 export type Sort = {
@@ -43,12 +46,23 @@ export type Sort = {
     descending: boolean;
 };
 
+/** The activity of one day, as userstats.php passes it (activity_day_dto). */
+export type ActivityDay = {
+    /** The date as YYYY-MM-DD. */
+    day: string;
+    posts: number;
+    votes: number;
+};
+
+/** The days with activity of every forum whose statistics the viewer may see, by forum id. */
+export type Timeline = Record<number, ActivityDay[]>;
+
 /** The scopes and metrics in the order of the table columns. */
 export const scopes: Scope[] = ["forum", "course"];
 export const metrics: Metric[] = ["activity", "reputation", "upvotes", "downvotes"];
 
 /** The field of a user's statistics that holds a metric of a scope. */
-export const field = (scope: Scope, metric: Metric): `${Scope}${Metric}` => `${scope}${metric}`;
+export const field = (scope: Scope, metric: Metric): StatField => `${scope}${metric}`;
 
 /** Whether the name of a user contains what was typed into the search box. */
 export const matchesName = (query: string) => (user: UserStats): boolean =>

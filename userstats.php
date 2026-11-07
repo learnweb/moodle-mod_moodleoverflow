@@ -25,7 +25,7 @@
 require_once(__DIR__ . '/../../config.php');
 global $CFG, $PAGE, $OUTPUT, $USER;
 
-use mod_moodleoverflow\local\dto\userstats_dto;
+use core_calendar\type_factory;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\userstats;
@@ -53,14 +53,19 @@ if (!permissions::can_view_userstats($moodleoverflow, $USER->id)) {
 $PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id]);
 $PAGE->set_title(get_string('userstats', 'moodleoverflow'));
 $PAGE->set_heading(get_string('userstatscourse', 'moodleoverflow', $course->fullname));
-$statistics = userstats::get_statistics($moodleoverflow, $USER->id);
 
-// Output starts here. Moodle versions without React get the old table.
-echo $OUTPUT->header();
+// Moodle versions without React get the old table.
 if ($CFG->branch >= 503) {
-    $props = (object) ['users' => array_map(fn(userstats_dto $dto) => $dto->to_array(), $statistics)];
-    echo $PAGE->get_renderer('mod_moodleoverflow')->render_react('UserStatsPage', $props);
+    $data = userstats::get_page_data($moodleoverflow, $USER->id, core_date::get_user_timezone_object());
+    $props = (object) ($data->to_array() + [
+        'modflowid' => $moodleoverflow->id,
+        'firstweekday' => (int) type_factory::get_calendar_instance()->get_starting_weekday(),
+    ]);
+    echo $OUTPUT->header();
+    echo $PAGE->get_renderer('mod_moodleoverflow')->render_react('userstats/UserStatsPage', $props);
 } else {
+    $statistics = userstats::get_statistics($moodleoverflow, $USER->id);
+    echo $OUTPUT->header();
     (new userstats_table('statisticstable', $statistics, $PAGE->url))->out();
 }
 echo $OUTPUT->footer();

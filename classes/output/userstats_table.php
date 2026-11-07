@@ -19,7 +19,7 @@ namespace mod_moodleoverflow\output;
 defined('MOODLE_INTERNAL') || die();
 
 use core\output\html_writer;
-use mod_moodleoverflow\local\dto\userstats_dto;
+use mod_moodleoverflow\local\dto\userstats\userstats_dto;
 use moodle_url;
 
 global $CFG;

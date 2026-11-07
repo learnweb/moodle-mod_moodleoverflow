@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_moodleoverflow\local\dto;
+namespace mod_moodleoverflow\local\dto\userstats;
 
 /**
  * DTO for the statistics of one user that are shown on userstats.php: their activity, reputation and received votes
