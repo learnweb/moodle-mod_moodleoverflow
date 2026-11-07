@@ -178,6 +178,20 @@ final class userstats_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if every user links to their course profile and to the overview of their posts in the course.
+     */
+    public function test_urls(): void {
+        $statistics = $this->get_statistics();
+        $this->assertNotEmpty($statistics);
+        foreach ($statistics as $dto) {
+            $profileurl = new \moodle_url('/user/view.php', ['id' => $dto->userid, 'course' => $this->course->id]);
+            $postsurl = new \moodle_url('/mod/moodleoverflow/user.php', ['user' => $dto->userid, 'course' => $this->course->id]);
+            $this->assertEquals($profileurl->out(false), $dto->profileurl);
+            $this->assertEquals($postsurl->out(false), $dto->postsurl);
+        }
+    }
+
+    /**
      * Test, if the timeline counts the reviewed posts and the votes per day in the timezone of the viewer, for every
      * forum of the course whose statistics the viewer may see.
      */

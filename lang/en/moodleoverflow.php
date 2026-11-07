@@ -440,6 +440,7 @@ $string['userstatsscope'] = 'Show the statistics of';
 $string['userstatssearch'] = 'Search participants';
 $string['userstatsthisforum'] = 'This forum';
 $string['userstatsupvotes'] = 'Received upvotes';
+$string['userstatsviewposts'] = 'Posts of {$a}';
 $string['userstatsvotes'] = 'Votes';
 $string['userstatsweek'] = 'Week';
 $string['userstatsweekof'] = 'Week of {$a}';

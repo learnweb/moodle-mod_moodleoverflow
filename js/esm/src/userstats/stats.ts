@@ -35,6 +35,8 @@ export type UserStats = {
     userid: number;
     name: string;
     profileurl: string;
+    /** The overview of the user's posts in this course (user.php). */
+    postsurl: string;
 } & Record<StatField, number>;
 
 /** The columns the table can be sorted by. */

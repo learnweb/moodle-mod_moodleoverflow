@@ -101,10 +101,12 @@ class userstats {
             $forum = ($forumcounts[$userid] ?? []) + self::NO_ACTIVITY;
             $course = ($coursecounts[$userid] ?? []) + self::NO_ACTIVITY;
             $profileurl = new moodle_url('/user/view.php', ['id' => $userid, 'course' => $modflow->course]);
+            $postsurl = new moodle_url('/mod/moodleoverflow/user.php', ['user' => $userid, 'course' => $modflow->course]);
             $statistics[] = new userstats_dto(
                 userid: $userid,
                 name: fullname($user, $viewfullnames),
                 profileurl: $profileurl->out(false),
+                postsurl: $postsurl->out(false),
                 forumactivity: $forum['activity'],
                 forumreputation: $forumreputations[$userid] ?? 0,
                 forumupvotes: $forum['upvotes'],

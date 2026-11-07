@@ -243,24 +243,43 @@ function UserStatsPage({ users, modflowid, timeline, firstweekday }) {
       }, this),
       /* @__PURE__ */ jsxDEV("tbody", { children: rows.map((user) => {
         const muted = isInactive(user) ? "text-body-secondary" : "";
+        const postslabel = str("userstatsviewposts", false, user.name);
         return /* @__PURE__ */ jsxDEV("tr", { children: [
-          /* @__PURE__ */ jsxDEV("th", { scope: "row", className: `fw-normal ${muted}`, children: /* @__PURE__ */ jsxDEV("a", { href: user.profileurl, className: "text-decoration-none", children: user.name }, void 0, false, {
+          /* @__PURE__ */ jsxDEV("th", { scope: "row", className: `fw-normal ${muted}`, children: [
+            /* @__PURE__ */ jsxDEV("a", { href: user.profileurl, className: "text-decoration-none", children: user.name }, void 0, false, {
+              fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
+              lineNumber: 160,
+              columnNumber: 25
+            }, this),
+            /* @__PURE__ */ jsxDEV("a", { href: user.postsurl, className: "ms-2 text-body-tertiary", title: postslabel, children: [
+              /* @__PURE__ */ jsxDEV("i", { className: "fa-regular fa-comments", "aria-hidden": "true" }, void 0, false, {
+                fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
+                lineNumber: 162,
+                columnNumber: 27
+              }, this),
+              /* @__PURE__ */ jsxDEV("span", { className: "visually-hidden", children: postslabel }, void 0, false, {
+                fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
+                lineNumber: 163,
+                columnNumber: 27
+              }, this)
+            ] }, void 0, true, {
+              fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
+              lineNumber: 161,
+              columnNumber: 25
+            }, this)
+          ] }, void 0, true, {
             fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
             lineNumber: 159,
-            columnNumber: 25
-          }, this) }, void 0, false, {
-            fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
-            lineNumber: 158,
             columnNumber: 23
           }, this),
           scopes.flatMap((s) => metrics.map((m, i) => /* @__PURE__ */ jsxDEV("td", { className: `text-end ${i === 0 ? "border-start" : ""} ${visibility(s)} ${muted}`, children: user[field(s, m)] }, field(s, m), false, {
             fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
-            lineNumber: 162,
+            lineNumber: 167,
             columnNumber: 25
           }, this)))
         ] }, user.userid, true, {
           fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
-          lineNumber: 157,
+          lineNumber: 158,
           columnNumber: 21
         }, this);
       }) }, void 0, false, {
@@ -283,12 +302,12 @@ function UserStatsPage({ users, modflowid, timeline, firstweekday }) {
     }, this),
     /* @__PURE__ */ jsxDEV("p", { className: "small text-muted mt-3 mb-1", children: str("helpamountofactivity_help") }, void 0, false, {
       fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
-      lineNumber: 175,
+      lineNumber: 180,
       columnNumber: 7
     }, this),
     /* @__PURE__ */ jsxDEV("p", { className: "small text-muted", children: str("userstatscoursereputationinfo") }, void 0, false, {
       fileName: "public/mod/moodleoverflow/js/esm/src/userstats/UserStatsPage.tsx",
-      lineNumber: 176,
+      lineNumber: 181,
       columnNumber: 7
     }, this)
   ] }, void 0, true, {

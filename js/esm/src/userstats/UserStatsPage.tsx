@@ -153,10 +153,15 @@ export default function UserStatsPage({users, modflowid, timeline, firstweekday}
               <tbody>
                 {rows.map((user) => {
                   const muted = isInactive(user) ? "text-body-secondary" : "";
+                  const postslabel = str("userstatsviewposts", false, user.name);
                   return (
                     <tr key={user.userid}>
                       <th scope="row" className={`fw-normal ${muted}`}>
                         <a href={user.profileurl} className="text-decoration-none">{user.name}</a>
+                        <a href={user.postsurl} className="ms-2 text-body-tertiary" title={postslabel}>
+                          <i className="fa-regular fa-comments" aria-hidden="true"/>
+                          <span className="visually-hidden">{postslabel}</span>
+                        </a>
                       </th>
                       {scopes.flatMap((s) => metrics.map((m, i) => (
                         <td key={field(s, m)} className={`text-end ${i === 0 ? "border-start" : ""} ${visibility(s)} ${muted}`}>

@@ -31,6 +31,7 @@ class userstats_dto {
      * @param int $userid
      * @param string $name full name of the user, as the viewer may see it
      * @param string $profileurl url to the course profile of the user
+     * @param string $postsurl url to the overview of the user's posts in the course (user.php)
      * @param int $forumactivity written posts and given ratings in this moodleoverflow
      * @param int $forumreputation reputation in this moodleoverflow
      * @param int $forumupvotes received upvotes in this moodleoverflow
@@ -47,6 +48,8 @@ class userstats_dto {
         public readonly string $name,
         /** @var string $profileurl url to the course profile of the user */
         public readonly string $profileurl,
+        /** @var string $postsurl url to the overview of the user's posts in the course (user.php) */
+        public readonly string $postsurl,
         /** @var int $forumactivity written posts and given ratings in this moodleoverflow */
         public readonly int $forumactivity,
         /** @var int $forumreputation reputation in this moodleoverflow */
