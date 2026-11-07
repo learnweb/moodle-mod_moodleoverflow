@@ -47,4 +47,15 @@ final class post_content {
         public readonly ?string $subject = null,
     ) {
     }
+
+    /**
+     * Converts a plain text message (the small reply form of the discussion page) to HTML, the format of the editor:
+     * the text escaped, line breaks kept.
+     *
+     * @param string $text
+     * @return string
+     */
+    public static function plain_text_to_html(string $text): string {
+        return '<p>' . nl2br(s(trim($text)), false) . '</p>';
+    }
 }

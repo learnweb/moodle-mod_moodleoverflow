@@ -1,0 +1,58 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/inline_reply
+
+  The small reply form below a post of the discussion page: a plain text message, posted by inlinereply.js.
+  "Advanced" submits the form to post.php, which opens the full form with the message (parameter prefill).
+  The label wraps the textarea, so the form needs no id. Only classes that Bootstrap 4 and 5 both have.
+
+  Context variables:
+  * postid - The post to reply to
+  * posturl - The url of post.php
+  * isanswer - Whether the reply is an answer to the question (else a comment)
+  * indent - Whether the form is indented like a comment (below an answer)
+
+  Example context (json):
+  {
+      "postid": 12,
+      "posturl": "https://example.com/mod/moodleoverflow/post.php",
+      "isanswer": false,
+      "indent": true
+  }
+}}
+<form class="moodleoverflow-inlinereply bg-light border rounded p-2 mt-2 fade{{#indent}} indent{{/indent}}"
+      method="post" action="{{{posturl}}}" data-region="mod_moodleoverflow/inline-reply" data-postid="{{postid}}">
+    <input type="hidden" name="reply" value="{{postid}}">
+    <label class="d-block mb-2">
+        <span class="sr-only visually-hidden">{{#str}} message, mod_moodleoverflow {{/str}}</span>
+        <textarea name="prefill" class="form-control" rows="2" data-auto-rows="true" data-min-rows="2" data-max-rows="12"
+            placeholder="{{#isanswer}}{{#str}} writeanswer, mod_moodleoverflow {{/str}}{{/isanswer}}{{!
+            }}{{^isanswer}}{{#str}} writecomment, mod_moodleoverflow {{/str}}{{/isanswer}}"></textarea>
+    </label>
+    <div class="d-flex justify-content-between align-items-center">
+        <button type="submit" class="btn btn-link btn-sm">{{#pix}} i/upload, core {{/pix}}{{#str}} advanced {{/str}}</button>
+        <div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="mod_moodleoverflow/inline-reply-cancel">
+                {{#str}} cancel {{/str}}
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" data-action="mod_moodleoverflow/inline-reply-submit" disabled>
+                {{#str}} posttomoodleoverflow, mod_moodleoverflow {{/str}}
+            </button>
+        </div>
+    </div>
+</form>

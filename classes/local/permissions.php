@@ -20,6 +20,7 @@ use core\exception\access_denied_exception;
 use core\exception\coding_exception;
 use core_availability\info_module;
 use dml_exception;
+use mod_moodleoverflow\local\enum\posting_action;
 use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\discussion;
@@ -180,6 +181,22 @@ class permissions {
     }
 
     // Posting permissions.
+
+    /**
+     * If a user may do a posting action: start a discussion, reply to a post, edit a post.
+     * @param posting_action $action
+     * @param moodleoverflow $modflow
+     * @param post|null $post The parent for REPLY, the edited post for EDIT, null for CREATE
+     * @param int $userid
+     * @return bool
+     */
+    public static function can_do_posting_action(posting_action $action, moodleoverflow $modflow, ?post $post, int $userid): bool {
+        return match ($action) {
+            posting_action::CREATE => self::can_start_discussion($modflow, $userid),
+            posting_action::REPLY => self::can_reply($post, $userid),
+            posting_action::EDIT => self::can_edit_post($post, $userid),
+        };
+    }
 
     /**
      * If a user can start a discussion.
