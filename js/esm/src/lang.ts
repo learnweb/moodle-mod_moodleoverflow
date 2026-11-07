@@ -35,9 +35,9 @@ type StringParams = Record<string, string | number> | string | number;
  * A language string of this plugin.
  *
  * @param key The string identifier, as in the lang file.
- * @param fromCore if the string is from the lsf language file or the moodle core
+ * @param fromCore if the string is from the moodleoverflow language file or the moodle core
  * @param param Fills the string's placeholders, like the $a argument in PHP.
- * @returns The translated string, or "[[key,local_lsf_unification]]" if it is not defined.
+ * @returns The translated string, or "[[key,moodleoverflow]]" if it is not defined.
  */
 export const str = (key: string, fromCore?: boolean, param?: StringParams): string => {
     return fromCore ? M.util.get_string(key, "core", param) : M.util.get_string(key, "mod_moodleoverflow", param);

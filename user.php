@@ -77,5 +77,6 @@ $PAGE->set_title(get_string('moodleoverflowposts', 'mod_moodleoverflow'));
 $PAGE->set_heading(fullname($user));
 
 echo $OUTPUT->header();
-echo $PAGE->get_renderer('mod_moodleoverflow')->render_react('UserPage', (object) ['userid' => $userid, 'courseid' => $courseid]);
+$props = (object) ['userid' => $userid, 'courseid' => $courseid];
+echo $PAGE->get_renderer('mod_moodleoverflow')->render_react('userposts/UserPage', $props);
 echo $OUTPUT->footer();

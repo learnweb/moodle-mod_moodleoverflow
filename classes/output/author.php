@@ -67,7 +67,7 @@ class author implements templatable {
 
         $user = core_user::get_user($authorid, '*', MUST_EXIST);
         return [
-            'name' => fullname($user, has_capability('moodle/site:viewfullnames', $modflow->get_context(), $this->userid)),
+            'name' => fullname($user, permissions::can_view_fullnames($modflow, $this->userid)),
             'profileurl' => $profileurl,
             'picture' => $output->user_picture($user, ['courseid' => $modflow->course, 'link' => false]),
         ];
