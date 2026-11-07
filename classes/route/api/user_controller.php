@@ -18,7 +18,6 @@ namespace mod_moodleoverflow\route\api;
 
 use core\exception\coding_exception;
 use core\context\system;
-use core\context\user;
 use core\exception\moodle_exception;
 use core\param;
 use core\router\route;
@@ -56,33 +55,24 @@ class user_controller {
     )]
     public function get_user_posts(ServerRequestInterface $request, ResponseInterface $response, int $userid): payload_response {
         global $PAGE, $USER, $CFG;
-        $payload = [];
-
         require_login();
-        if (isguestuser()) {
+
+        $user = isguestuser() ? false : \core\user::get_user($userid);
+        if (!$user) {
             $PAGE->set_context(system::instance());
             return new payload_response([], $request, $response);
         }
-        if ($USER->id == $userid) {
-            $PAGE->set_context(user::instance($userid));
-            $payload = user_service::get_all_user_posts($userid);
-        } else if ($user = \core\user::get_user($userid)) {
-            $usercontext = user::instance($userid);
-            $PAGE->set_context($usercontext);
 
-            if ($CFG->branch >= 503) {
-                $canviewprofile = \core\user::can_view_profile($user, null, $usercontext);
-            } else {
-                require_once($CFG->dirroot . '/user/lib.php');
-                $canviewprofile = user_can_view_profile($user, null, $usercontext);
-            }
-            if ($canviewprofile) {
-                $payload = user_service::get_all_user_posts($userid);
-            }
+        $context = \core\context\user::instance($user->id);
+        $PAGE->set_context($context);
+        if ($CFG->branch >= 503) {
+            $canviewprofile = \core\user::can_view_profile($user, null, $context);
         } else {
-            $PAGE->set_context(system::instance());
+            require_once($CFG->dirroot . '/user/lib.php');
+            $canviewprofile = user_can_view_profile($user, null, $context);
         }
 
+        $payload = $canviewprofile ? user_service::get_all_user_posts($user->id, $USER->id) : [];
         return new payload_response($payload, $request, $response);
     }
 }

@@ -33,12 +33,13 @@ use moodle_url;
 class user_service {
     /**
      * Returns all posts a user has written throughout all moodleoverflows
-     * @param int $userid
+     * @param int $userid The user whose posts are shown.
+     * @param int $viewerid The user who wants to see the posts
      * @return array
      * @throws moodle_exception
      */
-    public static function get_all_user_posts(int $userid): array {
-        global $DB, $USER;
+    public static function get_all_user_posts(int $userid, int $viewerid): array {
+        global $DB;
 
         // Search all the user posts.
         $sql = "SELECT post.*, course.id AS courseid, course.shortname AS coursename, d.name AS discussionsubject,
@@ -65,12 +66,11 @@ class user_service {
             $DB->get_records_list('moodleoverflow_discussions', 'id', array_unique(array_column($records, 'discussid')))
         );
         $userposts = [];
-        $path = '/mod/moodleoverflow/';
-        // Build the dto's. Filter out posts that the current user can't see.
+        // Build the dto's. Filter out posts that the viewer can't see.
         foreach ($records as $record) {
             $post = $discussions[$record->discussid]->get_posts()[$record->id];
 
-            if (!permissions::can_view_post($post, $USER->id) || !permissions::can_view_author($post, $USER->id)) {
+            if (!permissions::can_view_post($post, $viewerid) || !permissions::can_view_author($post, $viewerid)) {
                 continue;
             }
 
@@ -82,9 +82,9 @@ class user_service {
                 $record->coursename,
                 $record->courseid,
                 $post->created,
-                (new moodle_url($path . 'discussion.php', ['d' => $record->discussid], 'p' . $post->get_id()))->out(),
-                (new moodle_url($path . 'discussion.php', ['d' => $record->discussid]))->out(),
-                (new moodle_url($path . 'view.php', ['m' => $record->modflowid]))->out(),
+                $post->get_link()->out(false),
+                $discussions[$record->discussid]->get_link()->out(false),
+                $moodleoverflows[$record->modflowid]->get_link()->out(false),
             );
             $userposts[] = $dto->to_array();
         }
