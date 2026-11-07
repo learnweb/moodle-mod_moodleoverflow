@@ -24,7 +24,14 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
     And I click on "View user statistics" "text"
     Then "Teacher 1" "table_row" should exist
     And "Student 1" "table_row" should exist
-    And I should see "Posts and votes per day"
+
+  Scenario: The user statistics show the posts and votes over time as a chart
+    Given the site is running Moodle version 5.3 or higher
+    And the following config values are set as admin:
+      | showuserstats | 1 | moodleoverflow |
+    When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
+    And I click on "View user statistics" "text"
+    Then I should see "Posts and votes per day"
 
   Scenario: Test if reputation appears in the user statistics
     Given the following config values are set as admin:
