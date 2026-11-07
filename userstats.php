@@ -23,11 +23,13 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
-global $PAGE, $OUTPUT, $SESSION, $USER;
+global $CFG, $PAGE, $OUTPUT, $USER;
 
+use core_calendar\type_factory;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
-use mod_moodleoverflow\local\tables\userstats_table;
+use mod_moodleoverflow\local\service\userstats;
+use mod_moodleoverflow\output\userstats_table;
 
 // Declare optional parameters.
 $cmid = required_param('id', PARAM_INT); // Course Module ID.
@@ -43,18 +45,27 @@ require_login($course, true, $cm);
 // Set the context.
 $PAGE->set_context($moodleoverflow->get_context());
 
-if (permissions::can_view_userstats($moodleoverflow, $USER->id)) {
-    // Print the page header.
-    $PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id, 'courseid' => $course->id, 'mid' => $moodleoverflow->id]);
-    $PAGE->set_title(get_string('userstats', 'moodleoverflow'));
-    $PAGE->set_heading(get_string('userstatscourse', 'moodleoverflow', $course->fullname));
-
-    // Output starts here.
-    echo $OUTPUT->header();
-    echo $OUTPUT->heading('');
-    $table = new userstats_table('statisticstable', $course->id, $moodleoverflow->id, $PAGE->url);
-    $table->out();
-    echo $OUTPUT->footer();
-} else {
+if (!permissions::can_view_userstats($moodleoverflow, $USER->id)) {
     redirect(new moodle_url('/'));
 }
+
+// Print the page header.
+$PAGE->set_url('/mod/moodleoverflow/userstats.php', ['id' => $cm->id]);
+$PAGE->set_title(get_string('userstats', 'moodleoverflow'));
+$PAGE->set_heading(get_string('userstatscourse', 'moodleoverflow', $course->fullname));
+
+// Moodle versions without React get the old table.
+if ($CFG->branch >= 503) {
+    $data = userstats::get_page_data($moodleoverflow, $USER->id, core_date::get_user_timezone_object());
+    $props = (object) ($data->to_array() + [
+        'modflowid' => $moodleoverflow->id,
+        'firstweekday' => (int) type_factory::get_calendar_instance()->get_starting_weekday(),
+    ]);
+    echo $OUTPUT->header();
+    echo $PAGE->get_renderer('mod_moodleoverflow')->render_react('userstats/UserStatsPage', $props);
+} else {
+    $statistics = userstats::get_statistics($moodleoverflow, $USER->id);
+    echo $OUTPUT->header();
+    (new userstats_table('statisticstable', $statistics, $PAGE->url))->out();
+}
+echo $OUTPUT->footer();

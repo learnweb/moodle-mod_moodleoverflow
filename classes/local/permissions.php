@@ -155,6 +155,17 @@ class permissions {
     }
 
     /**
+     * If a user sees the full names of other users in a moodleoverflow (core capability viewfullnames).
+     * @param moodleoverflow $modflow
+     * @param int $userid
+     * @return bool
+     * @throws coding_exception|moodle_exception
+     */
+    public static function can_view_fullnames(moodleoverflow $modflow, int $userid): bool {
+        return has_capability('moodle/site:viewfullnames', $modflow->get_context(), $userid);
+    }
+
+    /**
      * A post is "accepted" for view by the review domain if the post is reviewed, it is the own post or if the user
      * is a reviewer.
      * @param post $post

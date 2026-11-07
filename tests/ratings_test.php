@@ -359,6 +359,10 @@ final class ratings_test extends \advanced_testcase {
         $this->assertEquals(20, service\rating::get_reputation($shared, $this->otherstudent->id));
         $this->assertEquals(10, service\rating::get_instance_reputation($shared, $this->otherstudent->id));
         $this->assertEquals(10, service\rating::get_reputation($own, $this->otherstudent->id));
+
+        // The reputations of all users at once are the same numbers.
+        $this->assertEquals(20, service\rating::get_course_reputations($this->course->id)[$this->otherstudent->id]);
+        $this->assertEquals(10, service\rating::get_instance_reputations($shared)[$this->otherstudent->id]);
     }
 
     // Grades.
