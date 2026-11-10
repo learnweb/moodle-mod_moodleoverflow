@@ -33,6 +33,36 @@ const Selectors = {
     form: '[data-region="mod_moodleoverflow/inline-reply"]',
     submit: '[data-action="mod_moodleoverflow/inline-reply-submit"]',
     cancel: '[data-action="mod_moodleoverflow/inline-reply-cancel"]',
+    words: '[data-region="mod_moodleoverflow/inline-reply-words"]',
+    count: '[data-region="mod_moodleoverflow/inline-reply-count"]',
+};
+
+/** Word limits of the moodleoverflow, 0: no limit. The server checks them, the form only helps. */
+const limits = {min: 0, max: 0};
+
+/**
+ * Counts the words of a text like count_words() in PHP: blocks of characters separated by spaces, control characters
+ * or dashes.
+ * @param {String} text
+ * @returns {Number}
+ */
+const countWords = (text) => text.split(/[\p{Z}\p{Cc}—–]+/u).filter(Boolean).length;
+
+/**
+ * Updates the word count of a form and enables "Post" only for a message within the word limits.
+ * @param {HTMLFormElement} form
+ */
+const updateForm = (form) => {
+    const text = form.querySelector('textarea').value.trim();
+    const words = countWords(text);
+    const fits = words >= limits.min && (limits.max === 0 || words <= limits.max);
+    form.querySelector(Selectors.submit).disabled = text === '' || !fits;
+    const info = form.querySelector(Selectors.words);
+    if (info) {
+        info.querySelector(Selectors.count).textContent = words;
+        info.classList.toggle('text-muted', fits);
+        info.classList.toggle('text-danger', !fits);
+    }
 };
 
 /**
@@ -66,6 +96,9 @@ const openForm = async(command) => {
             isanswer: isquestion,
             // Below an answer the form stands where the comment will be; a comment card is indented already.
             indent: !isquestion && !card.classList.contains('moodleoverflowcomment'),
+            wordsmin: limits.min,
+            wordsmax: limits.max,
+            haswordlimit: limits.min > 0 || limits.max > 0,
         });
         card.insertAdjacentHTML('afterend', html);
         Templates.runTemplateJS(js);
@@ -93,8 +126,9 @@ const closeForm = (form) => {
  * @param {HTMLFormElement} form
  */
 const submitForm = async(form) => {
+    // Ctrl/Cmd+Enter does not look at the button: no message, outside the word limits or posting already.
     const message = form.querySelector('textarea').value.trim();
-    if (!message) {
+    if (!message || form.querySelector(Selectors.submit).disabled) {
         return;
     }
     const buttons = form.querySelectorAll('button');
@@ -126,8 +160,13 @@ const submitForm = async(form) => {
 
 /**
  * Init function.
+ * @param {Number} wordsmin Minimum number of words of a post, 0: no limit
+ * @param {Number} wordsmax Maximum number of words of a post, 0: no limit
  */
-export const init = () => {
+export const init = (wordsmin, wordsmax) => {
+    limits.min = wordsmin;
+    limits.max = wordsmax;
+
     // The textareas grow with their text (data-auto-rows).
     AutoRows.init(document.body);
 
@@ -146,11 +185,11 @@ export const init = () => {
         }
     });
 
-    // "Post" can only be pressed with a message.
+    // "Post" can only be pressed with a message within the word limits.
     document.addEventListener('input', (e) => {
         const form = e.target.closest(Selectors.form);
         if (form) {
-            form.querySelector(Selectors.submit).disabled = form.querySelector('textarea').value.trim() === '';
+            updateForm(form);
         }
     });
 

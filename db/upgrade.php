@@ -415,5 +415,22 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         }
         upgrade_mod_savepoint(true, 2026050714, 'moodleoverflow');
     }
+
+    if ($oldversion < 2026050717) {
+        // Add fields for min/max number of words for posts.
+        $table = new xmldb_table('moodleoverflow');
+
+        $field = new xmldb_field('wordsmin', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, 'la_endtime');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('wordsmax', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, 'wordsmin');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026050717, 'moodleoverflow');
+    }
     return true;
 }

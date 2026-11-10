@@ -16,6 +16,7 @@
 
 namespace mod_moodleoverflow\form;
 
+use core\exception\moodle_exception;
 use core\output\html_writer;
 use mod_moodleoverflow\local\enum\posting_action;
 use mod_moodleoverflow\local\models\moodleoverflow;
@@ -90,6 +91,13 @@ class post_form extends moodleform {
         );
         $mform->setType('message', PARAM_RAW);
         $mform->addRule('message', get_string('required'), 'required', null, 'client');
+
+        // The word limits below the editor, only when they apply to the user.
+        $limits = $this->get_words_limit_text();
+        if ($limits !== null && $this->is_author_writing()) {
+            $text = get_string('wordslimit', 'moodleoverflow', $limits);
+            $mform->addElement('static', 'wordslimit', '', html_writer::span($text, 'text-muted small'));
+        }
 
         if (permissions::can_add_attachments($this->modflow, $USER->id)) {
             $mform->addElement(
@@ -213,6 +221,13 @@ class post_form extends moodleform {
         $errors = parent::validation($data, $files);
         if (empty($data['message']['text'])) {
             $errors['message'] = get_string('erroremptymessage', 'moodleoverflow');
+        } else if ($this->is_author_writing()) {
+            try {
+                $content = new post_content($data['message']['text'], (int) $data['message']['format']);
+                $this->modflow->ensure_words_count($content);
+            } catch (moodle_exception $e) {
+                $errors['message'] = $e->getMessage();
+            }
         }
         if ($this->has_subject() && trim($data['subject'] ?? '') === '') {
             $errors['subject'] = get_string('erroremptysubject', 'moodleoverflow');
@@ -227,6 +242,32 @@ class post_form extends moodleform {
      */
     private function get_edited_post(): ?post {
         return $this->action === posting_action::EDIT ? $this->post : null;
+    }
+
+    /**
+     * Whether the current user writes as the author: a new post or an edit of their own post. The word limits only
+     * apply to authors, someone who edits the post of another user is not limited.
+     *
+     * @return bool
+     */
+    private function is_author_writing(): bool {
+        global $USER;
+        return $this->action !== posting_action::EDIT || $this->post->get_userid() === (int) $USER->id;
+    }
+
+    /**
+     * The word limits of the moodleoverflow as text, e.g. "10 to 200 words".
+     *
+     * @return string|null Null when there is no limit.
+     */
+    private function get_words_limit_text(): ?string {
+        [$min, $max] = $this->modflow->get_words_count_window();
+        return match (true) {
+            $min !== null && $max !== null => get_string('wordslimitrange', 'moodleoverflow', ['min' => $min, 'max' => $max]),
+            $min !== null => get_string('wordslimitmin', 'moodleoverflow', $min),
+            $max !== null => get_string('wordslimitmax', 'moodleoverflow', $max),
+            default => null,
+        };
     }
 
     /**

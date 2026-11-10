@@ -75,7 +75,7 @@ $node->display = false;
 $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $modflow->allows_multiple_marks()]);
 $PAGE->requires->js_call_amd('mod_moodleoverflow/deletepost', 'init');
-$PAGE->requires->js_call_amd('mod_moodleoverflow/inlinereply', 'init');
+$PAGE->requires->js_call_amd('mod_moodleoverflow/inlinereply', 'init', [$modflow->wordsmin, $modflow->wordsmax]);
 
 // The unsubscribe link of a mail only opens a confirmation dialog, the GET request changes nothing.
 if (

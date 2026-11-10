@@ -26,13 +26,19 @@
   * posturl - The url of post.php
   * isanswer - Whether the reply is an answer to the question (else a comment)
   * indent - Whether the form is indented like a comment (below an answer)
+  * wordsmin - Minimum number of words, 0: no limit
+  * wordsmax - Maximum number of words, 0: no limit
+  * haswordlimit - Whether a limit is set: shows the number of words below the message
 
   Example context (json):
   {
       "postid": 12,
       "posturl": "https://example.com/mod/moodleoverflow/post.php",
       "isanswer": false,
-      "indent": true
+      "indent": true,
+      "wordsmin": 10,
+      "wordsmax": 200,
+      "haswordlimit": true
   }
 }}
 <form class="moodleoverflow-inlinereply bg-light border rounded p-2 mt-2 fade{{#indent}} indent{{/indent}}"
@@ -41,9 +47,19 @@
     <label class="d-block mb-2">
         <span class="sr-only visually-hidden">{{#str}} message, mod_moodleoverflow {{/str}}</span>
         <textarea name="prefill" class="form-control" rows="2" data-auto-rows="true" data-min-rows="2" data-max-rows="12"
+            {{#haswordlimit}}aria-describedby="mod_moodleoverflow-words-{{uniqid}}-{{postid}}"{{/haswordlimit}}
             placeholder="{{#isanswer}}{{#str}} writeanswer, mod_moodleoverflow {{/str}}{{/isanswer}}{{!
             }}{{^isanswer}}{{#str}} writecomment, mod_moodleoverflow {{/str}}{{/isanswer}}"></textarea>
     </label>
+    {{#haswordlimit}}
+    <small class="form-text text-muted mt-n1 mb-2" id="mod_moodleoverflow-words-{{uniqid}}-{{postid}}"
+           data-region="mod_moodleoverflow/inline-reply-words">
+        <span data-region="mod_moodleoverflow/inline-reply-count">0</span> /
+        {{#wordsmin}}{{#wordsmax}}{{#str}} wordslimitrange, mod_moodleoverflow, {"min": {{wordsmin}}, "max": {{wordsmax}}} {{/str}}{{/wordsmax}}{{!
+        }}{{^wordsmax}}{{#str}} wordslimitmin, mod_moodleoverflow, {{wordsmin}} {{/str}}{{/wordsmax}}{{/wordsmin}}{{!
+        }}{{^wordsmin}}{{#str}} wordslimitmax, mod_moodleoverflow, {{wordsmax}} {{/str}}{{/wordsmin}}
+    </small>
+    {{/haswordlimit}}
     <div class="d-flex justify-content-between align-items-center">
         <button type="submit" class="btn btn-link btn-sm">{{#pix}} i/upload, core {{/pix}}{{#str}} advanced {{/str}}</button>
         <div>

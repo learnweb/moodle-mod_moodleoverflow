@@ -68,6 +68,8 @@ class moodleoverflow {
      * @param int $needsreview
      * @param int $la_starttime
      * @param int $la_endtime
+     * @param int $wordsmin
+     * @param int $wordsmax
      * @param ?int $grademaxgrade
      * @param ?int $gradescalefactor
      * @param ?int $gradepass
@@ -114,6 +116,10 @@ class moodleoverflow {
         public readonly int $la_starttime, // phpcs:ignore moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
         /** @var int End of the limited answer window, 0 means not set */
         public readonly int $la_endtime, // phpcs:ignore moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
+        /** @var int Minimum number of words a post needs to have */
+        public readonly int $wordsmin,
+        /** @var int Maximum number of words a post can have */
+        public readonly int $wordsmax,
         /** @var ?int Maximum grade, null when grading is not configured */
         public readonly ?int $grademaxgrade,
         /** @var ?int Divisor that turns the reputation into a grade */
@@ -166,6 +172,8 @@ class moodleoverflow {
             needsreview: review_level::from((int) ($record->needsreview ?? review_level::NONE->value))->value,
             la_starttime: (int) ($record->la_starttime ?? 0),
             la_endtime: (int) ($record->la_endtime ?? 0),
+            wordsmin: (int) ($record->wordsmin ?? 0),
+            wordsmax: (int) ($record->wordsmax ?? 0),
             grademaxgrade: isset($record->grademaxgrade) ? (int) $record->grademaxgrade : null,
             gradescalefactor: isset($record->gradescalefactor) ? (int) $record->gradescalefactor : null,
             gradepass: isset($record->gradepass) ? (int) $record->gradepass : null,
@@ -268,6 +276,33 @@ class moodleoverflow {
      */
     public function get_answer_window(): array {
         return [$this->la_starttime ?: null, $this->la_endtime ?: null];
+    }
+
+    /**
+     * Minimum and maximum number of words of a post, null when there is no limit.
+     * @return array{0: ?int, 1: ?int}
+     */
+    public function get_words_count_window(): array {
+        return [$this->wordsmin ?: null, $this->wordsmax ?: null];
+    }
+
+    /**
+     * Ensures that the content of a post has a number of words within the limits of this moodleoverflow.
+     *
+     * The limits apply to every post (question, answer, comment), when posting and when editing.
+     * @param post_content $content
+     * @return void
+     * @throws moodle_exception errorwordsmin / errorwordsmax with the counted number and the limit.
+     */
+    public function ensure_words_count(post_content $content): void {
+        [$min, $max] = $this->get_words_count_window();
+        $count = $content->get_words_count();
+        if ($min !== null && $count < $min) {
+            throw new moodle_exception('errorwordsmin', 'moodleoverflow', '', (object) ['count' => $count, 'limit' => $min]);
+        }
+        if ($max !== null && $count > $max) {
+            throw new moodle_exception('errorwordsmax', 'moodleoverflow', '', (object) ['count' => $count, 'limit' => $max]);
+        }
     }
 
     /**
