@@ -43,15 +43,20 @@ class view_page implements named_templatable, renderable {
     /** @var object The coursemodule */
     public object $cm;
 
+    /** @var string The search query, empty: all discussions */
+    public string $query;
+
     /**
      * Constructor.
      * @param models\moodleoverflow $moodleoverflow The moodleoverflow DB object
      * @param int $page Which "page" should get
+     * @param string $query Only the discussions that contain these words, empty: all discussions
      */
-    public function __construct(models\moodleoverflow $moodleoverflow, int $page = -1) {
+    public function __construct(models\moodleoverflow $moodleoverflow, int $page = -1, string $query = '') {
         $this->modflow = $moodleoverflow;
         $this->page = $page;
         $this->cm = $moodleoverflow->get_cm();
+        $this->query = $query;
     }
 
     #[\Override]
@@ -83,12 +88,19 @@ class view_page implements named_templatable, renderable {
             service\discussion::get_move_destinations($this->modflow, $USER->id)
         );
 
-        // Load the visible discussions and cut out the current page.
+        // Load the visible discussions.
         $discussions = service\discussion::get_discussions($this->modflow, $USER->id);
-        $discussioncount = count($discussions);
+        $searchable = !empty($discussions);
 
-        // Count the unread posts of all visible discussions at once; the cards show theirs, the page their sum.
+        // Count the unread posts of all visible discussions at once; the cards show theirs, the page their sum. Counted
+        // before the search, because "mark all read" marks the whole moodleoverflow, not only the matches.
         $unread = service\readtracking::count_unread_posts_per_discussion($this->modflow, $discussions, $USER->id);
+
+        // Keep the discussions that match the search and cut out the current page.
+        if ($this->query !== '') {
+            $discussions = service\discussion::search($discussions, $this->query, $USER->id);
+        }
+        $discussioncount = count($discussions);
         $items = array_map(
             fn(models\discussion $discussion) => $OUTPUT->render(
                 new discussion_card($discussion, !empty($destinations), $unread[$discussion->get_id()])
@@ -112,7 +124,8 @@ class view_page implements named_templatable, renderable {
         $nextpost = service\review::get_next_post_to_review($this->modflow, $USER->id);
 
         // Collect the needed data being submitted to the template.
-        $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, "view.php?id={$this->cm->id}");
+        $listurl = new moodle_url($this->modflow->get_link(), $this->query !== '' ? ['q' => $this->query] : []);
+        $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, $listurl);
         $canstartdiscussion = permissions::can_start_discussion($this->modflow, $USER->id);
         return (object) [
             'discussions' => $items,
@@ -128,6 +141,20 @@ class view_page implements named_templatable, renderable {
                 'instanceid' => $this->modflow->id,
             ] : [],
             'stats' => permissions::can_view_userstats($this->modflow, $USER->id) ? ['link' => $userstatslink->out()] : [],
+            'search' => $searchable ? [
+                'action' => (new moodle_url('/mod/moodleoverflow/view.php'))->out(false),
+                'inputname' => 'q',
+                'searchstring' => get_string('searchforum', 'moodleoverflow'),
+                'query' => $this->query,
+                'hiddenfields' => [['name' => 'id', 'value' => $this->cm->id]],
+                'result' => $this->query === '' ? '' : get_string(
+                    $discussioncount > 0 ? 'searchresults' : 'searchnoresults',
+                    'moodleoverflow',
+                    $this->query
+                ),
+                'clearurl' => $this->modflow->get_link()->out(false),
+            ] : [],
+            'searching' => $this->query !== '',
             'paging_bar' => ($this->page != -1) ? $pagingbar : false,
             'destinations' => $destinations,
             'anonymous_desc' => $anonymousdesc,

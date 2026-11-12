@@ -68,7 +68,7 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And I am on the "Course 1" "Course" page logged in as "student1"
     And I should see "2 unread post"
     And I follow "Test moodleoverflow name"
-    When I click on "Mark all posts as read" "button"
-    And "Mark all posts as read" "button" should not exist
+    When I click on "Mark all as read" "button" in the "region-main" "region"
+    And "Mark all as read" "button" should not exist in the "region-main" "region"
     And I am on "Course 1" course homepage
     Then I should not see "2 unread post"

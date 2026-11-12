@@ -48,6 +48,70 @@ class discussion {
     }
 
     /**
+     * Returns the discussions whose title or visible posts contain every word of a search query, ignoring case.
+     *
+     * Only the posts of the discussion page count (get_posts_tree()), so the text of a post the user cannot see never
+     * makes its discussion a match. Author names are not searched, so anonymous authors stay hidden.
+     *
+     * @param models\discussion[] $discussions Discussions the user can see (get_discussions()), in the order to keep
+     * @param string $query The words to search for, separated by spaces
+     * @param int $userid The user who searches
+     * @return models\discussion[]
+     * @throws moodle_exception|dml_exception
+     */
+    public static function search(array $discussions, string $query, int $userid): array {
+        $words = preg_split('/\s+/u', \core_text::strtolower(trim($query)), -1, PREG_SPLIT_NO_EMPTY);
+        $matches = [];
+        foreach ($discussions as $id => $discussion) {
+            $text = self::get_searchable_text($discussion, $userid);
+            if (self::contains_all_words($text, $words)) {
+                $matches[$id] = $discussion;
+            }
+        }
+        return $matches;
+    }
+
+    /**
+     * Returns the text a search looks at: the title and the posts of the discussion page, in lower case and without
+     * HTML.
+     *
+     * @param models\discussion $discussion
+     * @param int $userid The user who searches
+     * @return string
+     * @throws moodle_exception|dml_exception
+     */
+    private static function get_searchable_text(models\discussion $discussion, int $userid): string {
+        $tree = self::get_posts_tree($discussion, $userid);
+        $texts = [$discussion->name, $tree['question']->message];
+        foreach ($tree['answers'] as $branch) {
+            $texts[] = $branch['answer']->message;
+            foreach ($branch['comments'] as $comment) {
+                $texts[] = $comment->message;
+            }
+        }
+
+        // Tags become spaces, so the words of two paragraphs do not run together.
+        $text = strip_tags(str_replace('<', ' <', implode(' ', $texts)));
+        return \core_text::strtolower(html_entity_decode($text));
+    }
+
+    /**
+     * Whether a text contains every word.
+     *
+     * @param string $text
+     * @param string[] $words
+     * @return bool
+     */
+    private static function contains_all_words(string $text, array $words): bool {
+        foreach ($words as $word) {
+            if (!str_contains($text, $word)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Moves a discussion to another moodleoverflow of the same course.
      *
      * The discussion model moves its own data (files, ratings, read records, discussion subscriptions, mail digest quere)

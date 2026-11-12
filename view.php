@@ -36,6 +36,7 @@ $id = optional_param('id', 0, PARAM_INT);       // Course Module ID.
 $m = optional_param('m', 0, PARAM_INT);        // MoodleOverflow ID.
 $page = optional_param('page', 0, PARAM_INT);     // Which page to show.
 $unsubscribe = optional_param('unsubscribe', 0, PARAM_BOOL); // Unsubscribe link of a mail.
+$query = trim(optional_param('q', '', PARAM_TEXT)); // Search: only the discussions that contain these words.
 
 // Fetch the moodleoverflow instance.
 $modflow = match (true) {
@@ -50,7 +51,7 @@ require_login($course, true, $modflow->get_cm());
 permissions::ensure(permissions::can_view_moodleoverflow($modflow, $USER->id), 'noviewdiscussionspermission');
 
 // Print the page header.
-$PAGE->set_url(new moodle_url($modflow->get_link(), ['page' => $page]));
+$PAGE->set_url(new moodle_url($modflow->get_link(), ['page' => $page] + ($query !== '' ? ['q' => $query] : [])));
 $PAGE->set_title(format_string($modflow->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->add_body_class('limitedwidth');
@@ -75,5 +76,5 @@ $event->trigger();
 
 // Output starts here.
 echo $OUTPUT->header();
-echo $OUTPUT->render(new view_page($modflow, $page));
+echo $OUTPUT->render(new view_page($modflow, $page, $query));
 echo $OUTPUT->footer();

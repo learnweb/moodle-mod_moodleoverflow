@@ -35,7 +35,8 @@
     }
 }}
 <button type="button"
-        class="{{#icononly}}btn btn-link p-0 text-muted{{/icononly}}{{^icononly}}btn btn-secondary m-2{{/icononly}}"
+        class="{{#icononly}}btn btn-link p-0 text-muted{{/icononly}}{{^icononly}}btn btn-outline-secondary m-1{{/icononly}}"
+        {{^icononly}}title="{{#str}} subscriptiondesc, mod_moodleoverflow {{/str}}"{{/icononly}}
         data-action="mod_moodleoverflow/toggle-subscription"
         data-type="{{type}}"
         data-id="{{id}}"
