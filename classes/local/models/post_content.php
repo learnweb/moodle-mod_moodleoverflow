@@ -49,6 +49,15 @@ final class post_content {
     }
 
     /**
+     * Number of words in the message. HTML tags do not count, block tags and line breaks separate words.
+     *
+     * @return int
+     */
+    public function get_words_count(): int {
+        return count_words($this->message, $this->messageformat);
+    }
+
+    /**
      * Converts a plain text message (the small reply form of the discussion page) to HTML, the format of the editor:
      * the text escaped, line breaks kept.
      *

@@ -107,6 +107,13 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $mform->setDefault('needsreview', review_level::NONE->value);
         }
 
+        foreach (['wordsmin', 'wordsmax'] as $field) {
+            $mform->addElement('text', $field, get_string($field, 'moodleoverflow'), ['size' => 5]);
+            $mform->setType($field, PARAM_INT);
+            $mform->setDefault($field, 0);
+            $mform->addHelpButton($field, $field, 'moodleoverflow');
+        }
+
         // Attachments.
         $mform->addElement('header', 'attachmentshdr', get_string('attachments', 'moodleoverflow'));
 
@@ -345,6 +352,16 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         // Validate the grade settings.
         if (isset($data['gradepass']) && isset($data['grademaxgrade']) && $data['gradepass'] > $data['grademaxgrade']) {
             $errors['gradepass'] = get_string('gradepassvalidationerror', 'moodleoverflow');
+        }
+
+        // Validate the word limits, 0 means no limit.
+        foreach (['wordsmin', 'wordsmax'] as $field) {
+            if (($data[$field] ?? 0) < 0) {
+                $errors[$field] = get_string('errorwordslimitnegative', 'moodleoverflow');
+            }
+        }
+        if (!isset($errors['wordsmax']) && ($data['wordsmax'] ?? 0) > 0 && $data['wordsmax'] < ($data['wordsmin'] ?? 0)) {
+            $errors['wordsmax'] = get_string('errorwordsmaxbelowmin', 'moodleoverflow');
         }
 
         // Validate that the limited answer settings.

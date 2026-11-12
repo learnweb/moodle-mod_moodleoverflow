@@ -228,6 +228,33 @@ final class posting_test extends \advanced_testcase {
         );
     }
 
+    // Word limits.
+
+    /**
+     * Test, if the word limits refuse new posts and own edits outside them, but not the edit of someone else's post.
+     */
+    public function test_word_limits(): void {
+        $modflow = $this->create_moodleoverflow(['wordsmin' => 2, 'wordsmax' => 3]);
+        $question = $this->generator->create_question($modflow, $this->student);
+
+        $this->assert_refused(
+            fn() => posting::create_discussion($modflow, $this->student->id, $this->content('One', 'Topic')),
+            'errorwordsmin'
+        );
+        $this->assert_refused(
+            fn() => posting::reply($question, $this->otherstudent->id, $this->content('One two three four')),
+            'errorwordsmax'
+        );
+        $this->assert_refused(
+            fn() => posting::edit($question, $this->student->id, $this->content('One', 'Topic')),
+            'errorwordsmin'
+        );
+
+        // A teacher who edits the post of a student is not limited.
+        $edited = posting::edit($question, $this->teacher->id, $this->content('One two three four', 'Topic'));
+        $this->assertEquals('One two three four', $edited->message);
+    }
+
     // Delete.
 
     /**

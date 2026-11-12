@@ -51,6 +51,7 @@ class posting {
 
         // Check if the user is allowed to post.
         permissions::ensure(permissions::can_start_discussion($modflow, $userid), 'nopostmoodleoverflow');
+        $modflow->ensure_words_count($content);
 
         // Build the discussion record.
         $time = time();
@@ -90,6 +91,7 @@ class posting {
 
         $discussion = $parent->get_discussion();
         $modflow = $discussion->get_moodleoverflow();
+        $modflow->ensure_words_count($content);
         $reviewed = !$modflow->requires_review(false) || permissions::can_review_posts($modflow, $userid);
 
         $transaction = $DB->start_delegated_transaction();
@@ -125,6 +127,10 @@ class posting {
         permissions::ensure(permissions::can_edit_post($post, $userid), 'cannotupdatepost');
         if ($post->get_parentid() == 0 && trim($content->subject ?? '') === '') {
             throw new coding_exception('An empty subject is not allowed');
+        }
+        // The word limits apply to authors, someone who edits the post of another user is not limited.
+        if ($post->get_userid() === $userid) {
+            $post->get_discussion()->get_moodleoverflow()->ensure_words_count($content);
         }
 
         $transaction = $DB->start_delegated_transaction();

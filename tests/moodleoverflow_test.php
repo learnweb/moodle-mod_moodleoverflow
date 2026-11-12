@@ -28,6 +28,7 @@ use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\enum\subscription_mode;
 use mod_moodleoverflow\local\enum\tracking_type;
 use mod_moodleoverflow\local\models\moodleoverflow;
+use mod_moodleoverflow\local\models\post_content;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 defined('MOODLE_INTERNAL') || die();
@@ -174,6 +175,52 @@ final class moodleoverflow_test extends \advanced_testcase {
         $this->assertTrue($moodleoverflow->is_answer_window_open(1000));
         $this->assertTrue($moodleoverflow->is_answer_window_open(2000));
         $this->assertFalse($moodleoverflow->is_answer_window_open(2001));
+    }
+
+    /**
+     * Test, if the word limits accept a message within them, count HTML blocks as separate words and treat 0 as no limit.
+     */
+    public function test_words_count(): void {
+        global $DB;
+        $moodleoverflow = moodleoverflow::from_id($this->record->id);
+
+        // Without limits, every message fits.
+        $this->assertEquals([null, null], $moodleoverflow->get_words_count_window());
+        $this->assertNull($this->get_words_error($moodleoverflow, '<p>one</p>'));
+
+        // At least 3 and at most 5 words.
+        $record = $DB->get_record('moodleoverflow', ['id' => $this->record->id]);
+        $record->wordsmin = 3;
+        $record->wordsmax = 5;
+        $moodleoverflow = moodleoverflow::from_record($record);
+
+        $this->assertEquals([3, 5], $moodleoverflow->get_words_count_window());
+        $this->assertEquals('errorwordsmin', $this->get_words_error($moodleoverflow, '<p>one two</p>'));
+        $this->assertNull($this->get_words_error($moodleoverflow, '<p>one</p><p>two<br>three</p>'));
+        $this->assertNull($this->get_words_error($moodleoverflow, '<p>one two three four five</p>'));
+        $this->assertEquals('errorwordsmax', $this->get_words_error($moodleoverflow, '<p>one two three four five six</p>'));
+
+        // Only a maximum: a single word fits.
+        $record->wordsmin = 0;
+        $moodleoverflow = moodleoverflow::from_record($record);
+        $this->assertEquals([null, 5], $moodleoverflow->get_words_count_window());
+        $this->assertNull($this->get_words_error($moodleoverflow, '<p>one</p>'));
+    }
+
+    /**
+     * Checks an HTML message against the word limits of a moodleoverflow.
+     *
+     * @param moodleoverflow $moodleoverflow
+     * @param string $message
+     * @return string|null The error code, null if the message fits.
+     */
+    private function get_words_error(moodleoverflow $moodleoverflow, string $message): ?string {
+        try {
+            $moodleoverflow->ensure_words_count(new post_content($message, FORMAT_HTML));
+            return null;
+        } catch (\core\exception\moodle_exception $e) {
+            return $e->errorcode;
+        }
     }
 
     /**
