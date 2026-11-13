@@ -49,6 +49,29 @@ class author implements templatable {
 
     #[\Override]
     public function export_for_template(renderer_base $output): array {
+        $author = $this->resolve();
+        $courseid = $this->post->get_moodleoverflow()->course;
+        return [
+            'name' => $author['name'],
+            'profileurl' => $author['profileurl'],
+            'picture' => $author['user'] ? $output->user_picture($author['user'], ['courseid' => $courseid, 'link' => false]) : '',
+        ];
+    }
+
+    /**
+     * Returns the name of the author as the user sees it: the full name, "You" for the user's own anonymous post, a
+     * pseudonym or "Anonymous". For lists without a renderer, e.g. the export.
+     * @return string
+     */
+    public function get_name(): string {
+        return $this->resolve()['name'];
+    }
+
+    /**
+     * Decides what the user may know about the author.
+     * @return array{name: string, profileurl: ?string, user: ?object} user only if the picture may be shown
+     */
+    private function resolve(): array {
         $authorid = $this->post->get_userid();
         $modflow = $this->post->get_moodleoverflow();
         if (!permissions::can_view_author($this->post, $this->userid)) {
@@ -56,20 +79,20 @@ class author implements templatable {
             $name = $authorid
                 ? $this->post->get_discussion()->get_pseudonym($authorid)
                 : get_string('privacy:anonym_user_name', 'mod_moodleoverflow');
-            return ['name' => $name, 'profileurl' => null, 'picture' => ''];
+            return ['name' => $name, 'profileurl' => null, 'user' => null];
         }
 
         $profileurl = (new moodle_url('/user/view.php', ['id' => $authorid, 'course' => $modflow->course]))->out(false);
         if ($authorid === $this->userid && permissions::is_author_hidden($this->post)) {
             // The user's own post, which the others see anonymously.
-            return ['name' => get_string('anonym_you', 'mod_moodleoverflow'), 'profileurl' => $profileurl, 'picture' => ''];
+            return ['name' => get_string('anonym_you', 'mod_moodleoverflow'), 'profileurl' => $profileurl, 'user' => null];
         }
 
         $user = core_user::get_user($authorid, '*', MUST_EXIST);
         return [
             'name' => fullname($user, permissions::can_view_fullnames($modflow, $this->userid)),
             'profileurl' => $profileurl,
-            'picture' => $output->user_picture($user, ['courseid' => $modflow->course, 'link' => false]),
+            'user' => $user,
         ];
     }
 }

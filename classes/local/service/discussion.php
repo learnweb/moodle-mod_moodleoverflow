@@ -22,6 +22,7 @@ use Exception;
 use mod_moodleoverflow\local\models;
 use mod_moodleoverflow\local\permissions;
 use core\exception\moodle_exception;
+use mod_moodleoverflow\output\author;
 
 /**
  * Service class for use cases that concern a discussion as a whole.
@@ -45,6 +46,48 @@ class discussion {
             array_map(fn($record) => models\discussion::from_record($record, $modflow), $records),
             fn(models\discussion $discussion) => permissions::can_view_discussion($discussion, $userid)
         );
+    }
+
+    /**
+     * Returns the posts the user can see from an instance with additional information as a forum export for the user.
+     * Every row represents one post.
+     * @param models\moodleoverflow $modflow
+     * @param int $userid The user who wants to export the moodleoverflow
+     * @return array[] One row per post
+     * @throws moodle_exception
+     */
+    public static function export(models\moodleoverflow $modflow, int $userid): array {
+        permissions::ensure(permissions::can_export_forum($modflow, $userid), 'nopermissiontoexport');
+
+        $rows = [];
+        $discussions = self::get_discussions($modflow, $userid);
+        foreach ($discussions as $discussion) {
+            $ratings = rating::get_post_ratings($discussion);
+            $posts = self::get_posts_in_order($discussion, $userid, $ratings);
+
+            $subject = format_string($discussion->name, true, ['context' => $modflow->get_context(), 'escape' => false]);
+            foreach ($posts as $post) {
+                $author = new author($post, $userid);
+                $rating = $ratings[$post->get_id()];
+                $rows[] = [
+                    'discussionid' => $discussion->get_id(),
+                    'postid' => $post->get_id(),
+                    'parentid' => $post->get_parentid(),
+                    'subject' => $subject,
+                    'posttype' => $post->is_question() ? 'question' : ($post->is_direct_answer() ? 'answer' : 'comment'),
+                    'authorname' => $author->get_name(),
+                    'created' => $post->created,
+                    'modified' => $post->modified,
+                    'message' => $post->get_plain_text(),
+                    'wordcount' => count_words($post->message, $post->messageformat),
+                    'upvotescount' => (int) $rating->upvotes,
+                    'downvotescount' => (int) $rating->downvotes,
+                    'helpful' => (int) $rating->ishelpful,
+                    'solved' => (int) $rating->issolved,
+                ];
+            }
+        }
+        return $rows;
     }
 
     /**
@@ -195,6 +238,23 @@ class discussion {
         }
 
         return ['question' => $posts[$discussion->get_firstpostid()], 'answers' => array_values($answers)];
+    }
+
+    /**
+     * Returns the posts of a discussion that the user can see as one list in page order: the question, then each answer
+     * followed by its comments (see get_posts_tree()).
+     * @param models\discussion $discussion
+     * @param int $userid
+     * @param object[]|null $ratings The ratings of the discussion (rating::get_post_ratings()), if the caller has them
+     * @return models\post[]
+     * @throws moodle_exception|dml_exception
+     */
+    public static function get_posts_in_order(models\discussion $discussion, int $userid, ?array $ratings = null): array {
+        $tree = self::get_posts_tree($discussion, $userid, $ratings);
+        return array_merge(
+            [$tree['question']],
+            ...array_map(fn(array $answer) => [$answer['answer'], ...$answer['comments']], $tree['answers'])
+        );
     }
 
     /**

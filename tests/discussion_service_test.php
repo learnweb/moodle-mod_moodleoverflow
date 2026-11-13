@@ -16,6 +16,8 @@
 
 namespace mod_moodleoverflow;
 
+use core\exception\access_denied_exception;
+use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
@@ -26,7 +28,7 @@ use mod_moodleoverflow\tests\moodleoverflow_test_trait;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
- * Tests the discussion list and the post tree of the discussion service.
+ * Tests the discussion list, the post tree and the export of the discussion service.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
@@ -157,6 +159,63 @@ final class discussion_service_test extends \advanced_testcase {
         );
         $this->assertCount(1, $search($this->student->id));
         $this->assertCount(0, $search($this->otherstudent->id));
+    }
+
+    /**
+     * Test, if the export has one row per post in page order, with the type, the author, the plain text and the votes.
+     */
+    public function test_export(): void {
+        $modflow = $this->create_moodleoverflow();
+        $question = $this->generator->create_question($modflow, $this->student, ['name' => 'Q&A']);
+        $answer = $this->generator->create_reply($question, $this->otherstudent, ['message' => '<p>Because of this.</p>']);
+        $comment = $this->generator->create_reply($answer, $this->teacher);
+        $this->generator->create_rating($answer, $this->teacher, rating_type::UPVOTE);
+
+        $rows = service\discussion::export($modflow, $this->teacher->id);
+
+        $this->assertEquals([$question->get_id(), $answer->get_id(), $comment->get_id()], array_column($rows, 'postid'));
+        $this->assertEquals(['question', 'answer', 'comment'], array_column($rows, 'posttype'));
+        $this->assertEquals('Q&A', $rows[1]['subject']);
+        $this->assertEquals(fullname($this->otherstudent), $rows[1]['authorname']);
+        $this->assertEquals('Because of this.', trim($rows[1]['message']));
+        $this->assertEquals(3, $rows[1]['wordcount']);
+        $this->assertEquals(1, $rows[1]['upvotescount']);
+    }
+
+    /**
+     * Test, if anonymous authors appear with their pseudonym in the export, also for teachers.
+     */
+    public function test_export_anonymous(): void {
+        $modflow = $this->create_moodleoverflow(['anonymous' => anonymity::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        $this->generator->create_reply($question, $this->otherstudent);
+
+        $expected = [get_string('questioner', 'mod_moodleoverflow'), get_string('answerer', 'mod_moodleoverflow', 1)];
+        $this->assertEquals($expected, array_column(service\discussion::export($modflow, $this->teacher->id), 'authorname'));
+    }
+
+    /**
+     * Test, if the export only has the posts the user can see.
+     */
+    public function test_export_hides_posts_the_user_cannot_see(): void {
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $this->generator->create_reply($question, $this->student);
+        $this->allow_capability('mod/moodleoverflow:exportforum', 'student', $modflow);
+
+        $rows = service\discussion::export($modflow, $this->otherstudent->id);
+        $this->assertEquals([$question->get_id()], array_column($rows, 'postid'));
+    }
+
+    /**
+     * Test, if users without the capability cannot export.
+     */
+    public function test_export_needs_capability(): void {
+        $modflow = $this->create_moodleoverflow();
+        $this->generator->create_question($modflow, $this->student);
+
+        $this->expectException(access_denied_exception::class);
+        service\discussion::export($modflow, $this->student->id);
     }
 
     /**

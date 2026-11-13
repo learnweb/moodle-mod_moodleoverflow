@@ -432,7 +432,7 @@ class post {
     }
 
     /**
-     * Returns the post message in a formatted way ready to display.
+     * Returns the post message in a formatted way ready to display in HTML.
      * @return string
      * @throws moodle_exception
      */
@@ -451,6 +451,33 @@ class post {
         $options->para = true;
         $options->context = $context;
         return format_text($message, $this->messageformat, $options);
+    }
+
+    /**
+     * Returns the message of a post as plain text. Embedded videos and audios become "[Media: title]" ("[Media]" without
+     * a title): inside their tags there is only the address of the file, which means nothing outside Moodle. Images become
+     * "[Image: alt text]" ("[Image]" without one).
+     * @return string
+     */
+    public function get_plain_text(): string {
+        $this->existence_check();
+
+        // Format embedded media like video/audio.
+        $media = get_string('export:media', 'mod_moodleoverflow');
+        $message = preg_replace_callback('~<(video|audio)\b([^>]*)>.*?</\1>~is', function (array $match) use ($media): string {
+            // Videos and audios have no alt text; the media dialog of the editor stores a title instead.
+            $title = preg_match('~\btitle="([^"]*)"~i', $match[2], $found) ? trim($found[1]) : '';
+            return $title === '' ? "[$media]" : "[$media: $title]";
+        }, $this->message);
+
+        // Format embedded images.
+        $image = get_string('export:image', 'mod_moodleoverflow');
+        $message = preg_replace_callback('~<img\b[^>]*>~i', function (array $match) use ($image): string {
+            // The alt text stays as HTML, content_to_text() decodes it.
+            $alt = preg_match('~\balt="([^"]*)"~i', $match[0], $found) ? trim($found[1]) : '';
+            return $alt === '' ? "[$image]" : "[$image: $alt]";
+        }, $message);
+        return trim(content_to_text($message, $this->messageformat));
     }
 
     /**
