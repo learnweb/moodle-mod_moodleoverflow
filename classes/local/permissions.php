@@ -167,6 +167,18 @@ class permissions {
     }
 
     /**
+     * If the user is allowed to export the content of a forum.
+     * @param moodleoverflow $modflow
+     * @param int $userid
+     * @return bool
+     * @throws coding_exception|moodle_exception
+     */
+    public static function can_export_forum(moodleoverflow $modflow, int $userid): bool {
+        return self::can_view_moodleoverflow($modflow, $userid)
+            && has_capability('mod/moodleoverflow:exportforum', $modflow->get_context(), $userid);
+    }
+
+    /**
      * A post is "accepted" for view by the review domain if the post is reviewed, it is the own post or if the user
      * is a reviewer.
      * @param post $post

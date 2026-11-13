@@ -376,6 +376,12 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
         $link = new moodle_url('/mod/moodleoverflow/index.php', ['id' => $moodleoverflow->course]);
         $moodleoverflownode->add(get_string('gotoindex', 'moodleoverflow'), $link, navigation_node::TYPE_SETTING);
     }
+
+    // Export of the posts, like in mod_forum.
+    if (permissions::can_export_forum($moodleoverflow, $USER->id)) {
+        $link = new moodle_url('/mod/moodleoverflow/export.php', ['id' => $settingsnav->get_page()->cm->id]);
+        $moodleoverflownode->add(get_string('exportforum', 'moodleoverflow'), $link, navigation_node::TYPE_SETTING);
+    }
 }
 
 /**
