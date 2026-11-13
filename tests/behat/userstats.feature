@@ -13,15 +13,15 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
 
   Scenario: Userstats are not enabled per default. The teacher should not see the user statistics
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
-    Then I should not see "View user statistics"
+    Then I should not see "User statistics"
 
   Scenario: Userstats are enabled. The teacher sees every participant, students do not see the statistics
     Given the following config values are set as admin:
       | showuserstats | 1 | moodleoverflow |
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "student1"
-    Then I should not see "View user statistics"
+    Then I should not see "User statistics"
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
-    And I click on "View user statistics" "text"
+    And I click on "User statistics" "text"
     Then "Teacher 1" "table_row" should exist
     And "Student 1" "table_row" should exist
 
@@ -30,7 +30,7 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
     And the following config values are set as admin:
       | showuserstats | 1 | moodleoverflow |
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
-    And I click on "View user statistics" "text"
+    And I click on "User statistics" "text"
     Then I should see "Posts and votes per day"
 
   Scenario: Test if reputation appears in the user statistics
@@ -40,6 +40,6 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
     And I am on the "Topic question" "mod_moodleoverflow > Discussion" page logged in as "teacher1"
     And I click on "Mark as solution" "text"
     And I follow "Test Moodleoverflow"
-    And I click on "View user statistics" "text"
+    And I click on "User statistics" "text"
     Then I should see "30" in the "Student 1" "table_row"
     And I should see "2" in the "Teacher 1" "table_row"

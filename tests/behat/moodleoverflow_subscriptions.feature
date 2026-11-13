@@ -16,7 +16,7 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject" and message "Test post message" automatically
     When I am on the "Test moodleoverflow name" "moodleoverflow activity" page logged in as "student1"
     Then I should "not" see the elements:
-      | Subscribe to this forum | Unsubscribe from this forum |
+      | Subscribe to forum | Unsubscribe from forum |
     And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
     And "You are not subscribed to this discussion. Click to subscribe." "icon" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
 
@@ -27,7 +27,7 @@ Feature: A user can control their own subscription preferences for a moodleoverf
     And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject" and message "Test post message" automatically
     When I am on the "Test moodleoverflow name" "moodleoverflow activity" page logged in as "student1"
     Then I should "not" see the elements:
-      | Subscribe to this forum | Unsubscribe from this forum |
+      | Subscribe to forum | Unsubscribe from forum |
     And "You are subscribed to this discussion. Click to unsubscribe." "icon" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
     And "You are not subscribed to this discussion. Click to subscribe." "icon" should "not" exist in the "Test post subject" and "" moodleoverflow discussion card
 
@@ -38,9 +38,9 @@ Feature: A user can control their own subscription preferences for a moodleoverf
       | moodleoverflow | Test moodleoverflow name | Test moodleoverflow description  | C1      | moodleoverflow | 0              |
     And User "admin" adds to "Test moodleoverflow name" a discussion with topic "Test post subject" and message "Test post message" automatically
     When I am on the "Test moodleoverflow name" "moodleoverflow activity" page logged in as "student1"
-    Then I should see "Subscribe to this forum"
-    And I should not see "Unsubscribe from this forum"
-    And I click on "Subscribe to this forum" "button"
+    Then I should see "Subscribe to forum"
+    And I should not see "Unsubscribe from forum"
+    And I click on "Subscribe to forum" "button"
     And I reload the page
-    And I should see "Unsubscribe from this forum"
-    And I should not see "Subscribe to this forum"
+    And I should see "Unsubscribe from forum"
+    And I should not see "Subscribe to forum"

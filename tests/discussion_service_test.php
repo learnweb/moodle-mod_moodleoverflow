@@ -124,6 +124,42 @@ final class discussion_service_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if the search finds every word in the title or the posts, ignoring case and HTML, and keeps the order.
+     */
+    public function test_search(): void {
+        $modflow = $this->create_moodleoverflow();
+        $older = $this->generator->create_question($modflow, $this->student, ['name' => 'Loops in Python']);
+        $newer = $this->generator->create_question($modflow, $this->student, ['message' => '<p>while</p><p>loop</p>']);
+        $this->generator->create_reply($older, $this->teacher, ['message' => 'Use a WHILE loop.']);
+        $discussions = service\discussion::get_discussions($modflow, $this->student->id);
+
+        $ids = fn(string $query) => array_values(array_map(
+            fn(discussion $discussion) => $discussion->get_id(),
+            service\discussion::search($discussions, $query, $this->student->id)
+        ));
+        $this->assertEquals([$older->get_discussionid()], $ids('python'));
+        $this->assertEquals([$newer->get_discussionid(), $older->get_discussionid()], $ids('loop while'));
+        $this->assertEquals([], $ids('python while java'));
+    }
+
+    /**
+     * Test, if the text of a post the user cannot see does not make its discussion a match.
+     */
+    public function test_search_ignores_hidden_posts(): void {
+        $modflow = $this->create_moodleoverflow(['needsreview' => review_level::EVERYTHING->value]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $this->generator->create_reply($question, $this->student, ['message' => 'Secret answer']);
+
+        $search = fn(int $userid) => service\discussion::search(
+            service\discussion::get_discussions($modflow, $userid),
+            'secret',
+            $userid
+        );
+        $this->assertCount(1, $search($this->student->id));
+        $this->assertCount(0, $search($this->otherstudent->id));
+    }
+
+    /**
      * Returns the ids of the discussions a user can see, in the order of the service.
      *
      * @param moodleoverflow $modflow
