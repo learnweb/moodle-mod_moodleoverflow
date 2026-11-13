@@ -42,8 +42,15 @@ class discussion {
     public static function get_discussions(models\moodleoverflow $modflow, int $userid): array {
         global $DB;
         $records = $DB->get_records('moodleoverflow_discussions', ['moodleoverflow' => $modflow->id], 'timestart DESC, id DESC');
+        $firstposts = $DB->get_records_list('moodleoverflow_posts', 'id', array_column($records, 'firstpost'));
+        $discussions = [];
+        foreach ($records as $record) {
+            $discussion = models\discussion::from_record($record, $modflow);
+            $discussion->set_first_post(models\post::from_record($firstposts[$record->firstpost]));
+            $discussions[] = $discussion;
+        }
         return array_filter(
-            array_map(fn($record) => models\discussion::from_record($record, $modflow), $records),
+            $discussions,
             fn(models\discussion $discussion) => permissions::can_view_discussion($discussion, $userid)
         );
     }

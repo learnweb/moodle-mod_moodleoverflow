@@ -44,10 +44,10 @@ class discussion {
     // Not Database-related attributes.
 
     /** @var post[] an Array of posts that belong to this discussion */
-    public array $posts;
+    private array $posts;
 
     /** @var bool  a variable for checking if this instance has all its posts */
-    public bool $postsbuild;
+    private bool $postsbuild;
 
     /** @var moodleoverflow The moodleoverflow object where the discussion is located */
     public moodleoverflow $moodleoverflowobject;
@@ -115,9 +115,6 @@ class discussion {
             }
             $instance->moodleoverflowobject = $moodleoverflow;
         }
-
-        // Get all the posts so that the instance can work with it.
-        $instance->get_posts();
 
         return $instance;
     }
@@ -222,13 +219,13 @@ class discussion {
     public function delete(int $userid): void {
         global $DB;
         $this->existence_check();
-        $this->posts_check();
+        $this->get_posts();
         $context = $this->get_moodleoverflow()->get_context();
 
         $transaction = $DB->start_delegated_transaction();
         try {
             // All other posts are replies to the question and are deleted with it.
-            $this->posts[$this->firstpost]->delete($userid);
+            $this->get_first_post()->delete($userid);
             readtracking::delete_read_records(discussid: $this->id);
             subscription::delete_subscriptions(discussid: $this->id);
             $DB->delete_records('moodleoverflow_discussions', ['id' => $this->id]);
@@ -256,7 +253,7 @@ class discussion {
     public function add_reply(post $parent, int $userid, post_content $content, bool $reviewed): post {
         global $DB;
         $this->existence_check();
-        $this->posts_check();
+        $this->get_posts();
         $this->post_exists_check($parent->get_id());
 
         // Build the new post record.
@@ -302,7 +299,7 @@ class discussion {
     public function delete_post(post $post, int $userid): bool {
         global $DB;
         $this->existence_check();
-        $this->posts_check();
+        $this->get_posts();
         $this->post_exists_check($post->get_id());
 
         // The post object is the one in the list, so its id is gone after the delete.
@@ -342,7 +339,7 @@ class discussion {
     public function edit_post(post $post, int $userid, post_content $content): void {
         global $DB;
         $this->existence_check();
-        $this->posts_check();
+        $this->get_posts();
         $this->post_exists_check($post->get_id());
 
         // Work on the copy in this discussion, so its list of posts stays up to date.
@@ -448,6 +445,17 @@ class discussion {
         }
     }
 
+    /**
+     * Sets the first post when the caller has already loaded it (e.g. for a whole list), so checking the discussion
+     * does not load all its posts.
+     * @param post $post The first post of this discussion
+     * @return void
+     */
+    public function set_first_post(post $post): void {
+        $post->set_discussion($this);
+        $this->posts[$post->get_id()] = $post;
+    }
+
     // Getter.
 
     /**
@@ -512,15 +520,12 @@ class discussion {
 
         // Check if the posts array are build yet. If not, build it.
         if (!$this->postsbuild) {
-            // Get the posts from the DB. Get the parent post first.
-            $sql = 'SELECT *
-                    FROM {moodleoverflow_posts} posts
-                    WHERE discussion = ' . $this->id . ';';
-            $posts = $DB->get_records_sql($sql);
-            foreach ($posts as $postrecord) {
-                $post = post::from_record($postrecord);
-                $post->set_discussion($this);
-                $this->posts[$post->get_id()] = $post;
+            foreach ($DB->get_records('moodleoverflow_posts', ['discussion' => $this->id]) as $postrecord) {
+                if (!isset($this->posts[$postrecord->id])) {
+                    $post = post::from_record($postrecord);
+                    $post->set_discussion($this);
+                    $this->posts[$post->get_id()] = $post;
+                }
             }
 
             // Now the posts are built.
@@ -553,7 +558,7 @@ class discussion {
      */
     public function get_last_post(): ?post {
         $this->existence_check();
-        $this->posts_check();
+        $this->get_posts();
         return self::find_last_post($this->posts);
     }
 
@@ -563,8 +568,7 @@ class discussion {
      */
     public function get_first_post(): post {
         $this->existence_check();
-        $this->posts_check();
-        return array_values(array_filter($this->posts, fn($post) => $post->get_id() == $this->firstpost))[0];
+        return $this->posts[$this->firstpost] ?? $this->get_posts()[$this->firstpost];
     }
 
     /**
@@ -687,18 +691,6 @@ class discussion {
     }
 
     /**
-     * Makes sure that the instance knows all of its posts (That all posts of the db are in the local array).
-     * Not all functions need this check.
-     * @return void
-     * @throws moodle_exception
-     */
-    private function posts_check(): void {
-        if (!$this->postsbuild) {
-            throw new moodle_exception('notallpostsavailable', 'moodleoverflow');
-        }
-    }
-
-    /**
      * Check, if certain posts really exists in this discussion.
      *
      * @param int $postid   The ID of the post that is being checked.
@@ -706,7 +698,7 @@ class discussion {
      * @throws moodle_exception;
      */
     private function post_exists_check(int $postid): void {
-        if (!isset($this->posts[$postid])) {
+        if (!isset($this->get_posts()[$postid])) {
             throw new moodle_exception('postnotpartofdiscussion', 'moodleoverflow');
         }
     }
