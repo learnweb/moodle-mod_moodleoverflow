@@ -1,5 +1,5 @@
 @mod @mod_moodleoverflow @javascript
-Feature: If the admin enabled user statistics, the teacher can see the activity of students in the course
+Feature: Teachers see the activity of the students in the user statistics, unless the admin switched them off
 
   Background:
     Given I prepare a moodleoverflow feature background with users:
@@ -11,13 +11,13 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
       | moodleoverflow | Test Moodleoverflow | Test moodleoverflow description | C1     | 1        |
     And User "teacher1" adds to "Test Moodleoverflow" a discussion with topic "Topic question" and message "This is a question" automatically
 
-  Scenario: Userstats are not enabled per default. The teacher should not see the user statistics
+  Scenario: The admin switched the user statistics off. The teacher does not see them
+    Given the following config values are set as admin:
+      | showuserstats | 0 | moodleoverflow |
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
     Then I should not see "User statistics"
 
-  Scenario: Userstats are enabled. The teacher sees every participant, students do not see the statistics
-    Given the following config values are set as admin:
-      | showuserstats | 1 | moodleoverflow |
+  Scenario: The teacher sees every participant, students do not see the statistics
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "student1"
     Then I should not see "User statistics"
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
@@ -27,16 +27,12 @@ Feature: If the admin enabled user statistics, the teacher can see the activity 
 
   Scenario: The user statistics show the posts and votes over time as a chart
     Given the site is running Moodle version 5.3 or higher
-    And the following config values are set as admin:
-      | showuserstats | 1 | moodleoverflow |
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
     And I click on "User statistics" "text"
     Then I should see "Posts and votes per day"
 
   Scenario: Test if reputation appears in the user statistics
-    Given the following config values are set as admin:
-      | showuserstats | 1 | moodleoverflow |
-    And User "student1" replies "This is a question" with "This is an answer" automatically
+    Given User "student1" replies "This is a question" with "This is an answer" automatically
     And I am on the "Topic question" "mod_moodleoverflow > Discussion" page logged in as "teacher1"
     And I click on "Mark as solution" "text"
     And I follow "Test Moodleoverflow"

@@ -30,7 +30,6 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
       | activity       | name                      | intro                            | course  |  idnumber |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        |
     And I am on the "Test Moodleoverflow" "moodleoverflow activity editing" page logged in as "teacher1"
-    And I follow "Limited Answer Mode"
     And I click on "la_starttime[enabled]" "checkbox"
     And I set the following fields to these values:
      | id_la_starttime_day | ##tomorrow##%d## |
@@ -46,8 +45,6 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
      | id_la_endtime_hour | 12 |
      | id_la_endtime_minute | 30 |
     When I press "Save and display"
-    And I follow "Limited Answer Mode"
-    And I click on "#collapseElement-5" "css_element"
     Then I should "" see the elements:
       | End time must be in the future | The end time must be after the start time |
 
@@ -56,7 +53,6 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
       | activity       | name                      | intro                            | course  |  idnumber |
       | moodleoverflow | Test Moodleoverflow       | Test moodleoverflow description  | C1      |  1        |
     And I am on the "Test Moodleoverflow" "moodleoverflow activity editing" page logged in as "teacher1"
-    And I follow "Limited Answer Mode"
     And I click on "la_starttime[enabled]" "checkbox"
     And I set the following fields to these values:
       | id_la_starttime_day | ##yesterday##%d## |
@@ -65,6 +61,4 @@ Feature: Moodleoverflows can start in a limited answer mode, where answers from 
       | id_la_starttime_hour | 12 |
       | id_la_starttime_minute | 30 |
     When I press "Save and display"
-    And I follow "Limited Answer Mode"
-    And I click on "#collapseElement-5" "css_element"
     Then I should see "Start time must be in the future"

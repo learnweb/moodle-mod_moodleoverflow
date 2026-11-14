@@ -250,6 +250,32 @@ class moodleoverflow {
     }
 
     /**
+     * Whether this moodleoverflow has any discussion. Until then, nothing has been written that its settings could
+     * reveal or invalidate, so a teacher can still start from a preset and lower the anonymity.
+     * @return bool
+     * @throws dml_exception
+     */
+    public function has_discussions(): bool {
+        global $DB;
+        return $DB->record_exists('moodleoverflow_discussions', ['moodleoverflow' => $this->id]);
+    }
+
+    /**
+     * Whether any discussion of this moodleoverflow has an answer or a comment. The start of the limited answer mode
+     * cannot be changed any more then.
+     * @return bool
+     * @throws dml_exception
+     */
+    public function has_answers(): bool {
+        global $DB;
+        $sql = 'SELECT 1
+                  FROM {moodleoverflow_posts} p
+                  JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                 WHERE d.moodleoverflow = :modflowid AND p.parent <> 0';
+        return $DB->record_exists_sql($sql, ['modflowid' => $this->id]);
+    }
+
+    /**
      * The participants of this moodleoverflow: the users with an active enrolment who may view its discussions and whom
      * the access restrictions of the activity let in (groups, groupings, profile fields). Whether the course or the
      * activity is hidden at the moment does not matter, so a hidden (e.g. archived) course still lists its participants.
