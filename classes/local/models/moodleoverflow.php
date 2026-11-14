@@ -23,7 +23,6 @@ use core_availability\info_module;
 use context_module;
 use dml_exception;
 use moodle_url;
-use stdClass;
 use mod_moodleoverflow\local\enum\rating_preference;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\enum\anonymity;
@@ -40,6 +39,9 @@ use mod_moodleoverflow\local\enum\tracking_type;
 class moodleoverflow {
     /** @var ?cm_info Lazy cache for the course module. */
     private ?cm_info $cm = null;
+
+    /** @var ?object Lazy cache for the course record. */
+    private ?object $courserecord = null;
 
     /** @var string[] Properties that are int(1) db columns, booleans in the model. */
     private const FLAGS = [
@@ -141,11 +143,11 @@ class moodleoverflow {
      *
      * The database returns every column as a string, so the values are cast to the types of the constructor.
      *
-     * @param stdClass $record A full record of the moodleoverflow table.
+     * @param object $record A full record of the moodleoverflow table.
      * @return self
      * @throws coding_exception If the record has no id.
      */
-    public static function from_record(stdClass $record): self {
+    public static function from_record(object $record): self {
         if (empty($record->id)) {
             throw new coding_exception('The record of a moodleoverflow needs an id.');
         }
@@ -204,11 +206,11 @@ class moodleoverflow {
 
     /**
      * Exports the moodleoverflow to a db object.
-     * @return stdClass
+     * @return object
      */
-    public function get_db_object(): stdClass {
+    public function get_db_object(): object {
         $record = get_object_vars($this);
-        unset($record['cm']);
+        unset($record['cm'], $record['courserecord']);
         foreach (self::FLAGS as $flag) {
             $record[$flag] = (int) $record[$flag];
         }
@@ -239,19 +241,19 @@ class moodleoverflow {
     }
 
     /**
-     * Get the course the moodleoverflow belongs to. Uses core function that caches courses to reduce DB calls.
-     * @return stdClass
+     * Get the course the moodleoverflow belongs to.
+     * @return object
      * @throws dml_exception
      */
-    public function get_course(): stdClass {
-        return get_course($this->course);
+    public function get_course(): object {
+        return $this->courserecord ??= get_course($this->course);
     }
 
     /**
      * The participants of this moodleoverflow: the users with an active enrolment who may view its discussions and whom
      * the access restrictions of the activity let in (groups, groupings, profile fields). Whether the course or the
      * activity is hidden at the moment does not matter, so a hidden (e.g. archived) course still lists its participants.
-     * @return stdClass[] User records, indexed by id, ordered by name
+     * @return object[] User records, indexed by id, ordered by name
      * @throws coding_exception|dml_exception|moodle_exception
      */
     public function get_participants(): array {
