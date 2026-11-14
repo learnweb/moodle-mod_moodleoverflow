@@ -1,4 +1,4 @@
-# ![Moodleoverflow](pix/icon.png) Moodleoverflow
+# <img src="pix/icon.png" alt="" width="20"> Moodleoverflow
 
 ![Moodle 4.5–5.3](https://img.shields.io/badge/Moodle-4.5%E2%80%935.3-f98012)
 [![Latest release](https://img.shields.io/github/v/release/learnweb/moodle-mod_moodleoverflow)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/latest)
