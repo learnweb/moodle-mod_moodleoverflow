@@ -91,6 +91,24 @@ final class discussion_service_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if a discussion of the list keeps the question it was loaded with when it loads its other posts, so the
+     * posts share one discussion object.
+     */
+    public function test_get_discussions_keeps_the_question(): void {
+        $modflow = $this->create_moodleoverflow();
+        $question = $this->generator->create_question($modflow, $this->student);
+        $answer = $this->generator->create_reply($question, $this->otherstudent);
+
+        $discussion = array_values(service\discussion::get_discussions($modflow, $this->teacher->id))[0];
+        $first = $discussion->get_first_post();
+        $posts = $discussion->get_posts();
+
+        $this->assertEquals([$question->get_id(), $answer->get_id()], array_keys($posts));
+        $this->assertSame($first, $posts[$question->get_id()]);
+        $this->assertSame($discussion, $posts[$answer->get_id()]->get_discussion());
+    }
+
+    /**
      * Test, if the answers are ranked and each answer is followed by its comments, oldest first, including replies to
      * comments.
      */

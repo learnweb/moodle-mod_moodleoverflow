@@ -293,7 +293,6 @@ $string['nopermissiontoexport'] = 'You are not allowed to export this moodleover
 $string['nopostmoodleoverflow'] = 'Sorry, you are not allowed to post to this forum.';
 $string['noratemoodleoverflow'] = 'Sorry, you are not allowed to vote in this forum.';
 $string['noratingchangeallowed'] = 'You are not allowed to change your ratings.';
-$string['notallpostsavailable'] = 'Not all posts of the discussion could be loaded.';
 $string['nothing'] = 'Nothing';
 $string['notrackmoodleoverflow'] = 'Don\'t track unread posts';
 $string['notstartuser'] = 'Only the user who started the discussion can mark an answer as helpful.';

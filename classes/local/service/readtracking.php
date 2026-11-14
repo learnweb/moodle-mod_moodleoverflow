@@ -186,7 +186,7 @@ class readtracking {
         if (!self::is_tracked($modflow, $userid)) {
             return 0;
         }
-        return count(self::get_unread_posts($userid, 'd.moodleoverflow = :modflowid', ['modflowid' => $modflow->id]));
+        return count(self::get_unread_posts($modflow, $userid, 'd.moodleoverflow = :modflowid', ['modflowid' => $modflow->id]));
     }
 
     /**
@@ -218,11 +218,24 @@ class readtracking {
             return $counts;
         }
         [$insql, $params] = $DB->get_in_or_equal(array_keys($counts), SQL_PARAMS_NAMED);
-        $records = self::get_unread_records($userid, "d.id $insql", $params);
+
+        // Group the unread post ids to their discussion.
+        $unreadpostids = [];
+        foreach (self::get_unread_records($userid, "d.id $insql", $params) as $postid => $record) {
+            $unreadpostids[$record->discussion][] = $postid;
+        }
+
+        // Go through each discussion and count the visible unread posts.
         foreach ($discussions as $discussion) {
+            // Get the unread post ids from the discussion. If there are none, go to the next discussion.
+            $ids = $unreadpostids[$discussion->get_id()] ?? [];
+            if (!$ids) {
+                continue;
+            }
+            // Get the post objects to check permissions.
             $posts = $discussion->get_posts();
             $counts[$discussion->get_id()] = count(array_filter(
-                array_keys($records),
+                $ids,
                 fn(int $id) => isset($posts[$id]) && permissions::can_view_post($posts[$id], $userid)
             ));
         }
@@ -290,18 +303,30 @@ class readtracking {
 
     /**
      * Returns the unread posts a user can see, in a moodleoverflow or a discussion.
+     * @param moodleoverflow $modflow
      * @param int $userid
      * @param string $where condition on p (posts) or d (discussions)
      * @param array $params parameters of the condition
      * @return post[]
      */
-    private static function get_unread_posts(int $userid, string $where, array $params): array {
-        // Load each discussion once and take the posts from it, instead of one discussion per post.
+    private static function get_unread_posts(moodleoverflow $modflow, int $userid, string $where, array $params): array {
+        global $DB;
+        $records = self::get_unread_records($userid, $where, $params);
+        if (!$records) {
+            return [];
+        }
+
+        // Load the discussions of all unread posts at once, with the known moodleoverflow.
         $discussions = [];
+        $discussionids = array_unique(array_column($records, 'discussion'));
+        foreach ($DB->get_records_list('moodleoverflow_discussions', 'id', $discussionids) as $discussionrecord) {
+            $discussions[$discussionrecord->id] = discussion::from_record($discussionrecord, $modflow);
+        }
+
+        // Check each post: only posts the viewer can see count as unread.
         $posts = [];
-        foreach (self::get_unread_records($userid, $where, $params) as $id => $record) {
-            $discussion = $discussions[$record->discussion] ??= discussion::from_id($record->discussion);
-            $post = $discussion->get_posts()[$id] ?? null;
+        foreach ($records as $id => $record) {
+            $post = $discussions[$record->discussion]->get_posts()[$id] ?? null;
             if ($post && permissions::can_view_post($post, $userid)) {
                 $posts[$id] = $post;
             }
@@ -344,7 +369,7 @@ class readtracking {
         if (!self::is_tracked($modflow, $userid)) {
             return;
         }
-        foreach (self::get_unread_posts($userid, $where, $params) as $post) {
+        foreach (self::get_unread_posts($modflow, $userid, $where, $params) as $post) {
             self::add_read_record($post, $userid);
         }
     }

@@ -437,7 +437,7 @@ class post {
      * @throws moodle_exception
      */
     public function get_message_formatted(): string {
-        $context = context_module::instance($this->get_coursemodule()->id);
+        $context = $this->get_moodleoverflow()->get_context();
         $message = file_rewrite_pluginfile_urls(
             $this->message,
             'pluginfile.php',
@@ -445,7 +445,6 @@ class post {
             'mod_moodleoverflow',
             'post',
             $this->get_id(),
-            ['includetoken' => true]
         );
         $options = new stdClass();
         $options->para = true;
