@@ -218,11 +218,24 @@ class readtracking {
             return $counts;
         }
         [$insql, $params] = $DB->get_in_or_equal(array_keys($counts), SQL_PARAMS_NAMED);
-        $records = self::get_unread_records($userid, "d.id $insql", $params);
+
+        // Group the unread post ids to their discussion.
+        $unreadpostids = [];
+        foreach (self::get_unread_records($userid, "d.id $insql", $params) as $postid => $record) {
+            $unreadpostids[$record->discussion][] = $postid;
+        }
+
+        // Go through each discussion and count the visible unread posts.
         foreach ($discussions as $discussion) {
+            // Get the unread post ids from the discussion. If there are none, go to the next discussion.
+            $ids = $unreadpostids[$discussion->get_id()] ?? [];
+            if (!$ids) {
+                continue;
+            }
+            // Get the post objects to check permissions.
             $posts = $discussion->get_posts();
             $counts[$discussion->get_id()] = count(array_filter(
-                array_keys($records),
+                $ids,
                 fn(int $id) => isset($posts[$id]) && permissions::can_view_post($posts[$id], $userid)
             ));
         }
