@@ -1,6 +1,6 @@
 # ![Moodleoverflow](pix/icon.png) Moodleoverflow
 
-![Moodle 4.5–5.2](https://img.shields.io/badge/Moodle-4.5%E2%80%935.2-f98012)
+![Moodle 4.5–5.3](https://img.shields.io/badge/Moodle-4.5%E2%80%935.3-f98012)
 [![Latest release](https://img.shields.io/github/v/release/learnweb/moodle-mod_moodleoverflow)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/latest)
 
 **Question-and-answer forums for your Moodle courses, inspired by Stack Overflow.** Students ask, the course answers,
@@ -66,8 +66,8 @@ Rejected posts can come with a short reason for the author.
 ### Recognise helpful students
 
 Teachers can see in an overview who contributes the most: how many posts, received votes and how much reputation each
-participant has, per forum and for the whole course. It shows only what is visible in the forums anyway, and it is
-switched off unless the administrator enables it.
+participant has, per forum and for the whole course, and on Moodle 5.3 a chart of posts and votes over time. It shows
+only what is visible in the forums anyway, and it is switched off unless the administrator enables it.
 
 <!-- Image: the user statistics table. -->
 
@@ -75,6 +75,8 @@ switched off unless the administrator enables it.
 
 ## Features
 
+- **Quick answers and comments** right below a post, the full editor for formatting and attachments ([details][wiki-answers])
+- **Word limits** for posts ([details][wiki-length])
 - **Votes, helpful and solution marks** that sort the answers ([details][wiki-ratings])
 - **Reputation** per forum or for the whole course, with points the administrator can adjust ([details][wiki-reputation])
 - **Grading** based on reputation ([details][wiki-grading])
@@ -85,6 +87,9 @@ switched off unless the administrator enables it.
 - **Subscriptions** to forums or single discussions, with email notifications or a daily summary ([details][wiki-subscriptions])
 - **Read tracking** that highlights new posts ([details][wiki-readtracking])
 - **Moving discussions** to another forum of the course ([details][wiki-move])
+- **Search** within a forum ([details][wiki-forumpage])
+- **Export** of the posts of a forum, e.g. as CSV, Excel or PDF ([details][wiki-export])
+- **All posts of a user** on one page, linked from the user profile (Moodle 5.3) ([details][wiki-outside])
 - **Attachments**, privacy API, backup and restore, global search, activity completion
 
 Every feature can be adjusted: administrators set what teachers may use, teachers decide for each forum. All settings
@@ -117,6 +122,11 @@ Moodleoverflow was initially implemented by Kennet Winter. It is developed and m
 [wiki-anonymous]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#7-anonymous-mode
 [wiki-review]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#8-review-moderated-forums
 [wiki-limited]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#9-limited-answer-mode
-[wiki-subscriptions]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#10-subscriptions-and-email-notifications
+[wiki-subscriptions]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#10-subscriptions-and-notifications
 [wiki-readtracking]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#11-read-tracking
 [wiki-move]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#12-moving-discussions
+[wiki-answers]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#writing-answers-and-comments
+[wiki-length]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#length-of-posts
+[wiki-forumpage]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#the-forum-page
+[wiki-export]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#13-exporting-posts
+[wiki-outside]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#14-where-users-find-moodleoverflow-outside-the-forum
