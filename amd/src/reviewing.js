@@ -20,10 +20,10 @@
  * @copyright  2022 Justus Dieckmann WWU
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import Ajax from 'core/ajax';
 import Prefetch from 'core/prefetch';
 import Templates from 'core/templates';
 import {get_string as getString} from 'core/str';
+import {request} from 'mod_moodleoverflow/api';
 
 /**
  * Init function.
@@ -50,12 +50,7 @@ export function init() {
 
         if (action === 'approve') {
             reviewRow.innerHTML = '.';
-            const nextPostURL = await Ajax.call([{
-                methodname: 'mod_moodleoverflow_review_approve_post',
-                args: {
-                    postid: postID,
-                }
-            }])[0];
+            const {nexturl: nextPostURL} = await request('POST', `post/${postID}/approve`);
 
             let message = await getString('post_was_approved', 'mod_moodleoverflow') + ' ';
             if (nextPostURL) {
@@ -73,14 +68,7 @@ export function init() {
         } else if (action === 'reject-submit') {
             const rejectMessage = post.querySelector('textarea.reject-reason').value.toString().trim();
             reviewRow.innerHTML = '.';
-            const args = {
-                postid: postID,
-                reason: rejectMessage ? rejectMessage : null
-            };
-            const nextPostURL = await Ajax.call([{
-                methodname: 'mod_moodleoverflow_review_reject_post',
-                args: args
-            }])[0];
+            const {nexturl: nextPostURL} = await request('POST', `post/${postID}/reject`, {reason: rejectMessage});
 
             let message = await getString('post_was_rejected', 'mod_moodleoverflow') + ' ';
             if (nextPostURL) {

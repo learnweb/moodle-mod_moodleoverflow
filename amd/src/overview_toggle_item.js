@@ -21,8 +21,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import Ajax from 'core/ajax';
 import Notification from 'core/notification';
+import {request} from 'mod_moodleoverflow/api';
 import {changeSubscription} from 'mod_moodleoverflow/subscription';
 
 /**
@@ -71,22 +71,14 @@ const addReadtrackingListener = (itemid) => {
     // Get the right readtracking toggle element.
     const element = document.getElementById(itemid);
     element.addEventListener('change', async function() {
-            const moodleoverflowid = parseInt(element.dataset.moodleoverflowid);
-            const tracked = element.dataset.setting === 'true';
-            const data = {
-                methodname: 'mod_moodleoverflow_change_readtracking_mode',
-                args: {
-                    tracked: tracked,
-                    moodleoverflowid: moodleoverflowid,
-                },
-            };
-            element.dataset.setting = Boolean(!tracked);
-            // Call the AJAX function.
+            // The toggle already shows the target state.
+            const track = element.checked;
             try {
-                await Ajax.call([data])[0];
+                const path = `moodleoverflow/${element.dataset.moodleoverflowid}/tracking`;
+                const result = await request(track ? 'PUT' : 'DELETE', path);
+                element.checked = result.tracked;
             } catch (error) {
-                element.dataset.setting = Boolean(tracked);
-                element.checked = tracked;
+                element.checked = !track;
                 Notification.exception(error);
             }
         }

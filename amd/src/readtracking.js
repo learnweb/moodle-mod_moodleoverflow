@@ -14,16 +14,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Javascript for the readtracking templates. Calls external service to mark all
- * posts in a discussion/moodleoverflow as read.
+ * Javascript for the readtracking templates. Marks all posts in a discussion or moodleoverflow as read.
+ * The element names its target in data-domain ("discussion" or "moodleoverflow") and data-instanceid.
  * @module     mod_moodleoverflow/readtracking
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import Notification from 'core/notification';
-import Ajax from 'core/ajax';
-import {getString} from "core/str";
+import {getString} from 'core/str';
+import {request} from 'mod_moodleoverflow/api';
 
 /**
  * Init function
@@ -32,16 +32,9 @@ import {getString} from "core/str";
 export function init(itemid) {
     const element = document.getElementById(itemid);
     element.addEventListener('click', async function() {
-        const data = {
-            methodname: 'mod_moodleoverflow_mark_post_read',
-            args: {
-                instanceid: parseInt(element.dataset.instanceid),
-                domain: element.dataset.domain,
-            },
-        };
         let result;
         try {
-            result = await Ajax.call([data])[0];
+            result = await request('PUT', `${element.dataset.domain}/${element.dataset.instanceid}/read`);
         } catch (error) {
             Notification.exception(error);
             return;
@@ -59,7 +52,7 @@ export function init(itemid) {
         // Update the red bubble icon with the new amount of unread posts.
         const bubble = element.nextElementSibling?.querySelector('.unread-bubble');
         if (bubble) {
-            bubble.textContent = String(result);
+            bubble.textContent = String(result.unread);
         }
     });
 }

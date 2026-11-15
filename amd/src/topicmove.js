@@ -13,14 +13,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-import Ajax from 'core/ajax';
-import {getString} from "core/str";
+import {getString} from 'core/str';
 import Notification from 'core/notification';
+import {request} from 'mod_moodleoverflow/api';
 
 /**
  * JavaScript to move discussion to another moodleoverflow.
  *
- * @module     block_townsquare/topicmove
+ * @module     mod_moodleoverflow/topicmove
  * @copyright  2026 Tamaro Walter
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -57,28 +57,19 @@ export async function init() {
         // Execute movement.
         const execute = e.target.closest('[data-action="moodleoverflow/movetopic-execute"]');
         if (execute) {
-            const data = {
-                methodname: 'mod_moodleoverflow_move_discussion',
-                args: {
-                    discussionid: selectedDiscussionId,
-                    moodleoverflowid: Number(execute.dataset.destination),
-                },
-            };
-            let result;
             try {
-                result = await Ajax.call([data])[0];
+                await request('POST', `discussion/${selectedDiscussionId}/move`,
+                    {moodleoverflowid: Number(execute.dataset.destination)});
             } catch (error) {
                 Notification.exception(error);
                 return;
             }
-            if (result) {
-                const message = await getString('topicmove_success', 'mod_moodleoverflow', execute.dataset.destinationname);
-                Notification.addNotification({message: message, type: 'success'});
-                topicmoveList.classList.add('d-none');
-                document.querySelector(`[data-discussionid="${selectedDiscussionId}"]`).closest('.discussioncard').remove();
-                selectedDiscussionId = null;
-                selectedDiscussionName = null;
-            }
+            const message = await getString('topicmove_success', 'mod_moodleoverflow', execute.dataset.destinationname);
+            Notification.addNotification({message: message, type: 'success'});
+            topicmoveList.classList.add('d-none');
+            document.querySelector(`[data-discussionid="${selectedDiscussionId}"]`).closest('.discussioncard').remove();
+            selectedDiscussionId = null;
+            selectedDiscussionName = null;
         }
     });
 }

@@ -125,7 +125,6 @@ class overview extends activityoverviewbase {
             'checked' => $subscribed,
             'disabled' => !$changeable,
             'datatype' => 'moodleoverflow-subscription-toggle',
-            'setting' => $subscribed,
         ]);
 
         // Add js to change subscription.
@@ -154,7 +153,6 @@ class overview extends activityoverviewbase {
             'checked' => $tracked,
             'disabled' => !permissions::can_change_tracking($this->moodleoverflow, $USER->id),
             'datatype' => 'moodleoverflow-readtracking-toggle',
-            'setting' => $tracked,
         ]);
 
         // Add js to change subscription.
@@ -185,7 +183,6 @@ class overview extends activityoverviewbase {
                     ['name' => 'data-action', 'value' => 'toggle'],
                     ['name' => 'data-cmid', 'value' => $this->cm->id],
                     ['name' => 'data-moodleoverflowid', 'value' => $this->moodleoverflow->id],
-                    ['name' => 'data-setting', 'value' => $templateparams['setting'] ? 'true' : 'false'],
                 ],
             ]
         );

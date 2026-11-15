@@ -21,13 +21,13 @@
  * @copyright  2022 Justus Dieckmann WWU
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import Ajax from 'core/ajax';
 import Notification from 'core/notification';
 import Prefetch from 'core/prefetch';
 import {get_string as getString} from 'core/str';
+import {request} from 'mod_moodleoverflow/api';
 
-/** The rating of each action, the values of the enum rating_type. */
-const RATINGS = {downvote: 1, upvote: 2, solved: 3, helpful: 4};
+/** The vote of each vote action, as the routes name it. */
+const VOTES = {upvote: 'up', downvote: 'down'};
 
 /** The CSS class of a post that has a mark. */
 const MARKCLASSES = {solved: 'markedsolution', helpful: 'markedhelpful'};
@@ -38,7 +38,7 @@ const root = document.getElementById('moodleoverflow-root');
  * Shows the new vote count of the post and the new reputations of the rater and the author.
  * @param {string} postid
  * @param {int} userid The rater.
- * @param {object} response The result of mod_moodleoverflow_record_vote.
+ * @param {object} response The new state of the post from the route.
  */
 function showReputations(postid, userid, response) {
     const show = (selector, value) => root.querySelectorAll(selector).forEach((element) => {
@@ -54,14 +54,14 @@ function showReputations(postid, userid, response) {
 /**
  * Shows the vote of the user on both vote buttons of a post, like the template postvoting does.
  * @param {HTMLElement} postElement
- * @param {int} uservote The rating of the vote, 0 if the user has not voted.
+ * @param {string|null} uservote The vote of the user: up, down or null.
  * @param {boolean} canchange Whether the user can still change the vote. If not, the buttons stay visible but
  *                            cannot be clicked any more.
  */
 async function showVote(postElement, uservote, canchange) {
     for (const action of ['upvote', 'downvote']) {
         const button = postElement.querySelector(`[data-moodleoverflow-action="${action}"]`);
-        const clicked = uservote === RATINGS[action];
+        const clicked = uservote === VOTES[action];
         if (canchange) {
             button.setAttribute('data-moodleoverflow-state', clicked ? 'clicked' : 'notclicked');
             button.title = await getString(clicked ? `action_remove_${action}` : `action_${action}`, 'mod_moodleoverflow');
@@ -108,7 +108,7 @@ export function init(userid, allowmultiplemarks) {
     root.addEventListener('click', async(event) => {
         const button = event.target.closest('[data-moodleoverflow-action]');
         const action = button?.getAttribute('data-moodleoverflow-action');
-        if (!RATINGS[action]) {
+        if (!VOTES[action] && !MARKCLASSES[action]) {
             return;
         }
         const postElement = button.closest('[data-moodleoverflow-postid]');
@@ -118,10 +118,9 @@ export function init(userid, allowmultiplemarks) {
             : button.getAttribute('data-moodleoverflow-state') === 'clicked';
 
         try {
-            const response = await Ajax.call([{
-                methodname: 'mod_moodleoverflow_record_vote',
-                args: {postid: postid, rating: RATINGS[action], remove: remove},
-            }])[0];
+            const path = ismark ? `post/${postid}/mark/${action}` : `post/${postid}/vote`;
+            const body = remove || ismark ? null : {vote: VOTES[action]};
+            const response = await request(remove ? 'DELETE' : 'PUT', path, body);
             showReputations(postid, userid, response);
             if (ismark) {
                 await showMarks(action, response.markedposts, allowmultiplemarks);

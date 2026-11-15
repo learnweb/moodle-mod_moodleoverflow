@@ -65,11 +65,11 @@ class post_controller {
         global $USER;
         self::require_login_and_sesskey($request);
         $post = self::load_post($postid);
-        $modflow = $post->get_moodleoverflow();
+        // A deleted post cannot be asked for its discussion and moodleoverflow any more.
+        $modflowurl = $post->get_moodleoverflow()->get_link();
         $discussionurl = $post->get_discussion()->get_link();
 
-        $discussiondeleted = posting::delete($post, $USER->id);
-        $url = $discussiondeleted ? $modflow->get_link() : $discussionurl;
+        $url = posting::delete($post, $USER->id) ? $modflowurl : $discussionurl;
         return new payload_response(['redirecturl' => $url->out(false)], $request, $response);
     }
 
@@ -108,8 +108,7 @@ class post_controller {
             throw new moodle_exception('erroremptymessage', 'moodleoverflow');
         }
 
-        $content = new post_content(post_content::plain_text_to_html($message), FORMAT_HTML);
-        $newpost = posting::reply($parent, $USER->id, $content);
+        $newpost = posting::reply($parent, $USER->id, new post_content(post_content::plain_text_to_html($message), FORMAT_HTML));
         $edittime = format_time(get_config('moodleoverflow', 'maxeditingtime'));
         notification::success(get_string('postaddedsuccess', 'moodleoverflow') . ' ' .
             get_string('postaddedtimeleft', 'moodleoverflow', $edittime));

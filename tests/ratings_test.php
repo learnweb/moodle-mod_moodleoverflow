@@ -23,11 +23,9 @@
  */
 namespace mod_moodleoverflow;
 
-use core_external\external_api;
 use mod_moodleoverflow\event\rating_created;
 use mod_moodleoverflow\event\rating_deleted;
 use mod_moodleoverflow\event\rating_updated;
-use mod_moodleoverflow\external\record_vote;
 use mod_moodleoverflow\local\enum\anonymity;
 use mod_moodleoverflow\local\enum\rating_preference;
 use mod_moodleoverflow\local\enum\rating_type;
@@ -46,10 +44,8 @@ use stdClass;
  * @copyright 2023 Tamaro Walter
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_moodleoverflow\local\service\rating
- * @covers \mod_moodleoverflow\external\record_vote
  */
 #[CoversClass(service\rating::class)]
-#[CoversClass(record_vote::class)]
 final class ratings_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
 
@@ -423,46 +419,6 @@ final class ratings_test extends \advanced_testcase {
         service\rating::update_all_grades($modflow);
         $grades = $DB->get_records_menu('moodleoverflow_grades', ['moodleoverflowid' => $modflow->id], '', 'userid, grade');
         $this->assertEquals([$this->otherstudent->id => 10, $this->student->id => 1, $this->teacher->id => 0], $grades);
-    }
-
-    // External function.
-
-    /**
-     * Test, if record_vote calls the use case of the rating and returns the new state of the post.
-     */
-    public function test_record_vote(): void {
-        $postid = $this->answer->get_id();
-        $call = fn(int $postid, int $rating, bool $remove = false) => external_api::clean_returnvalue(
-            record_vote::execute_returns(),
-            record_vote::execute($postid, $rating, $remove)
-        );
-
-        $this->setUser($this->student);
-        $result = $call($postid, rating_type::UPVOTE->value);
-        $this->assertEquals(['postrating' => 1, 'ownerreputation' => 10, 'raterreputation' => 1,
-            'ownerid' => $this->otherstudent->id, 'uservote' => rating_type::UPVOTE->value, 'canchange' => true,
-            'markedposts' => [], ], $result);
-
-        $result = $call($postid, rating_type::UPVOTE->value, true);
-        $this->assertEquals(0, $result['postrating']);
-        $this->assertEquals(0, $result['uservote']);
-        $this->assertNull(service\rating::get_user_vote($this->answer, $this->student->id));
-
-        // Marks return all posts with the mark, so the page can show where the mark moved.
-        $this->setUser($this->teacher);
-        $result = $call($this->teacheranswer->get_id(), rating_type::SOLVED->value);
-        $this->assertEquals([$this->teacheranswer->get_id()], $result['markedposts']);
-        $result = $call($postid, rating_type::SOLVED->value);
-        $this->assertEquals([$postid], $result['markedposts']);
-        $this->assertEquals([$postid], service\rating::get_marked_post_ids($this->get_discussion(), rating_type::SOLVED));
-        $result = $call($postid, rating_type::SOLVED->value, true);
-        $this->assertEquals([], $result['markedposts']);
-        $this->assertEquals([], service\rating::get_marked_post_ids($this->get_discussion(), rating_type::SOLVED));
-
-        // Only the values of rating_type are ratings.
-        foreach ([0, 5, 10, 20] as $invalid) {
-            $this->assert_refused(fn() => record_vote::execute($postid, $invalid), 'invalidratingid');
-        }
     }
 
     // Sorting of answers.
