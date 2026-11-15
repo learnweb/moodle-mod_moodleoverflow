@@ -215,6 +215,6 @@ if ($ADMIN->fulltree) {
         'moodleoverflow/showuserstats',
         get_string('showuserstats', 'moodleoverflow'),
         get_string('configshowuserstats', 'moodleoverflow'),
-        0
+        1
     ));
 }
