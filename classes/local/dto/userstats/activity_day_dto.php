@@ -16,6 +16,8 @@
 
 namespace mod_moodleoverflow\local\dto\userstats;
 
+use mod_moodleoverflow\local\dto\dto;
+
 /**
  * Data transfer object for one day of the activity timeline of the user statistics: how many posts were written and
  * how many votes were given. It holds no information about the authors.
@@ -25,6 +27,8 @@ namespace mod_moodleoverflow\local\dto\userstats;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class activity_day_dto {
+    use dto;
+
     /**
      * Constructor.
      *
@@ -40,13 +44,5 @@ class activity_day_dto {
         /** @var int $votes up- and downvotes given on the day */
         public readonly int $votes
     ) {
-    }
-
-    /**
-     * Export function for the React page.
-     * @return array
-     */
-    public function to_array(): array {
-        return get_object_vars($this);
     }
 }

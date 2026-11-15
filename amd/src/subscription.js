@@ -17,6 +17,7 @@ import Notification, {saveCancelPromise} from 'core/notification';
 import Pending from 'core/pending';
 import {getString} from 'core/str';
 import {add as addToast} from 'core/toast';
+import {request} from 'mod_moodleoverflow/api';
 
 /**
  * Subscribes to and unsubscribes from moodleoverflows and discussions through the REST routes.
@@ -40,12 +41,7 @@ const SELECTOR = '[data-action="mod_moodleoverflow/toggle-subscription"]';
  * @returns {Promise<boolean>} Whether the user is subscribed now
  */
 export const changeSubscription = async(type, id, subscribe) => {
-    const url = `${M.cfg.apibase}/rest/v2/mod_moodleoverflow/${type}/${id}/subscription?sesskey=${M.cfg.sesskey}`;
-    const response = await fetch(url, {method: subscribe ? 'PUT' : 'DELETE', headers: {Accept: 'application/json'}});
-    const result = await response.json();
-    if (!response.ok) {
-        throw new Error(result.message ?? response.statusText);
-    }
+    const result = await request(subscribe ? 'PUT' : 'DELETE', `${type}/${id}/subscription`);
     return result.subscribed;
 };
 

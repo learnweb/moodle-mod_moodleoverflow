@@ -24,6 +24,8 @@ namespace mod_moodleoverflow\local\dto;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class userpost_dto {
+    use dto;
+
     /**
      * Constructor.
      *
@@ -60,13 +62,5 @@ class userpost_dto {
         /** @var string $modflowurl url to the moodleoverflow */
         public readonly string $modflowurl
     ) {
-    }
-
-    /**
-     * Export function for the REST controller.
-     * @return array
-     */
-    public function to_array(): array {
-        return get_object_vars($this);
     }
 }

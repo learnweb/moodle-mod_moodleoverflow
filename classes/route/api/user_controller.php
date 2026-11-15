@@ -24,8 +24,9 @@ use core\router\route;
 use core\router\schema\response\payload_response;
 use core\router\schema\parameters\path_parameter;
 use dml_exception;
+use mod_moodleoverflow\local\dto\userpost_dto;
 use mod_moodleoverflow\local\service\user_service;
-use mod_moodleoverflow\route\schema\responses\user_posts_response;
+use mod_moodleoverflow\route\schema\responses\dto_response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -51,7 +52,7 @@ class user_controller {
         path: '/user/posts/{userid}',
         method: ['GET'],
         pathtypes: [new path_parameter(name: 'userid', type: param::INT)],
-        responses: [new user_posts_response()],
+        responses: [new dto_response(userpost_dto::class, list: true)],
     )]
     public function get_user_posts(ServerRequestInterface $request, ResponseInterface $response, int $userid): payload_response {
         global $PAGE, $USER, $CFG;

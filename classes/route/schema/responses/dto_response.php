@@ -16,34 +16,33 @@
 
 namespace mod_moodleoverflow\route\schema\responses;
 
-use core\param;
-use core\router\schema\objects\scalar_type;
-use core\router\schema\objects\schema_object;
+use core\router\schema\objects\array_of_things;
 use core\router\schema\response\content\json_media_type;
 use core\router\schema\response\response;
 
 /**
- * Response of changing a subscription: whether the user is subscribed now.
+ * Response with a DTO or a list of DTOs; the schema comes from the DTO class. A route attribute cannot call the
+ * schema() method of the DTO itself, it can only create objects.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class subscription_response extends response {
+class dto_response extends response {
     /**
      * Constructor.
+     *
+     * @param string $dtoclass A class that uses the trait local\dto\dto
+     * @param bool $list Whether the response is a list of DTOs
      * @throws \core\exception\coding_exception
      */
-    public function __construct() {
+    public function __construct(string $dtoclass, bool $list = false) {
+        $schema = $dtoclass::schema();
         parent::__construct(
             statuscode: 200,
             description: 'OK',
             content: [
-                new json_media_type(
-                    schema: new schema_object(content: [
-                        'subscribed' => new scalar_type(param::BOOL, required: true),
-                    ]),
-                ),
+                new json_media_type(schema: $list ? new array_of_things(thingtype: $schema) : $schema),
             ],
         );
     }

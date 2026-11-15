@@ -16,6 +16,8 @@
 
 namespace mod_moodleoverflow\local\dto\userstats;
 
+use mod_moodleoverflow\local\dto\dto;
+
 /**
  * Data transfer object for the data that userstats.php shows: the statistics of every participant and the activity
  * timeline of every moodleoverflow of the course whose statistics the viewer may see.
@@ -25,6 +27,8 @@ namespace mod_moodleoverflow\local\dto\userstats;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class userstats_page_dto {
+    use dto;
+
     /**
      * Constructor.
      *
@@ -40,7 +44,7 @@ class userstats_page_dto {
     }
 
     /**
-     * Export function for the React page.
+     * Export function for the React page. Replaces the one of the trait: the DTOs in the arrays become arrays too.
      * @return array
      */
     public function to_array(): array {

@@ -24,7 +24,6 @@
 
 namespace mod_moodleoverflow;
 
-use mod_moodleoverflow\external\review_reject_post;
 use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
@@ -40,18 +39,16 @@ global $CFG;
 require_once($CFG->dirroot . '/mod/moodleoverflow/lib.php');
 
 /**
- * PHPUnit tests for reviewing posts: the review service, its externals and the review mails.
+ * PHPUnit tests for reviewing posts: the review service and the review mails.
  *
  * @package   mod_moodleoverflow
  * @copyright 2017 Kennet Winter <k_wint10@uni-muenster.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  * @group mod_moodleoverflow
- * @covers \mod_moodleoverflow\external\review_reject_post::execute
  * @covers \mod_moodleoverflow\local\service\review
  */
 #[Group('mod_moodleoverflow')]
-#[CoversClass(review_reject_post::class)]
 #[CoversClass(service\review::class)]
 final class review_test extends \advanced_testcase {
     use moodleoverflow_test_trait;
@@ -100,7 +97,7 @@ final class review_test extends \advanced_testcase {
         $this->mailsink->clear();
 
         $this->setUser($this->student);
-        $this->assert_refused(fn() => review_reject_post::execute($posts['studentpost']->get_id(), 'Rejected by myself'));
+        $this->assert_refused(fn() => service\review::reject($posts['studentpost'], $this->student->id, 'Rejected by myself'));
 
         $this->assertEquals(0, $this->mailsink->count());
         $this->assertTrue($DB->record_exists('moodleoverflow_posts', ['id' => $posts['studentpost']->get_id()]));

@@ -16,17 +16,14 @@
 
 namespace mod_moodleoverflow\route\api;
 
-use core\exception\access_denied_exception;
-use core\exception\not_found_exception;
 use core\param;
 use core\router\route;
 use core\router\schema\parameters\path_parameter;
 use core\router\schema\parameters\query_parameter;
 use core\router\schema\response\payload_response;
-use mod_moodleoverflow\local\models\discussion;
-use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\service\subscription;
-use mod_moodleoverflow\route\schema\responses\subscription_response;
+use mod_moodleoverflow\route\controller_trait;
+use mod_moodleoverflow\route\schema\responses\value_response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -39,6 +36,8 @@ use Psr\Http\Message\ServerRequestInterface;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class subscription_controller {
+    use controller_trait;
+
     /**
      * Subscribes the current user to a moodleoverflow (PUT) or unsubscribes them (DELETE).
      *
@@ -54,23 +53,16 @@ class subscription_controller {
         method: ['PUT', 'DELETE'],
         pathtypes: [new path_parameter(name: 'moodleoverflowid', type: param::INT)],
         queryparams: [new query_parameter(name: 'sesskey', type: param::ALPHANUM, required: true)],
-        responses: [new subscription_response()],
+        responses: [new value_response('subscribed', param::BOOL)],
     )]
     public function change_moodleoverflow_subscription(
         ServerRequestInterface $request,
         ResponseInterface $response,
         int $moodleoverflowid
     ): payload_response {
-        global $DB, $PAGE, $USER;
+        global $USER;
         self::require_login_and_sesskey($request);
-
-        $record = $DB->get_record('moodleoverflow', ['id' => $moodleoverflowid]);
-        if (!$record) {
-            throw new not_found_exception('moodleoverflow', (string) $moodleoverflowid);
-        }
-
-        $modflow = moodleoverflow::from_record($record);
-        $PAGE->set_context($modflow->get_context());
+        $modflow = self::load_moodleoverflow($moodleoverflowid);
 
         if ($request->getMethod() === 'PUT') {
             subscription::subscribe($modflow, $USER->id);
@@ -95,23 +87,16 @@ class subscription_controller {
         method: ['PUT', 'DELETE'],
         pathtypes: [new path_parameter(name: 'discussionid', type: param::INT)],
         queryparams: [new query_parameter(name: 'sesskey', type: param::ALPHANUM, required: true)],
-        responses: [new subscription_response()],
+        responses: [new value_response('subscribed', param::BOOL)],
     )]
     public function change_discussion_subscription(
         ServerRequestInterface $request,
         ResponseInterface $response,
         int $discussionid
     ): payload_response {
-        global $DB, $PAGE, $USER;
+        global $USER;
         self::require_login_and_sesskey($request);
-
-        $record = $DB->get_record('moodleoverflow_discussions', ['id' => $discussionid]);
-        if (!$record) {
-            throw new not_found_exception('discussion', (string) $discussionid);
-        }
-
-        $discussion = discussion::from_record($record);
-        $PAGE->set_context($discussion->get_moodleoverflow()->get_context());
+        $discussion = self::load_discussion($discussionid);
 
         if ($request->getMethod() === 'PUT') {
             subscription::subscribe_discussion($discussion, $USER->id);
@@ -120,19 +105,5 @@ class subscription_controller {
         }
         $subscribed = subscription::is_subscribed_to_discussion($discussion, $USER->id);
         return new payload_response(['subscribed' => $subscribed], $request, $response);
-    }
-
-    /**
-     * Requires a logged in user and a valid sesskey in the query.
-     *
-     * @param ServerRequestInterface $request
-     * @return void
-     * @throws access_denied_exception
-     */
-    private static function require_login_and_sesskey(ServerRequestInterface $request): void {
-        require_login();
-        if (!confirm_sesskey($request->getQueryParams()['sesskey'] ?? '')) {
-            throw new access_denied_exception('invalidsesskey', 'error');
-        }
     }
 }
