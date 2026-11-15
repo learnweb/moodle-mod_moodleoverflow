@@ -41,7 +41,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * @copyright 2026 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class post_controller {
+class posting_controller {
     use controller_trait;
 
     /**
