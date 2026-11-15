@@ -23,25 +23,29 @@ use core\router\schema\response\content\json_media_type;
 use core\router\schema\response\response;
 
 /**
- * Response of deleting a post: where to continue.
+ * Response with a single value, e.g. {"subscribed": true}. The route names the value.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class delete_post_response extends response {
+class value_response extends response {
     /**
      * Constructor.
+     *
+     * @param string $name The name of the value
+     * @param param $type The type of the value
+     * @param bool $nullable Whether the value can be null
      * @throws \core\exception\coding_exception
      */
-    public function __construct() {
+    public function __construct(string $name, param $type, bool $nullable = false) {
         parent::__construct(
             statuscode: 200,
             description: 'OK',
             content: [
                 new json_media_type(
                     schema: new schema_object(content: [
-                        'redirecturl' => new scalar_type(param::URL, required: true),
+                        $name => new scalar_type($type, required: !$nullable),
                     ]),
                 ),
             ],

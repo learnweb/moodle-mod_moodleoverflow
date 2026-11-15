@@ -17,6 +17,7 @@ import AutoRows from 'core/auto_rows';
 import Notification from 'core/notification';
 import Pending from 'core/pending';
 import Templates from 'core/templates';
+import {request} from 'mod_moodleoverflow/api';
 
 /**
  * The small reply form of the discussion page: "Answer" and "Comment" open a plain text form below their post, which
@@ -137,17 +138,7 @@ const submitForm = async(form) => {
     });
     const pending = new Pending('mod_moodleoverflow/inlinereply:submit');
     try {
-        const url = `${M.cfg.apibase}/rest/v2/mod_moodleoverflow/post/${form.dataset.postid}/reply` +
-            `?sesskey=${M.cfg.sesskey}`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {'Accept': 'application/json', 'Content-Type': 'application/json'},
-            body: JSON.stringify({message}),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-            throw new Error(result.message ?? response.statusText);
-        }
+        const result = await request('POST', `post/${form.dataset.postid}/reply`, {message});
         openPost(result.url);
     } catch (error) {
         buttons.forEach((button) => {

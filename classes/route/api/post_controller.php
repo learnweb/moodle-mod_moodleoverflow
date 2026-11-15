@@ -16,9 +16,7 @@
 
 namespace mod_moodleoverflow\route\api;
 
-use core\exception\access_denied_exception;
 use core\exception\moodle_exception;
-use core\exception\not_found_exception;
 use core\notification;
 use core\param;
 use core\router\route;
@@ -29,11 +27,10 @@ use core\router\schema\parameters\query_parameter;
 use core\router\schema\request_body;
 use core\router\schema\response\content\payload_response_type;
 use core\router\schema\response\payload_response;
-use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\models\post_content;
 use mod_moodleoverflow\local\service\posting;
-use mod_moodleoverflow\route\schema\responses\delete_post_response;
-use mod_moodleoverflow\route\schema\responses\reply_response;
+use mod_moodleoverflow\route\controller_trait;
+use mod_moodleoverflow\route\schema\responses\value_response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -45,6 +42,8 @@ use Psr\Http\Message\ServerRequestInterface;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post_controller {
+    use controller_trait;
+
     /**
      * Deletes a post with its replies; deleting the question deletes the discussion.
      *
@@ -60,11 +59,12 @@ class post_controller {
         method: ['DELETE'],
         pathtypes: [new path_parameter(name: 'postid', type: param::INT)],
         queryparams: [new query_parameter(name: 'sesskey', type: param::ALPHANUM, required: true)],
-        responses: [new delete_post_response()],
+        responses: [new value_response('redirecturl', param::URL)],
     )]
     public function delete_post(ServerRequestInterface $request, ResponseInterface $response, int $postid): payload_response {
         global $USER;
-        $post = $this->load_post($request, $postid);
+        self::require_login_and_sesskey($request);
+        $post = self::load_post($postid);
         $modflow = $post->get_moodleoverflow();
         $discussionurl = $post->get_discussion()->get_link();
 
@@ -97,11 +97,12 @@ class post_controller {
             ),
             required: true,
         ),
-        responses: [new reply_response()],
+        responses: [new value_response('url', param::URL)],
     )]
     public function reply(ServerRequestInterface $request, ResponseInterface $response, int $postid): payload_response {
         global $USER;
-        $parent = $this->load_post($request, $postid);
+        self::require_login_and_sesskey($request);
+        $parent = self::load_post($postid);
         $message = trim($request->getParsedBody()['message'] ?? '');
         if ($message === '') {
             throw new moodle_exception('erroremptymessage', 'moodleoverflow');
@@ -113,28 +114,5 @@ class post_controller {
         notification::success(get_string('postaddedsuccess', 'moodleoverflow') . ' ' .
             get_string('postaddedtimeleft', 'moodleoverflow', $edittime));
         return new payload_response(['url' => $newpost->get_link()->out(false)], $request, $response);
-    }
-
-    /**
-     * Checks the login and the sesskey and loads the post of a request. The service checks the permissions.
-     *
-     * @param ServerRequestInterface $request
-     * @param int $postid
-     * @return post
-     * @throws moodle_exception
-     */
-    private function load_post(ServerRequestInterface $request, int $postid): post {
-        global $DB, $PAGE;
-        require_login();
-        if (!confirm_sesskey($request->getQueryParams()['sesskey'] ?? '')) {
-            throw new access_denied_exception('invalidsesskey', 'error');
-        }
-        $record = $DB->get_record('moodleoverflow_posts', ['id' => $postid]);
-        if (!$record) {
-            throw new not_found_exception('post', (string) $postid);
-        }
-        $post = post::from_record($record);
-        $PAGE->set_context($post->get_moodleoverflow()->get_context());
-        return $post;
     }
 }

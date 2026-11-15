@@ -16,6 +16,7 @@
 import Notification, {deleteCancelPromise} from 'core/notification';
 import Pending from 'core/pending';
 import {getString} from 'core/str';
+import {request} from 'mod_moodleoverflow/api';
 
 /**
  * Deletes a post after a confirmation dialog and continues at the returned page.
@@ -50,13 +51,7 @@ export const init = () => {
 
         const pending = new Pending('mod_moodleoverflow/deletepost');
         try {
-            const url = `${M.cfg.apibase}/rest/v2/mod_moodleoverflow/post/${button.dataset.postid}` +
-                `?sesskey=${M.cfg.sesskey}`;
-            const response = await fetch(url, {method: 'DELETE', headers: {Accept: 'application/json'}});
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.message ?? response.statusText);
-            }
+            const result = await request('DELETE', `post/${button.dataset.postid}`);
             window.location.href = result.redirecturl;
         } catch (error) {
             Notification.exception(error);
