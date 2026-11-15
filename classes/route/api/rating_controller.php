@@ -26,12 +26,13 @@ use core\router\schema\parameters\query_parameter;
 use core\router\schema\request_body;
 use core\router\schema\response\content\payload_response_type;
 use core\router\schema\response\payload_response;
+use mod_moodleoverflow\local\dto\rating_dto;
 use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service\rating;
 use mod_moodleoverflow\route\controller_trait;
-use mod_moodleoverflow\route\schema\responses\rating_response;
+use mod_moodleoverflow\route\schema\responses\dto_response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -74,7 +75,7 @@ class rating_controller {
             ),
             required: true,
         ),
-        responses: [new rating_response()],
+        responses: [new dto_response(rating_dto::class)],
     )]
     public function vote(ServerRequestInterface $request, ResponseInterface $response, int $postid): payload_response {
         global $USER;
@@ -84,7 +85,7 @@ class rating_controller {
             ?? throw new moodle_exception('invalidratingid', 'moodleoverflow');
 
         rating::vote($post, $USER->id, $vote);
-        return new payload_response(self::get_state($post, $USER->id), $request, $response);
+        return new payload_response(self::get_state($post, $USER->id)->to_array(), $request, $response);
     }
 
     /**
@@ -102,7 +103,7 @@ class rating_controller {
         method: ['DELETE'],
         pathtypes: [new path_parameter(name: 'postid', type: param::INT)],
         queryparams: [new query_parameter(name: 'sesskey', type: param::ALPHANUM, required: true)],
-        responses: [new rating_response()],
+        responses: [new dto_response(rating_dto::class)],
     )]
     public function remove_vote(ServerRequestInterface $request, ResponseInterface $response, int $postid): payload_response {
         global $USER;
@@ -110,7 +111,7 @@ class rating_controller {
         $post = self::load_post($postid);
 
         rating::remove_vote($post, $USER->id);
-        return new payload_response(self::get_state($post, $USER->id), $request, $response);
+        return new payload_response(self::get_state($post, $USER->id)->to_array(), $request, $response);
     }
 
     /**
@@ -132,7 +133,7 @@ class rating_controller {
             new path_parameter(name: 'type', type: param::ALPHA),
         ],
         queryparams: [new query_parameter(name: 'sesskey', type: param::ALPHANUM, required: true)],
-        responses: [new rating_response()],
+        responses: [new dto_response(rating_dto::class)],
     )]
     public function change_mark(
         ServerRequestInterface $request,
@@ -150,9 +151,7 @@ class rating_controller {
         } else {
             rating::unmark($post, $USER->id, $mark);
         }
-        $state = self::get_state($post, $USER->id);
-        $state['markedposts'] = rating::get_marked_post_ids($post->get_discussion(), $mark);
-        return new payload_response($state, $request, $response);
+        return new payload_response(self::get_state($post, $USER->id, $mark)->to_array(), $request, $response);
     }
 
     /**
@@ -161,21 +160,22 @@ class rating_controller {
      *
      * @param post $post
      * @param int $userid
-     * @return array
+     * @param rating_type|null $mark The mark that was changed: its posts are returned, so the page can show where it is.
+     * @return rating_dto
      */
-    private static function get_state(post $post, int $userid): array {
+    private static function get_state(post $post, int $userid, ?rating_type $mark = null): rating_dto {
         $modflow = $post->get_moodleoverflow();
         $ratings = rating::get_post_ratings($post->get_discussion())[$post->get_id()];
         $vote = rating::get_user_vote($post, $userid);
-        return [
-            'postrating' => $ratings->upvotes - $ratings->downvotes,
-            'ownerreputation' => permissions::can_view_reputation($post, $userid)
+        return new rating_dto(
+            postrating: $ratings->upvotes - $ratings->downvotes,
+            ownerreputation: permissions::can_view_reputation($post, $userid)
                 ? rating::get_reputation($modflow, $post->get_userid()) : null,
-            'raterreputation' => rating::get_reputation($modflow, $userid),
-            'ownerid' => permissions::can_view_author($post, $userid) ? $post->get_userid() : null,
-            'uservote' => $vote ? array_search($vote, self::VOTES, true) : null,
-            'canchange' => rating::can_change_vote($post, $userid, $vote),
-            'markedposts' => [],
-        ];
+            raterreputation: rating::get_reputation($modflow, $userid),
+            ownerid: permissions::can_view_author($post, $userid) ? $post->get_userid() : null,
+            uservote: $vote ? array_search($vote, self::VOTES, true) : null,
+            canchange: rating::can_change_vote($post, $userid, $vote),
+            markedposts: $mark ? rating::get_marked_post_ids($post->get_discussion(), $mark) : [],
+        );
     }
 }

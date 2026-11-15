@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - https://moodle.org/
+// This file is part of a plugin for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,37 +12,37 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace mod_moodleoverflow\route\schema\responses;
 
 use core\router\schema\objects\array_of_things;
 use core\router\schema\response\content\json_media_type;
 use core\router\schema\response\response;
-use mod_moodleoverflow\route\schema\userpost_schema;
 
 /**
- * Response specification of the array of posts.
+ * Response with a DTO or a list of DTOs; the schema comes from the DTO class. A route attribute cannot call the
+ * schema() method of the DTO itself, it can only create objects.
  *
  * @package   mod_moodleoverflow
  * @copyright 2026 Tamaro Walter
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_posts_response extends response {
+class dto_response extends response {
     /**
      * Constructor.
+     *
+     * @param string $dtoclass A class that uses the trait local\dto\dto
+     * @param bool $list Whether the response is a list of DTOs
      * @throws \core\exception\coding_exception
      */
-    public function __construct() {
+    public function __construct(string $dtoclass, bool $list = false) {
+        $schema = $dtoclass::schema();
         parent::__construct(
             statuscode: 200,
             description: 'OK',
             content: [
-                new json_media_type(
-                    schema: new array_of_things(
-                        thingtype: new userpost_schema(true),
-                    ),
-                ),
+                new json_media_type(schema: $list ? new array_of_things(thingtype: $schema) : $schema),
             ],
         );
     }

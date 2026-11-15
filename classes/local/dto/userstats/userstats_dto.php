@@ -16,6 +16,8 @@
 
 namespace mod_moodleoverflow\local\dto\userstats;
 
+use mod_moodleoverflow\local\dto\dto;
+
 /**
  * DTO for the statistics of one user that are shown on userstats.php: their activity, reputation and received votes
  * in the moodleoverflow the page was opened from and in the whole course.
@@ -25,6 +27,8 @@ namespace mod_moodleoverflow\local\dto\userstats;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class userstats_dto {
+    use dto;
+
     /**
      * Constructor.
      *
@@ -67,13 +71,5 @@ class userstats_dto {
         /** @var int $coursedownvotes received downvotes in the moodleoverflows of the course */
         public readonly int $coursedownvotes
     ) {
-    }
-
-    /**
-     * Export function for the React page.
-     * @return array
-     */
-    public function to_array(): array {
-        return get_object_vars($this);
     }
 }
