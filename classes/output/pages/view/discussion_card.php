@@ -85,11 +85,13 @@ class discussion_card implements named_templatable, renderable {
         $allratings = rating::get_post_ratings($this->discussion);
         $tree = service\discussion::get_posts_tree($this->discussion, $USER->id, $allratings);
 
-        // Link the marks to the first marked answer in the order of the discussion page (only answers can be marked).
+        // Link the marks to the first marked post in the order of the discussion page.
         $marklink = function (string $field) use ($tree, $allratings): array {
             foreach ($tree['answers'] as $branch) {
-                if ($allratings[$branch['answer']->get_id()]->$field > 0) {
-                    return ['link' => $branch['answer']->get_link()->out()];
+                foreach ([$branch['answer'], ...$branch['comments']] as $post) {
+                    if ($allratings[$post->get_id()]->$field > 0) {
+                        return ['link' => $post->get_link()->out()];
+                    }
                 }
             }
             return [];

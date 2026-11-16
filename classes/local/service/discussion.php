@@ -203,9 +203,8 @@ class discussion {
     /**
      * Returns the posts of a discussion that the user can see, in the order of the discussion page.
      *
-     * Below the question are the direct answers, ranked by marks and votes (rating::sort_answers()), and below each
-     * answer its comments, oldest first. A reply to a comment counts as a comment of its answer. Comments of an answer
-     * the user cannot see are left out with it.
+     * Below the question are the direct answers, ranked by the marks of the answer and its comments and by the votes of the answer
+     * (rating::sort_answers()), and below each answer its comments, oldest first.
      *
      * @param models\discussion $discussion
      * @param int $userid
@@ -218,31 +217,37 @@ class discussion {
         $posts = $discussion->get_posts();
         $visible = array_filter($posts, fn(models\post $post) => permissions::can_view_post($post, $userid));
 
-        // Rank the direct answers; the result is indexed by post id.
-        $ratings ??= rating::get_post_ratings($discussion);
-        $sortdata = [];
-        foreach (array_filter($visible, fn(models\post $post) => $post->is_direct_answer()) as $answer) {
-            $rating = $ratings[$answer->get_id()];
-            $sortdata[] = (object) [
-                'id' => $answer->get_id(),
-                'modified' => $answer->modified,
-                'votesdifference' => $rating->upvotes - $rating->downvotes,
-                'markedsolution' => $rating->issolved,
-                'markedhelpful' => $rating->ishelpful,
-            ];
-        }
-        $ranked = rating::sort_answers($sortdata, $discussion->get_moodleoverflow()->get_rating_preference());
-        $answers = array_map(fn($row) => ['answer' => $visible[$row->id], 'comments' => []], $ranked);
-
-        // Append each comment to its answer, oldest first.
+        // Group the comments under their answer, oldest first. A reply to a comment counts as a comment of its answer.
+        $answerids = array_keys(array_filter($visible, fn(models\post $post) => $post->is_direct_answer()));
+        $branches = array_fill_keys($answerids, []);
         $comments = array_filter($visible, fn(models\post $post) => $post->is_comment());
         usort($comments, fn($a, $b) => $a->created <=> $b->created ?: $a->get_id() <=> $b->get_id());
         foreach ($comments as $comment) {
             $answerid = self::get_answer_id($comment, $posts);
-            if (isset($answers[$answerid])) {
-                $answers[$answerid]['comments'][] = $comment;
+            if (isset($branches[$answerid])) {
+                $branches[$answerid][] = $comment;
             }
         }
+
+        // Rank the answers; the marks of its comments count for an answer, so a marked comment is found near the top.
+        $ratings ??= rating::get_post_ratings($discussion);
+        $sortdata = [];
+        foreach ($branches as $answerid => $branchcomments) {
+            $branchratings = array_map(
+                fn(models\post $post) => $ratings[$post->get_id()],
+                [$visible[$answerid], ...$branchcomments]
+            );
+
+            $sortdata[] = (object) [
+                'id' => $answerid,
+                'modified' => $visible[$answerid]->modified,
+                'votesdifference' => $ratings[$answerid]->upvotes - $ratings[$answerid]->downvotes,
+                'markedsolution' => max(array_map('intval', array_column($branchratings, 'issolved'))),
+                'markedhelpful' => max(array_map('intval', array_column($branchratings, 'ishelpful'))),
+            ];
+        }
+        $ranked = rating::sort_answers($sortdata, $discussion->get_moodleoverflow()->get_rating_preference());
+        $answers = array_map(fn($row) => ['answer' => $visible[$row->id], 'comments' => $branches[$row->id]], $ranked);
 
         return ['question' => $posts[$discussion->get_firstpostid()], 'answers' => array_values($answers)];
     }
