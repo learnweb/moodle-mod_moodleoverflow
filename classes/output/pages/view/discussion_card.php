@@ -128,6 +128,9 @@ class discussion_card implements named_templatable, renderable {
         // Miscellaneous data.
         $topicmove = ['name' => $this->discussion->name, 'id' => $this->discussion->get_id()];
 
+        // The answers and comments the user sees, like the discussion page.
+        $replyamount = array_sum(array_map(fn(array $branch) => 1 + count($branch['comments']), $tree['answers']));
+
         return (object) [
             'postid' => $this->firstpost->get_id(),
             'votes' => $ratings->upvotes - $ratings->downvotes,
@@ -140,8 +143,8 @@ class discussion_card implements named_templatable, renderable {
             'subjectlink' => $this->discussion->get_link()->out(),
             'userfirstpost' => $userfirstpost,
             'userlastpost' => $userlastpost,
-            // The answers and comments the user sees, like the discussion page.
-            'replyamount' => array_sum(array_map(fn(array $branch) => 1 + count($branch['comments']), $tree['answers'])),
+            'replyamount' => $replyamount,
+            'replytitle' => get_string($replyamount === 1 ? 'replycountone' : 'replycount', 'moodleoverflow', $replyamount),
             'unread' => $this->unreadcount > 0 ? $unreaddata : [],
             'canreview' => permissions::can_review_posts($this->modflow, $USER->id),
             'needreview' => $reviewpostcount,

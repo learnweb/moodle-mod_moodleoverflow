@@ -74,7 +74,7 @@ async function showVote(postElement, uservote, canchange) {
 }
 
 /**
- * Shows which posts have a mark: the CSS class of every post and the label of its mark button.
+ * Shows which posts have a mark: the CSS class of every post and the tooltip of its mark switch.
  * @param {string} action solved or helpful
  * @param {int[]} markedposts The ids of the posts with the mark.
  * @param {boolean} allowmultiplemarks Whether several posts can have the mark.
@@ -87,7 +87,7 @@ async function showMarks(action, markedposts, allowmultiplemarks) {
         if (button) {
             // Without multiple marks, marking another post moves the mark, so there is no "also mark".
             const other = allowmultiplemarks && markedposts.length ? 'alsomark' : 'mark';
-            button.textContent = await getString(marked ? `marknot${action}` : `${other}${action}`, 'mod_moodleoverflow');
+            button.title = await getString(marked ? `marknot${action}` : `${other}${action}`, 'mod_moodleoverflow');
         }
     }
 }

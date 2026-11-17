@@ -72,11 +72,15 @@ class discussion_page implements named_templatable, renderable {
             array_push($answers, ...array_map($render, $branch['comments']));
         }
 
+        $subject = format_string($this->discussion->name, true, ['context' => $context]);
         $previous = $neighbour($current + 1);
         $next = $neighbour($current - 1);
 
         return (object) [
-            'answeramount' => get_string(count($answers) > 0 ? 'answers' : 'answer', 'moodleoverflow', count($answers)),
+            // The title of the discussion.
+            'subject' => $subject,
+            // Answers and comments count alike: both can be marked as solution or helpful.
+            'replyamount' => get_string(count($answers) === 1 ? 'replycountone' : 'replycount', 'moodleoverflow', count($answers)),
             'firstpost' => $render($tree['question']),
             'answers' => $answers,
             // The previous discussion is the older one, so it comes after the current one in the list.

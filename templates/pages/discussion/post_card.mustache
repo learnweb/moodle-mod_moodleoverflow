@@ -60,61 +60,58 @@
                     {{/pix}}
                 </div>
             {{/needsreview}}
+            {{! Who may set a mark gets a switch with the action as tooltip, the others see the mark only when it is set. }}
             <div class="status moodleoverflow-icon-no-margin">
-                <span class="onlyifsolved">{{#pix}} i/status-solved, moodleoverflow, {{#str}}ratedbyteacher, moodleoverflow{{/str}} {{/pix}}</span>
-                <span class="onlyifhelpful">{{#pix}} i/status-helpful, moodleoverflow, {{#str}}ratedbystarter, moodleoverflow{{/str}} {{/pix}}</span>
+                {{#commands.marksolved}}
+                    <button type="button" class="btn btn-link p-0 marksolved" data-moodleoverflow-action="solved" title="{{label}}">{{!
+                    }}{{#pix}}i/status-solved, moodleoverflow{{/pix}}</button>
+                {{/commands.marksolved}}
+                {{^commands.marksolved}}
+                    <span class="onlyifsolved">{{#pix}} i/status-solved, moodleoverflow, {{#str}}ratedbyteacher, moodleoverflow{{/str}} {{/pix}}</span>
+                {{/commands.marksolved}}
+                {{#commands.markhelpful}}
+                    <button type="button" class="btn btn-link p-0 markhelpful" data-moodleoverflow-action="helpful" title="{{label}}">{{!
+                    }}{{#pix}}i/status-helpful, moodleoverflow{{/pix}}</button>
+                {{/commands.markhelpful}}
+                {{^commands.markhelpful}}
+                    <span class="onlyifhelpful">{{#pix}} i/status-helpful, moodleoverflow, {{#str}}ratedbystarter, moodleoverflow{{/str}} {{/pix}}</span>
+                {{/commands.markhelpful}}
             </div>
         </div>
         <div class="answercell d-flex flex-column">
             <div class="post-text">
-                <a href="{{{permalink}}}" class="anchor" title="{{#str}}permalink, mod_moodleoverflow{{/str}}">
-                    <i class="fa fa-hashtag text-muted icon moodleoverflow-icon-1_5x moodleoverflow-icon-no-margin"></i></a>
                 {{{ postcontent }}}
             </div>
+            {{! Attached images are thumbnails that open the full image, files are links with their icon. mb-n1 takes back
+                the space below the last item, so the line below keeps its distance. }}
             <div class="attachments flex-grow-1">
-                {{#attachments}}
-                    {{#isimage}}
-                        <img src="{{{url}}}" alt="{{filename}}"/>
-                        <br>
-                    {{/isimage}}
-                    {{^isimage}}
-                        <a class="icon-size-6" href="{{{url}}}">{{#pix}} {{icon}}, core {{/pix}}</a>
-                        <a href="{{{url}}}">{{filename}}</a>
-                    {{/isimage}}
-                    <br>
-                {{/attachments}}
+                {{#attachments.0}}
+                    <div class="mt-2 mb-n1">
+                        <ul class="list-inline mb-0">
+                            {{#attachments}}{{#isimage}}
+                                <li class="list-inline-item mb-1">
+                                    <a href="{{{url}}}" target="_blank" title="{{filename}}"><img src="{{{url}}}" alt="{{filename}}" class="img-thumbnail"></a>
+                                </li>
+                            {{/isimage}}{{/attachments}}
+                        </ul>
+                        <ul class="list-unstyled mb-0">
+                            {{#attachments}}{{^isimage}}
+                                <li class="mb-1"><a href="{{{url}}}" class="icon-size-5">{{#pix}}{{icon}}, core{{/pix}}{{filename}}</a></li>
+                            {{/isimage}}{{/attachments}}
+                        </ul>
+                    </div>
+                {{/attachments.0}}
             </div>
-            <div class="post-info">
-                <div class="leftbox {{questioner}}">
-                    {{^iscomment}}
-                        <div class="user-info">
-                            {{#author.picture}}
-                                <div class="user-avatar">
-                                    {{{ author.picture }}}
-                                </div>
-                            {{/author.picture}}
-                            <div class="user-details">
-                                {{#author}}{{> mod_moodleoverflow/author_link}}{{/author}}
-                                {{#showreputation}}
-                                        (
-                                        {{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}
-                                        <span data-moodleoverflow-userreputation="{{userid}}">
-                                            {{ userreputation }}
-                                        </span>
-                                        )
-                                {{/showreputation}}
-                                <div class="user-action-time">
-                                    {{ date }}
-                                </div>
-                                <div class="user-action-shorttime">
-                                    {{shortdate}}
-                                </div>
-                            </div>
-                        </div>
-                    {{/iscomment}}
-                    {{#iscomment}}
-                        <span class="text-muted">{{#author}}{{> mod_moodleoverflow/author_link}}{{/author}} - {{ shortdate }}</span>
-                    {{/iscomment}}
+            <div class="post-info border-top pt-2 mt-2">
+                {{! One line for every post: picture (a placeholder for hidden authors), name, reputation, role, date. }}
+                <div class="leftbox">
+                    <div class="user-info text-muted">
+                        {{#author.picture}}{{{author.picture}}}{{/author.picture}}{{!
+                        }}{{^author.picture}}<span class="userinitials size-35 moodleoverflow-icon-no-margin">{{#pix}}i/user, core{{/pix}}</span>{{/author.picture}}
+                        {{#author}}{{> mod_moodleoverflow/author}}{{/author}}
+                        {{#isquestioner}}<span class="badge bg-light text-dark border">{{#str}}questioner, mod_moodleoverflow{{/str}}</span>{{/isquestioner}}
+                        · <span title="{{date}}">{{shortdate}}</span>
+                    </div>
                 </div>
                 <div class="rightbox">
                     <div class="post-menu">

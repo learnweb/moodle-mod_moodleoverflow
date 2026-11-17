@@ -84,34 +84,34 @@ class post_card implements named_templatable, renderable {
             'userdownvoted' => $vote === rating_type::DOWNVOTE,
             'canchange' => service\rating::can_change_vote($this->post, $USER->id, $vote),
         ] : [];
-        $showreputation = permissions::can_view_reputation($this->post, $USER->id) ? [
-            'userid' => $this->post->get_userid(),
-            'userreputation' => $this->data->get_reputation($this->post->get_userid()),
-        ] : [];
+        $author = (new author($this->post, $USER->id))->export_for_template($output);
+        if (permissions::can_view_reputation($this->post, $USER->id)) {
+            $author['reputation'] = [
+                'userid' => $this->post->get_userid(),
+                'userreputation' => $this->data->get_reputation($this->post->get_userid()),
+            ];
+        }
 
         // Review data.
         $reviewdelay = $moodleoverflow->get_review_delay();
         $needsreview = $this->post->reviewed === 0;
-
-        // Links.
-        $discusspath = '/mod/moodleoverflow/discussion.php';
 
         // Build the mustache data.
         return (object) [
             'isfirstunread' => $this->data->is_first_unread($this->post),
             'postid' => $this->post->get_id(),
             'postclass' => ' ' . ($isread ? 'read' : 'unread') . ' ' . $ishelpful . ' ' . $issolved,
-            'permalink' => (new moodle_url($discusspath, ['d' => $discussion->get_id()], 'p' . $this->post->get_id()))->out(),
             'postcontent' => $this->post->get_message_formatted(),
             'attachments' => $this->post->get_attachments($output),
-            'author' => (new author($this->post, $USER->id))->export_for_template($output),
+            'author' => $author,
             'iscomment' => $this->post->is_comment(),
             'isfirstpost' => $this->post->is_question(),
             'date' => userdate($this->post->modified),
-            'shortdate' => userdate($this->post->modified, get_string('strftimedatetimeshort', 'core_langconfig')),
-            'questioner' => $this->post->get_userid() == $discussion->get_userid() ? 'questioner' : '',
+            'shortdate' => userdate($this->post->modified, get_string('strftimedatemonthabbr', 'core_langconfig')),
+            // Answers and comments of the questioner are labelled; a hidden questioner is named "Questioner" already.
+            'isquestioner' => !$this->post->is_question() && $this->post->get_userid() === $discussion->get_userid()
+                && permissions::can_view_author($this->post, $USER->id),
             'showvotes' => $showvotes,
-            'showreputation' => $showreputation,
             'needsreview' => $needsreview ? [
                 'withinreviewperiod' => (time() - $this->post->created) > $reviewdelay,
                 'reviewdelay' => $reviewdelay,
@@ -123,7 +123,8 @@ class post_card implements named_templatable, renderable {
     }
 
     /**
-     * Returns the commands below the post that the user may use: mark helpful / solved, edit, delete, reply.
+     * Returns the commands of the post that the user may use: reply, edit, delete and copy link below the post, and mark
+     * helpful / solved as switches in the status column.
      * @param renderer_base $output
      * @return array
      * @throws moodle_exception
@@ -153,7 +154,8 @@ class post_card implements named_templatable, renderable {
             $commands['reply'] = [
                 'url' => $url->out(false),
                 'postid' => $replytarget->get_id(),
-                'label' => get_string($this->post->is_question() ? 'replyfirst' : 'reply', 'moodleoverflow'),
+                // The button always says "Reply"; the tooltip tells an answer from a comment.
+                'title' => get_string($this->post->is_question() ? 'replytooltipanswer' : 'replytooltipcomment', 'moodleoverflow'),
                 // Allowed although the window is closed: the teacher bypass, so explain it.
                 'helpicon' => $windowopen ? null : $helpicon('la_teacher_helpicon'),
             ];
@@ -161,6 +163,7 @@ class post_card implements named_templatable, renderable {
             // Tell students that they can answer once the window opens.
             $commands['replylater'] = ['helpicon' => $helpicon('la_student_helpicon')];
         }
+        $commands['copylink'] = ['postid' => $this->post->get_id(), 'url' => $this->post->get_link()->out(false)];
         return $commands;
     }
 

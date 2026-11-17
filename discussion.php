@@ -76,6 +76,8 @@ $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $modflow->allows_multiple_marks()]);
 $PAGE->requires->js_call_amd('mod_moodleoverflow/deletepost', 'init');
 $PAGE->requires->js_call_amd('mod_moodleoverflow/inlinereply', 'init', [$modflow->wordsmin, $modflow->wordsmax]);
+// The "copy link" command of the posts; the module listens to all copy buttons of the page once it is loaded.
+$PAGE->requires->js_amd_inline("require(['core/copy_to_clipboard']);");
 
 // The unsubscribe link of a mail only opens a confirmation dialog, the GET request changes nothing.
 if (
@@ -93,6 +95,5 @@ $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
 echo $OUTPUT->render(new discussion_page($discussion));
 echo $OUTPUT->footer();

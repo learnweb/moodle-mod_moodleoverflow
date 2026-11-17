@@ -1,0 +1,31 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/author
+
+  The author of a post: the name, linked to the profile if the viewer may know who wrote the post, and the reputation
+  if the viewer may see it. rating.js updates the reputation after a vote through the data attribute.
+
+  Example context (json):
+  {
+      "name": "Jane Doe",
+      "profileurl": "https://example.com/user/view.php?id=2&course=3",
+      "reputation": {"userid": 2, "userreputation": 12}
+  }
+}}
+{{#profileurl}}<a href="{{profileurl}}">{{name}}</a>{{/profileurl}}{{^profileurl}}{{name}}{{/profileurl}}{{#reputation}}
+<span class="text-nowrap moodleoverflow-icon-no-margin">{{#pix}}star, moodleoverflow, {{#str}}reputation, moodleoverflow{{/str}}{{/pix}}<span data-moodleoverflow-userreputation="{{userid}}">{{userreputation}}</span></span>{{/reputation}}

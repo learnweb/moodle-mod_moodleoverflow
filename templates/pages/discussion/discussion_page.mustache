@@ -21,7 +21,8 @@
   This template renders the discussion page.
 
   Context variables required for this template:
-  * answeramount - Heading with the number of answers
+  * subject - The formatted title of the discussion
+  * replyamount - Heading with the number of answers and comments
   * firstpost - Rendered post card of the question
   * answers - Rendered post cards of the answers and comments
   * hasneighbours - Whether there is a neighbouring discussion to navigate to
@@ -30,7 +31,8 @@
 
    Example context (json):
    {
-       "answeramount": "2 Answers",
+       "subject": "How do loops work?",
+       "replyamount": "2 Replies",
        "firstpost": "<div>Question</div>",
        "answers": ["<div>Answer</div>", "<div>Comment</div>"],
        "hasneighbours": true,
@@ -40,11 +42,12 @@
 }}
 
 <div id="moodleoverflow-posts">
+    {{! The title of the discussion below the name of the activity, as large as a section heading. }}
+    <h2 class="h4 mb-3">{{{subject}}}</h2>
     <div id="moodleoverflow-root">
         {{! This is the place for the discussion starter post}}
         {{{firstpost}}}
-        <br>
-        {{#answeramount}}<h4>{{answeramount}}</h4>{{/answeramount}}
+        <h3 class="h5 mt-4 mb-2">{{replyamount}}</h3>
         <div>
             {{! This is the place for the answer posts}}
             {{#answers}}{{{.}}}{{/answers}}

@@ -94,6 +94,19 @@ final class author_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if the picture of a hidden author is shown to the author only.
+     */
+    public function test_picture(): void {
+        global $PAGE;
+        $modflow = $this->create_moodleoverflow(['anonymous' => anonymity::QUESTIONS->value]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        $output = $PAGE->get_renderer('core');
+
+        $this->assertNotEmpty((new author($question, $this->student->id))->export_for_template($output)['picture']);
+        $this->assertEmpty((new author($question, $this->teacher->id))->export_for_template($output)['picture']);
+    }
+
+    /**
      * Returns the author name of a post as a user sees it.
      *
      * @param post $post

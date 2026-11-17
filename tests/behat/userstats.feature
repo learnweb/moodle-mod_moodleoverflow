@@ -34,7 +34,7 @@ Feature: Teachers see the activity of the students in the user statistics, unles
   Scenario: Test if reputation appears in the user statistics
     Given User "student1" replies "This is a question" with "This is an answer" automatically
     And I am on the "Topic question" "mod_moodleoverflow > Discussion" page logged in as "teacher1"
-    And I click on "Mark as solution" "text"
+    And I click on the "solved" button of the moodleoverflow post "This is an answer"
     And I follow "Test Moodleoverflow"
     And I click on "User statistics" "text"
     Then I should see "30" in the "Student 1" "table_row"
