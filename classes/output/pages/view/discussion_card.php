@@ -50,6 +50,9 @@ class discussion_card implements named_templatable, renderable {
     /** @var post|null The last post, null while the question waits for its review */
     public ?post $lastpost;
 
+    /** @var string The search of the forum page, empty: no search; the discussion page highlights its words */
+    private string $query;
+
     /** @var bool If discussion can be moved */
     public bool $movepossible;
 
@@ -61,11 +64,13 @@ class discussion_card implements named_templatable, renderable {
      * @param discussion $discussion
      * @param bool $movepossible If the discussion can be moved to another moodleoverflow
      * @param int $unreadcount The number of posts the user has not read, counted for the whole page
+     * @param string $query The search of the forum page, empty: no search
      * @throws \dml_exception
      * @throws moodle_exception
      */
-    public function __construct(discussion $discussion, bool $movepossible, int $unreadcount) {
+    public function __construct(discussion $discussion, bool $movepossible, int $unreadcount, string $query = '') {
         $this->unreadcount = $unreadcount;
+        $this->query = $query;
         $this->discussion = $discussion;
         $this->firstpost = $this->discussion->get_first_post();
         $this->lastpost = $this->discussion->get_last_post();
@@ -153,7 +158,7 @@ class discussion_card implements named_templatable, renderable {
             'markedhelpful' => $marklink('ishelpful'),
             'markedsolution' => $marklink('issolved'),
             'subjecttext' => format_string($this->discussion->name),
-            'subjectlink' => $this->discussion->get_link()->out(),
+            'subjectlink' => (new moodle_url($this->discussion->get_link(), array_filter(['q' => $this->query], 'strlen')))->out(),
             'question' => $question,
             'lastpost' => $lastpost,
             // The answers and comments the user sees, like the discussion page.

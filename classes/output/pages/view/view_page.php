@@ -113,7 +113,7 @@ class view_page implements named_templatable, renderable {
         $discussioncount = count($discussions);
         $items = array_map(
             fn(models\discussion $discussion) => $OUTPUT->render(
-                new discussion_card($discussion, !empty($destinations), $unread[$discussion->get_id()])
+                new discussion_card($discussion, !empty($destinations), $unread[$discussion->get_id()], $this->query)
             ),
             array_slice($discussions, $limitfrom, $limitamount)
         );

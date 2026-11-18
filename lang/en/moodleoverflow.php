@@ -408,6 +408,7 @@ $string['ratingpreference_help'] = 'Answers can be marked as solution and helpfu
 * Solved - A teacher\'s solution mark will be pinned at the top of the discussion';
 $string['re'] = 'Re:';
 $string['reject'] = 'Reject';
+$string['removehighlight'] = 'Remove highlighting';
 $string['reply'] = 'Comment';
 $string['replybutton'] = 'Reply';
 $string['replycount'] = '{$a} Replies';
@@ -430,6 +431,7 @@ $string['scalefactorerror'] = 'Scale factor must be a positive integer different
 $string['search:activity'] = 'Moodleoverflow - activity information';
 $string['search:post'] = 'Moodleoverflow - posts';
 $string['searchforum'] = 'Search this forum';
+$string['searchhighlighted'] = 'Highlighted: "{$a}"';
 $string['searchnoresults'] = 'No discussion contains "{$a}".';
 $string['searchresults'] = 'Discussions that contain "{$a}":';
 $string['searchuserposts'] = "Search in posts";

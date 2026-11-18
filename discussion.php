@@ -35,6 +35,7 @@ global $PAGE, $USER, $SESSION, $OUTPUT;
 // Declare parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
 $unsubscribe = optional_param('unsubscribe', 0, PARAM_BOOL); // Unsubscribe link of a mail.
+$query = optional_param('q', '', PARAM_TEXT); // The search of the forum page that found the discussion, to highlight.
 
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/discussion.php', ['d' => $d]);
@@ -95,5 +96,5 @@ $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
 
 echo $OUTPUT->header();
-echo $OUTPUT->render(new discussion_page($discussion));
+echo $OUTPUT->render(new discussion_page($discussion, $query));
 echo $OUTPUT->footer();

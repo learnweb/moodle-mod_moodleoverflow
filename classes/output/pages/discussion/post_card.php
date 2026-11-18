@@ -46,15 +46,20 @@ class post_card implements named_templatable, renderable {
     /** @var object The ratings of the post: upvotes, downvotes, issolved, ishelpful */
     private object $ratings;
 
+    /** @var string The words of a search to highlight in the message, empty: none */
+    private string $query;
+
     /**
      * Constructor.
      * @param post $post
      * @param discussion_page_data $data The data of the discussion page, loaded once for all posts
+     * @param string $query The words of a search to highlight in the message, empty: none
      */
-    public function __construct(post $post, discussion_page_data $data) {
+    public function __construct(post $post, discussion_page_data $data, string $query = '') {
         $this->post = $post;
         $this->data = $data;
         $this->ratings = $data->get_ratings($post);
+        $this->query = $query;
     }
 
     #[\Override]
@@ -101,7 +106,8 @@ class post_card implements named_templatable, renderable {
             'isfirstunread' => $this->data->is_first_unread($this->post),
             'postid' => $this->post->get_id(),
             'postclass' => ' ' . ($isread ? 'read' : 'unread') . ' ' . $ishelpful . ' ' . $issolved,
-            'postcontent' => $this->post->get_message_formatted(),
+            // Moodle's highlight() marks every word of the search like the search finds them, outside of HTML tags.
+            'postcontent' => highlight($this->query, $this->post->get_message_formatted(), false, '<mark>', '</mark>'),
             'attachments' => $this->post->get_attachments($output),
             'author' => $author,
             'iscomment' => $this->post->is_comment(),
