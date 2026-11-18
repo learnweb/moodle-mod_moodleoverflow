@@ -11,6 +11,15 @@ Feature: Teachers and students can delete posts
     Then I should not see "Discussion 1"
 
   @javascript
+  Scenario: Teacher deletes a discussion in the list of discussions
+    Given I am on the "Moodleoverflow 1" "moodleoverflow activity" page logged in as "teacher1"
+    When I click on "More" "button" in the "Discussion 1" moodleoverflow discussion card
+    And I click on "Delete discussion" "button" in the "Discussion 1" moodleoverflow discussion card
+    And I click on "Delete" "button" in the ".modal-dialog" "css_element"
+    Then I should not see "Discussion 1"
+    And I should see "There are no discussion topics yet in this forum."
+
+  @javascript
   Scenario: Teacher only deletes reply post
     Given I am on the "Discussion 1" "mod_moodleoverflow > Discussion" page logged in as "teacher1"
     And I try to delete moodleoverflow post "Answer from student"

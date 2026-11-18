@@ -20,9 +20,9 @@ import Templates from 'core/templates';
 import {request} from 'mod_moodleoverflow/api';
 
 /**
- * The small reply form of the discussion page: "Answer" and "Comment" open a plain text form below their post, which
- * posts through the REST route post/{postid}/reply. "Advanced" is a normal submit to post.php with the text.
- * Ctrl/Cmd+Enter posts, Escape cancels.
+ * The small reply form of the discussion page: "Reply" opens a plain text form below its post (an answer below the
+ * question, a comment below an answer or comment), which posts through the REST route post/{postid}/reply. "Advanced"
+ * is a normal submit to post.php with the text. Only one form is open at a time. Ctrl/Cmd+Enter posts, Escape cancels.
  *
  * @module     mod_moodleoverflow/inlinereply
  * @copyright  2026 Tamaro Walter
@@ -82,8 +82,9 @@ const openPost = (url) => {
 };
 
 /**
- * Opens the form below the post of a reply command; a form that is open there already gets the focus.
- * @param {HTMLElement} command The "Answer" or "Comment" link
+ * Opens the form below the post of a reply command and closes any other form; a form that is open there already gets
+ * the focus.
+ * @param {HTMLElement} command The "Reply" link
  */
 const openForm = async(command) => {
     const card = command.closest('.moodleoverflowpost');
@@ -101,6 +102,7 @@ const openForm = async(command) => {
             wordsmax: limits.max,
             haswordlimit: limits.min > 0 || limits.max > 0,
         });
+        document.querySelectorAll(Selectors.form).forEach((other) => other.remove());
         card.insertAdjacentHTML('afterend', html);
         Templates.runTemplateJS(js);
         form = card.nextElementSibling;

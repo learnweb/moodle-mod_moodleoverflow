@@ -16,11 +16,11 @@ Feature: Testing overview integration in moodleoverflow activity
     And User "teacher1" adds to "Test Moodleoverflow" a discussion with topic "Topic1" and message "message1" automatically
     And User "student1" replies "message1" with "message2" automatically
 
-  Scenario: The bin to mark all unread posts as read should work
+  Scenario: Mark as read in the course overview removes the unread posts
     When I am on the "C1" "course > activities > moodleoverflow" page logged in as "teacher1"
-    Then I should see "1" in the ".unread-bubble" "css_element"
-    When I click on ".mark-read" "css_element"
-    Then I should see "0" in the ".unread-bubble" "css_element"
+    Then I should see "1" in the "Mark as read" "button"
+    When I click on "Mark as read" "button"
+    Then "Mark as read" "button" should not exist
 
   Scenario: The subscription toggle item should work
     Given I am on the "C1" "course > activities > moodleoverflow" page logged in as "student1"

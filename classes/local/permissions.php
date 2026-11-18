@@ -329,10 +329,9 @@ class permissions {
      */
     public static function can_mark_helpful(post $post, int $userid): bool {
         // Only the user that started the discussion can mark posts as helpful, but the post can not be an own post.
-        // The post must be a direct answer of a discussion starter post. Comments can not be marked.
         return self::can_view_post($post, $userid)
             && $post->reviewed === 1
-            && $post->is_direct_answer()
+            && !$post->is_question()
             && $post->get_discussion()->get_userid() === $userid
             && $post->get_userid() !== $userid
             && has_capability('mod/moodleoverflow:ratepost', $post->get_context(), $userid);
@@ -346,10 +345,10 @@ class permissions {
      * @throws coding_exception|moodle_exception
      */
     public static function can_mark_solved(post $post, int $userid): bool {
-        // Only teachers can mark posts as solved. The post must be a direct reply, comments can not be marked.
+        // Only teachers can mark posts as solved. The question itself can not be marked as solved.
         return self::can_view_post($post, $userid)
             && $post->reviewed === 1
-            && $post->is_direct_answer()
+            && !$post->is_question()
             && has_capability('mod/moodleoverflow:marksolved', $post->get_context(), $userid);
     }
 

@@ -12,33 +12,33 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
   Scenario: Tracking moodleoverflow posts off
     When The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "0"
     And I am on the "Course 1" "Course" page logged in as "student1"
-    Then I should not see "1 unread post"
+    Then I should not see "1 unread"
 
   Scenario: Tracking moodleoverflow posts optional
     When The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "1"
     And I am on the "Course 1" "Course" page logged in as "student1"
-    Then I should see "1 unread post"
+    Then I should see "1 unread"
     And User "student1" has in "Test moodleoverflow name" subscription "off" and readtracking "off"
     And I am on "Course 1" course homepage
-    And I should not see "1 unread post"
+    And I should not see "1 unread"
     And User "student1" has in "Test moodleoverflow name" subscription "off" and readtracking "on"
     And I am on "Course 1" course homepage
-    And I should see "1 unread post"
+    And I should see "1 unread"
     And I follow "Test moodleoverflow name"
-    And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
+    And I click on "1 unread" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage
-    And I should not see "1 unread post"
+    And I should not see "1 unread"
 
   Scenario: Tracking moodleoverflow posts forced
     Given the following config values are set as admin:
       | allowforcedreadtracking | 1 | moodleoverflow |
     And The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "2"
     When I am on the "Course 1" "Course" page logged in as "student1"
-    Then I should see "1 unread post"
-    And I follow "1 unread post"
+    Then I should see "1 unread"
+    And I follow "1 unread"
     And I follow "Test post subject"
     And I am on "Course 1" course homepage
-    And I should not see "1 unread post"
+    And I should not see "1 unread"
 
   Scenario: Tracking moodleoverflow posts forced (with force disabled)
     Given the following config values are set as admin:
@@ -47,17 +47,17 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And the following config values are set as admin:
       | allowforcedreadtracking | 0 | moodleoverflow |
     When I am on the "Course 1" "Course" page logged in as "student1"
-    Then I should see "1 unread post"
+    Then I should see "1 unread"
     And User "student1" has in "Test moodleoverflow name" subscription "off" and readtracking "off"
     And I am on "Course 1" course homepage
-    And I should not see "1 unread post"
+    And I should not see "1 unread"
     And User "student1" has in "Test moodleoverflow name" subscription "off" and readtracking "on"
     And I am on "Course 1" course homepage
-    And I should see "1 unread post"
+    And I should see "1 unread"
     And I follow "Test moodleoverflow name"
-    And I click on "1" "link" in the "Test post subject" moodleoverflow discussion card
+    And I click on "1 unread" "link" in the "Test post subject" moodleoverflow discussion card
     And I am on "Course 1" course homepage
-    And I should not see "1 unread post"
+    And I should not see "1 unread"
 
   @javascript
   Scenario: Marking all unread posts as read.
@@ -66,9 +66,10 @@ Feature: A teacher can set one of 3 possible options for tracking read moodleove
     And The admin posts "Test post subject" in "Test moodleoverflow name" with tracking type "2"
     And The admin posts "Test post subject 2" in "Test moodleoverflow name"
     And I am on the "Course 1" "Course" page logged in as "student1"
-    And I should see "2 unread post"
+    And I should see "2 unread"
     And I follow "Test moodleoverflow name"
-    When I click on "Mark all as read" "button" in the "region-main" "region"
+    When I click on "Forum actions" "button"
+    And I click on "Mark all as read" "button" in the "region-main" "region"
     And "Mark all as read" "button" should not exist in the "region-main" "region"
     And I am on "Course 1" course homepage
-    Then I should not see "2 unread post"
+    Then I should not see "2 unread"

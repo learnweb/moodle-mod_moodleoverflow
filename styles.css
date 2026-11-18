@@ -34,12 +34,6 @@
     white-space: nowrap;
 }
 
-.moodleoverflowdiscussion .discussionmove .icon {
-    width: 24px;
-    height: 24px;
-    color: #848d95;
-}
-
 .moodleoverflowheaderlist .discussion .author,
 .moodleoverflowheaderlist .discussion .replies,
 .moodleoverflowheaderlist .discussion .lastpost {
@@ -65,44 +59,8 @@
     margin-left: 0;
 }
 
-.moodleoverflowdiscussion {
-    padding: 8px;
-    display: block;
-}
-
-.moodleoverflowdiscussion .leftbox {
-    white-space: nowrap;
-    min-width: 80px;
-}
-
-.moodleoverflowdiscussion .reply-correction {
-    display: inline-block;
-    transform: translateY(1px);
-}
-
-.unread-bubble {
-    background: #c30909;
-    padding: 3px 4px 4px 4px;
-    color: white;
-    font-weight: bold;
-    line-height: 1;
-    display: inline-block;
-    border-radius: 12px;
-    transform: translate(-8px, -10px);
-}
-
 .moodleoverflow-icon-no-margin .icon,
 .icon.moodleoverflow-icon-no-margin {
-    margin: 0;
-}
-
-.moodleoverflowdiscussion .status .icon {
-    margin: 0;
-}
-
-.moodleoverflowdiscussion .votes .votecount {
-    line-height: 0.75;
-    font-size: 1.25em;
     margin: 0;
 }
 
@@ -167,16 +125,6 @@
 
 .moodleoverflowpost.moodleoverflowcomment .left-info {
     min-width: 50px;
-}
-
-.moodleoverflowpost .anchor {
-    opacity: 0.4;
-    transition: opacity 200ms;
-    float: right;
-}
-
-.moodleoverflowpost .anchor:hover {
-    opacity: 0.8;
 }
 
 .moodleoverflowpost .picture img {
@@ -250,6 +198,21 @@
     display: initial;
 }
 
+/* A mark switch is grey and pale until the mark is set; hovering shows its colour. */
+.moodleoverflowpost:not(.markedsolution) .marksolved,
+.moodleoverflowpost:not(.markedhelpful) .markhelpful {
+    filter: grayscale(1);
+    opacity: .4;
+}
+
+.moodleoverflowpost .marksolved:hover,
+.moodleoverflowpost .marksolved:focus,
+.moodleoverflowpost .markhelpful:hover,
+.moodleoverflowpost .markhelpful:focus {
+    filter: none;
+    opacity: 1;
+}
+
 .moodleoverflowpost > .list-group:first-child .list-group-item:first-child {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
@@ -288,15 +251,6 @@
     font-weight: 700;
 }
 
-.moodleoverflowpost.unread .row.header,
-.mod_moodleoverflow-label-unread {
-    background-color: #fff38a;
-}
-
-.moodleoverflowpost.unread .row.header {
-    border-bottom: 1px solid #ddd;
-}
-
 .moodleoverflowpost .topic .author {
     color: #848d95;
 }
@@ -305,9 +259,9 @@
     margin-right: 0;
 }
 
-.moodleoverflowpost .attachments img {
-    max-width: 40em;
-    max-height: 30em;
+/* Attached images are thumbnails; a click opens the full image. */
+.moodleoverflowpost .attachments .img-thumbnail {
+    max-height: 10em;
 }
 
 /*
@@ -334,12 +288,6 @@
     margin-top: -6px;
 }
 
-.moodleoverflowpost .post-menu > :not(:first-child) {
-    border-left: 2px solid #bbb;
-    padding-left: 4px;
-    margin-left: 4px;
-}
-
 /*
  * The Answers.
  */
@@ -349,31 +297,27 @@
 }
 
 .moodleoverflowpost .answercell .post-text {
-    margin-bottom: 5px;
     overflow-wrap: break-word;
     width: 100%;
     word-wrap: break-word;
 }
 
-.moodleoverflowpost .answercell .comment-by {
-    color: #848d95;
+/* The line below the text keeps the same space to the text as to the author (mt-2 / pt-2), so the last paragraph needs
+   no margin of its own; Moodle's text format wraps it in text_to_html. */
+.moodleoverflowpost .answercell .post-text > :last-child,
+.moodleoverflowpost .answercell .post-text > .text_to_html > :last-child {
+    margin-bottom: 0;
 }
 
-.moodleoverflowpost .answercell .comment-commands {
-    text-align: right;
-}
-
-.moodleoverflowpost .answercell .post-info,
-.moodleoverflowpost .commentcell .post-info {
+.moodleoverflowpost .answercell .post-info {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    align-items: flex-end;
+    align-items: center;
     width: 100%;
 }
 
-.moodleoverflowpost .answercell .post-info .rightbox,
-.moodleoverflowpost .commentcell .post-info .rightbox {
+.moodleoverflowpost .answercell .post-info .rightbox {
     text-align: right;
     flex-grow: 1;
 }
@@ -387,88 +331,15 @@
     width: 16px;
 }
 
-.moodleoverflowpost .answercell .leftbox,
-.moodleoverflowpost .commentcell .leftbox {
+.moodleoverflowpost .answercell .leftbox {
     margin-right: 12px;
 }
 
-.moodleoverflowpost .answercell .leftbox.questioner {
-    margin-right: 8px;
-    padding: .25rem .5rem;
-}
-
-.moodleoverflowpost .commentcell .leftbox.questioner {
-    margin-right: 8px;
-    padding: 0 4px;
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info,
-.moodleoverflowdiscussion div.user-info {
-    color: #848d95;
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-time {
-    display: block;
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-shorttime {
-    display: none;
-}
-
-@media (max-width: 600px) {
-    .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-time {
-        display: none;
-    }
-
-    .moodleoverflowpost .answercell .post-info .leftbox .user-info .user-action-shorttime {
-        display: block;
-    }
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-avatar {
-    border-collapse: separate;
-    border-radius: 1px;
-    float: left;
-    height: 32px;
-    width: 32px;
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-details {
-    float: left;
-    line-height: 17px;
-    width: 100%;
-    word-wrap: break-word;
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-details .icon {
-    margin-bottom: 3px;
-    margin-right: 0;
-}
-
-.moodleoverflowpost .answercell .post-info .leftbox .user-info .user-avatar + .user-details {
-    margin-left: 8px;
-    width: calc(100% - 40px);
-}
-
-.moodleoverflowpost .commentcell {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-
-.moodleoverflowpost .questioner,
-.moodleoverflowdiscussion .questioner {
-    background-color: rgba(80, 168, 255, .1);
-}
-
-.moodleoverflowpost .commentcell .comment-text {
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    flex-grow: 1;
-}
-
-.moodleoverflowpost .commentcell .post-menu {
-    text-align: right;
+/* The picture of a post author sits round in the line of the name, like Moodle's initials. */
+.moodleoverflow-author .userpicture {
+    border-radius: 50%;
+    margin-right: .25rem;
+    vertical-align: middle;
 }
 
 .mod_moodleoverflow-hack-primary-to-danger-btn .btn-primary {
@@ -527,28 +398,10 @@
     color: rgb(112, 160, 52);
 }
 
-.mod_moodleoverflow-no-wrap {
-    white-space: nowrap;
-}
-
-.mod_moodleoverflow-label-review,
-.mod_moodleoverflow-label-unread {
-    padding: 4px;
-    border-radius: 8px;
-}
-
-.mod_moodleoverflow-label-review {
-    background-color: #ffd3d3;
-}
-
 
 .moodleoverflow-statistics-table .header .helpactivityclass {
     padding: 0;
     margin-left: 8px;
-}
-
-.moodleoverflow-gap-small {
-    gap: 8px;
 }
 
 #moodleoverflow-root .vote.icon[data-moodleoverflow-state="clicked"] {
@@ -574,4 +427,17 @@
 .topicmove-root.d-none {
     opacity: 0;
     pointer-events: none;
+}
+
+/* Badges that are links (unread posts, posts to review) have no underline; they darken on hover and focus instead. */
+.moodleoverflow-badge-link:hover,
+.moodleoverflow-badge-link:focus {
+    filter: brightness(.85);
+}
+
+/* The last paragraph of the description needs no space below, the frame has its padding (format_module_intro wraps
+   the text in no-overflow). */
+.moodleoverflow-intro > :last-child,
+.moodleoverflow-intro > .no-overflow > :last-child {
+    margin-bottom: 0;
 }

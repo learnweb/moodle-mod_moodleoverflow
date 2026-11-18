@@ -25,17 +25,29 @@
   }
 }}
 
-{{#anonymous_desc}}<p>{{anonymous_desc}}</p>{{/anonymous_desc}}
-{{#review_desc}}<p>{{review_desc}}</p>{{/review_desc}}
+{{#intro}}
+    {{! The description of the activity in its own frame; the page header does not show it. }}
+    <div class="moodleoverflow-intro border rounded p-3 {{#hints.0}}mb-2{{/hints.0}}{{^hints.0}}mb-3{{/hints.0}}">{{{intro}}}</div>
+{{/intro}}
+{{#hints.0}}
+    {{! The rules of this forum for its participants (anonymity, review, answer window) as a quiet note below the
+        description: icon, a bold label to recognise the kind of forum at once, and a short sentence. }}
+    <div class="alert alert-info small text-muted py-1 px-2 mb-3" role="note">
+        <ul class="list-unstyled mb-0">
+            {{#hints}}
+                <li>{{#pix}}{{icon}}, core{{/pix}}<strong>{{label}}</strong>{{#str}}labelsep, langconfig{{/str}}{{text}}</li>
+            {{/hints}}
+        </ul>
+    </div>
+{{/hints.0}}
 
 <div id="moodleoverflow-root">
-    {{! Action bar in a light box. Three groups: the main actions on the left, the user's own forum actions
-        (subscribe, mark all read) and the statistics on the right. Without statistics the own actions are on the right,
-        with them the own actions are in the middle. On a short line a group wraps as a whole; below the sm breakpoint
-        all buttons stand below each other in the middle. Only classes that Bootstrap 4 and 5 both have. }}
+    {{! Action bar in a light box: the calls to action stay visible (start a discussion, review), everything else of the
+        user is in the menu "Forum actions" on the right: mark all as read, subscription and read tracking, statistics.
+        Both toggle attributes: Bootstrap 4 (Moodle 4.5) reads data-toggle, Bootstrap 5 data-bs-toggle. }}
     <div class="bg-light border rounded p-2 mb-3" role="group" aria-label="{{#str}} forumactions, mod_moodleoverflow {{/str}}">
-        <div class="d-flex flex-column flex-sm-row flex-sm-wrap justify-content-between align-items-center">
-            <div class="d-flex flex-column flex-sm-row align-items-center">
+        <div class="d-flex align-items-center">
+            <div class="d-flex flex-wrap align-items-center flex-grow-1">
                 {{#startdiscussion}}
                     <a href="{{{link}}}" class="btn btn-primary m-1">{{#str}} addanewdiscussion, moodleoverflow {{/str}}</a>
                 {{/startdiscussion}}
@@ -43,31 +55,48 @@
                     <a href="{{{review_link}}}" class="btn btn-danger m-1">{{#str}} review_needed, moodleoverflow {{/str}}</a>
                 {{/review_link}}
             </div>
-            <div class="d-flex flex-column flex-sm-row align-items-center">
-                {{#subscription}}
-                    {{> mod_moodleoverflow/subscription_toggle }}
-                {{/subscription}}
-                {{#markallread}}
-                    <button type="button" id="{{itemid}}" class="btn btn-outline-secondary m-1"
-                            title="{{#str}} markallreaddesc, mod_moodleoverflow {{/str}}"
-                            data-domain="moodleoverflow" data-instanceid="{{instanceid}}" data-clearpage="1">
-                        {{#str}} markallread_forum, moodleoverflow {{/str}}
+            {{#menu}}
+                <div class="dropdown flex-shrink-0">
+                    <button type="button" class="btn btn-outline-secondary m-1 moodleoverflow-icon-no-margin" data-toggle="dropdown"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            title="{{#str}} forumactions, mod_moodleoverflow {{/str}}">
+                        {{#pix}}i/moremenu, core{{/pix}}<span class="sr-only visually-hidden">{{#str}} forumactions, mod_moodleoverflow {{/str}}</span>
                     </button>
-                    {{#js}}
-                        require(['mod_moodleoverflow/readtracking'], function(readtracking) {
-                        readtracking.init({{#quote}}{{itemid}}{{/quote}});
-                        });
-                    {{/js}}
-                {{/markallread}}
-            </div>
-            {{#stats}}
-                <div class="d-flex flex-column flex-sm-row align-items-center">
-                    <a href="{{{link}}}" class="btn btn-outline-secondary m-1"
-                       title="{{#str}} userstatsdesc, mod_moodleoverflow {{/str}}">
-                        {{#str}} seeuserstats, moodleoverflow {{/str}}
-                    </a>
+                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-end icon-size-3">
+                        {{#markallread}}
+                            <button type="button" id="{{itemid}}" class="dropdown-item"
+                                    title="{{#str}} markallreaddesc, mod_moodleoverflow {{/str}}"
+                                    data-domain="moodleoverflow" data-instanceid="{{instanceid}}" data-clearpage="1">{{!
+                            }}{{#pix}}t/markasread, core{{/pix}}{{#str}} markallread_forum, moodleoverflow {{/str}}</button>
+                            {{#js}}
+                                require(['mod_moodleoverflow/readtracking'], function(readtracking) {
+                                    readtracking.init({{#quote}}{{itemid}}{{/quote}});
+                                });
+                            {{/js}}
+                            {{#dividernotifications}}<div class="dropdown-divider"></div>{{/dividernotifications}}
+                        {{/markallread}}
+                        {{#subscription}}{{> mod_moodleoverflow/subscription_toggle }}{{/subscription}}
+                        {{#tracking}}
+                            <button type="button" id="{{itemid}}" class="dropdown-item" data-instanceid="{{instanceid}}"
+                                    data-tracked="{{#tracked}}1{{/tracked}}{{^tracked}}0{{/tracked}}"
+                                    title="{{#tracked}}{{#str}} notrackmoodleoverflowdesc, mod_moodleoverflow {{/str}}{{/tracked}}{{!
+                                    }}{{^tracked}}{{#str}} trackmoodleoverflowdesc, mod_moodleoverflow {{/str}}{{/tracked}}">{{!
+                            }}{{#tracked}}{{#pix}}i/show, core{{/pix}}{{#str}} notrackmoodleoverflow, moodleoverflow {{/str}}{{/tracked}}{{!
+                            }}{{^tracked}}{{#pix}}i/hide, core{{/pix}}{{#str}} trackmoodleoverflow, moodleoverflow {{/str}}{{/tracked}}</button>
+                            {{#js}}
+                                require(['mod_moodleoverflow/readtracking'], function(readtracking) {
+                                    readtracking.initTracking({{#quote}}{{itemid}}{{/quote}});
+                                });
+                            {{/js}}
+                        {{/tracking}}
+                        {{#stats}}
+                            {{#dividerstats}}<div class="dropdown-divider"></div>{{/dividerstats}}
+                            <a href="{{{link}}}" class="dropdown-item" title="{{#str}} userstatsdesc, mod_moodleoverflow {{/str}}">{{!
+                            }}{{#pix}}i/stats, core{{/pix}}{{#str}} seeuserstats, moodleoverflow {{/str}}</a>
+                        {{/stats}}
+                    </div>
                 </div>
-            {{/stats}}
+            {{/menu}}
         </div>
         {{! Search: the list shows only the discussions that contain the words. }}
         {{#search}}
@@ -77,16 +106,31 @@
         {{/search}}
     </div>
 
+    {{! A search shows what it searched for; without results in the same calm box as an empty forum. }}
     {{#search}}
         {{#result}}
-            <p>{{result}} <a href="{{{clearurl}}}">{{#str}} showalldiscussions, moodleoverflow {{/str}}</a></p>
+            {{#hasdiscussions}}
+                <div class="d-flex flex-wrap justify-content-between align-items-center text-muted icon-size-3 mb-2">
+                    <span>{{#pix}}a/search, core{{/pix}}{{result}}</span>
+                    <a href="{{{clearurl}}}">{{#pix}}e/cancel, core{{/pix}}{{#str}} showalldiscussions, moodleoverflow {{/str}}</a>
+                </div>
+            {{/hasdiscussions}}
+            {{^hasdiscussions}}
+                <div class="text-center text-muted border rounded py-5 px-3">
+                    <div class="icon-size-6 mb-2">{{#pix}}a/search, core{{/pix}}</div>
+                    <p class="mb-1">{{result}}</p>
+                    <p class="small mb-0"><a href="{{{clearurl}}}">{{#str}} showalldiscussions, moodleoverflow {{/str}}</a></p>
+                </div>
+            {{/hasdiscussions}}
         {{/result}}
     {{/search}}
 
-    {{! There are no discussions. Print the string that specifies it. }}
+    {{! An empty forum: a calm empty state with an icon; the button to ask is in the action bar above. }}
     {{^hasdiscussions}}{{^searching}}
-        <div class="moodleoverflowdiscussions" xmlns="http://www.w3.org/1999/xhtml">
-            ( {{#str}} nodiscussions, moodleoverflow {{/str}} )
+        <div class="text-center text-muted border rounded py-5 px-3">
+            <div class="icon-size-6 mb-2">{{#pix}}i/commenting, mod_moodleoverflow{{/pix}}</div>
+            <p class="mb-1">{{#str}} nodiscussions, moodleoverflow {{/str}}</p>
+            {{#startdiscussion}}<p class="small mb-0">{{#str}} nodiscussionsask, moodleoverflow {{/str}}</p>{{/startdiscussion}}
         </div>
     {{/searching}}{{/hasdiscussions}}
 

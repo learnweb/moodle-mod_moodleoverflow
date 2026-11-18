@@ -391,30 +391,23 @@ function moodleoverflow_extend_settings_navigation(settings_navigation $settings
  * @param cm_info $cm Course-module object
  */
 function moodleoverflow_cm_info_view(cm_info $cm) {
-    global $USER;
+    global $OUTPUT, $USER;
     $moodleoverflow = moodleoverflow::from_id($cm->instance);
-    $out = "";
     $reviewcount = count(service\review::get_posts_to_review($moodleoverflow, $USER->id));
-    if ($reviewcount) {
-        $out .= '<span class="mod_moodleoverflow-label-review"><a href="' . $cm->url . '">';
-        $out .= get_string('amount_waiting_for_review', 'mod_moodleoverflow', $reviewcount);
-        $out .= '</a></span> ';
-    }
-
-    if (permissions::can_track($moodleoverflow, $USER->id)) {
-        $unread = service\readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id);
-        if ($unread) {
-            $out .= '<span class="mod_moodleoverflow-label-unread"> <a href="' . $cm->url . '">';
-            if ($unread == 1) {
-                $out .= get_string('unreadpostsone', 'moodleoverflow');
-            } else {
-                $out .= get_string('unreadpostsnumber', 'moodleoverflow', $unread);
-            }
-            $out .= '</a></span>';
-        }
-    }
-    if ($out) {
-        $cm->set_after_link($out);
+    $unread = permissions::can_track($moodleoverflow, $USER->id)
+        ? service\readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id)
+        : 0;
+    if ($reviewcount || $unread) {
+        $cm->set_after_link($OUTPUT->render_from_template('mod_moodleoverflow/course_badges', [
+            'url' => $cm->url->out(false),
+            'reviewcount' => $reviewcount,
+            'unread' => $unread ? [
+                'unreadlink' => $cm->url->out(false),
+                'unreadamount' => $unread,
+                'domain' => 'moodleoverflow',
+                'instanceid' => $moodleoverflow->id,
+            ] : [],
+        ]));
     }
 }
 
@@ -560,12 +553,14 @@ function mod_moodleoverflow_myprofile_navigation(tree $tree, stdClass $user, boo
 function moodleoverflow_get_fontawesome_icon_map() {
     return [
         'mod_moodleoverflow:i/commenting' => 'fa-commenting',
+        'mod_moodleoverflow:i/move' => 'fa-share',
         'mod_moodleoverflow:i/pending-big' => 'fa-clock-o text-danger moodleoverflow-icon-2x',
         'mod_moodleoverflow:i/status-helpful' => 'fa-thumbs-up moodleoverflow-icon-1_5x moodleoverflow-text-orange',
         'mod_moodleoverflow:i/status-solved' => 'fa-check moodleoverflow-icon-1_5x moodleoverflow-text-green',
         'mod_moodleoverflow:i/reply' => 'fa-reply',
         'mod_moodleoverflow:i/subscribed' => 'fa-bell moodleoverflow-icon-1_5x',
         'mod_moodleoverflow:i/unsubscribed' => 'fa-bell-slash-o moodleoverflow-icon-1_5x',
+        'mod_moodleoverflow:i/votes' => 'fa-sort',
         'mod_moodleoverflow:i/vote-up' => 'fa-chevron-up moodleoverflow-icon-2x moodleoverflow-icon-no-margin',
         'mod_moodleoverflow:i/vote-down' => 'fa-chevron-down moodleoverflow-icon-2x moodleoverflow-icon-no-margin',
     ];

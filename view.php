@@ -55,9 +55,11 @@ $PAGE->set_url(new moodle_url($modflow->get_link(), ['page' => $page] + ($query 
 $PAGE->set_title(format_string($modflow->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->add_body_class('limitedwidth');
+// The description is shown by the page itself in a frame above the rules of the forum, not in the page header.
+$PAGE->activityheader->set_description('');
 
 $PAGE->requires->js_call_amd('mod_moodleoverflow/topicmove', 'init');
-$PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $modflow->allows_multiple_marks()]);
+$PAGE->requires->js_call_amd('mod_moodleoverflow/deletepost', 'init');
 
 // The unsubscribe link of a mail only opens a confirmation dialog, the GET request changes nothing.
 if (

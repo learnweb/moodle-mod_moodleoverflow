@@ -104,7 +104,7 @@ if ($action === posting_action::REPLY) {
         'postcontent' => $post->get_message_formatted(),
         'attachments' => $post->get_attachments($OUTPUT),
         'byname' => $OUTPUT->render_from_template(
-            'mod_moodleoverflow/author_link',
+            'mod_moodleoverflow/author',
             (new author($post, $USER->id))->export_for_template($OUTPUT)
         ),
     ]);

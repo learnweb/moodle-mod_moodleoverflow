@@ -35,12 +35,17 @@ class discussion_page implements named_templatable, renderable {
     /** @var discussion The discussion that gets printed */
     public discussion $discussion;
 
+    /** @var string The words of a search of the forum page that found the discussion, empty: none */
+    private string $query;
+
     /**
      * Constructor.
      * @param discussion $discussion
+     * @param string $query The words of a search of the forum page that found the discussion; the posts highlight them
      */
-    public function __construct(discussion $discussion) {
+    public function __construct(discussion $discussion, string $query = '') {
         $this->discussion = $discussion;
+        $this->query = $query;
     }
 
     #[\Override]
@@ -54,7 +59,7 @@ class discussion_page implements named_templatable, renderable {
         $ratings = service\rating::get_post_ratings($this->discussion);
         $tree = service\discussion::get_posts_tree($this->discussion, $USER->id, $ratings);
         $data = new discussion_page_data($this->discussion, $USER->id, $ratings);
-        $render = fn(post $post) => $output->render(new post_card($post, $data));
+        $render = fn(post $post) => $output->render(new post_card($post, $data, $this->query));
 
         // Get the list of neighbouring discussions. Discussions are sorted by descending timestart (newest first).
         $neighbours = array_values(service\discussion::get_discussions($this->discussion->get_moodleoverflow(), $USER->id));
@@ -72,11 +77,19 @@ class discussion_page implements named_templatable, renderable {
             array_push($answers, ...array_map($render, $branch['comments']));
         }
 
+        $subject = format_string($this->discussion->name, true, ['context' => $context]);
         $previous = $neighbour($current + 1);
         $next = $neighbour($current - 1);
 
         return (object) [
-            'answeramount' => get_string(count($answers) > 0 ? 'answers' : 'answer', 'moodleoverflow', count($answers)),
+            // The title of the discussion; a search that found it highlights its words like in the posts.
+            'subject' => highlight($this->query, $subject, false, '<mark>', '</mark>'),
+            'highlight' => $this->query !== '' ? [
+                'query' => $this->query,
+                'url' => $this->discussion->get_link()->out(false),
+            ] : [],
+            // Answers and comments count alike: both can be marked as solution or helpful.
+            'replyamount' => get_string(count($answers) === 1 ? 'replycountone' : 'replycount', 'moodleoverflow', count($answers)),
             'firstpost' => $render($tree['question']),
             'answers' => $answers,
             // The previous discussion is the older one, so it comes after the current one in the list.

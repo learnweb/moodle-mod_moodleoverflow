@@ -131,6 +131,26 @@ final class discussion_service_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if a marked comment ranks its answer above a better voted answer, while the comments stay oldest first.
+     */
+    public function test_get_posts_tree_marked_comment(): void {
+        $modflow = $this->create_moodleoverflow();
+        $question = $this->generator->create_question($modflow, $this->teacher);
+        $upvoted = $this->generator->create_reply($question, $this->otherstudent);
+        $answer = $this->generator->create_reply($question, $this->student);
+        $comment = $this->generator->create_reply($answer, $this->otherstudent);
+        $solution = $this->generator->create_reply($answer, $this->teacher);
+        $this->generator->create_rating($upvoted, $this->teacher, rating_type::UPVOTE);
+        $this->generator->create_rating($solution, $this->teacher, rating_type::SOLVED);
+
+        $expected = [
+            [$answer->get_id(), [$comment->get_id(), $solution->get_id()]],
+            [$upvoted->get_id(), []],
+        ];
+        $this->assertEquals($expected, $this->get_tree_ids($question, $this->student->id));
+    }
+
+    /**
      * Test, if an unreviewed answer is only shown to its author, and its comments are hidden with it.
      */
     public function test_get_posts_tree_hides_unreviewed_answer(): void {

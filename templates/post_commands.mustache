@@ -17,21 +17,21 @@
 {{!
   @template mod_moodleoverflow/post_commands
 
-  The commands below a post. The post menu draws a separator before every element, so the commands are written
-  without whitespace between them. rating.js, deletepost.js and inlinereply.js find the commands by their classes and data
-  attributes.
+  The commands below a post, as small link buttons. They are written without whitespace between them, the padding of
+  the buttons gives the space. deletepost.js, inlinereply.js and core/copy_to_clipboard find the commands by their data
+  attributes; "copy link" copies the value of the hidden input next to it. The mark
+  commands of the context are shown as switches in the status column of the post card, not here.
 
   Example context (json):
   {
-      "markhelpful": {"label": "Mark as helpful"},
       "editurl": "https://example.com/mod/moodleoverflow/post.php?edit=12",
       "delete": {"postid": 12, "replies": 2},
-      "reply": {"url": "https://example.com/mod/moodleoverflow/post.php?reply=12", "postid": 12, "label": "Reply"}
+      "copylink": {"postid": 12, "url": "https://example.com/mod/moodleoverflow/discussion.php?d=3#p12"},
+      "reply": {"url": "https://example.com/mod/moodleoverflow/post.php?reply=12", "postid": 12, "title": "Comment on the answer"}
   }
 }}
-{{#markhelpful}}<a class="markhelpful onlyifreviewed" role="button" data-moodleoverflow-action="helpful">{{label}}</a>{{/markhelpful}}{{!
-}}{{#marksolved}}<a class="marksolved onlyifreviewed" role="button" data-moodleoverflow-action="solved">{{label}}</a>{{/marksolved}}{{!
-}}{{#editurl}}<a href="{{editurl}}">{{#str}}edit, mod_moodleoverflow{{/str}}</a>{{/editurl}}{{!
-}}{{#delete}}<a href="#" role="button" data-action="mod_moodleoverflow/delete-post" data-postid="{{postid}}" data-replies="{{replies}}">{{#str}}delete, mod_moodleoverflow{{/str}}</a>{{/delete}}{{!
-}}{{#reply}}<a href="{{url}}" class="onlyifreviewed" data-action="mod_moodleoverflow/reply" data-postid="{{postid}}">{{label}}</a>{{#helpicon}} {{> core/help_icon}}{{/helpicon}}{{/reply}}{{!
-}}{{#replylater}}<span class="onlyifreviewed text-muted">{{#str}}replyfirst, mod_moodleoverflow{{/str}} {{#helpicon}}{{> core/help_icon}}{{/helpicon}}</span>{{/replylater}}
+{{#reply}}<a href="{{url}}" class="onlyifreviewed btn btn-link btn-sm" title="{{title}}" data-action="mod_moodleoverflow/reply" data-postid="{{postid}}">{{#pix}}i/commenting, mod_moodleoverflow{{/pix}}{{#str}}replybutton, mod_moodleoverflow{{/str}}</a>{{#helpicon}} {{> core/help_icon}}{{/helpicon}}{{/reply}}{{!
+}}{{#replylater}}<span class="onlyifreviewed text-muted d-inline-block px-2 py-1" title="{{#str}}replytooltipanswer, mod_moodleoverflow{{/str}}">{{#pix}}i/commenting, mod_moodleoverflow{{/pix}}{{#str}}replybutton, mod_moodleoverflow{{/str}} {{#helpicon}}{{> core/help_icon}}{{/helpicon}}</span>{{/replylater}}{{!
+}}{{#editurl}}<a href="{{editurl}}" class="btn btn-link btn-sm moodleoverflow-icon-no-margin" title="{{#str}}edit, mod_moodleoverflow{{/str}}">{{#pix}}t/edit, core{{/pix}}<span class="sr-only visually-hidden">{{#str}}edit, mod_moodleoverflow{{/str}}</span></a>{{/editurl}}{{!
+}}{{#delete}}<a href="#" role="button" class="btn btn-link btn-sm moodleoverflow-icon-no-margin" title="{{#str}}delete, mod_moodleoverflow{{/str}}" data-action="mod_moodleoverflow/delete-post" data-postid="{{postid}}" data-replies="{{replies}}">{{#pix}}t/delete, core{{/pix}}<span class="sr-only visually-hidden">{{#str}}delete, mod_moodleoverflow{{/str}}</span></a>{{/delete}}{{!
+}}{{#copylink}}<button type="button" class="btn btn-link btn-sm moodleoverflow-icon-no-margin" title="{{#str}}copylink, mod_moodleoverflow{{/str}}" data-action="copytoclipboard" data-clipboard-target="#mod_moodleoverflow-link-{{postid}}">{{#pix}}i/link, core{{/pix}}<span class="sr-only visually-hidden">{{#str}}copylink, mod_moodleoverflow{{/str}}</span></button><input type="hidden" id="mod_moodleoverflow-link-{{postid}}" value="{{url}}">{{/copylink}}

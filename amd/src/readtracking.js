@@ -22,8 +22,20 @@
  */
 
 import Notification from 'core/notification';
+import Pending from 'core/pending';
 import {getString} from 'core/str';
 import {request} from 'mod_moodleoverflow/api';
+
+/**
+ * Removes the menus of discussion cards that have no item left, e.g. after "Mark as read" was their only item.
+ */
+const removeEmptyMenus = () => {
+    document.querySelectorAll('.discussioncard .dropdown').forEach((menu) => {
+        if (!menu.querySelector('.dropdown-item')) {
+            menu.remove();
+        }
+    });
+};
 
 /**
  * Init function
@@ -32,9 +44,8 @@ import {request} from 'mod_moodleoverflow/api';
 export function init(itemid) {
     const element = document.getElementById(itemid);
     element.addEventListener('click', async function() {
-        let result;
         try {
-            result = await request('PUT', `${element.dataset.domain}/${element.dataset.instanceid}/read`);
+            await request('PUT', `${element.dataset.domain}/${element.dataset.instanceid}/read`);
         } catch (error) {
             Notification.exception(error);
             return;
@@ -43,16 +54,47 @@ export function init(itemid) {
         // "Mark all posts as read" on the view page: everything is read, remove all unread markers and the button.
         if (element.dataset.clearpage) {
             document.querySelectorAll('.unread-part').forEach(part => part.remove());
+            // In the menu of the forum the divider after the command goes with it.
+            const divider = element.nextElementSibling?.classList.contains('dropdown-divider') ? element.nextElementSibling : null;
             element.remove();
+            divider?.remove();
+            removeEmptyMenus();
             const message = await getString('markmoodleoverflowreadsuccessful', 'mod_moodleoverflow');
             Notification.addNotification({message: message, type: 'success'});
             return;
         }
 
-        // Update the red bubble icon with the new amount of unread posts.
-        const bubble = element.nextElementSibling?.querySelector('.unread-bubble');
-        if (bubble) {
-            bubble.textContent = String(result.unread);
+        // A discussion or moodleoverflow is read now: remove its unread badges and the command.
+        const {domain, instanceid} = element.dataset;
+        document.querySelectorAll(
+            `[data-region="mod_moodleoverflow/unread-badge"][data-domain="${domain}"][data-instanceid="${instanceid}"]`
+        ).forEach(badge => badge.remove());
+        // In the course overview the cell of the command shows "-" like a moodleoverflow without unread posts.
+        const part = element.closest('[data-mdl-overview-cmid] .unread-part');
+        element.remove();
+        if (part) {
+            part.textContent = '-';
         }
+        removeEmptyMenus();
+    });
+}
+
+/**
+ * Switches the read tracking of a moodleoverflow from the menu of its page. The page is loaded again, because every
+ * unread marker changes with it.
+ * @param {string} itemid
+ */
+export function initTracking(itemid) {
+    const element = document.getElementById(itemid);
+    element.addEventListener('click', async function() {
+        const pending = new Pending('mod_moodleoverflow/readtracking:tracking');
+        try {
+            const method = element.dataset.tracked === '1' ? 'DELETE' : 'PUT';
+            await request(method, `moodleoverflow/${element.dataset.instanceid}/tracking`);
+            window.location.reload();
+        } catch (error) {
+            Notification.exception(error);
+        }
+        pending.resolve();
     });
 }

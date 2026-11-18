@@ -16,41 +16,26 @@
 }}
 {{!
     @template mod_moodleoverflow/readtracking
-    Moodleoverflow read tracking template. Shows unread posts in a discussion/moodleoverflow and gives the
-    option to mark all posts in a discussion/moodleoverflow as read.
 
-    Variables required:
-    * unreadlink - link to the discussion/moodleoverflow
-    * unreadamount - Amount of unread posts
-    * domain - if the unread posts is regarding a discussion or a moodleoverflow
-    * instanceid - id of the discussion/moodleoverflow
+    "Mark as read" for a moodleoverflow in the course overview, with the number of unread posts as a badge
+    (readtracking.js).
+
     Example context (json):
     {
-        "itemid": "moodleoverflow-readtracking-1",
-        "unreadlink": "https://example.com/mod/moodleoverflow/discuss.php?d=1",
-        "unreadamount": 3,
-        "domain": "discussion",
-        "instanceid": "1",
-        "userid": "2"
+        "itemid": "moodleoverflow-markpostsread-1",
+        "domain": "moodleoverflow",
+        "instanceid": 1,
+        "unreadamount": 3
     }
 }}
-
-<div class="mod_moodleoverflow-no-wrap unread-part d-flex align-items-baseline">
-    <a class="mark-read"
-       id="{{itemid}}"
-       title="{{#str}}markallread, moodleoverflow{{/str}}"
-       data-domain="{{domain}}"
-       data-instanceid="{{instanceid}}">
-        {{#pix}}i/delete, core {{/pix}}
-    </a>
-    <a class="d-inline-block mt-3" href="{{ unreadlink }}"
-       title="{{#str}}amount_unread_posts_in_discussion, mod_moodleoverflow, {{unreadamount}} {{/str}}">
-        <span class="fa fa-envelope icon me-0 moodleoverflow-icon-1_5x text-muted"></span>
-        <span class="unread-bubble">{{ unreadamount }}</span>
-    </a>
-</div>
+<span class="unread-part">
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="{{itemid}}" data-domain="{{domain}}"
+            data-instanceid="{{instanceid}}" title="{{#str}}markallreaddesc, mod_moodleoverflow{{/str}}">{{!
+    }}{{#pix}}t/markasread, core{{/pix}}{{#str}}markread, mod_moodleoverflow{{/str}}{{!
+    }}<span class="badge rounded-pill bg-primary text-white ms-2" title="{{#str}}unreadposts, mod_moodleoverflow{{/str}}">{{unreadamount}}</span></button>
+</span>
 {{#js}}
     require(['mod_moodleoverflow/readtracking'], function(readtracking) {
-    readtracking.init({{#quote}}{{itemid}}{{/quote}});
+        readtracking.init({{#quote}}{{itemid}}{{/quote}});
     });
 {{/js}}

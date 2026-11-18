@@ -35,6 +35,7 @@ global $PAGE, $USER, $SESSION, $OUTPUT;
 // Declare parameters.
 $d = required_param('d', PARAM_INT); // The ID of the discussion.
 $unsubscribe = optional_param('unsubscribe', 0, PARAM_BOOL); // Unsubscribe link of a mail.
+$query = optional_param('q', '', PARAM_TEXT); // The search of the forum page that found the discussion, to highlight.
 
 // Set the URL that should be used to return to this page.
 $PAGE->set_url('/mod/moodleoverflow/discussion.php', ['d' => $d]);
@@ -76,6 +77,8 @@ $PAGE->requires->js_call_amd('mod_moodleoverflow/reviewing', 'init');
 $PAGE->requires->js_call_amd('mod_moodleoverflow/rating', 'init', [$USER->id, $modflow->allows_multiple_marks()]);
 $PAGE->requires->js_call_amd('mod_moodleoverflow/deletepost', 'init');
 $PAGE->requires->js_call_amd('mod_moodleoverflow/inlinereply', 'init', [$modflow->wordsmin, $modflow->wordsmax]);
+// The "copy link" command of the posts; the module listens to all copy buttons of the page once it is loaded.
+$PAGE->requires->js_amd_inline("require(['core/copy_to_clipboard']);");
 
 // The unsubscribe link of a mail only opens a confirmation dialog, the GET request changes nothing.
 if (
@@ -93,6 +96,5 @@ $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($discussion->name), 1, 'discussionname');
-echo $OUTPUT->render(new discussion_page($discussion));
+echo $OUTPUT->render(new discussion_page($discussion, $query));
 echo $OUTPUT->footer();

@@ -289,9 +289,10 @@ class behat_mod_moodleoverflow extends behat_base {
      * @throws Exception
      */
     public function i_try_to_delete_moodleoverflow_post(string $postmessage): void {
-        // Find the div containing the post message and click the delete link within it.
+        // Find the div containing the post message and click the delete link within it (an icon with hidden text).
         $this->execute('behat_general::i_click_on', [
-            "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) . "')]//a[text()='Delete']",
+            "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) . "')]" .
+                "//a[normalize-space(.)='Delete']",
             "xpath_element",
         ]);
         $this->execute('behat_general::i_click_on_in_the', ['Delete', 'button', '.modal-dialog', 'css_element']);
@@ -309,7 +310,7 @@ class behat_mod_moodleoverflow extends behat_base {
     public function i_comment_moodleoverflow_post_with_message(string $postmessage, string $replymessage): void {
         $this->execute('behat_general::i_click_on', [
             "//div[contains(@class, 'moodleoverflowpost')][contains(., '" . $this->escape($postmessage) .
-                "')]//a[text()='Comment']",
+                "')]//a[@data-action='mod_moodleoverflow/reply']",
             "xpath_element",
         ]);
         $table = new TableNode([
@@ -723,6 +724,21 @@ class behat_mod_moodleoverflow extends behat_base {
      */
     public function i_should_see_in_the_moodleoverflow_post(string $text, string $message): void {
         $this->execute('behat_general::assert_element_contains_text', [$text, $this->get_post_xpath($message), 'xpath_element']);
+    }
+
+    /**
+     * Checks the tooltip of a mark switch of a moodleoverflow post, which says what a click does.
+     *
+     * @Then the :action button of the moodleoverflow post :message should say :title
+     * @param string $action "solved" or "helpful", the value of the data-moodleoverflow-action attribute.
+     * @param string $message The message of the post.
+     * @param string $title The expected tooltip.
+     * @return void
+     */
+    public function the_button_of_the_moodleoverflow_post_should_say(string $action, string $message, string $title): void {
+        $this->find('xpath', $this->get_post_xpath($message) .
+            '//*[@data-moodleoverflow-action=' . behat_context_helper::escape($action) . ']' .
+            '[@title=' . behat_context_helper::escape($title) . ']');
     }
 
     /**

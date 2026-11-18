@@ -351,15 +351,17 @@ final class permissions_test extends \advanced_testcase {
         $this->assertTrue(permissions::can_vote($answer, $this->student->id));
         $this->assertFalse(permissions::can_vote($answer, $this->otherstudent->id));
 
-        // Only the questioner marks direct answers as helpful.
+        // Only the questioner marks answers and comments as helpful.
         $this->assertTrue(permissions::can_mark_helpful($answer, $this->student->id));
         $this->assertFalse(permissions::can_mark_helpful($answer, $this->teacher->id));
-        $this->assertFalse(permissions::can_mark_helpful($comment, $this->student->id));
+        $this->assertTrue(permissions::can_mark_helpful($comment, $this->student->id));
 
-        // Solved marks need the capability and a direct answer. Teachers may mark their own answer.
+        // Solved marks need the capability; answers and comments can be marked, the question can not. Teachers may mark
+        // their own posts.
         $this->assertTrue(permissions::can_mark_solved($answer, $this->teacher->id));
         $this->assertTrue(permissions::can_mark_solved($teacheranswer, $this->teacher->id));
-        $this->assertFalse(permissions::can_mark_solved($comment, $this->teacher->id));
+        $this->assertTrue(permissions::can_mark_solved($comment, $this->teacher->id));
+        $this->assertFalse(permissions::can_mark_solved($question, $this->teacher->id));
 
         // Without rating no votes are possible, but marks are.
         $modflow = $this->create_moodleoverflow(['allowrating' => 0]);

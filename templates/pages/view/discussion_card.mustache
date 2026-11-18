@@ -15,112 +15,101 @@
   along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template mod_moodleoverflow/view/discussion_card
+    @template mod_moodleoverflow/pages/view/discussion_card
 
-    Represents a discussion card in the view.php
+    A discussion in the list of a moodleoverflow. First line: the title with the unread posts (a badge that leads to the
+    first one) and a small bell when the user is subscribed, and a menu with "Mark as read", the subscription,
+    "Move discussion" and "Delete discussion". Second line: the questioner, the numbers of the discussion (marks, votes,
+    answers and comments, posts to review) and the last post.
 
     Example context (json):
     {
+        "postid": 12,
+        "subjecttext": "How do loops work?",
+        "subjectlink": "https://example.com/mod/moodleoverflow/discussion.php?d=3",
+        "question": {
+            "author": {"name": "Jane Doe", "profileurl": "https://example.com/user/view.php?id=2&course=3", "picture": ""},
+            "time": 1763400000
+        },
+        "votes": 3,
+        "replyamount": 2,
+        "lastpost": {"name": "John Doe", "time": 1763486400, "link": "https://example.com/mod/moodleoverflow/discussion.php?d=3#p14"}
     }
 }}
-<div class="moodleoverflowdiscussion discussioncard d-flex border p-2 mb-3" data-moodleoverflow-postid="{{postid}}">
-    <div class="leftbox text-center me-2">
-        <div class="votes text-center mb-1">
-            {{> mod_moodleoverflow/postvoting }}
+<div class="moodleoverflowdiscussion discussioncard border px-3 py-2 mb-2" data-moodleoverflow-postid="{{postid}}">
+    <div class="d-flex align-items-start">
+        <div class="flex-grow-1 me-2 d-flex flex-wrap align-items-center">
+            <a class="subject me-2" href="{{{subjectlink}}}">{{{subjecttext}}}</a>
+            {{#unread}}{{> mod_moodleoverflow/unread_badge}}{{/unread}}
+            {{#subscription}}
+                {{! Only shows the state; subscription.js keeps it in line with the toggle in the menu. }}
+                <span class="text-muted icon-size-3 ms-1" data-region="mod_moodleoverflow/subscription-state" data-type="{{type}}"
+                      data-id="{{id}}"><span data-state="subscribed" class="{{^subscribed}}d-none{{/subscribed}}">{{!
+                }}{{#pix}}i/subscribed, mod_moodleoverflow, {{#str}}subscribeddiscussion, mod_moodleoverflow{{/str}}{{/pix}}</span></span>
+            {{/subscription}}
         </div>
-        <div class="status moodleoverflow-icon-no-margin">
-            {{#questionunderreview}}
-                {{#pix}}i/duration, moodle, {{#str}}pending_review, mod_moodleoverflow{{/str}}{{/pix}}
-            {{/questionunderreview}}
-            {{^questionunderreview}}
-                {{#markedsolution}}
-                    <a href="{{link}}">{{! avoid whitespace
-                                !}}{{#pix}} i/status-solved, moodleoverflow, {{#str}}containsteacherrating, moodleoverflow{{/str}} {{/pix}}{{!
-                            !}}</a>
-                {{/markedsolution}}
-                {{#markedhelpful}}
-                    <a href="{{link}}">{{! avoid whitespace
-                                !}}{{#pix}} i/status-helpful, moodleoverflow, {{#str}}containsstarterrating, moodleoverflow{{/str}} {{/pix}}{{!
-                            !}}</a>
-                {{/markedhelpful}}
-            {{/questionunderreview}}
-        </div>
-        <div class="d-flex flex-colum flex-wrap justify-content-around">
-            {{#canreview}}
-                {{#needreview}}
-                    <div class="reviews my-1">
-                        <a href="{{{reviewlink}}}" class="text-danger bold"
-                           title="{{#str}}amount_waiting_for_review, mod_moodleoverflow, {{needreview}}{{/str}}">
-                            {{#pix}}i/commenting, mod_moodleoverflow{{/pix}}{{ needreview }}
-                        </a>
-                    </div>
-                {{/needreview}}
-            {{/canreview}}
-            <div class="replies my-1" title="{{#str}}answers, mod_moodleoverflow, {{replyamount}}{{/str}}">
-                <span><span class="reply-correction">{{#pix}}i/reply, mod_moodleoverflow {{/pix}}</span>{{ replyamount }}</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="w-100 d-flex flex-column justify-content-between">
-        <div class="d-flex justify-content-between">
-            <a class="subject mb-3 me-3" href="{{{subjectlink}}}">{{{ subjecttext }}}</a>
-
-            <div class="pt-2 text-end">
-                {{#subscription}}
-                    <div class="discussionsubscription">{{> mod_moodleoverflow/subscription_toggle }}</div>
-                {{/subscription}}
-                {{#canmovetopic}}
-                    <button type="button"
-                            class="discussionmove btn btn-link p-0 pe-auto"
-                            data-action="moodleoverflow/movetopic-select"
-                            data-discussionname="{{name}}"
-                            data-discussionid="{{id}}">
-                        {{#pix}} i/arrow-right, core, {{#str}}movetopicicon, moodleoverflow{{/str}} {{/pix}}
-                    </button>
-                {{/canmovetopic}}
-
-                {{#unread}}
-                    {{> mod_moodleoverflow/readtracking }}
-                {{/unread}}
-            </div>
-        </div>
-        <div class="d-flex justify-content-between flex-wrap moodleoverflow-gap-small">
-            {{#userfirstpost}}
-                {{#profileurl}}
-                    <a href="{{profileurl}}" class="user-info d-flex questioner px-2 py-1 align-items-center">
-                        {{#picture}}
-                            <div class="user-avatar">
-                                {{{ picture }}}
-                            </div>
-                        {{/picture}}
-                        <div class="user-details">
-                            {{ name }}
-                        </div>
-                    </a>
-                {{/profileurl}}
-                {{^profileurl}}
-                    {{! A hidden author has no profile link and no picture. }}
-                    <div class="user-info d-flex questioner px-2 py-1 align-items-center">
-                        <div class="user-details">
-                            {{ name }}
-                        </div>
-                    </div>
-                {{/profileurl}}
-            {{/userfirstpost}}
-            {{#userlastpost}}
-                <div class="d-flex flex-wrap align-items-center">
-                    <span class="text-muted">{{#str}}lastpost, mod_moodleoverflow{{/str}}:</span>
-                    <div>
-                        <a href="{{{link}}}" class="user-info d-flex px-2 py-1 align-items-center">
-                            <div class="user-details line-height-3">
-                                {{name}}<br>
-                                {{date}}
-                            </div>
-                        </a>
-                    </div>
+        {{#hasmenu}}
+            {{! Both toggle attributes: Bootstrap 4 (Moodle 4.5) reads data-toggle, Bootstrap 5 data-bs-toggle. }}
+            <div class="dropdown flex-shrink-0">
+                <button type="button" class="btn btn-link btn-sm moodleoverflow-icon-no-margin" data-toggle="dropdown"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{{#str}}moremenu{{/str}}">
+                    {{#pix}}i/moremenu, core{{/pix}}<span class="sr-only visually-hidden">{{#str}}moremenu{{/str}}</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right dropdown-menu-end icon-size-3">
+                    {{#unread}}
+                        <button type="button" class="dropdown-item unread-part" id="{{itemid}}" data-domain="{{domain}}"
+                                data-instanceid="{{instanceid}}" title="{{#str}}markallread, mod_moodleoverflow{{/str}}">{{!
+                        }}{{#pix}}t/markasread, core{{/pix}}{{#str}}markread, mod_moodleoverflow{{/str}}</button>
+                        {{#js}}
+                            require(['mod_moodleoverflow/readtracking'], function(readtracking) {
+                                readtracking.init({{#quote}}{{itemid}}{{/quote}});
+                            });
+                        {{/js}}
+                    {{/unread}}
+                    {{#subscription}}{{> mod_moodleoverflow/subscription_toggle }}{{/subscription}}
+                    {{#canmovetopic}}
+                        <button type="button" class="dropdown-item" data-action="moodleoverflow/movetopic-select"
+                                data-discussionname="{{name}}" data-discussionid="{{id}}"
+                                title="{{#str}}movetopicicon, mod_moodleoverflow{{/str}}">{{!
+                        }}{{#pix}}i/move, mod_moodleoverflow{{/pix}}{{#str}}movediscussion, mod_moodleoverflow{{/str}}</button>
+                    {{/canmovetopic}}
+                    {{#delete}}
+                        {{! Deleting the question deletes the discussion; deletepost.js asks first. }}
+                        <button type="button" class="dropdown-item text-danger" data-action="mod_moodleoverflow/delete-post"
+                                data-postid="{{postid}}" data-replies="{{replies}}" data-discussion="1">{{!
+                        }}{{#pix}}t/delete, core{{/pix}}{{#str}}deletediscussion, mod_moodleoverflow{{/str}}</button>
+                    {{/delete}}
                 </div>
-            {{/userlastpost}}
+            </div>
+        {{/hasmenu}}
+    </div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-1">
+        {{#question}}{{> mod_moodleoverflow/author_line}}{{/question}}
+        <div class="d-flex flex-wrap align-items-center text-muted">
+            {{! The icons of the numbers are as small as the text (icon-size-3) and close to their number (no icon margin,
+                one space); the groups keep a larger distance (me-3). }}
+            <span class="icon-size-3 moodleoverflow-icon-no-margin text-nowrap">
+                {{! Reviewers get the number of posts to review as a link (below); the others the number of their own posts
+                    that wait for a review. }}
+                {{^review}}{{#ownpending}}
+                    <span class="me-3" title="{{#str}}ownpostspending, mod_moodleoverflow, {{ownpending}}{{/str}}">{{!
+                    }}{{#pix}}i/pending-big, mod_moodleoverflow{{/pix}} {{ownpending}}</span>
+                {{/ownpending}}{{/review}}
+                {{^questionunderreview}}
+                    {{#markedsolution}}<a href="{{link}}" class="me-2">{{#pix}}i/status-solved, mod_moodleoverflow, {{#str}}containsteacherrating, mod_moodleoverflow{{/str}}{{/pix}}</a>{{/markedsolution}}
+                    {{#markedhelpful}}<a href="{{link}}" class="me-2">{{#pix}}i/status-helpful, mod_moodleoverflow, {{#str}}containsstarterrating, mod_moodleoverflow{{/str}}{{/pix}}</a>{{/markedhelpful}}
+                {{/questionunderreview}}
+                <span class="me-3" title="{{#str}}votes, mod_moodleoverflow, {{votes}}{{/str}}">{{#pix}}i/votes, mod_moodleoverflow{{/pix}} {{votes}}</span>
+                <span class="me-3" title="{{replytitle}}">{{#pix}}i/commenting, mod_moodleoverflow{{/pix}} {{replyamount}}</span>
+                {{#review}}
+                    <a href="{{{link}}}" class="text-danger me-3" title="{{#str}}amount_waiting_for_review, mod_moodleoverflow, {{count}}{{/str}}">{{!
+                    }}{{#pix}}i/pending-big, mod_moodleoverflow{{/pix}} {{count}}</a>
+                {{/review}}
+            </span>
+            {{#lastpost}}
+                <a href="{{{link}}}" class="text-reset">{{#str}}lastpostby, mod_moodleoverflow, {{name}}{{/str}} · {{!
+                }}{{#userdate}}{{time}}, {{#str}}strftimedatemonthabbr, core_langconfig{{/str}}{{/userdate}}</a>
+            {{/lastpost}}
         </div>
     </div>
 </div>
