@@ -85,26 +85,27 @@ class overview extends activityoverviewbase {
     }
 
     /**
-     * Get overview item for unread posts.
+     * Get overview item for unread posts: "Mark as read" with their number while there are unread posts.
      *
      * @return overviewitem|null
      */
     private function get_extra_unread_posts_overview(): ?overviewitem {
         global $OUTPUT, $USER;
         $name = get_string('unreadposts', 'moodleoverflow');
-        if (!permissions::can_track($this->moodleoverflow, $USER->id)) {
-            return new overviewitem(name: $name, value: null, content: '-');
+        $unread = permissions::can_track($this->moodleoverflow, $USER->id)
+            ? readtracking::count_unread_posts_moodleoverflow($this->moodleoverflow, $USER->id)
+            : null;
+        if (!$unread) {
+            return new overviewitem(name: $name, value: $unread, content: '-');
         }
 
         $mustachedata = [
             'itemid' => 'moodleoverflow-markpostsread-' . $this->moodleoverflow->id,
             'domain' => 'moodleoverflow',
             'instanceid' => $this->moodleoverflow->id,
-            'userid' => $USER->id,
-            'unreadlink' => $this->moodleoverflow->get_link(),
-            'unreadamount' => readtracking::count_unread_posts_moodleoverflow($this->moodleoverflow, $USER->id),
+            'unreadamount' => $unread,
         ];
-        return new overviewitem($name, $name, $OUTPUT->render_from_template('mod_moodleoverflow/readtracking', $mustachedata));
+        return new overviewitem($name, $unread, $OUTPUT->render_from_template('mod_moodleoverflow/readtracking', $mustachedata));
     }
 
     /**
