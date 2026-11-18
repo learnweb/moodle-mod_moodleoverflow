@@ -74,6 +74,7 @@ class moodleoverflow {
      * @param int $wordsmin
      * @param int $wordsmax
      * @param bool $singlediscussion
+     * @param int $completionposts
      * @param ?int $grademaxgrade
      * @param ?int $gradescalefactor
      * @param ?int $gradepass
@@ -126,6 +127,8 @@ class moodleoverflow {
         public readonly int $wordsmax,
         /** @var bool Whether the moodleoverflow has only one discussion, started by a teacher */
         public readonly bool $singlediscussion,
+        /** @var int Number of posts a user must write to complete the activity, 0: no completion rule */
+        public readonly int $completionposts,
         /** @var ?int Maximum grade, null when grading is not configured */
         public readonly ?int $grademaxgrade,
         /** @var ?int Divisor that turns the reputation into a grade */
@@ -181,6 +184,7 @@ class moodleoverflow {
             wordsmin: (int) ($record->wordsmin ?? 0),
             wordsmax: (int) ($record->wordsmax ?? 0),
             singlediscussion: (bool) ($record->singlediscussion ?? false),
+            completionposts: (int) ($record->completionposts ?? 0),
             grademaxgrade: isset($record->grademaxgrade) ? (int) $record->grademaxgrade : null,
             gradescalefactor: isset($record->gradescalefactor) ? (int) $record->gradescalefactor : null,
             gradepass: isset($record->gradepass) ? (int) $record->gradepass : null,

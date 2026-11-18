@@ -16,6 +16,7 @@
 
 namespace mod_moodleoverflow\local\service;
 
+use completion_info;
 use core\exception\coding_exception;
 use core\exception\moodle_exception;
 use dml_exception;
@@ -66,6 +67,7 @@ class posting {
             readtracking::mark_post_read($discussion->get_first_post(), $userid);
             if ($reviewed) {
                 mail::queue_notification($discussion->get_first_post());
+                self::update_completion($modflow, [$userid]);
             } else {
                 // The subscribers are notified when the question is approved.
                 mail::queue_review_request($discussion->get_first_post());
@@ -101,6 +103,7 @@ class posting {
             readtracking::mark_post_read($post, $userid);
             if ($reviewed) {
                 mail::queue_notification($post);
+                self::update_completion($modflow, [$userid]);
             } else {
                 // The subscribers are notified when the reply is approved.
                 mail::queue_review_request($post);
@@ -175,10 +178,34 @@ class posting {
         try {
             $isdeleted = $discussion->delete_post($post, $userid);
             rating::update_grades($modflow, $affectedusers);
+            self::update_completion($modflow, $affectedusers);
             $transaction->allow_commit();
         } catch (Throwable $e) {
             $transaction->rollback($e);
         }
         return $isdeleted;
+    }
+
+    /**
+     * Recalculates the activity completion of users whose number of reviewed posts changed, if the moodleoverflow
+     * completes with posts (see custom_completion). No permission check: only called after an authorized action.
+     *
+     * @param moodleoverflow $modflow
+     * @param int[] $userids
+     * @return void
+     */
+    public static function update_completion(moodleoverflow $modflow, array $userids): void {
+        global $CFG;
+        if ($modflow->completionposts === 0) {
+            return;
+        }
+        require_once($CFG->libdir . '/completionlib.php');
+        $completion = new completion_info($modflow->get_course());
+        if ($completion->is_enabled($modflow->get_cm()) != COMPLETION_TRACKING_AUTOMATIC) {
+            return;
+        }
+        foreach (array_unique(array_filter($userids)) as $userid) {
+            $completion->update_state($modflow->get_cm(), COMPLETION_UNKNOWN, $userid);
+        }
     }
 }

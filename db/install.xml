@@ -34,6 +34,7 @@
         <FIELD NAME="wordsmin" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Minimum number of words a post must have"/>
         <FIELD NAME="wordsmax" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Maximum number of words a post can have"/>
         <FIELD NAME="singlediscussion" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the moodleoverflow has only one discussion, started by a teacher"/>
+        <FIELD NAME="completionposts" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of posts a user must write to complete the activity, 0: no completion rule"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

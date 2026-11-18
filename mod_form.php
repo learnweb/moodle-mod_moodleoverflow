@@ -349,6 +349,35 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         if (isset($data->anonymous) && $data->anonymous != anonymity::NONE->value) {
             $data->coursewidereputation = false;
         }
+        // The completion rule only counts with automatic completion and while its checkbox is ticked.
+        if (!empty($data->completionunlocked)) {
+            $suffix = $this->get_suffix();
+            $automatic = ($data->{'completion' . $suffix} ?? 0) == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completionpostsenabled' . $suffix}) || !$automatic) {
+                $data->{'completionposts' . $suffix} = 0;
+            }
+        }
+    }
+
+    #[\Override]
+    public function add_completion_rules(): array {
+        $mform = $this->_form;
+        $suffix = $this->get_suffix();
+        $label = get_string('completionposts', 'moodleoverflow');
+        $group = [
+            $mform->createElement('checkbox', 'completionpostsenabled' . $suffix, '', $label),
+            $mform->createElement('text', 'completionposts' . $suffix, '', ['size' => 3]),
+        ];
+        $mform->setType('completionposts' . $suffix, PARAM_INT);
+        $mform->addGroup($group, 'completionpostsgroup' . $suffix, '', ' ', false);
+        $mform->hideIf('completionposts' . $suffix, 'completionpostsenabled' . $suffix, 'notchecked');
+        return ['completionpostsgroup' . $suffix];
+    }
+
+    #[\Override]
+    public function completion_rule_enabled($data): bool {
+        $suffix = $this->get_suffix();
+        return !empty($data['completionpostsenabled' . $suffix]) && !empty($data['completionposts' . $suffix]);
     }
 
     /**
@@ -360,6 +389,12 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         parent::data_preprocessing($defaultvalues);
         if (isset($defaultvalues['gradepass'])) {
             $defaultvalues['gradepass'] = (int)$defaultvalues['gradepass'];
+        }
+        // The completion rule is ticked when it is set; the number suggests one post.
+        $suffix = $this->get_suffix();
+        $defaultvalues['completionpostsenabled' . $suffix] = !empty($defaultvalues['completionposts' . $suffix]) ? 1 : 0;
+        if (empty($defaultvalues['completionposts' . $suffix])) {
+            $defaultvalues['completionposts' . $suffix] = 1;
         }
     }
 
@@ -393,6 +428,12 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $errors['wordslimits'] = get_string('errorwordslimitnegative', 'moodleoverflow');
         } else if ($wordsmax > 0 && $wordsmax < $wordsmin) {
             $errors['wordslimits'] = get_string('errorwordsmaxbelowmin', 'moodleoverflow');
+        }
+
+        // The completion rule needs at least one post.
+        $suffix = $this->get_suffix();
+        if (!empty($data['completionpostsenabled' . $suffix]) && (int) ($data['completionposts' . $suffix] ?? 0) < 1) {
+            $errors['completionpostsgroup' . $suffix] = get_string('err_positiveint', 'form');
         }
 
         // Validate that the limited answer settings.

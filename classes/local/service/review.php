@@ -46,6 +46,8 @@ class review {
         $post->mark_reviewed();
         $post->get_discussion()->update_last_activity();
         mail::queue_notification($post);
+        // An approved post counts for the completion of its author.
+        posting::update_completion($post->get_moodleoverflow(), [$post->get_userid()]);
     }
 
     /**
