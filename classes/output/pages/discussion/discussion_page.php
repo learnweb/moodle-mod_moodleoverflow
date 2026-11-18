@@ -22,6 +22,7 @@ use core\output\renderer_base;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\service;
+use mod_moodleoverflow\output\forum_header;
 
 /**
  * This class presents the output of the discussion page (discussion.php). The discussion page shows all discussion
@@ -64,7 +65,8 @@ class discussion_page implements named_templatable, renderable {
         // Get the list of neighbouring discussions. Discussions are sorted by descending timestart (newest first).
         $neighbours = array_values(service\discussion::get_discussions($this->discussion->get_moodleoverflow(), $USER->id));
         $current = array_search($this->discussion->get_id(), array_map(fn($d) => $d->get_id(), $neighbours), true);
-        $context = $this->discussion->get_moodleoverflow()->get_context();
+        $modflow = $this->discussion->get_moodleoverflow();
+        $context = $modflow->get_context();
         $neighbour = fn(int $index) => $current !== false && isset($neighbours[$index]) ? [
             'url' => $neighbours[$index]->get_link()->out(false),
             'name' => format_string($neighbours[$index]->name, true, ['context' => $context]),
@@ -82,6 +84,10 @@ class discussion_page implements named_templatable, renderable {
         $next = $neighbour($current - 1);
 
         return (object) [
+            // A single discussion moodleoverflow has no list: its discussion shows the top of the forum page, with the
+            // actions as buttons. The user has just read the only discussion, so nothing is unread.
+            'header' => $modflow->is_single_discussion()
+                ? ['asbutton' => true] + (new forum_header($modflow, 0))->export_for_template($output) : [],
             // The title of the discussion; a search that found it highlights its words like in the posts.
             'subject' => highlight($this->query, $subject, false, '<mark>', '</mark>'),
             'highlight' => $this->query !== '' ? [

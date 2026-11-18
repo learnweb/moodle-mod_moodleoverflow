@@ -19,11 +19,9 @@ namespace mod_moodleoverflow\output\pages\view;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
-use mod_moodleoverflow\local\enum\anonymity;
-use mod_moodleoverflow\local\enum\review_level;
 use mod_moodleoverflow\local\models;
-use mod_moodleoverflow\local\permissions;
 use mod_moodleoverflow\local\service;
+use mod_moodleoverflow\output\forum_header;
 use moodle_url;
 
 /**
@@ -78,10 +76,6 @@ class view_page implements named_templatable, renderable {
         $limitfrom = $usepaging ? $this->page * $perpage : 0;
         $limitamount = $usepaging ? $perpage : null;
 
-        // Create links.
-        $startdiscussion = new moodle_url('/mod/moodleoverflow/post.php', ['moodleoverflow' => $this->modflow->id]);
-        $userstatslink = new moodle_url('/mod/moodleoverflow/userstats.php', ['id' => $this->cm->id]);
-
         // Get moodleoverflows where discussions can be moved.
         // The names as Moodle formats them (filters, HTML escaped without escaping existing entities again); the template
         // prints them as they are. The JS gets the plain text in an attribute, which the template escapes itself.
@@ -118,45 +112,13 @@ class view_page implements named_templatable, renderable {
             array_slice($discussions, $limitfrom, $limitamount)
         );
 
-        // Get the link to the next posts that needs to be reviewed.
-        $nextpost = service\review::get_next_post_to_review($this->modflow, $USER->id);
-
         // Collect the needed data being submitted to the template.
         $listurl = new moodle_url($this->modflow->get_link(), $this->query !== '' ? ['q' => $this->query] : []);
         $pagingbar = $OUTPUT->paging_bar($discussioncount, $this->page, $perpage, $listurl);
-        $canstartdiscussion = permissions::can_start_discussion($this->modflow, $USER->id);
-
-        // The menu "Forum actions" in three groups, separated by dividers: reading, notifications, statistics.
-        $markallread = array_sum($unread) > 0 ? [
-            'itemid' => 'moodleoverflow-markallread-' . $this->modflow->id,
-            'instanceid' => $this->modflow->id,
-        ] : [];
-        $subscription = permissions::can_change_subscription($this->modflow, $USER->id) ? [
-            'type' => 'moodleoverflow',
-            'id' => $this->modflow->id,
-            'subscribed' => service\subscription::is_subscribed($this->modflow, $USER->id),
-            'forum' => true,
-        ] : [];
-        $tracking = permissions::can_change_tracking($this->modflow, $USER->id) ? [
-            'itemid' => 'moodleoverflow-tracking-' . $this->modflow->id,
-            'instanceid' => $this->modflow->id,
-            'tracked' => service\readtracking::is_tracked($this->modflow, $USER->id),
-        ] : [];
-        $stats = permissions::can_view_userstats($this->modflow, $USER->id) ? ['link' => $userstatslink->out()] : [];
-        $menu = $markallread || $subscription || $tracking || $stats ? [
-            'markallread' => $markallread,
-            'subscription' => $subscription,
-            'tracking' => $tracking,
-            'stats' => $stats,
-            'dividernotifications' => $subscription || $tracking,
-            'dividerstats' => $markallread || $subscription || $tracking,
-        ] : [];
-
         return (object) [
             'discussions' => $items,
             'hasdiscussions' => $discussioncount > 0,
-            'startdiscussion' => $canstartdiscussion ? ['link' => $startdiscussion->out()] : [],
-            'menu' => $menu,
+            'header' => (new forum_header($this->modflow, array_sum($unread)))->export_for_template($output),
             'search' => $searchable ? [
                 'action' => (new moodle_url('/mod/moodleoverflow/view.php'))->out(false),
                 'inputname' => 'q',
@@ -173,65 +135,6 @@ class view_page implements named_templatable, renderable {
             'searching' => $this->query !== '',
             'paging_bar' => ($this->page != -1) ? $pagingbar : false,
             'destinations' => $destinations,
-            'intro' => $this->modflow->intro !== ''
-                ? format_module_intro('moodleoverflow', $this->modflow->get_db_object(), $this->modflow->get_cm()->id)
-                : '',
-            'hints' => $this->get_hints($USER->id),
-            'review_link' => $nextpost ? $nextpost->get_link()->out(false) : false,
         ];
-    }
-
-    /**
-     * Returns the rules of the moodleoverflow for its participants: anonymity, review and the answer window, each with an
-     * icon, a short label and a sentence.
-     *
-     * @param int $userid The viewer
-     * @return array{icon: string, label: string, text: string}[]
-     */
-    private function get_hints(int $userid): array {
-        $hint = fn(string $icon, string $key, string $text) => [
-            'icon' => $icon,
-            'label' => get_string('desc:' . $key . '_label', 'moodleoverflow'),
-            'text' => $text,
-        ];
-        $hints = [];
-        $anonymity = match ($this->modflow->get_anonymity()) {
-            anonymity::QUESTIONS => 'only_questions',
-            anonymity::EVERYTHING => 'anonymous',
-            default => null,
-        };
-        if ($anonymity) {
-            $text = get_string('desc:' . $anonymity, 'moodleoverflow');
-            // A viewer who always posts with the name must not think to be anonymous.
-            if (!permissions::is_hidden_as_author($this->modflow, $userid, true)) {
-                $text .= ' ' . get_string('desc:postwithname', 'moodleoverflow');
-            }
-            $hints[] = $hint('i/show', $anonymity, $text);
-        }
-        $review = match ($this->modflow->get_review_level()) {
-            review_level::QUESTIONS => 'review_questions',
-            review_level::EVERYTHING => 'review_everything',
-            default => null,
-        };
-        if ($review) {
-            $hints[] = $hint('i/duration', $review, get_string('desc:' . $review, 'moodleoverflow'));
-        }
-
-        // The answer window, as long as it says something: before it opens, while it closes later, after it closed.
-        [$start, $end] = $this->modflow->get_answer_window();
-        $now = time();
-        $date = fn(int $time) => userdate($time, get_string('strftimedatetime', 'langconfig'));
-        $answers = match (true) {
-            $start && $now < $start && $end => ['fromuntil', ['start' => $date($start), 'end' => $date($end)]],
-            $start && $now < $start => ['from', $date($start)],
-            $end && $now < $end => ['until', $date($end)],
-            (bool) $end => ['closed', $date($end)],
-            default => null,
-        };
-        if ($answers) {
-            [$state, $a] = $answers;
-            $hints[] = $hint('i/calendar', 'limitedanswer', get_string('desc:limitedanswer_' . $state, 'moodleoverflow', $a));
-        }
-        return $hints;
     }
 }

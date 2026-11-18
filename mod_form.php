@@ -136,6 +136,9 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform->addElement('header', 'postingheading', get_string('formposting', 'moodleoverflow'));
         $mform->setExpanded('postingheading');
 
+        $mform->addElement('advcheckbox', 'singlediscussion', get_string('singlediscussion', 'moodleoverflow'));
+        $mform->addHelpButton('singlediscussion', 'singlediscussion', 'moodleoverflow');
+
         // Once there are discussions, anonymity can only be increased: lowering it would reveal the names of people who
         // wrote because they trusted to stay hidden. A forum without discussions offers every level.
         if (get_config('moodleoverflow', 'allowanonymous') == '1') {
@@ -373,6 +376,14 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         // Validate the grade settings.
         if (isset($data['gradepass']) && isset($data['grademaxgrade']) && $data['gradepass'] > $data['grademaxgrade']) {
             $errors['gradepass'] = get_string('gradepassvalidationerror', 'moodleoverflow');
+        }
+
+        // A single discussion moodleoverflow can only be made from a forum with at most one discussion.
+        if (!empty($data['singlediscussion']) && $this->get_instance()) {
+            $count = moodleoverflow::from_id($this->get_instance())->count_discussions();
+            if ($count > 1) {
+                $errors['singlediscussion'] = get_string('singlediscussiontoomany', 'moodleoverflow', $count);
+            }
         }
 
         // Validate the word limits, 0 means no limit. They share one row, so the errors belong to the group.

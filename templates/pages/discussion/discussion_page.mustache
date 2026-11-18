@@ -21,6 +21,8 @@
   This template renders the discussion page.
 
   Context variables required for this template:
+  * header - The description, the rules and the actions of the forum (output\forum_header), only for a single
+    discussion moodleoverflow
   * subject - The formatted title of the discussion
   * replyamount - Heading with the number of answers and comments
   * firstpost - Rendered post card of the question
@@ -43,6 +45,26 @@
 }}
 
 <div id="moodleoverflow-posts">
+    {{#header}}
+        {{> mod_moodleoverflow/forum_header}}
+        {{! The actions of the forum as small buttons, instead of the action bar of the list. }}
+        {{#hasactions}}
+            <div class="d-flex flex-wrap align-items-center icon-size-3 mb-3" role="group"
+                 aria-label="{{#str}} forumactions, mod_moodleoverflow {{/str}}">
+                {{#review_link}}
+                    <a href="{{{review_link}}}" class="btn btn-danger btn-sm m-1">{{#str}} review_needed, moodleoverflow {{/str}}</a>
+                {{/review_link}}
+                {{#menu}}
+                    {{#subscription}}{{> mod_moodleoverflow/subscription_toggle }}{{/subscription}}
+                    {{#tracking}}{{> mod_moodleoverflow/tracking_toggle }}{{/tracking}}
+                    {{#stats}}
+                        <a href="{{{link}}}" class="btn btn-outline-secondary btn-sm m-1" title="{{#str}} userstatsdesc, mod_moodleoverflow {{/str}}">{{!
+                        }}{{#pix}}i/stats, core{{/pix}}{{#str}} seeuserstats, moodleoverflow {{/str}}</a>
+                    {{/stats}}
+                {{/menu}}
+            </div>
+        {{/hasactions}}
+    {{/header}}
     {{! The title of the discussion below the name of the activity, as large as a section heading. }}
     <h2 class="h4 mb-3">{{{subject}}}</h2>
     {{! A discussion opened from a search: which words are highlighted, and the way back to the plain discussion. }}

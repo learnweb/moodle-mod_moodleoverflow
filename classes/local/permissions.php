@@ -218,8 +218,11 @@ class permissions {
      * @throws coding_exception|dml_exception|moodle_exception
      */
     public static function can_start_discussion(moodleoverflow $modflow, int $userid): bool {
+        $context = $modflow->get_context();
         return self::can_view_moodleoverflow($modflow, $userid)
-            && has_capability('mod/moodleoverflow:startdiscussion', $modflow->get_context(), $userid);
+            && has_capability('mod/moodleoverflow:startdiscussion', $context, $userid)
+            && (!$modflow->is_single_discussion()
+                || (!$modflow->has_discussions() && has_capability('moodle/course:manageactivities', $context, $userid)));
     }
 
     /**
@@ -410,6 +413,7 @@ class permissions {
             && $destination->course === $source->course
             && !$destination->get_cm()->deletioninprogress
             && $destination->get_anonymity()->value >= $source->get_anonymity()->value
+            && !($destination->is_single_discussion() && $destination->has_discussions())
             && self::can_view_moodleoverflow($destination, $userid)
             && has_capability('mod/moodleoverflow:movetopic', $source->get_context(), $userid)
             && has_capability('mod/moodleoverflow:movetopic', $destination->get_context(), $userid);
