@@ -1,0 +1,38 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/author_line
+
+  The author of a post in one line, on the discussion page and in the list of discussions: the picture (a placeholder
+  for hidden authors), the name and reputation (template author), the label "Questioner" and the date with the exact
+  time as tooltip.
+
+  Example context (json):
+  {
+      "author": {"name": "Jane Doe", "profileurl": "https://example.com/user/view.php?id=2&course=3", "picture": ""},
+      "isquestioner": true,
+      "time": 1763400000
+  }
+}}
+<div class="moodleoverflow-author text-muted">
+    {{#author.picture}}{{{author.picture}}}{{/author.picture}}{{!
+    }}{{^author.picture}}<span class="userinitials size-35 moodleoverflow-icon-no-margin">{{#pix}}i/user, core{{/pix}}</span>{{/author.picture}}
+    {{#author}}{{> mod_moodleoverflow/author}}{{/author}}
+    {{#isquestioner}}<span class="badge bg-light text-dark border">{{#str}}questioner, mod_moodleoverflow{{/str}}</span>{{/isquestioner}}
+    · <span title="{{#userdate}}{{time}}, {{#str}}strftimedaydatetime, core_langconfig{{/str}}{{/userdate}}">{{!
+    }}{{#userdate}}{{time}}, {{#str}}strftimedatemonthabbr, core_langconfig{{/str}}{{/userdate}}</span>
+</div>

@@ -17,42 +17,38 @@
 {{!
     @template mod_moodleoverflow/subscription_toggle
 
-    A button that subscribes to or unsubscribes from a moodleoverflow or a discussion. Loads the JS module
-    mod_moodleoverflow/subscription itself. Both states are rendered, the JS shows the current one.
+    An item of a dropdown menu that subscribes to or unsubscribes from a moodleoverflow or a discussion. Loads the JS
+    module mod_moodleoverflow/subscription itself. Both states are rendered, the JS shows the current one; each state has
+    its own tooltip.
 
     Context variables required for this template:
     * type - "moodleoverflow" or "discussion"
     * id - The id of the moodleoverflow or discussion
     * subscribed - Whether the user is subscribed now
-    * icononly - Show the bell icon instead of a text button (discussion card)
+    * forum - The texts of the moodleoverflow ("Subscribe to forum") instead of the discussion
 
     Example context (json):
     {
         "type": "discussion",
         "id": 2,
         "subscribed": true,
-        "icononly": true
+        "forum": false
     }
 }}
-<button type="button"
-        class="{{#icononly}}btn btn-link p-0 text-muted{{/icononly}}{{^icononly}}btn btn-outline-secondary m-1{{/icononly}}"
-        {{^icononly}}title="{{#str}} subscriptiondesc, mod_moodleoverflow {{/str}}"{{/icononly}}
-        data-action="mod_moodleoverflow/toggle-subscription"
-        data-type="{{type}}"
-        data-id="{{id}}"
-        data-subscribed="{{#subscribed}}1{{/subscribed}}{{^subscribed}}0{{/subscribed}}">
-    <span data-state="subscribed" class="{{^subscribed}}d-none{{/subscribed}}">
-        {{#icononly}}
-            {{#pix}} i/subscribed, mod_moodleoverflow, {{#str}} clicktounsubscribe, mod_moodleoverflow {{/str}} {{/pix}}
-        {{/icononly}}
-        {{^icononly}}{{#str}} unsubscribe, mod_moodleoverflow {{/str}}{{/icononly}}
-    </span>
-    <span data-state="unsubscribed" class="{{#subscribed}}d-none{{/subscribed}}">
-        {{#icononly}}
-            {{#pix}} i/unsubscribed, mod_moodleoverflow, {{#str}} clicktosubscribe, mod_moodleoverflow {{/str}} {{/pix}}
-        {{/icononly}}
-        {{^icononly}}{{#str}} subscribe, mod_moodleoverflow {{/str}}{{/icononly}}
-    </span>
+<button type="button" class="dropdown-item" data-action="mod_moodleoverflow/toggle-subscription" data-type="{{type}}"
+        data-id="{{id}}" data-subscribed="{{#subscribed}}1{{/subscribed}}{{^subscribed}}0{{/subscribed}}">
+    {{#forum}}
+        <span data-state="subscribed" class="{{^subscribed}}d-none{{/subscribed}}" title="{{#str}}unsubscribeforumdesc, mod_moodleoverflow{{/str}}">{{!
+        }}{{#pix}}i/unsubscribed, mod_moodleoverflow{{/pix}}{{#str}}unsubscribe, mod_moodleoverflow{{/str}}</span>
+        <span data-state="unsubscribed" class="{{#subscribed}}d-none{{/subscribed}}" title="{{#str}}subscribeforumdesc, mod_moodleoverflow{{/str}}">{{!
+        }}{{#pix}}i/subscribed, mod_moodleoverflow{{/pix}}{{#str}}subscribe, mod_moodleoverflow{{/str}}</span>
+    {{/forum}}
+    {{^forum}}
+        <span data-state="subscribed" class="{{^subscribed}}d-none{{/subscribed}}" title="{{#str}}unsubscribediscussiondesc, mod_moodleoverflow{{/str}}">{{!
+        }}{{#pix}}i/unsubscribed, mod_moodleoverflow{{/pix}}{{#str}}unsubscribediscussion, mod_moodleoverflow{{/str}}</span>
+        <span data-state="unsubscribed" class="{{#subscribed}}d-none{{/subscribed}}" title="{{#str}}subscribediscussiondesc, mod_moodleoverflow{{/str}}">{{!
+        }}{{#pix}}i/subscribed, mod_moodleoverflow{{/pix}}{{#str}}subscribediscussion, mod_moodleoverflow{{/str}}</span>
+    {{/forum}}
 </button>
 {{#js}}
     require(['mod_moodleoverflow/subscription'], function(subscription) {

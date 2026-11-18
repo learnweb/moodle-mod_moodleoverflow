@@ -103,15 +103,8 @@
                 {{/attachments.0}}
             </div>
             <div class="post-info border-top pt-2 mt-2">
-                {{! One line for every post: picture (a placeholder for hidden authors), name, reputation, role, date. }}
                 <div class="leftbox">
-                    <div class="user-info text-muted">
-                        {{#author.picture}}{{{author.picture}}}{{/author.picture}}{{!
-                        }}{{^author.picture}}<span class="userinitials size-35 moodleoverflow-icon-no-margin">{{#pix}}i/user, core{{/pix}}</span>{{/author.picture}}
-                        {{#author}}{{> mod_moodleoverflow/author}}{{/author}}
-                        {{#isquestioner}}<span class="badge bg-light text-dark border">{{#str}}questioner, mod_moodleoverflow{{/str}}</span>{{/isquestioner}}
-                        · <span title="{{date}}">{{shortdate}}</span>
-                    </div>
+                    {{> mod_moodleoverflow/author_line}}
                 </div>
                 <div class="rightbox">
                     <div class="post-menu">

@@ -32,6 +32,9 @@ import {request} from 'mod_moodleoverflow/api';
 
 const SELECTOR = '[data-action="mod_moodleoverflow/toggle-subscription"]';
 
+/** The elements that show a subscription: the toggles and the bells of the discussion cards. */
+const SHOWS = `${SELECTOR}, [data-region="mod_moodleoverflow/subscription-state"]`;
+
 /**
  * Sends the target state to the route. PUT subscribes, DELETE unsubscribes.
  *
@@ -46,14 +49,14 @@ export const changeSubscription = async(type, id, subscribe) => {
 };
 
 /**
- * Shows the state on a toggle button.
+ * Shows the state on a toggle button or a bell.
  *
- * @param {HTMLElement} button
+ * @param {HTMLElement} target
  * @param {boolean} subscribed
  */
-const showState = (button, subscribed) => {
-    button.dataset.subscribed = subscribed ? '1' : '0';
-    button.querySelectorAll('[data-state]').forEach((element) => {
+const showState = (target, subscribed) => {
+    target.dataset.subscribed = subscribed ? '1' : '0';
+    target.querySelectorAll('[data-state]').forEach((element) => {
         element.classList.toggle('d-none', (element.dataset.state === 'subscribed') !== subscribed);
     });
 };
@@ -67,14 +70,12 @@ const showState = (button, subscribed) => {
  * @param {boolean} subscribed
  */
 const showNewState = (type, id, subscribed) => {
-    document.querySelectorAll(`${SELECTOR}[data-type="${type}"][data-id="${id}"]`).forEach((button) => {
-        showState(button, subscribed);
+    document.querySelectorAll(SHOWS).forEach((target) => {
+        const changed = target.dataset.type === type && target.dataset.id === String(id);
+        if (changed || (type === 'moodleoverflow' && target.dataset.type === 'discussion')) {
+            showState(target, subscribed);
+        }
     });
-    if (type === 'moodleoverflow') {
-        document.querySelectorAll(`${SELECTOR}[data-type="discussion"]`).forEach((button) => {
-            showState(button, subscribed);
-        });
-    }
 };
 
 /** @var {boolean} initialised Whether the click listener is registered. Every rendered toggle calls init(). */

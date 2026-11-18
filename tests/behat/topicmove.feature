@@ -17,6 +17,7 @@ Feature: Teachers can move a discussion in one moodleoverflow forum to another m
   Scenario: Move topic from public forum
     Given User "admin" adds to "public moodleoverflow one" a discussion with topic "Public Message" and message "This is the public message" automatically
     And I am on the "public moodleoverflow one" "moodleoverflow activity" page
+    And I click on "More" "button" in the "Public Message" moodleoverflow discussion card
     And I click on "[data-action='moodleoverflow/movetopic-select']" "css_element"
     Then I should "" see the elements:
       | public moodleoverflow two | question anonymous | everything anonymous |
@@ -29,6 +30,7 @@ Feature: Teachers can move a discussion in one moodleoverflow forum to another m
   Scenario: Move topic from question anonymous forum
     Given User "admin" adds to "question anonymous" a discussion with topic "Question Message" and message "This is the question anonymous message" automatically
     And I am on the "question anonymous" "moodleoverflow activity" page
+    And I click on "More" "button" in the "Question Message" moodleoverflow discussion card
     And I click on "[data-action='moodleoverflow/movetopic-select']" "css_element"
     And I should "not" see the elements:
       | Move discussion to public moodleoverflow one | Move discussion to public moodleoverflow two |

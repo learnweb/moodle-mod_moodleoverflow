@@ -38,9 +38,15 @@ export const init = () => {
         e.preventDefault();
 
         const replies = Number(button.dataset.replies);
-        const question = replies > 0
-            ? getString('deletesureplural', 'mod_moodleoverflow', replies + 1)
-            : getString('deletesure', 'mod_moodleoverflow');
+        let question;
+        if (button.dataset.discussion) {
+            // "Delete discussion" in the list of discussions deletes the question and all its replies.
+            question = getString('deletesurediscussion', 'mod_moodleoverflow', replies + 1);
+        } else {
+            question = replies > 0
+                ? getString('deletesureplural', 'mod_moodleoverflow', replies + 1)
+                : getString('deletesure', 'mod_moodleoverflow');
+        }
         try {
             await deleteCancelPromise(getString('delete', 'mod_moodleoverflow'), question, getString('delete', 'core'),
                 {triggerElement: button});

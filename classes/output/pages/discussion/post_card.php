@@ -106,8 +106,7 @@ class post_card implements named_templatable, renderable {
             'author' => $author,
             'iscomment' => $this->post->is_comment(),
             'isfirstpost' => $this->post->is_question(),
-            'date' => userdate($this->post->modified),
-            'shortdate' => userdate($this->post->modified, get_string('strftimedatemonthabbr', 'core_langconfig')),
+            'time' => $this->post->modified,
             // Answers and comments of the questioner are labelled; a hidden questioner is named "Questioner" already.
             'isquestioner' => !$this->post->is_question() && $this->post->get_userid() === $discussion->get_userid()
                 && permissions::can_view_author($this->post, $USER->id),

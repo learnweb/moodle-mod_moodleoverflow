@@ -34,12 +34,6 @@
     white-space: nowrap;
 }
 
-.moodleoverflowdiscussion .discussionmove .icon {
-    width: 24px;
-    height: 24px;
-    color: #848d95;
-}
-
 .moodleoverflowheaderlist .discussion .author,
 .moodleoverflowheaderlist .discussion .replies,
 .moodleoverflowheaderlist .discussion .lastpost {
@@ -65,44 +59,8 @@
     margin-left: 0;
 }
 
-.moodleoverflowdiscussion {
-    padding: 8px;
-    display: block;
-}
-
-.moodleoverflowdiscussion .leftbox {
-    white-space: nowrap;
-    min-width: 80px;
-}
-
-.moodleoverflowdiscussion .reply-correction {
-    display: inline-block;
-    transform: translateY(1px);
-}
-
-.unread-bubble {
-    background: #c30909;
-    padding: 3px 4px 4px 4px;
-    color: white;
-    font-weight: bold;
-    line-height: 1;
-    display: inline-block;
-    border-radius: 12px;
-    transform: translate(-8px, -10px);
-}
-
 .moodleoverflow-icon-no-margin .icon,
 .icon.moodleoverflow-icon-no-margin {
-    margin: 0;
-}
-
-.moodleoverflowdiscussion .status .icon {
-    margin: 0;
-}
-
-.moodleoverflowdiscussion .votes .votecount {
-    line-height: 0.75;
-    font-size: 1.25em;
     margin: 0;
 }
 
@@ -293,15 +251,6 @@
     font-weight: 700;
 }
 
-.moodleoverflowpost.unread .row.header,
-.mod_moodleoverflow-label-unread {
-    background-color: #fff38a;
-}
-
-.moodleoverflowpost.unread .row.header {
-    border-bottom: 1px solid #ddd;
-}
-
 .moodleoverflowpost .topic .author {
     color: #848d95;
 }
@@ -386,19 +335,11 @@
     margin-right: 12px;
 }
 
-.moodleoverflowdiscussion div.user-info {
-    color: #848d95;
-}
-
 /* The picture of a post author sits round in the line of the name, like Moodle's initials. */
-.moodleoverflowpost .user-info .userpicture {
+.moodleoverflow-author .userpicture {
     border-radius: 50%;
     margin-right: .25rem;
     vertical-align: middle;
-}
-
-.moodleoverflowdiscussion .questioner {
-    background-color: rgba(80, 168, 255, .1);
 }
 
 .mod_moodleoverflow-hack-primary-to-danger-btn .btn-primary {
@@ -457,28 +398,10 @@
     color: rgb(112, 160, 52);
 }
 
-.mod_moodleoverflow-no-wrap {
-    white-space: nowrap;
-}
-
-.mod_moodleoverflow-label-review,
-.mod_moodleoverflow-label-unread {
-    padding: 4px;
-    border-radius: 8px;
-}
-
-.mod_moodleoverflow-label-review {
-    background-color: #ffd3d3;
-}
-
 
 .moodleoverflow-statistics-table .header .helpactivityclass {
     padding: 0;
     margin-left: 8px;
-}
-
-.moodleoverflow-gap-small {
-    gap: 8px;
 }
 
 #moodleoverflow-root .vote.icon[data-moodleoverflow-state="clicked"] {
@@ -504,4 +427,17 @@
 .topicmove-root.d-none {
     opacity: 0;
     pointer-events: none;
+}
+
+/* Badges that are links (unread posts, posts to review) have no underline; they darken on hover and focus instead. */
+.moodleoverflow-badge-link:hover,
+.moodleoverflow-badge-link:focus {
+    filter: brightness(.85);
+}
+
+/* The last paragraph of the description needs no space below, the frame has its padding (format_module_intro wraps
+   the text in no-overflow). */
+.moodleoverflow-intro > :last-child,
+.moodleoverflow-intro > .no-overflow > :last-child {
+    margin-bottom: 0;
 }

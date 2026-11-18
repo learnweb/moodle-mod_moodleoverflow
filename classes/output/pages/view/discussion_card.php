@@ -19,7 +19,6 @@ namespace mod_moodleoverflow\output\pages\view;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
-use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
 use mod_moodleoverflow\local\permissions;
@@ -97,66 +96,79 @@ class discussion_card implements named_templatable, renderable {
             return [];
         };
 
-        // The starter and the last poster, as the user may see them.
-        $userfirstpost = (new author($this->firstpost, $USER->id))->export_for_template($output);
-        $userlastpost = $this->lastpost ? [
-            'name' => (new author($this->lastpost, $USER->id))->export_for_template($output)['name'],
-            'date' => userdate($this->lastpost->get_time_active(), get_string('strftimerecentfull')),
+        // The questioner, and the last post once there are answers or comments, as the user may see them.
+        $replyamount = array_sum(array_map(fn(array $branch) => 1 + count($branch['comments']), $tree['answers']));
+        $question = [
+            'author' => (new author($this->firstpost, $USER->id))->export_for_template($output),
+            'time' => $this->firstpost->modified,
+        ];
+        $lastpost = $this->lastpost && $replyamount > 0 ? [
+            'name' => (new author($this->lastpost, $USER->id))->get_name(),
+            'time' => $this->lastpost->get_time_active(),
             'link' => $this->lastpost->get_link()->out(),
         ] : [];
 
-        // Gather rating information about the first post.
+        // The votes of the question; the list shows them, voting is on the discussion page.
         $ratings = $allratings[$this->firstpost->get_id()];
-        $vote = rating::get_user_vote($this->firstpost, $USER->id);
 
-        // Gather readtracking data for the readtracking template.
+        // The unread badge and "Mark as read" in the menu.
         $unreaddata = [
             'itemid' => 'moodleoverflow-markpostsread-' . $this->discussion->get_id(),
             'domain' => 'discussion',
             'instanceid' => $this->discussion->get_id(),
-            'userid' => $USER->id,
             'unreadlink' => (new moodle_url($this->discussion->get_link(), [], 'unread'))->out(),
             'unreadamount' => $this->unreadcount,
         ];
 
-        // Gather review data.
-        $reviewposts = review::get_posts_to_review_in_discussion($this->discussion, $USER->id);
-        $reviewpostcount = count($reviewposts);
-        $firsttoreview = reset($reviewposts) ?: null;
-        $reviewlink = $firsttoreview ? $firsttoreview->get_link() : null;
+        // The posts a reviewer can review: their number leads to the first of them.
+        $reviewposts = permissions::can_review_posts($this->modflow, $USER->id)
+            ? review::get_posts_to_review_in_discussion($this->discussion, $USER->id)
+            : [];
+        $review = $reviewposts ? ['count' => count($reviewposts), 'link' => reset($reviewposts)->get_link()->out()] : [];
+        // The own posts of the user that wait for a review, the question or answers.
+        $ownpending = count(array_filter(
+            $this->discussion->get_posts(),
+            fn(post $post) => $post->reviewed === 0 && $post->get_userid() === (int) $USER->id
+        ));
 
         // Miscellaneous data.
         $topicmove = ['name' => $this->discussion->name, 'id' => $this->discussion->get_id()];
 
-        // The answers and comments the user sees, like the discussion page.
-        $replyamount = array_sum(array_map(fn(array $branch) => 1 + count($branch['comments']), $tree['answers']));
+        // The subscription toggle of the menu and the bell that shows a subscription.
+        $subscription = permissions::can_change_discussion_subscription($this->discussion, $USER->id) ? [
+            'type' => 'discussion',
+            'id' => $this->discussion->get_id(),
+            'subscribed' => subscription::is_subscribed_to_discussion($this->discussion, $USER->id),
+        ] : [];
+
+        // Deleting the question deletes the discussion with all its posts.
+        $delete = permissions::can_delete_post($this->firstpost, $USER->id) ? [
+            'postid' => $this->firstpost->get_id(),
+            'replies' => count($this->discussion->get_posts()) - 1,
+        ] : [];
 
         return (object) [
             'postid' => $this->firstpost->get_id(),
             'votes' => $ratings->upvotes - $ratings->downvotes,
-            'userupvoted' => $vote === rating_type::UPVOTE,
-            'userdownvoted' => $vote === rating_type::DOWNVOTE,
-            'canchange' => rating::can_change_vote($this->firstpost, $USER->id, $vote),
             'markedhelpful' => $marklink('ishelpful'),
             'markedsolution' => $marklink('issolved'),
-            'subjecttext' => format_string($this->discussion->name), // The discussion name, use format_text perhaps.
+            'subjecttext' => format_string($this->discussion->name),
             'subjectlink' => $this->discussion->get_link()->out(),
-            'userfirstpost' => $userfirstpost,
-            'userlastpost' => $userlastpost,
+            'question' => $question,
+            'lastpost' => $lastpost,
+            // The answers and comments the user sees, like the discussion page.
             'replyamount' => $replyamount,
             'replytitle' => get_string($replyamount === 1 ? 'replycountone' : 'replycount', 'moodleoverflow', $replyamount),
             'unread' => $this->unreadcount > 0 ? $unreaddata : [],
-            'canreview' => permissions::can_review_posts($this->modflow, $USER->id),
-            'needreview' => $reviewpostcount,
-            'reviewlink' => $reviewlink?->out(),
+            'review' => $review,
+            'ownpending' => $ownpending,
             'questionunderreview' => $this->firstpost->reviewed == 0,
             'canmovetopic' => $this->movepossible ? $topicmove : [],
-            'subscription' => permissions::can_change_discussion_subscription($this->discussion, $USER->id) ? [
-                'type' => 'discussion',
-                'id' => $this->discussion->get_id(),
-                'subscribed' => subscription::is_subscribed_to_discussion($this->discussion, $USER->id),
-                'icononly' => true,
-            ] : [],
+            'subscription' => $subscription,
+            'delete' => $delete,
+            // The menu holds "Mark as read", the subscription, "Move discussion" and "Delete discussion"; without any of them
+            // it is left out.
+            'hasmenu' => $this->unreadcount > 0 || $subscription || $this->movepossible || $delete,
         ];
     }
 }

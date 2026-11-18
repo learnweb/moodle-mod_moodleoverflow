@@ -40,13 +40,12 @@
             <tr class="discussion">
                 <td class="topic starter py-2">
                     <div class="d-flex justify-content-between align-items-center gap-3">
-                        <span class="fw-medium text-body">{{name}}</span>
+                        <span class="fw-medium text-body">{{{name}}}</span>
                         <span class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
                            data-action="moodleoverflow/movetopic-execute"
                            data-destination="{{modflowid}}"
-                           data-destinationname="{{name}}">
-                            {{#pix}} i/arrow-right, core, {{#str}} movetopictoforum, mod_moodleoverflow, {"forumname": {{#quote}} {{name}} {{/quote}} } {{/str}} {{/pix}}
-                            <span>{{#str}} movetopictoforum, mod_moodleoverflow, {"forumname": {{#quote}} {{name}} {{/quote}} } {{/str}}</span>
+                           data-destinationname="{{plainname}}">
+                            {{#pix}}i/arrow-right, core{{/pix}}<span>{{{label}}}</span>
                         </span>
                     </div>
                 </td>

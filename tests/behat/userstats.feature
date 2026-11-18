@@ -15,20 +15,22 @@ Feature: Teachers see the activity of the students in the user statistics, unles
     Given the following config values are set as admin:
       | showuserstats | 0 | moodleoverflow |
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
-    Then I should not see "User statistics"
+    Then "User statistics" "link" should not exist
 
   Scenario: The teacher sees every participant, students do not see the statistics
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "student1"
-    Then I should not see "User statistics"
+    Then "User statistics" "link" should not exist
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
-    And I click on "User statistics" "text"
+    And I click on "Forum actions" "button"
+    And I click on "User statistics" "link"
     Then "Teacher 1" "table_row" should exist
     And "Student 1" "table_row" should exist
 
   Scenario: The user statistics show the posts and votes over time as a chart
     Given the site is running Moodle version 5.3 or higher
     When I am on the "Test Moodleoverflow" "moodleoverflow activity" page logged in as "teacher1"
-    And I click on "User statistics" "text"
+    And I click on "Forum actions" "button"
+    And I click on "User statistics" "link"
     Then I should see "Posts and votes per day"
 
   Scenario: Test if reputation appears in the user statistics
@@ -36,6 +38,7 @@ Feature: Teachers see the activity of the students in the user statistics, unles
     And I am on the "Topic question" "mod_moodleoverflow > Discussion" page logged in as "teacher1"
     And I click on the "solved" button of the moodleoverflow post "This is an answer"
     And I follow "Test Moodleoverflow"
-    And I click on "User statistics" "text"
+    And I click on "Forum actions" "button"
+    And I click on "User statistics" "link"
     Then I should see "30" in the "Student 1" "table_row"
     And I should see "2" in the "Teacher 1" "table_row"
