@@ -1,5 +1,41 @@
 CHANGELOG
 =========
+[v5.3-r2 (2026-11-19)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.3-r2)
+---------------------
+Building on the new backend of `v5.3-r1`, this follow-up release adds long-awaited features and a modernised look.
+
+> **Updating from v5.2 or older?** Please read the notes of
+> [v5.3-r1](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.3-r1) first, especially "Before you upgrade".
+
+**New features and improvements:**
+
+- Settings: presets for typical uses (questions about the lecture, anonymous questions, anonymous feedback, moderated
+  forum) fill in the settings, and settings that do not apply are hidden ([#320](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/320))
+- New look of the forum and the discussion page: posts as cards with one author line, actions as icons, image attachments as
+  thumbnails, discussion cards with a menu, a description frame and a short note on the rules of the forum. Comments can
+  now be marked as solution or helpful, too ([#52](https://github.com/learnweb/moodle-mod_moodleoverflow/issues/52), [#323](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/323))
+- Single discussion forums: the teacher asks one question and the whole course answers, for example on a chapter or as
+  one step of a series ([#114](https://github.com/learnweb/moodle-mod_moodleoverflow/issues/114), [#324](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/324))
+- Activity completion: a new completion condition "Write posts" counts the questions, answers and comments of a
+  participant ([#114](https://github.com/learnweb/moodle-mod_moodleoverflow/issues/114), [#324](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/324))
+- Post limits: teachers can limit the number of questions and of answers and comments each participant can write per
+  day, per week or in total ([#134](https://github.com/learnweb/moodle-mod_moodleoverflow/issues/134), [#325](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/325))
+
+**For administrators:**
+
+- The new capability `mod/moodleoverflow:ignorepostlimit` lets teachers post beyond the post limits. On the upgrade it gets
+  the permissions of `mod/moodleoverflow:canignorelimitedanswer`, so changed roles keep working as before.
+
+**For developers:**
+
+- All remaining  web service functions (externals) were replaced by REST routes; the response of a vote and the read tracking toggle of the
+  course overview changed ([#321](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/321))
+- Templates that only one page uses moved to `templates/pages/<page>/`, the templates of the course page to
+  `templates/course/` (`readtracking` is now `course/overview_readtracking`), the presets to `form/presets`. Themes that
+  override these templates need the new paths ([#324](https://github.com/learnweb/moodle-mod_moodleoverflow/pull/324))
+
+---
+
 [v5.3-r1 (2026-11-14)](https://github.com/learnweb/moodle-mod_moodleoverflow/releases/tag/v5.3-r1)
 ---------------------
 This release is a big milestone in the history of the plugin. The goal for this year was to reduce the code debt in the

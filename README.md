@@ -26,8 +26,8 @@ questions and answers:
   answers are allowed, and move discussions to the right forum.
 - **Participation can count.** Turn reputation into a grade in the gradebook.
 - **Fits every course.** Each forum can be set up for its purpose: with or without votes, reputation and grades,
-  anonymous or with names, moderated or open, with answers allowed at any time or only within a time window.
-  Administrators decide which of these options teachers may use.
+  anonymous or with names, moderated or open, with answers allowed at any time or only within a time window, and with
+  limits on the length and the number of posts. Administrators decide which of these options teachers may use.
 
 ---
 
@@ -55,6 +55,13 @@ at a time the teacher sets. It can also close answering at a deadline.
 
 <!-- Image: the list of discussions with several questions and the note that answering opens later. -->
 
+### One question for the whole course
+
+A teacher asks one question, for example about this week's chapter, and everybody answers, votes and comments in one
+place. With activity completion, a series of such forums opens one step after the other.
+
+<!-- Image: a single discussion with the teacher's question and several answers. -->
+
 ### Check posts before they are published
 
 In a moderated forum, a teacher approves new questions, or all posts, before the other participants see them. Wrong
@@ -76,7 +83,9 @@ only what is visible in the forums anyway, and it is switched off unless the adm
 ## Features
 
 - **Quick answers and comments** right below a post, the full editor for formatting and attachments ([details][wiki-answers])
+- **Presets** for typical uses (questions about the lecture, anonymous questions, anonymous feedback, moderated forum) that fill in the settings ([details][wiki-presets])
 - **Word limits** for posts ([details][wiki-length])
+- **Post limits**: how many questions and answers each participant can write per day, per week or in total ([details][wiki-postlimit])
 - **Votes, helpful and solution marks** that sort the answers ([details][wiki-ratings])
 - **Reputation** per forum or for the whole course, with points the administrator can adjust ([details][wiki-reputation])
 - **Grading** based on reputation ([details][wiki-grading])
@@ -84,13 +93,15 @@ only what is visible in the forums anyway, and it is switched off unless the adm
 - **Anonymous mode** for questioners or for everyone ([details][wiki-anonymous])
 - **Review** of questions or of all posts before they are published ([details][wiki-review])
 - **Limited answer mode** with a start and an end for answers ([details][wiki-limited])
+- **Single discussion forums**: the teacher asks one question, the whole course answers ([details][wiki-single])
 - **Subscriptions** to forums or single discussions, with email notifications or a daily summary ([details][wiki-subscriptions])
 - **Read tracking** that highlights new posts ([details][wiki-readtracking])
 - **Moving discussions** to another forum of the course ([details][wiki-move])
 - **Search** within a forum ([details][wiki-forumpage])
 - **Export** of the posts of a forum, e.g. as CSV, Excel or PDF ([details][wiki-export])
 - **All posts of a user** on one page, linked from the user profile (Moodle 5.3) ([details][wiki-outside])
-- **Attachments**, privacy API, backup and restore, global search, activity completion
+- **Activity completion** by writing posts, so forums can open one after the other ([details][wiki-completion])
+- **Attachments**, privacy API, backup and restore, global search
 
 Every feature can be adjusted: administrators set what teachers may use, teachers decide for each forum. All settings
 are explained in the [documentation for administrators][wiki].
@@ -116,6 +127,10 @@ Moodleoverflow was initially implemented by Kennet Winter. It is developed and m
 
 [wiki]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators
 [wiki-ratings]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#3-votes-marks-and-the-order-of-answers
+[wiki-presets]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#typical-uses-presets
+[wiki-postlimit]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#number-of-posts
+[wiki-single]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#single-discussion
+[wiki-completion]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#activity-completion
 [wiki-reputation]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#4-reputation
 [wiki-grading]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#5-grading
 [wiki-userstats]: https://github.com/learnweb/moodle-mod_moodleoverflow/wiki/Documentation-for-administrators#6-user-statistics
