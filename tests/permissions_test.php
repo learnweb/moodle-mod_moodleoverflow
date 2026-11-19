@@ -255,6 +255,19 @@ final class permissions_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if a single discussion moodleoverflow has one discussion, which only a teacher who manages the activity
+     * starts.
+     */
+    public function test_can_start_discussion_single(): void {
+        $modflow = $this->create_moodleoverflow(['singlediscussion' => 1]);
+        $this->assertTrue(permissions::can_start_discussion($modflow, $this->teacher->id));
+        $this->assertFalse(permissions::can_start_discussion($modflow, $this->student->id));
+
+        $this->generator->create_question($modflow, $this->teacher);
+        $this->assertFalse(permissions::can_start_discussion($modflow, $this->teacher->id));
+    }
+
+    /**
      * Test, if replies need a reviewed parent and an open answer window.
      */
     public function test_can_reply(): void {
@@ -422,6 +435,12 @@ final class permissions_test extends \advanced_testcase {
         $otherrecord = $this->getDataGenerator()->create_module('moodleoverflow', ['course' => $othercourse->id]);
         $other = moodleoverflow::from_id($otherrecord->id);
         $this->assertFalse(permissions::can_move_discussion($discussion, $other, $this->teacher->id));
+
+        // A single discussion moodleoverflow takes a discussion only while it has none.
+        $single = $this->create_moodleoverflow(['singlediscussion' => 1]);
+        $this->assertTrue(permissions::can_move_discussion($discussion, $single, $this->teacher->id));
+        $this->generator->create_question($single, $this->teacher);
+        $this->assertFalse(permissions::can_move_discussion($discussion, $single, $this->teacher->id));
     }
 
     // Read tracking permissions (can_track() is tested in readtracking_test).

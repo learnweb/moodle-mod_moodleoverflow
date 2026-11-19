@@ -29,7 +29,10 @@ import {request} from 'mod_moodleoverflow/api';
  * Init function.
  */
 export function init() {
-    Prefetch.prefetchTemplates(['mod_moodleoverflow/reject_post_form', 'mod_moodleoverflow/review_buttons']);
+    Prefetch.prefetchTemplates([
+        'mod_moodleoverflow/pages/discussion/reject_post_form',
+        'mod_moodleoverflow/pages/discussion/review_buttons',
+    ]);
     Prefetch.prefetchStrings('mod_moodleoverflow',
         ['post_was_approved',
                'jump_to_next_post_needing_review',
@@ -64,7 +67,7 @@ export function init() {
             post.classList.remove("pendingreview");
         } else if (action === 'reject') {
             reviewRow.innerHTML = '.';
-            reviewRow.innerHTML = await Templates.render('mod_moodleoverflow/reject_post_form', {});
+            reviewRow.innerHTML = await Templates.render('mod_moodleoverflow/pages/discussion/reject_post_form', {});
         } else if (action === 'reject-submit') {
             const rejectMessage = post.querySelector('textarea.reject-reason').value.toString().trim();
             reviewRow.innerHTML = '.';
@@ -81,7 +84,7 @@ export function init() {
             reviewRow.innerHTML = message;
         } else if (action === 'reject-cancel') {
             reviewRow.innerHTML = '.';
-            reviewRow.innerHTML = await Templates.render('mod_moodleoverflow/review_buttons', {});
+            reviewRow.innerHTML = await Templates.render('mod_moodleoverflow/pages/discussion/review_buttons', {});
         }
     };
 }

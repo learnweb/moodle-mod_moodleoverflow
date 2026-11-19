@@ -15,7 +15,7 @@
   along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-  @template mod_moodleoverflow/view_page
+  @template mod_moodleoverflow/pages/view/view_page
 
   Moodleoverflow discussion_list template.
   The purpose of this template is to render a list of discussions for the view.php.
@@ -25,23 +25,9 @@
   }
 }}
 
-{{#intro}}
-    {{! The description of the activity in its own frame; the page header does not show it. }}
-    <div class="moodleoverflow-intro border rounded p-3 {{#hints.0}}mb-2{{/hints.0}}{{^hints.0}}mb-3{{/hints.0}}">{{{intro}}}</div>
-{{/intro}}
-{{#hints.0}}
-    {{! The rules of this forum for its participants (anonymity, review, answer window) as a quiet note below the
-        description: icon, a bold label to recognise the kind of forum at once, and a short sentence. }}
-    <div class="alert alert-info small text-muted py-1 px-2 mb-3" role="note">
-        <ul class="list-unstyled mb-0">
-            {{#hints}}
-                <li>{{#pix}}{{icon}}, core{{/pix}}<strong>{{label}}</strong>{{#str}}labelsep, langconfig{{/str}}{{text}}</li>
-            {{/hints}}
-        </ul>
-    </div>
-{{/hints.0}}
+{{#header}}
+    {{> mod_moodleoverflow/forum_header}}
 
-<div id="moodleoverflow-root">
     {{! Action bar in a light box: the calls to action stay visible (start a discussion, review), everything else of the
         user is in the menu "Forum actions" on the right: mark all as read, subscription and read tracking, statistics.
         Both toggle attributes: Bootstrap 4 (Moodle 4.5) reads data-toggle, Bootstrap 5 data-bs-toggle. }}
@@ -76,19 +62,7 @@
                             {{#dividernotifications}}<div class="dropdown-divider"></div>{{/dividernotifications}}
                         {{/markallread}}
                         {{#subscription}}{{> mod_moodleoverflow/subscription_toggle }}{{/subscription}}
-                        {{#tracking}}
-                            <button type="button" id="{{itemid}}" class="dropdown-item" data-instanceid="{{instanceid}}"
-                                    data-tracked="{{#tracked}}1{{/tracked}}{{^tracked}}0{{/tracked}}"
-                                    title="{{#tracked}}{{#str}} notrackmoodleoverflowdesc, mod_moodleoverflow {{/str}}{{/tracked}}{{!
-                                    }}{{^tracked}}{{#str}} trackmoodleoverflowdesc, mod_moodleoverflow {{/str}}{{/tracked}}">{{!
-                            }}{{#tracked}}{{#pix}}i/show, core{{/pix}}{{#str}} notrackmoodleoverflow, moodleoverflow {{/str}}{{/tracked}}{{!
-                            }}{{^tracked}}{{#pix}}i/hide, core{{/pix}}{{#str}} trackmoodleoverflow, moodleoverflow {{/str}}{{/tracked}}</button>
-                            {{#js}}
-                                require(['mod_moodleoverflow/readtracking'], function(readtracking) {
-                                    readtracking.initTracking({{#quote}}{{itemid}}{{/quote}});
-                                });
-                            {{/js}}
-                        {{/tracking}}
+                        {{#tracking}}{{> mod_moodleoverflow/tracking_toggle }}{{/tracking}}
                         {{#stats}}
                             {{#dividerstats}}<div class="dropdown-divider"></div>{{/dividerstats}}
                             <a href="{{{link}}}" class="dropdown-item" title="{{#str}} userstatsdesc, mod_moodleoverflow {{/str}}">{{!
@@ -105,7 +79,9 @@
             </div>
         {{/search}}
     </div>
+{{/header}}
 
+<div id="moodleoverflow-root">
     {{! A search shows what it searched for; without results in the same calm box as an empty forum. }}
     {{#search}}
         {{#result}}
@@ -130,7 +106,7 @@
         <div class="text-center text-muted border rounded py-5 px-3">
             <div class="icon-size-6 mb-2">{{#pix}}i/commenting, mod_moodleoverflow{{/pix}}</div>
             <p class="mb-1">{{#str}} nodiscussions, moodleoverflow {{/str}}</p>
-            {{#startdiscussion}}<p class="small mb-0">{{#str}} nodiscussionsask, moodleoverflow {{/str}}</p>{{/startdiscussion}}
+            {{#header.startdiscussion}}<p class="small mb-0">{{#str}} nodiscussionsask, moodleoverflow {{/str}}</p>{{/header.startdiscussion}}
         </div>
     {{/searching}}{{/hasdiscussions}}
 

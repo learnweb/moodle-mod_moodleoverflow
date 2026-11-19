@@ -15,7 +15,7 @@
   along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-  @template mod_moodleoverflow/post
+  @template mod_moodleoverflow/pages/discussion/post_card
 
   Moodleoverflow post template.
   The purpose of this template is to render a post in the discussion.
@@ -41,7 +41,7 @@
             {{#showvotes}}
                 <div class="votecell onlyifreviewed">
                     <div class="votes">
-                        {{> mod_moodleoverflow/postvoting }}
+                        {{> mod_moodleoverflow/pages/discussion/postvoting }}
                     </div>
                 </div>
             {{/showvotes}}
@@ -108,7 +108,7 @@
                 </div>
                 <div class="rightbox">
                     <div class="post-menu">
-                        {{#commands}}{{> mod_moodleoverflow/post_commands}}{{/commands}}
+                        {{#commands}}{{> mod_moodleoverflow/pages/discussion/post_commands}}{{/commands}}
                     </div>
                 </div>
             </div>
@@ -117,7 +117,7 @@
     {{#canreview}}
         <div class="reviewrow p-2 text-center bg-gray">
             {{#canreviewnow}}
-                {{> mod_moodleoverflow/review_buttons }}
+                {{> mod_moodleoverflow/pages/discussion/review_buttons }}
             {{/canreviewnow}}
             {{^canreviewnow}}
                 {{#str}}pending_review_but_cannot_now, mod_moodleoverflow, {{needsreview.reviewdelay}} {{/str}}

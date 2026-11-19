@@ -432,5 +432,25 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
 
         upgrade_mod_savepoint(true, 2026050717, 'moodleoverflow');
     }
+
+    if ($oldversion < 2026111402) {
+        // Add the setting for a moodleoverflow with a single discussion.
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('singlediscussion', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, 'wordsmax');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026111402, 'moodleoverflow');
+    }
+
+    if ($oldversion < 2026111403) {
+        // Add the completion rule "write at least n posts".
+        $table = new xmldb_table('moodleoverflow');
+        $field = new xmldb_field('completionposts', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, 'singlediscussion');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026111403, 'moodleoverflow');
+    }
     return true;
 }

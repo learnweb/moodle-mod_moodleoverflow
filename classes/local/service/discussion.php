@@ -182,7 +182,8 @@ class discussion {
         try {
             $discussion->move_discussion($destination);
 
-            // The reputation of authors and raters changes in both instances, so their grades change as well.
+            // The reputation of authors and raters changes in both instances, so their grades change as well; the
+            // number of posts of the authors changes, so their completion does.
             $affectedusers = array_unique(
                 array_merge(
                     $DB->get_fieldset_select('moodleoverflow_posts', 'userid', 'discussion = ?', [$discussion->get_id()]),
@@ -191,6 +192,7 @@ class discussion {
             );
             foreach ([$source, $destination] as $modflow) {
                 rating::update_grades($modflow, $affectedusers);
+                posting::update_completion($modflow, $affectedusers);
             }
             $transaction->allow_commit();
         } catch (Exception $e) {

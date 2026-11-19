@@ -46,6 +46,7 @@ class moodleoverflow {
     /** @var string[] Properties that are int(1) db columns, booleans in the model. */
     private const FLAGS = [
         'coursewidereputation', 'allowrating', 'allowreputation', 'allownegativereputation', 'allowmultiplemarks',
+        'singlediscussion',
     ];
 
     /**
@@ -72,6 +73,8 @@ class moodleoverflow {
      * @param int $la_endtime
      * @param int $wordsmin
      * @param int $wordsmax
+     * @param bool $singlediscussion
+     * @param int $completionposts
      * @param ?int $grademaxgrade
      * @param ?int $gradescalefactor
      * @param ?int $gradepass
@@ -122,6 +125,10 @@ class moodleoverflow {
         public readonly int $wordsmin,
         /** @var int Maximum number of words a post can have */
         public readonly int $wordsmax,
+        /** @var bool Whether the moodleoverflow has only one discussion, started by a teacher */
+        public readonly bool $singlediscussion,
+        /** @var int Number of posts a user must write to complete the activity, 0: no completion rule */
+        public readonly int $completionposts,
         /** @var ?int Maximum grade, null when grading is not configured */
         public readonly ?int $grademaxgrade,
         /** @var ?int Divisor that turns the reputation into a grade */
@@ -176,6 +183,8 @@ class moodleoverflow {
             la_endtime: (int) ($record->la_endtime ?? 0),
             wordsmin: (int) ($record->wordsmin ?? 0),
             wordsmax: (int) ($record->wordsmax ?? 0),
+            singlediscussion: (bool) ($record->singlediscussion ?? false),
+            completionposts: (int) ($record->completionposts ?? 0),
             grademaxgrade: isset($record->grademaxgrade) ? (int) $record->grademaxgrade : null,
             gradescalefactor: isset($record->gradescalefactor) ? (int) $record->gradescalefactor : null,
             gradepass: isset($record->gradepass) ? (int) $record->gradepass : null,
@@ -258,6 +267,16 @@ class moodleoverflow {
     public function has_discussions(): bool {
         global $DB;
         return $DB->record_exists('moodleoverflow_discussions', ['moodleoverflow' => $this->id]);
+    }
+
+    /**
+     * The number of discussions of this moodleoverflow.
+     * @return int
+     * @throws dml_exception
+     */
+    public function count_discussions(): int {
+        global $DB;
+        return $DB->count_records('moodleoverflow_discussions', ['moodleoverflow' => $this->id]);
     }
 
     /**
@@ -509,6 +528,14 @@ class moodleoverflow {
      */
     public function allows_multiple_marks(): bool {
         return $this->allowmultiplemarks;
+    }
+
+    /**
+     * Whether the moodleoverflow has only one discussion: a teacher asks the question, everybody answers and comments.
+     * @return bool
+     */
+    public function is_single_discussion(): bool {
+        return $this->singlediscussion;
     }
 
     /**

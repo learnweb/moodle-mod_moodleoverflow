@@ -112,7 +112,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
         $mform->addElement('select', 'preset', get_string('preset', 'moodleoverflow'), $options);
         $mform->addHelpButton('preset', 'preset', 'moodleoverflow');
-        $mform->addElement('html', $OUTPUT->render_from_template('mod_moodleoverflow/form_presets', [
+        $mform->addElement('html', $OUTPUT->render_from_template('mod_moodleoverflow/form/presets', [
             'presets' => array_map(
                 fn(preset $preset) => ['key' => $preset->value, 'name' => $preset->get_name(),
                     'description' => $preset->get_description()],
@@ -135,6 +135,9 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         $mform = $this->_form;
         $mform->addElement('header', 'postingheading', get_string('formposting', 'moodleoverflow'));
         $mform->setExpanded('postingheading');
+
+        $mform->addElement('advcheckbox', 'singlediscussion', get_string('singlediscussion', 'moodleoverflow'));
+        $mform->addHelpButton('singlediscussion', 'singlediscussion', 'moodleoverflow');
 
         // Once there are discussions, anonymity can only be increased: lowering it would reveal the names of people who
         // wrote because they trusted to stay hidden. A forum without discussions offers every level.
@@ -346,6 +349,35 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         if (isset($data->anonymous) && $data->anonymous != anonymity::NONE->value) {
             $data->coursewidereputation = false;
         }
+        // The completion rule only counts with automatic completion and while its checkbox is ticked.
+        if (!empty($data->completionunlocked)) {
+            $suffix = $this->get_suffix();
+            $automatic = ($data->{'completion' . $suffix} ?? 0) == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{'completionpostsenabled' . $suffix}) || !$automatic) {
+                $data->{'completionposts' . $suffix} = 0;
+            }
+        }
+    }
+
+    #[\Override]
+    public function add_completion_rules(): array {
+        $mform = $this->_form;
+        $suffix = $this->get_suffix();
+        $label = get_string('completionposts', 'moodleoverflow');
+        $group = [
+            $mform->createElement('checkbox', 'completionpostsenabled' . $suffix, '', $label),
+            $mform->createElement('text', 'completionposts' . $suffix, '', ['size' => 3]),
+        ];
+        $mform->setType('completionposts' . $suffix, PARAM_INT);
+        $mform->addGroup($group, 'completionpostsgroup' . $suffix, '', ' ', false);
+        $mform->hideIf('completionposts' . $suffix, 'completionpostsenabled' . $suffix, 'notchecked');
+        return ['completionpostsgroup' . $suffix];
+    }
+
+    #[\Override]
+    public function completion_rule_enabled($data): bool {
+        $suffix = $this->get_suffix();
+        return !empty($data['completionpostsenabled' . $suffix]) && !empty($data['completionposts' . $suffix]);
     }
 
     /**
@@ -357,6 +389,12 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         parent::data_preprocessing($defaultvalues);
         if (isset($defaultvalues['gradepass'])) {
             $defaultvalues['gradepass'] = (int)$defaultvalues['gradepass'];
+        }
+        // The completion rule is ticked when it is set; the number suggests one post.
+        $suffix = $this->get_suffix();
+        $defaultvalues['completionpostsenabled' . $suffix] = !empty($defaultvalues['completionposts' . $suffix]) ? 1 : 0;
+        if (empty($defaultvalues['completionposts' . $suffix])) {
+            $defaultvalues['completionposts' . $suffix] = 1;
         }
     }
 
@@ -375,6 +413,14 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $errors['gradepass'] = get_string('gradepassvalidationerror', 'moodleoverflow');
         }
 
+        // A single discussion moodleoverflow can only be made from a forum with at most one discussion.
+        if (!empty($data['singlediscussion']) && $this->get_instance()) {
+            $count = moodleoverflow::from_id($this->get_instance())->count_discussions();
+            if ($count > 1) {
+                $errors['singlediscussion'] = get_string('singlediscussiontoomany', 'moodleoverflow', $count);
+            }
+        }
+
         // Validate the word limits, 0 means no limit. They share one row, so the errors belong to the group.
         $wordsmin = (int) ($data['wordsmin'] ?? 0);
         $wordsmax = (int) ($data['wordsmax'] ?? 0);
@@ -382,6 +428,12 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $errors['wordslimits'] = get_string('errorwordslimitnegative', 'moodleoverflow');
         } else if ($wordsmax > 0 && $wordsmax < $wordsmin) {
             $errors['wordslimits'] = get_string('errorwordsmaxbelowmin', 'moodleoverflow');
+        }
+
+        // The completion rule needs at least one post.
+        $suffix = $this->get_suffix();
+        if (!empty($data['completionpostsenabled' . $suffix]) && (int) ($data['completionposts' . $suffix] ?? 0) < 1) {
+            $errors['completionpostsgroup' . $suffix] = get_string('err_positiveint', 'form');
         }
 
         // Validate that the limited answer settings.

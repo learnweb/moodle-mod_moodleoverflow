@@ -58,10 +58,37 @@ function moodleoverflow_supports(string $feature): mixed {
         case FEATURE_SHOW_DESCRIPTION:
         case FEATURE_BACKUP_MOODLE2:
         case FEATURE_GRADE_HAS_GRADE:
+        case FEATURE_COMPLETION_HAS_RULES:
             return true;
         default:
             return null;
     }
+}
+
+/**
+ * Returns the information about a moodleoverflow for the course page: the description, if it is shown there, and the
+ * custom completion rule (see custom_completion).
+ *
+ * @param stdClass $coursemodule The course module record
+ * @return cached_cm_info|false
+ */
+function moodleoverflow_get_coursemodule_info(stdClass $coursemodule) {
+    global $DB;
+    $fields = 'id, name, intro, introformat, completionposts';
+    if (!$record = $DB->get_record('moodleoverflow', ['id' => $coursemodule->instance], $fields)) {
+        return false;
+    }
+
+    $result = new cached_cm_info();
+    $result->name = $record->name;
+    if ($coursemodule->showdescription) {
+        // Filters are applied when the description is shown.
+        $result->content = format_module_intro('moodleoverflow', $record, $coursemodule->id, false);
+    }
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $result->customdata['customcompletionrules']['completionposts'] = $record->completionposts;
+    }
+    return $result;
 }
 
 /**
@@ -398,7 +425,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
         ? service\readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id)
         : 0;
     if ($reviewcount || $unread) {
-        $cm->set_after_link($OUTPUT->render_from_template('mod_moodleoverflow/course_badges', [
+        $cm->set_after_link($OUTPUT->render_from_template('mod_moodleoverflow/course/course_badges', [
             'url' => $cm->url->out(false),
             'reviewcount' => $reviewcount,
             'unread' => $unread ? [

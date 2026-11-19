@@ -131,6 +131,19 @@ final class posting_test extends \advanced_testcase {
         posting::create_discussion($this->modflow, $this->student->id, $this->content('Question', '  '));
     }
 
+    /**
+     * Test, if a single discussion moodleoverflow refuses a second discussion, also from a teacher.
+     */
+    public function test_create_discussion_single(): void {
+        $modflow = $this->create_moodleoverflow(['singlediscussion' => 1]);
+        posting::create_discussion($modflow, $this->teacher->id, $this->content('Question', 'Topic'));
+
+        $this->assert_refused(
+            fn() => posting::create_discussion($modflow, $this->teacher->id, $this->content('Second question', 'Topic 2')),
+            'nopostmoodleoverflow'
+        );
+    }
+
     // Reply.
 
     /**

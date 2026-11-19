@@ -1,0 +1,43 @@
+{{!
+  This file is part of Moodle - http://moodle.org/
+
+  Moodle is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Moodle is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template mod_moodleoverflow/forum_header
+
+  The description of a moodleoverflow and the rules for its participants (output\forum_header). The list of
+  discussions shows them above its action bar, the discussion of a single discussion moodleoverflow above its buttons.
+
+  Example context (json):
+  {
+      "intro": "<p>Ask your questions about the lecture here.</p>",
+      "hints": [{"icon": "i/duration", "label": "Moderated forum", "text": "a teacher checks every new post."}]
+  }
+}}
+{{#intro}}
+    {{! The description of the activity in its own frame; the page header does not show it. }}
+    <div class="moodleoverflow-intro border rounded p-3 {{#hints.0}}mb-2{{/hints.0}}{{^hints.0}}mb-3{{/hints.0}}">{{{intro}}}</div>
+{{/intro}}
+{{#hints.0}}
+    {{! The rules of this forum for its participants (anonymity, review, answer window) as a quiet note below the
+        description: icon, a bold label to recognise the kind of forum at once, and a short sentence. }}
+    <div class="alert alert-info small text-muted py-1 px-2 mb-3" role="note">
+        <ul class="list-unstyled mb-0">
+            {{#hints}}
+                <li>{{#pix}}{{icon}}, core{{/pix}}<strong>{{label}}</strong>{{#str}}labelsep, langconfig{{/str}}{{text}}</li>
+            {{/hints}}
+        </ul>
+    </div>
+{{/hints.0}}

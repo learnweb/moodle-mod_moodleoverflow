@@ -25,6 +25,7 @@
 use mod_moodleoverflow\event\course_module_viewed;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\permissions;
+use mod_moodleoverflow\local\service;
 use mod_moodleoverflow\local\service\subscription;
 use mod_moodleoverflow\output\pages\view\view_page;
 
@@ -75,6 +76,15 @@ $SESSION->fromdiscussion = qualified_me();
 
 $event = course_module_viewed::create(['objectid' => $modflow->id, 'context' => $modflow->get_context()]);
 $event->trigger();
+
+// A single discussion moodleoverflow has no list to choose from: its discussion page shows the top of this page too. The
+// unsubscribe link of a mail stays here for its confirmation dialog.
+if ($modflow->is_single_discussion() && !$unsubscribe) {
+    $discussions = service\discussion::get_discussions($modflow, $USER->id);
+    if ($discussions) {
+        redirect(reset($discussions)->get_link());
+    }
+}
 
 // Output starts here.
 echo $OUTPUT->header();

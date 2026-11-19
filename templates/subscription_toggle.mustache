@@ -17,7 +17,8 @@
 {{!
     @template mod_moodleoverflow/subscription_toggle
 
-    An item of a dropdown menu that subscribes to or unsubscribes from a moodleoverflow or a discussion. Loads the JS
+    An item of a dropdown menu that subscribes to or unsubscribes from a moodleoverflow or a discussion, or a button with
+    "asbutton" (single discussion moodleoverflow). Loads the JS
     module mod_moodleoverflow/subscription itself. Both states are rendered, the JS shows the current one; each state has
     its own tooltip.
 
@@ -26,6 +27,7 @@
     * id - The id of the moodleoverflow or discussion
     * subscribed - Whether the user is subscribed now
     * forum - The texts of the moodleoverflow ("Subscribe to forum") instead of the discussion
+    * asbutton - A small button instead of an item of a dropdown menu
 
     Example context (json):
     {
@@ -35,7 +37,8 @@
         "forum": false
     }
 }}
-<button type="button" class="dropdown-item" data-action="mod_moodleoverflow/toggle-subscription" data-type="{{type}}"
+<button type="button" class="{{#asbutton}}btn btn-outline-secondary btn-sm m-1{{/asbutton}}{{^asbutton}}dropdown-item{{/asbutton}}"
+        data-action="mod_moodleoverflow/toggle-subscription" data-type="{{type}}"
         data-id="{{id}}" data-subscribed="{{#subscribed}}1{{/subscribed}}{{^subscribed}}0{{/subscribed}}">
     {{#forum}}
         <span data-state="subscribed" class="{{^subscribed}}d-none{{/subscribed}}" title="{{#str}}unsubscribeforumdesc, mod_moodleoverflow{{/str}}">{{!

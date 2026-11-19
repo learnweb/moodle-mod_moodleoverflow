@@ -72,6 +72,8 @@ $string['cannottrack'] = 'Could not stop tracking that forum';
 $string['cannotupdatepost'] = 'You can not update this post';
 $string['cannotviewuserstats'] = 'You cannot view the user statistics of this forum';
 $string['changesubscriptionmode'] = 'Changing the subscription mode resets the subscription choices of all participants, also for single discussions. Afterwards the default of the new mode applies.';
+$string['completiondetail:posts'] = 'Write posts: {$a}';
+$string['completionposts'] = 'Write posts (questions, answers or comments)';
 $string['configallowdisablerating'] = 'Set to \'yes\' if you want to give teachers the ability to disable rating and reputation.';
 $string['configallowratingchange'] = 'Can a user change its ratings?';
 $string['configforcedreadtracking'] = 'Allows Moodleoverflows to be set to forced read tracking. Will result in decreased performance for some users, particularly on courses with many moodleoverflows and posts. When off, any moodleoverflows previously set to Forced are treated as optional.';
@@ -116,6 +118,8 @@ $string['desc:review_everything'] = 'a teacher checks every new post before othe
 $string['desc:review_everything_label'] = 'Moderated forum';
 $string['desc:review_questions'] = 'a teacher checks every new question before others can see it. Answers appear right away.';
 $string['desc:review_questions_label'] = 'Moderated questions';
+$string['desc:singlediscussion'] = 'this forum has one question by the teacher; everybody answers and comments on it.';
+$string['desc:singlediscussion_label'] = 'Single discussion';
 $string['discussionname'] = 'Discussion name';
 $string['discussionnavigation'] = 'Navigate to neighbouring discussions';
 $string['discussions'] = 'Discussions';
@@ -254,21 +258,20 @@ $string['messageprovider:posts'] = 'Notification of new posts';
 $string['messageprovider:rejected'] = 'Rejection of your posts';
 $string['messageprovider:reviewneeded'] = 'Posts that need your review';
 $string['modulename'] = 'Moodleoverflow';
-$string['modulename_help'] = '###### Key features
-- Provides a non-linear, non-chronological question-and-answer forum structure
-- Posts are ordered by collaborative voting rather than time
-- Users can rate posts and earn reputation scores based on ratings
-- Discussion starters can mark answers as helpful; teachers can mark correct solutions
-- Highly customizable to fit different course needs
+$string['modulename_help'] = '#### Key features
+* Students vote on answers, and the best answers rise to the top
+* The questioner marks the answer that helped, the teacher marks the solution
+* Good answers earn reputation, which can also become a grade
+* Questions can be asked anonymously, posts can be approved before they appear
+* Answers can be allowed only within a time window you set
 
-###### Ways to use it
-- Facilitate Q&A discussions for assignments, projects, or exams
-- Encourage peer support and collaborative problem-solving
-- Highlight the most helpful answers through voting and teacher validation
-- Use reputation scores to motivate quality contributions
-- Create dynamic, interactive forums for large classes or complex topics';
-$string['modulename_summary'] = 'Provides a question-and-answer forum where posts are ranked by votes instead of time, with reputation scores, helpful answer marking, and teacher validation for correct solutions.';
-$string['modulename_tip'] = "Explore the official <a href='https://github.com/learnweb/moodle-mod_moodleoverflow/wiki'>wiki</a> for more details and customization options!";
+#### Ways to use it
+* Let students ask and answer questions about the lecture, so next semester\'s students find the answers right away
+* Collect anonymous questions before an exam
+* Collect questions during a lecture and open the forum for answers afterwards
+* Recognise students who help others';
+$string['modulename_summary'] = 'A question-and-answer forum inspired by Stack Overflow: students ask, the course answers, and the best answers rise to the top.';
+$string['modulename_tip'] = 'For a quick start, choose a preset under "Typical use" in the settings, such as "Questions about the lecture" or "Anonymous questions".';
 $string['modulenameplural'] = 'Moodleoverflows';
 $string['moodleoverflow'] = 'Moodleoverflow';
 $string['moodleoverflow:addinstance'] = 'Add a new Moodleoverflow instance';
@@ -441,6 +444,9 @@ $string['showpost'] = "Show post";
 $string['showpost_collapse'] = 'collapse';
 $string['showpost_expand'] = 'expand';
 $string['showuserstats'] = 'Show cumulative user statistics';
+$string['singlediscussion'] = 'Single discussion';
+$string['singlediscussion_help'] = 'The forum has only one discussion: a teacher asks the question, and everybody answers, comments and votes on it. The page of the forum shows this discussion instead of a list. Only teachers who can manage the activity can start it, and only while the forum has no discussion yet. Useful instead of a page that students can comment on, or as one step of a series of discussions.';
+$string['singlediscussiontoomany'] = 'A single discussion forum can have only one discussion, this one has {$a}.';
 $string['starterrating'] = 'Helpful';
 $string['subject'] = 'Subject';
 $string['subscribe'] = 'Subscribe to forum';

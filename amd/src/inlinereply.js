@@ -92,7 +92,7 @@ const openForm = async(command) => {
     if (!form?.matches(Selectors.form)) {
         const pending = new Pending('mod_moodleoverflow/inlinereply:open');
         const isquestion = card.classList.contains('firstpost');
-        const {html, js} = await Templates.renderForPromise('mod_moodleoverflow/inline_reply', {
+        const {html, js} = await Templates.renderForPromise('mod_moodleoverflow/pages/discussion/inline_reply', {
             postid: command.dataset.postid,
             posturl: `${M.cfg.wwwroot}/mod/moodleoverflow/post.php`,
             isanswer: isquestion,

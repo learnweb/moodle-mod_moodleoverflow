@@ -94,6 +94,10 @@ if (
 // Initiate the page.
 $PAGE->set_title($course->shortname . ': ' . format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
+if ($modflow->is_single_discussion()) {
+    // The page shows the description itself, in the top of the forum page (forum_header), not in the page header.
+    $PAGE->activityheader->set_description('');
+}
 
 echo $OUTPUT->header();
 echo $OUTPUT->render(new discussion_page($discussion, $query));

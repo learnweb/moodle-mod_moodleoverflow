@@ -71,7 +71,7 @@ $formats = array_filter(
     core_plugin_manager::instance()->get_plugins_of_type('dataformat'),
     fn($format) => $format->is_enabled()
 );
-echo $OUTPUT->render_from_template('mod_moodleoverflow/export_form', [
+echo $OUTPUT->render_from_template('mod_moodleoverflow/pages/export/export_form', [
     'action' => (new moodle_url('/mod/moodleoverflow/export.php'))->out(false),
     'cmid' => $id,
     'formats' => array_values(array_map(
