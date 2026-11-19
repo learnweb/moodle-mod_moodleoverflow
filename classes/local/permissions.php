@@ -27,6 +27,7 @@ use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\moodleoverflow;
 use mod_moodleoverflow\local\models\post;
 use core\exception\moodle_exception;
+use mod_moodleoverflow\local\models\post_quota;
 
 /**
  * Stateless class that bundles permissions checks. This is the central "rulebook" of this plugin for read/writes.
@@ -214,32 +215,60 @@ class permissions {
      * If a user can start a discussion.
      * @param moodleoverflow $modflow
      * @param int $userid
+     * @param post_quota|null $quota The user's quota, if the caller has loaded it already
      * @return bool
      * @throws coding_exception|dml_exception|moodle_exception
      */
-    public static function can_start_discussion(moodleoverflow $modflow, int $userid): bool {
+    public static function can_start_discussion(moodleoverflow $modflow, int $userid, ?post_quota $quota = null): bool {
         $context = $modflow->get_context();
         return self::can_view_moodleoverflow($modflow, $userid)
             && has_capability('mod/moodleoverflow:startdiscussion', $context, $userid)
             && (!$modflow->is_single_discussion()
-                || (!$modflow->has_discussions() && has_capability('moodle/course:manageactivities', $context, $userid)));
+                || (!$modflow->has_discussions() && has_capability('moodle/course:manageactivities', $context, $userid)))
+            && self::is_within_post_limit($modflow, $userid, true, $quota);
     }
 
     /**
      * If a user can reply to a post.
      * @param post $post
      * @param int $userid
+     * @param post_quota|null $quota The user's quota, if the caller has loaded it already (one per page)
      * @return bool
-     * @throws coding_exception|moodle_exception
+     * @throws coding_exception|moodle_exception|dml_exception
      */
-    public static function can_reply(post $post, int $userid): bool {
+    public static function can_reply(post $post, int $userid, ?post_quota $quota = null): bool {
         return self::can_view_post($post, $userid)
             && has_capability('mod/moodleoverflow:replypost', $post->get_context(), $userid)
             && $post->reviewed === 1
             && (
                 $post->get_moodleoverflow()->is_answer_window_open()
                 || has_capability('mod/moodleoverflow:canignorelimitedanswer', $post->get_context(), $userid)
-            );
+            )
+            && self::is_within_post_limit($post->get_moodleoverflow(), $userid, false, $quota);
+    }
+
+    /**
+     * If a user can write another question or answer within the post limits of a moodleoverflow.
+     * @param moodleoverflow $modflow
+     * @param int $userid
+     * @param bool $question True for a question, false for an answer or a comment
+     * @param post_quota|null $quota The user's quota, if the caller has loaded it already
+     * @return bool
+     * @throws coding_exception|dml_exception
+     */
+    public static function is_within_post_limit(
+        moodleoverflow $modflow,
+        int $userid,
+        bool $question,
+        ?post_quota $quota = null
+    ): bool {
+        if (!$modflow->has_post_limit() || has_capability('mod/moodleoverflow:ignorepostlimit', $modflow->get_context(), $userid)) {
+            return true;
+        }
+        if ($quota && ($quota->userid !== $userid || $quota->moodleoverflowid !== $modflow->id)) {
+            throw new coding_exception('The post quota belongs to another user or moodleoverflow.');
+        }
+        return ($quota ?? $modflow->get_post_quota($userid))->has_left($question);
     }
 
     /**

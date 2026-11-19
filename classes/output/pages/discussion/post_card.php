@@ -154,7 +154,7 @@ class post_card implements named_templatable, renderable {
         $replytarget = $this->post->is_comment() ? $this->post->get_parentpost() : $this->post;
         $windowopen = $this->post->get_moodleoverflow()->is_answer_window_open();
         $helpicon = fn(string $identifier) => (new help_icon($identifier, 'moodleoverflow'))->export_for_template($output);
-        if (permissions::can_reply($replytarget, $USER->id)) {
+        if (permissions::can_reply($replytarget, $USER->id, $this->data->get_post_quota())) {
             $url = new moodle_url('/mod/moodleoverflow/post.php', ['reply' => $replytarget->get_id()]);
             $commands['reply'] = [
                 'url' => $url->out(false),

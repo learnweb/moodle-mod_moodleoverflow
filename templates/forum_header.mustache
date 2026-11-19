@@ -17,13 +17,15 @@
 {{!
   @template mod_moodleoverflow/forum_header
 
-  The description of a moodleoverflow and the rules for its participants (output\forum_header). The list of
-  discussions shows them above its action bar, the discussion of a single discussion moodleoverflow above its buttons.
+  The description of a moodleoverflow, the rules for its participants and the warning of a viewer who has reached a
+  post limit (output\forum_header). The list of discussions shows them above its action bar, the discussion of a single
+  discussion moodleoverflow above its buttons; the discussion of another moodleoverflow shows only the warning.
 
   Example context (json):
   {
       "intro": "<p>Ask your questions about the lecture here.</p>",
-      "hints": [{"icon": "i/duration", "label": "Moderated forum", "text": "a teacher checks every new post."}]
+      "hints": [{"icon": "i/duration", "label": "Moderated forum", "text": "a teacher checks every new post."}],
+      "warnings": ["You have reached your limit of answers and comments. You can write the next one on 21 Nov, 09:30."]
   }
 }}
 {{#intro}}
@@ -41,3 +43,13 @@
         </ul>
     </div>
 {{/hints.0}}
+{{#warnings.0}}
+    {{! Only for the viewer: a post limit is reached, so the commands to post are gone; this says until when. }}
+    <div class="alert alert-warning small py-1 px-2 mb-3" role="status">
+        <ul class="list-unstyled mb-0">
+            {{#warnings}}
+                <li>{{#pix}}i/warning, core{{/pix}}{{.}}</li>
+            {{/warnings}}
+        </ul>
+    </div>
+{{/warnings.0}}

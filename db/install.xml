@@ -35,6 +35,9 @@
         <FIELD NAME="wordsmax" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Maximum number of words a post can have"/>
         <FIELD NAME="singlediscussion" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the moodleoverflow has only one discussion, started by a teacher"/>
         <FIELD NAME="completionposts" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of posts a user must write to complete the activity, 0: no completion rule"/>
+        <FIELD NAME="postlimitquestions" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of questions a user can start per period, 0: no limit"/>
+        <FIELD NAME="postlimitanswers" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of answers and comments a user can write per period, 0: no limit"/>
+        <FIELD NAME="postlimitperiod" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="86400" SEQUENCE="false" COMMENT="Length of the period of the post limits in seconds, 0: in total"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

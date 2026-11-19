@@ -83,11 +83,19 @@ class discussion_page implements named_templatable, renderable {
         $previous = $neighbour($current + 1);
         $next = $neighbour($current - 1);
 
+        // A single discussion moodleoverflow has no list: its discussion shows the top of the forum page, with the
+        // actions as buttons. The user has just read the only discussion, so nothing is unread. Other discussions
+        // only warn a user who has reached a post limit, because the reply commands are gone.
+        $quota = $data->get_post_quota();
+        if ($modflow->is_single_discussion()) {
+            $header = ['asbutton' => true] + (new forum_header($modflow, 0, $quota))->export_for_template($output);
+        } else {
+            $warnings = forum_header::get_post_limit_warnings($modflow, $USER->id, $quota);
+            $header = $warnings ? ['warnings' => $warnings] : [];
+        }
+
         return (object) [
-            // A single discussion moodleoverflow has no list: its discussion shows the top of the forum page, with the
-            // actions as buttons. The user has just read the only discussion, so nothing is unread.
-            'header' => $modflow->is_single_discussion()
-                ? ['asbutton' => true] + (new forum_header($modflow, 0))->export_for_template($output) : [],
+            'header' => $header,
             // The title of the discussion; a search that found it highlights its words like in the posts.
             'subject' => highlight($this->query, $subject, false, '<mark>', '</mark>'),
             'highlight' => $this->query !== '' ? [

@@ -75,6 +75,9 @@ class moodleoverflow {
      * @param int $wordsmax
      * @param bool $singlediscussion
      * @param int $completionposts
+     * @param int $postlimitquestions
+     * @param int $postlimitanswers
+     * @param int $postlimitperiod
      * @param ?int $grademaxgrade
      * @param ?int $gradescalefactor
      * @param ?int $gradepass
@@ -129,6 +132,12 @@ class moodleoverflow {
         public readonly bool $singlediscussion,
         /** @var int Number of posts a user must write to complete the activity, 0: no completion rule */
         public readonly int $completionposts,
+        /** @var int Number of questions a user can start per period, 0: no limit */
+        public readonly int $postlimitquestions,
+        /** @var int Number of answers and comments a user can write per period, 0: no limit */
+        public readonly int $postlimitanswers,
+        /** @var int Length of the period of the post limits in seconds, 0: in total */
+        public readonly int $postlimitperiod,
         /** @var ?int Maximum grade, null when grading is not configured */
         public readonly ?int $grademaxgrade,
         /** @var ?int Divisor that turns the reputation into a grade */
@@ -185,6 +194,9 @@ class moodleoverflow {
             wordsmax: (int) ($record->wordsmax ?? 0),
             singlediscussion: (bool) ($record->singlediscussion ?? false),
             completionposts: (int) ($record->completionposts ?? 0),
+            postlimitquestions: (int) ($record->postlimitquestions ?? 0),
+            postlimitanswers: (int) ($record->postlimitanswers ?? 0),
+            postlimitperiod: (int) ($record->postlimitperiod ?? DAYSECS),
             grademaxgrade: isset($record->grademaxgrade) ? (int) $record->grademaxgrade : null,
             gradescalefactor: isset($record->gradescalefactor) ? (int) $record->gradescalefactor : null,
             gradepass: isset($record->gradepass) ? (int) $record->gradepass : null,
@@ -350,6 +362,46 @@ class moodleoverflow {
         if ($max !== null && $count > $max) {
             throw new moodle_exception('errorwordsmax', 'moodleoverflow', '', (object) ['count' => $count, 'limit' => $max]);
         }
+    }
+
+    /**
+     * Whether the number of questions or answers a user can write is limited.
+     * @return bool
+     */
+    public function has_post_limit(): bool {
+        return $this->postlimitquestions > 0 || $this->postlimitanswers > 0;
+    }
+
+    /**
+     * The posts a user has written within the period of the post limits. Posts that wait for review count, deleted posts don't.
+     * @param int $userid
+     * @return post_quota
+     * @throws dml_exception
+     */
+    public function get_post_quota(int $userid): post_quota {
+        global $DB;
+        $times = ['questions' => [], 'answers' => []];
+        if ($this->has_post_limit()) {
+            $sql = 'SELECT p.id, p.parent, p.created
+                      FROM {moodleoverflow_posts} p
+                      JOIN {moodleoverflow_discussions} d ON d.id = p.discussion
+                     WHERE d.moodleoverflow = :modflowid AND p.userid = :userid AND p.created > :since
+                  ORDER BY p.created ASC, p.id ASC';
+            $since = $this->postlimitperiod > 0 ? time() - $this->postlimitperiod : 0;
+            $params = ['modflowid' => $this->id, 'userid' => $userid, 'since' => $since];
+            foreach ($DB->get_records_sql($sql, $params) as $post) {
+                $times[(int) $post->parent === 0 ? 'questions' : 'answers'][] = (int) $post->created;
+            }
+        }
+        return new post_quota(
+            $this->id,
+            $userid,
+            $this->postlimitquestions,
+            $this->postlimitanswers,
+            $this->postlimitperiod,
+            $times['questions'],
+            $times['answers']
+        );
     }
 
     /**

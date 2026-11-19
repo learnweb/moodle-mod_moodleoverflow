@@ -452,5 +452,22 @@ function xmldb_moodleoverflow_upgrade($oldversion) {
         }
         upgrade_mod_savepoint(true, 2026111403, 'moodleoverflow');
     }
+
+    if ($oldversion < 2026111404) {
+        // Add the limits of questions and answers a user can write per period.
+        $table = new xmldb_table('moodleoverflow');
+        $fields = [
+            new xmldb_field('postlimitquestions', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, 'completionposts'),
+            new xmldb_field('postlimitanswers', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, 'postlimitquestions'),
+            new xmldb_field('postlimitperiod', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 86400, 'postlimitanswers'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_mod_savepoint(true, 2026111404, 'moodleoverflow');
+    }
+
     return true;
 }
