@@ -296,6 +296,43 @@ final class permissions_test extends \advanced_testcase {
     }
 
     /**
+     * Test, if the post limits stop a student after the limit within the period, questions and answers separately,
+     * but not a teacher, and if older posts do not count.
+     */
+    public function test_is_within_post_limit(): void {
+        global $DB;
+        $modflow = $this->create_moodleoverflow(['postlimitquestions' => 1, 'postlimitanswers' => 2]);
+        $question = $this->generator->create_question($modflow, $this->student);
+        $this->assertFalse(permissions::can_start_discussion($modflow, $this->student->id));
+        $this->assertTrue(permissions::can_reply($question, $this->student->id));
+
+        $this->generator->create_reply($question, $this->student);
+        $this->generator->create_reply($question, $this->student);
+        $this->assertFalse(permissions::can_reply($question, $this->student->id));
+        $this->assertTrue(permissions::can_reply($question, $this->otherstudent->id));
+
+        // Teachers are not limited.
+        $this->generator->create_question($modflow, $this->teacher);
+        $this->assertTrue(permissions::can_start_discussion($modflow, $this->teacher->id));
+
+        // Posts that left the period do not count any more.
+        $DB->set_field('moodleoverflow_posts', 'created', time() - 2 * DAYSECS, ['userid' => $this->student->id]);
+        $this->assertTrue(permissions::can_start_discussion($modflow, $this->student->id));
+        $this->assertTrue(permissions::can_reply($question, $this->student->id));
+    }
+
+    /**
+     * Test, if a post quota of another user is refused, so that a page cannot check one user with the posts of another.
+     */
+    public function test_is_within_post_limit_other_quota(): void {
+        $modflow = $this->create_moodleoverflow(['postlimitanswers' => 1]);
+        $question = $this->generator->create_question($modflow, $this->teacher);
+
+        $this->expectException(\coding_exception::class);
+        permissions::can_reply($question, $this->student->id, $modflow->get_post_quota($this->otherstudent->id));
+    }
+
+    /**
      * Test, if authors can edit their posts only in the edit window and before a review.
      */
     public function test_can_edit_post(): void {

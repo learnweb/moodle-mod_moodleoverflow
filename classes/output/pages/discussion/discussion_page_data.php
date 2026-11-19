@@ -20,11 +20,12 @@ use core\exception\moodle_exception;
 use mod_moodleoverflow\local\enum\rating_type;
 use mod_moodleoverflow\local\models\discussion;
 use mod_moodleoverflow\local\models\post;
+use mod_moodleoverflow\local\models\post_quota;
 use mod_moodleoverflow\local\service;
 
 /**
  * The data of a discussion page that every post card needs, loaded once for the whole discussion instead of once per
- * post: the ratings, the votes and the unread posts of the user, and the reputations of the authors.
+ * post: the ratings, the votes, the unread posts and the post quota of the user, and the reputations of the authors.
  *
  * @package    mod_moodleoverflow
  * @copyright  2026 Tamaro Walter
@@ -43,6 +44,9 @@ class discussion_page_data {
     /** @var int[] The reputations of the authors that were asked for, indexed by user id */
     private array $reputations = [];
 
+    /** @var post_quota The posts the user has written within the period of the post limits */
+    private post_quota $quota;
+
     /**
      * Constructor.
      * @param discussion $discussion
@@ -59,6 +63,15 @@ class discussion_page_data {
         $this->ratings = $ratings;
         $this->votes = service\rating::get_user_votes($discussion, $userid);
         $this->unread = service\readtracking::get_unread_post_ids($discussion, $userid);
+        $this->quota = $discussion->get_moodleoverflow()->get_post_quota($userid);
+    }
+
+    /**
+     * Returns the post quota of the user, so that the reply command of every post is checked without a query.
+     * @return post_quota
+     */
+    public function get_post_quota(): post_quota {
+        return $this->quota;
     }
 
     /**

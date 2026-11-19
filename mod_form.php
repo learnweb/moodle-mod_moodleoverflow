@@ -58,7 +58,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
      */
     private function has_discussions(): bool {
         return $this->hasdiscussions ??= $this->get_instance()
-            && moodleoverflow::from_id($this->get_instance())->has_discussions();
+            && moodleoverflow::from_id((int) $this->get_instance())->has_discussions();
     }
 
     /**
@@ -175,6 +175,26 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $mform->setType($field, PARAM_INT);
             $mform->setDefault($field, 0);
         }
+
+        // Posts per participant in one row: "[ 1 ] questions [ 3 ] answers and comments [ per day ]", 0 means no limit.
+        $mform->addGroup([
+            $mform->createElement('text', 'postlimitquestions', get_string('postlimitquestions', 'moodleoverflow'), ['size' => 4]),
+            $mform->createElement('text', 'postlimitanswers', get_string('postlimitanswers', 'moodleoverflow'), ['size' => 4]),
+            $mform->createElement('select', 'postlimitperiod', get_string('postlimitperiod', 'moodleoverflow'), [
+                DAYSECS => get_string('postlimitperday', 'moodleoverflow'),
+                WEEKSECS => get_string('postlimitperweek', 'moodleoverflow'),
+                0 => get_string('postlimitintotal', 'moodleoverflow'),
+            ]),
+        ], 'postlimits', get_string('postlimit', 'moodleoverflow'), [
+            get_string('postlimitquestionsunit', 'moodleoverflow') . '&nbsp;',
+            get_string('postlimitanswersunit', 'moodleoverflow') . '&nbsp;',
+        ], false);
+        $mform->addHelpButton('postlimits', 'postlimit', 'moodleoverflow');
+        foreach (['postlimitquestions', 'postlimitanswers'] as $field) {
+            $mform->setType($field, PARAM_INT);
+            $mform->setDefault($field, 0);
+        }
+        $mform->setDefault('postlimitperiod', DAYSECS);
 
         // Answer times. Once there are answers, the start cannot be moved any more.
         $answersfound = $this->get_instance() && moodleoverflow::from_id($this->get_instance())->has_answers();
@@ -428,6 +448,11 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
             $errors['wordslimits'] = get_string('errorwordslimitnegative', 'moodleoverflow');
         } else if ($wordsmax > 0 && $wordsmax < $wordsmin) {
             $errors['wordslimits'] = get_string('errorwordsmaxbelowmin', 'moodleoverflow');
+        }
+
+        // The post limits cannot be negative; 0 means no limit.
+        if ((int) ($data['postlimitquestions'] ?? 0) < 0 || (int) ($data['postlimitanswers'] ?? 0) < 0) {
+            $errors['postlimits'] = get_string('errorpostlimitnegative', 'moodleoverflow');
         }
 
         // The completion rule needs at least one post.

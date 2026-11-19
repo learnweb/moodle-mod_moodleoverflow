@@ -35,7 +35,16 @@
         <div class="d-flex align-items-center">
             <div class="d-flex flex-wrap align-items-center flex-grow-1">
                 {{#startdiscussion}}
-                    <a href="{{{link}}}" class="btn btn-primary m-1">{{#str}} addanewdiscussion, moodleoverflow {{/str}}</a>
+                    {{#link}}
+                        <a href="{{{link}}}" class="btn btn-primary m-1">{{#str}} addanewdiscussion, moodleoverflow {{/str}}</a>
+                    {{/link}}
+                    {{#disabled}}
+                        {{! The limit of questions is reached: grey instead of blue, so it does not look like the active
+                            button. A disabled button shows no tooltip, so its wrapper has it. }}
+                        <span class="d-inline-block" title="{{#str}} postlimitreached_questions_short, moodleoverflow {{/str}}">
+                            <button type="button" class="btn btn-outline-secondary m-1" disabled>{{#str}} addanewdiscussion, moodleoverflow {{/str}}</button>
+                        </span>
+                    {{/disabled}}
                 {{/startdiscussion}}
                 {{#review_link}}
                     <a href="{{{review_link}}}" class="btn btn-danger m-1">{{#str}} review_needed, moodleoverflow {{/str}}</a>
@@ -106,7 +115,7 @@
         <div class="text-center text-muted border rounded py-5 px-3">
             <div class="icon-size-6 mb-2">{{#pix}}i/commenting, mod_moodleoverflow{{/pix}}</div>
             <p class="mb-1">{{#str}} nodiscussions, moodleoverflow {{/str}}</p>
-            {{#header.startdiscussion}}<p class="small mb-0">{{#str}} nodiscussionsask, moodleoverflow {{/str}}</p>{{/header.startdiscussion}}
+            {{#header.startdiscussion.link}}<p class="small mb-0">{{#str}} nodiscussionsask, moodleoverflow {{/str}}</p>{{/header.startdiscussion.link}}
         </div>
     {{/searching}}{{/hasdiscussions}}
 

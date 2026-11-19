@@ -223,6 +223,17 @@ $capabilities = [
         ],
         'clonepermissionsfrom' => 'mod/moodleoverflow:editanypost',
     ],
+    'mod/moodleoverflow:ignorepostlimit' => [
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'mod/moodleoverflow:canignorelimitedanswer',
+    ],
     'mod/moodleoverflow:postwithname' => [
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'write',

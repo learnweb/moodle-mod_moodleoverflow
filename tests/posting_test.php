@@ -197,6 +197,25 @@ final class posting_test extends \advanced_testcase {
         );
     }
 
+    /**
+     * Test, if questions and replies beyond the post limits are refused.
+     */
+    public function test_post_limits(): void {
+        $modflow = $this->create_moodleoverflow(['postlimitquestions' => 1, 'postlimitanswers' => 1]);
+        $question = posting::create_discussion($modflow, $this->student->id, $this->content('Question', 'Topic'))
+            ->get_first_post();
+        posting::reply($question, $this->student->id, $this->content('Answer'));
+
+        $this->assert_refused(
+            fn() => posting::create_discussion($modflow, $this->student->id, $this->content('Second question', 'Topic 2')),
+            'nopostmoodleoverflow'
+        );
+        $this->assert_refused(
+            fn() => posting::reply($question, $this->student->id, $this->content('Second answer')),
+            'cannotreply'
+        );
+    }
+
     // Edit.
 
     /**

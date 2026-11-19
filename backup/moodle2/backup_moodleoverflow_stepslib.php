@@ -48,7 +48,7 @@ class backup_moodleoverflow_activity_structure_step extends backup_activity_stru
             'forcesubscribe', 'trackingtype', 'ratingpreference', 'coursewidereputation', 'allowrating',
             'allowreputation', 'allownegativereputation', 'grademaxgrade', 'gradescalefactor', 'gradecat',
             'anonymous', 'allowmultiplemarks', 'la_starttime', 'la_endtime', 'wordsmin', 'wordsmax',
-            'singlediscussion', 'completionposts', ]);
+            'singlediscussion', 'completionposts', 'postlimitquestions', 'postlimitanswers', 'postlimitperiod', ]);
 
         // Define each element separated.
         $discussions = new backup_nested_element('discussions');
