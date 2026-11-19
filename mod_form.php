@@ -112,7 +112,7 @@ class mod_moodleoverflow_mod_form extends moodleform_mod {
         }
         $mform->addElement('select', 'preset', get_string('preset', 'moodleoverflow'), $options);
         $mform->addHelpButton('preset', 'preset', 'moodleoverflow');
-        $mform->addElement('html', $OUTPUT->render_from_template('mod_moodleoverflow/form_presets', [
+        $mform->addElement('html', $OUTPUT->render_from_template('mod_moodleoverflow/form/presets', [
             'presets' => array_map(
                 fn(preset $preset) => ['key' => $preset->value, 'name' => $preset->get_name(),
                     'description' => $preset->get_description()],

@@ -105,7 +105,8 @@ class overview extends activityoverviewbase {
             'instanceid' => $this->moodleoverflow->id,
             'unreadamount' => $unread,
         ];
-        return new overviewitem($name, $unread, $OUTPUT->render_from_template('mod_moodleoverflow/readtracking', $mustachedata));
+        $content = $OUTPUT->render_from_template('mod_moodleoverflow/course/overview_readtracking', $mustachedata);
+        return new overviewitem($name, $unread, $content);
     }
 
     /**

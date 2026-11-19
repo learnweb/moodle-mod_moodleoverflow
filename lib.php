@@ -425,7 +425,7 @@ function moodleoverflow_cm_info_view(cm_info $cm) {
         ? service\readtracking::count_unread_posts_moodleoverflow($moodleoverflow, $USER->id)
         : 0;
     if ($reviewcount || $unread) {
-        $cm->set_after_link($OUTPUT->render_from_template('mod_moodleoverflow/course_badges', [
+        $cm->set_after_link($OUTPUT->render_from_template('mod_moodleoverflow/course/course_badges', [
             'url' => $cm->url->out(false),
             'reviewcount' => $reviewcount,
             'unread' => $unread ? [

@@ -99,7 +99,7 @@ if ($action === posting_action::REPLY) {
 }
 echo $OUTPUT->header();
 if ($action === posting_action::REPLY) {
-    echo $OUTPUT->render_from_template('mod_moodleoverflow/post_original', [
+    echo $OUTPUT->render_from_template('mod_moodleoverflow/pages/post/post_original', [
         'postid' => $post->get_id(),
         'postcontent' => $post->get_message_formatted(),
         'attachments' => $post->get_attachments($OUTPUT),

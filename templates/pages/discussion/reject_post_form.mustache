@@ -15,7 +15,7 @@
   along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-  @template mod_moodleoverflow/answer
+  @template mod_moodleoverflow/pages/discussion/reject_post_form
 
   Moodleoverflow answer template.
   The purpose of this template is to render an answer in the discussion.
@@ -27,9 +27,14 @@
 
 
 {{! Start the post. Mark it read or unread. }}
-<a class="btn btn-success" data-moodleoverflow-action="approve">
-    {{#str}} approve, mod_moodleoverflow {{/str}}
-</a>
-<a class="btn btn-danger"  data-moodleoverflow-action="reject">
-    {{#str}} reject, mod_moodleoverflow {{/str}}
-</a>
+<div class="w-100">
+    <textarea
+            rows="3"
+            class="form-control reject-reason"
+            placeholder="{{#str}} give_a_reason, mod_moodleoverflow {{/str}}"
+    ></textarea>
+    <div class="d-flex mt-2">
+        <a class="btn btn-danger me-2" data-moodleoverflow-action="reject-submit">{{#str}}reject, mod_moodleoverflow{{/str}}</a>
+        <a class="btn btn-secondary" data-moodleoverflow-action="reject-cancel">{{#str}}cancel{{/str}}</a>
+    </div>
+</div>
