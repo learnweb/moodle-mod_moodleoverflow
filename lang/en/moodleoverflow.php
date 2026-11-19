@@ -258,21 +258,20 @@ $string['messageprovider:posts'] = 'Notification of new posts';
 $string['messageprovider:rejected'] = 'Rejection of your posts';
 $string['messageprovider:reviewneeded'] = 'Posts that need your review';
 $string['modulename'] = 'Moodleoverflow';
-$string['modulename_help'] = '###### Key features
-- Provides a non-linear, non-chronological question-and-answer forum structure
-- Posts are ordered by collaborative voting rather than time
-- Users can rate posts and earn reputation scores based on ratings
-- Discussion starters can mark answers as helpful; teachers can mark correct solutions
-- Highly customizable to fit different course needs
+$string['modulename_help'] = '#### Key features
+* Students vote on answers, and the best answers rise to the top
+* The questioner marks the answer that helped, the teacher marks the solution
+* Good answers earn reputation, which can also become a grade
+* Questions can be asked anonymously, posts can be approved before they appear
+* Answers can be allowed only within a time window you set
 
-###### Ways to use it
-- Facilitate Q&A discussions for assignments, projects, or exams
-- Encourage peer support and collaborative problem-solving
-- Highlight the most helpful answers through voting and teacher validation
-- Use reputation scores to motivate quality contributions
-- Create dynamic, interactive forums for large classes or complex topics';
-$string['modulename_summary'] = 'Provides a question-and-answer forum where posts are ranked by votes instead of time, with reputation scores, helpful answer marking, and teacher validation for correct solutions.';
-$string['modulename_tip'] = "Explore the official <a href='https://github.com/learnweb/moodle-mod_moodleoverflow/wiki'>wiki</a> for more details and customization options!";
+#### Ways to use it
+* Let students ask and answer questions about the lecture, so next semester\'s students find the answers right away
+* Collect anonymous questions before an exam
+* Collect questions during a lecture and open the forum for answers afterwards
+* Recognise students who help others';
+$string['modulename_summary'] = 'A question-and-answer forum inspired by Stack Overflow: students ask, the course answers, and the best answers rise to the top.';
+$string['modulename_tip'] = 'For a quick start, choose a preset under "Typical use" in the settings, such as "Questions about the lecture" or "Anonymous questions".';
 $string['modulenameplural'] = 'Moodleoverflows';
 $string['moodleoverflow'] = 'Moodleoverflow';
 $string['moodleoverflow:addinstance'] = 'Add a new Moodleoverflow instance';
